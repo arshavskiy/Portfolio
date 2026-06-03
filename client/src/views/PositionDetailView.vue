@@ -16,7 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
-const ticker = route.params.ticker.toUpperCase()
+const ticker = decodeURIComponent(route.params.ticker).toUpperCase()
 const transactions = ref([])
 const currentPrice = ref(null)
 const loading = ref(false)
@@ -46,7 +46,7 @@ watch(() => feeStore.profiles, (profiles) => {
 async function fetchLots() {
   loading.value = true
   try {
-    const data = await api.get(`/portfolio/transactions?ticker=${ticker}&limit=500`)
+    const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker)}&limit=500`)
     transactions.value = data.transactions.sort((a, b) => new Date(a.date) - new Date(b.date))
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000 })
@@ -57,7 +57,7 @@ async function fetchLots() {
 
 async function fetchQuote() {
   try {
-    const q = await api.get(`/stocks/quote/${ticker}`)
+    const q = await api.get(`/stocks/quote/${encodeURIComponent(ticker)}`)
     currentPrice.value = q.price
   } catch {}
 }

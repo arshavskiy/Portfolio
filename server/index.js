@@ -13,7 +13,36 @@ const { startCronJobs } = require('./services/cronService')
 
 const app = express()
 
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }))
+const localDevOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000'
+]
+
+const configuredOrigins = [
+  ...localDevOrigins,
+  ...(process.env.CORS_ORIGINS || process.env.CLIENT_URL || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+]
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true
+  if (configuredOrigins.includes(origin)) return true
+  if (process.env.ALLOW_VERCEL_PREVIEWS !== 'false' && /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin))
+    return true
+  return false
+}
+
+app.use(cors({
+  origin(origin, callback) {
+    if (isAllowedOrigin(origin)) return callback(null, true)
+    return callback(new Error(`CORS blocked origin: ${origin}`))
+  },
+  credentials: true,
+}))
 app.use(express.json())
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
 

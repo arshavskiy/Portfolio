@@ -107,7 +107,7 @@ function confirmDelete(pos) {
             text
             size="small"
             v-tooltip="'View lots'"
-            @click="router.push(`/position/${pos.ticker}`)"
+            @click="router.push(`/position/${encodeURIComponent(pos.ticker)}`)"
           />
           <Button
             icon="pi pi-trash"
