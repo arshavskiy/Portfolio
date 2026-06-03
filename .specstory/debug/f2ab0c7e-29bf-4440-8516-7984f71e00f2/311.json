@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 373,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\main.js\",\"content\":\"import { createApp } from 'vue'\\nimport { createPinia } from 'pinia'\\nimport PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport 'primeicons/primeicons.css'\\nimport './style.css'\\n\\nimport App from './App.vue'\\nimport router from './router'\\n\\nconst app = createApp(App)\\n\\napp.use(createPinia())\\napp.use(router)\\napp.use(PrimeVue, {\\n  theme: {\\n    preset: Aura,\\n    options: {\\n      prefix: 'p',\\n      darkModeSelector: '.dark',\\n      cssLayer: false,\\n    },\\n  },\\n})\\napp.use(ToastService)\\napp.use(ConfirmationService)\\n\\napp.mount('#app')\\n\"},\"tool_use_id\":\"toolu_01Lqwfptr7B8xuB17EfDBiE6\"}\n",
+    "toolUseID": "toolu_01Lqwfptr7B8xuB17EfDBiE6",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a9440622-ae05-499b-9a97-03d886f0474a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:33.004Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "dedf8e17-1f1f-45af-a843-9ec583b05d86",
+  "version": "2.1.160"
+}

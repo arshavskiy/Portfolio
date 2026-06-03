@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 492,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\".dash-header h1 { font-size: 1.5rem; font-weight: 700; }\",\"new_string\":\".dash-header h1 { font-size: 1.5rem; font-weight: 800; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01FMRNeJhMpfEvTpihgtuvAd\"}\n",
+    "toolUseID": "toolu_01FMRNeJhMpfEvTpihgtuvAd",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c557660f-51a6-4436-9792-d3f0d5ff473f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:28:36.589Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "bf35c088-eba5-4a85-99a1-993476e99220",
+  "version": "2.1.160"
+}

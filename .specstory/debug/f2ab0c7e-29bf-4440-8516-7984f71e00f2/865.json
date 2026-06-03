@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 398,
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Registration successful! You're logged in as Pavel and landed on the Dashboard. The app is fully working:\\n\\n- Account created in MongoDB Atlas\\n- JWT token stored, auth working\\n- Bottom nav visible with all 5 tabs\\n- Dashboard showing $0.00 (empty portfolio, ready to add holdings)\\n\\nWant to add some stocks now to test the full flow?\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "toolUseID": "9b1b3e2a-1ee4-421d-bcf7-f7f63433ebce",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "7c96114d-f1b5-4303-90a6-bd8f8b65c115",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:50:00.253Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "cc648fe6-6d43-44ff-81ed-cf43d4e26719",
+  "version": "2.1.160"
+}

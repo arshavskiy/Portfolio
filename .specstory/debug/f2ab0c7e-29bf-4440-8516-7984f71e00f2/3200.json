@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 276,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\".stock-pnl { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.4rem; font-size: 0.82rem; }\",\"new_string\":\".stock-spark { margin: 0.3rem -1rem; width: calc(100% + 2rem); }\\n.stock-pnl { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 0.4rem; font-size: 0.82rem; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01H1Cx7sSiTaFYcWoZ8M1Nqc\"}\n",
+    "toolUseID": "toolu_01H1Cx7sSiTaFYcWoZ8M1Nqc",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "0b4a2a12-0fb7-4739-bd5e-0cc1a0e57aab",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:18:59.091Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6da110f9-5c29-4eb6-a794-e45e45aaf88c",
+  "version": "2.1.160"
+}

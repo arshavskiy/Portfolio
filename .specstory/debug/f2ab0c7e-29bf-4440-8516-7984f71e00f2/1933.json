@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 256,
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Working exactly as you described. The view now shows:\\n\\n- **Overall P\u0026L** — -₪191,517 / **-78.97%** based on weighted avg ₪329.97 vs current ₪69.40\\n- **Formula shown** — Avg ₪329.97 → Current ₪69.40 so you see exactly how it's calculated\\n- **Stats** — Shares, Avg Cost, Total Cost, Current Value\\n- **Each lot** — shows the running average after that purchase\\n\\nThe -78.97% is correct given your data has one lot at ₪830 (the old wrong entry before the agorot fix) dragging the average up. Once you delete that old lot and re-enter correctly, the number will be accurate.\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "toolUseID": "2b464b39-da89-42ab-879d-d20a3273c782",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "54a626aa-2a7a-409f-a330-65b9da908e69",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:41:18.394Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e1c59e9c-5426-498d-945b-fad56818a04f",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1401,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\portfolioController.js\",\"old_string\":\"const { getQuotes, invalidateCache } = require('../services/stockService')\",\"new_string\":\"const { getQuotes, invalidateCache, getIlsToUsd } = require('../services/stockService')\",\"replace_all\":false},\"tool_use_id\":\"toolu_01XRmwsd3qpuitzK1iMDCT4A\"}\n",
+    "toolUseID": "toolu_01XRmwsd3qpuitzK1iMDCT4A",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "d574400d-a167-43dd-abd6-113cbef98d5b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:02:42.201Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d79aeef7-1430-429c-9133-a8d2b359bd6f",
+  "version": "2.1.160"
+}

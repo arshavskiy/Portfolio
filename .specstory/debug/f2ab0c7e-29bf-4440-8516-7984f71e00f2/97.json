@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_15864",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 3074,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "cd \"E:\\Projects\\Portfolio\" \u0026\u0026 npm create vite@latest client -- --template vue 2\u003e\u00261",
+        "description": "Scaffold Vite + Vue 3 client"
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": "npm warn exec The following package was not found and will be installed: create-vite@9.0.7\n\n\u003e npx\n\u003e create-vite client --template vue\n\n│\n◇  Scaffolding project in E:\\Projects\\Portfolio\\client...\n│\n└  Done. Now run:\n\n  cd client\n  npm install\n  npm run dev"
+      },
+      "tool_use_id": "toolu_01VoMWuAyfovCFRFGtYQ67Lg",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\" \u0026\u0026 npm create vite@latest client -- --template vue 2\u003e\u00261\",\"description\":\"Scaffold Vite + Vue 3 client\"},\"tool_response\":{\"stdout\":\"npm warn exec The following package was not found and will be installed: create-vite@9.0.7\\n\\n\u003e npx\\n\u003e create-vite client --template vue\\n\\n│\\n◇  Scaffolding project in E:\\\\Projects\\\\Portfolio\\\\client...\\n│\\n└  Done. Now run:\\n\\n  cd client\\n  npm install\\n  npm run dev\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01VoMWuAyfovCFRFGtYQ67Lg\",\"duration_ms\":3074}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c284f1f5-451c-4355-9592-b642b2040d0a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:11.670Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "b61f052b-31f8-4200-ab98-4916269d703e",
+  "version": "2.1.160"
+}

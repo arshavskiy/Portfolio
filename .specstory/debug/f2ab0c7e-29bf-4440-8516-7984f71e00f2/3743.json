@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\"",
+    "content": "",
+    "durationMs": 1246,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git status\",\"description\":\"Check git status\"},\"tool_use_id\":\"toolu_01VwUaaPpVyso9pjFQJtvZYa\"}\n",
+    "toolUseID": "toolu_01VwUaaPpVyso9pjFQJtvZYa",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "0ebac83f-f7f9-4df5-8270-72b0db0c95c2",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:46:05.288Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5446c878-19e4-4fb1-a675-2911a490a07a",
+  "version": "2.1.160"
+}

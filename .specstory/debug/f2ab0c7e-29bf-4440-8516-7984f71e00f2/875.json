@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 361,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"const yahooFinance = require('yahoo-finance2').default\",\"new_string\":\"const YahooFinance = require('yahoo-finance2').default\\nconst yahooFinance = new YahooFinance()\",\"replace_all\":false},\"tool_use_id\":\"toolu_0177JuuRKHfXskgGiWx5nvDF\"}\n",
+    "toolUseID": "toolu_0177JuuRKHfXskgGiWx5nvDF",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8987f86d-a1bc-4eea-8146-0f7578541b05",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:53:21.524Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c2024a9d-77ee-451a-99e4-4194ab650807",
+  "version": "2.1.160"
+}

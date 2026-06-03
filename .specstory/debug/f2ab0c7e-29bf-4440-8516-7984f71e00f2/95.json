@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:bash:pr-created\" \"scripts/hooks/post-bash-pr-created.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 219,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"mkdir \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm init -y 2\u003e\u00261\",\"description\":\"Init server package\"},\"tool_response\":{\"stdout\":\"Wrote to E:\\\\Projects\\\\Portfolio\\\\server\\\\package.json:\\n\\n{\\n  \\\"name\\\": \\\"server\\\",\\n  \\\"version\\\": \\\"1.0.0\\\",\\n  \\\"description\\\": \\\"\\\",\\n  \\\"main\\\": \\\"index.js\\\",\\n  \\\"scripts\\\": {\\n    \\\"test\\\": \\\"echo \\\\\\\"Error: no test specified\\\\\\\" \u0026\u0026 exit 1\\\"\\n  },\\n  \\\"keywords\\\": [],\\n  \\\"author\\\": \\\"\\\",\\n  \\\"license\\\": \\\"ISC\\\",\\n  \\\"type\\\": \\\"commonjs\\\"\\n}\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_011CWUf22WUJ5en2A5dkeERb\",\"duration_ms\":1577}\n",
+    "toolUseID": "toolu_011CWUf22WUJ5en2A5dkeERb",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "60bcf974-017a-4a43-aba1-7863a9263ae1",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:11.652Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c284f1f5-451c-4355-9592-b642b2040d0a",
+  "version": "2.1.160"
+}

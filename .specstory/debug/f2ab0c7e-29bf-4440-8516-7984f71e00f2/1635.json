@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 191,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Read",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"offset\":50,\"limit\":50},\"tool_use_id\":\"toolu_01GFJtGEQNztLAitK54cUga3\"}\n",
+    "toolUseID": "toolu_01GFJtGEQNztLAitK54cUga3",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "add7c8d2-6ba8-432a-a590-390444435e37",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:15:29.204Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6f59ac75-64e7-4975-8c54-836a110132bd",
+  "version": "2.1.160"
+}

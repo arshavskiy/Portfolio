@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 196,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\portfolioController.js\",\"old_string\":\"    const total = shares * price\\n    const tx = await Transaction.create({\\n      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,\",\"new_string\":\"    const total = shares * price\\n    invalidateCache(ticker)\\n    const tx = await Transaction.create({\\n      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,\",\"replace_all\":false},\"tool_use_id\":\"toolu_015pmyig8u9A9eGoscWfP9Bd\"}\n",
+    "toolUseID": "toolu_015pmyig8u9A9eGoscWfP9Bd",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "145e427d-aa85-43ab-86ea-7d35fb27cd47",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:05:10.085Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e793a7b1-07a3-40bb-a6e9-0d5b148e2bc3",
+  "version": "2.1.160"
+}

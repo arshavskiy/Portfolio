@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:write:doc-file-warning\" \"scripts/hooks/doc-file-warning.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 372,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\LoginView.vue\",\"content\":\"\u003cscript setup\u003e\\nimport { ref } from 'vue'\\nimport { useRouter } from 'vue-router'\\nimport { useToast } from 'primevue/usetoast'\\nimport { useAuthStore } from '@/stores/auth'\\nimport InputText from 'primevue/inputtext'\\nimport Password from 'primevue/password'\\nimport Button from 'primevue/button'\\n\\nconst router = useRouter()\\nconst toast = useToast()\\nconst auth = useAuthStore()\\n\\nconst email = ref('')\\nconst password = ref('')\\nconst loading = ref(false)\\n\\nasync function submit() {\\n  loading.value = true\\n  try {\\n    await auth.login(email.value, password.value)\\n    router.push('/')\\n  } catch (err) {\\n    toast.add({ severity: 'error', summary: 'Login failed', detail: err.message, life: 3000 })\\n  } finally {\\n    loading.value = false\\n  }\\n}\\n\u003c/script\u003e\\n\\n\u003ctemplate\u003e\\n  \u003cdiv class=\\\"auth-page\\\"\u003e\\n    \u003cdiv class=\\\"auth-card\\\"\u003e\\n      \u003cdiv class=\\\"auth-logo\\\"\u003e\\n        \u003ci class=\\\"pi pi-chart-line\\\" /\u003e\\n        \u003ch1\u003eStockFolio\u003c/h1\u003e\\n      \u003c/div\u003e\\n      \u003ch2\u003eWelcome back\u003c/h2\u003e\\n      \u003cform @submit.prevent=\\\"submit\\\" class=\\\"auth-form\\\"\u003e\\n        \u003cdiv class=\\\"field\\\"\u003e\\n          \u003clabel\u003eEmail\u003c/label\u003e\\n          \u003cInputText v-model=\\\"email\\\" type=\\\"email\\\" placeholder=\\\"you@example.com\\\" required fluid /\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"field\\\"\u003e\\n          \u003clabel\u003ePassword\u003c/label\u003e\\n          \u003cPassword v-model=\\\"password\\\" :feedback=\\\"false\\\" toggleMask placeholder=\\\"Password\\\" required fluid /\u003e\\n        \u003c/div\u003e\\n        \u003cButton type=\\\"submit\\\" label=\\\"Sign In\\\" :loading=\\\"loading\\\" fluid /\u003e\\n      \u003c/form\u003e\\n      \u003cp class=\\\"auth-footer\\\"\u003e\\n        No account? \u003cRouterLink to=\\\"/register\\\"\u003eCreate one\u003c/RouterLink\u003e\\n      \u003c/p\u003e\\n    \u003c/div\u003e\\n  \u003c/div\u003e\\n\u003c/template\u003e\\n\\n\u003cstyle scoped\u003e\\n.auth-page {\\n  min-height: 100dvh;\\n  display: flex;\\n  align-items: center;\\n  justify-content: center;\\n  padding: 1rem;\\n  background: var(--bg-primary);\\n}\\n.auth-card {\\n  width: 100%;\\n  max-width: 400px;\\n  background: var(--bg-card);\\n  border: 1px solid var(--border);\\n  border-radius: 16px;\\n  padding: 2rem;\\n}\\n.auth-logo {\\n  display: flex;\\n  align-items: center;\\n  gap: 0.5rem;\\n  margin-bottom: 1.5rem;\\n}\\n.auth-logo i { font-size: 28px; color: var(--accent); }\\n.auth-logo h1 { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }\\nh2 { font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 1.5rem; }\\n.auth-form { display: flex; flex-direction: column; gap: 1rem; }\\n.field { display: flex; flex-direction: column; gap: 0.4rem; }\\n.field label { font-size: 0.85rem; color: var(--text-secondary); }\\n.auth-footer { margin-top: 1.5rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem; }\\n.auth-footer a { color: var(--accent); text-decoration: none; }\\n\u003c/style\u003e\\n\"},\"tool_use_id\":\"toolu_01W6pXwJQshwvow7zRkbUXr4\"}\n",
+    "toolUseID": "toolu_01W6pXwJQshwvow7zRkbUXr4",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "9a13dcf6-4d9b-4f20-86af-2c273950ed36",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:52.384Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "81ecd48c-23d8-4eac-b679-6bfdef01745b",
+  "version": "2.1.160"
+}

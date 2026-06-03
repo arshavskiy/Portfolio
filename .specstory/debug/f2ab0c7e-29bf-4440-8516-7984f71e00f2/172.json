@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 168,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_018WEFRe4NrxVwWRHybxkL5Q\",\"duration_ms\":21}\n",
+    "toolUseID": "toolu_018WEFRe4NrxVwWRHybxkL5Q",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "47a10a50-a5eb-4449-8666-6787bfaae34f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:07.463Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "744e7899-06c6-44ec-a7de-6c85b086b065",
+  "version": "2.1.160"
+}

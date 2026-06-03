@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 454,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\WatchlistView.vue\",\"old_string\":\"      \u003cdiv\\n        v-for=\\\"item in watchlist.items\\\"\\n        :key=\\\"item._id\\\"\\n        class=\\\"watch-item\\\"\\n      \u003e\",\"new_string\":\"      \u003cdiv\\n        v-for=\\\"item in watchlist.items\\\"\\n        :key=\\\"item._id\\\"\\n        class=\\\"watch-item\\\"\\n        :class=\\\"item.changePercent \u003e= 0 ? 'neon-card-gain' : 'neon-card-loss'\\\"\\n      \u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01K8V8vMRL7msUpeEafCZaQu\"}\n",
+    "toolUseID": "toolu_01K8V8vMRL7msUpeEafCZaQu",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c7338089-3f90-4692-aadd-e9d55f513f84",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:26:45.052Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "58033f4a-450c-43e0-91c3-d55602a556ca",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 720,
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Everything is correct now:\\n- **Total Value · ILS** → ₪1,686,420.00 with correct P\u0026L\\n- **Donut center** → ₪1,686,420.00 (no more `$`)\\n- When you add USD stocks later, they'll appear as a separate **Total Value · USD** card\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "toolUseID": "45f08c1d-75a9-4361-983f-68c1ffca8364",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "37fc84aa-5a71-4ca3-b9ad-fc86bbe4f7a8",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:08:25.136Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d966d92c-a46d-4056-b3bd-56f62d2d3501",
+  "version": "2.1.160"
+}

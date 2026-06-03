@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 336,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\composables\\\\useApi.js\",\"content\":\"const BASE = '/api'\\n\\nfunction getToken() {\\n  return localStorage.getItem('token')\\n}\\n\\nasync function request(method, path, body) {\\n  const headers = { 'Content-Type': 'application/json' }\\n  const token = getToken()\\n  if (token) headers['Authorization'] = `Bearer ${token}`\\n\\n  const res = await fetch(`${BASE}${path}`, {\\n    method,\\n    headers,\\n    body: body ? JSON.stringify(body) : undefined,\\n  })\\n\\n  if (res.status === 401) {\\n    localStorage.removeItem('token')\\n    localStorage.removeItem('user')\\n    window.location.href = '/login'\\n    return\\n  }\\n\\n  const data = await res.json()\\n  if (!res.ok) throw new Error(data.message || 'Request failed')\\n  return data\\n}\\n\\nexport default {\\n  get: (path) =\u003e request('GET', path),\\n  post: (path, body) =\u003e request('POST', path, body),\\n  delete: (path) =\u003e request('DELETE', path),\\n  put: (path, body) =\u003e request('PUT', path, body),\\n}\\n\"},\"tool_use_id\":\"toolu_015RKqYVFHczerA3Eay3ME6v\"}\n",
+    "toolUseID": "toolu_015RKqYVFHczerA3Eay3ME6v",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "94a1882d-d826-4a7b-9da6-8b0a3538437c",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:17.988Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5b7b6d93-2392-48c8-a099-0881141ef96c",
+  "version": "2.1.160"
+}

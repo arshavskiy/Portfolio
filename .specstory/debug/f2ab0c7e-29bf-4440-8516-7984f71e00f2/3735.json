@@ -1,0 +1,43 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "hasOutput": true,
+  "hookCount": 6,
+  "hookErrors": [],
+  "hookInfos": [
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\"",
+      "durationMs": 643
+    },
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:session-end\" \"scripts/hooks/session-end.js\" \"minimal,standard,strict\""
+    },
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:evaluate-session\" \"scripts/hooks/evaluate-session.js\" \"minimal,standard,strict\""
+    },
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:cost-tracker\" \"scripts/hooks/cost-tracker.js\" \"minimal,standard,strict\""
+    },
+    {
+      "command": "callback"
+    },
+    {
+      "command": "callback"
+    }
+  ],
+  "isSidechain": false,
+  "level": "suggestion",
+  "parentUuid": "87cb6db0-6143-4a1d-9b97-e52b2546b6b5",
+  "preventedContinuation": false,
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "stopReason": "",
+  "subtype": "stop_hook_summary",
+  "timestamp": "2026-06-03T05:39:12.604Z",
+  "toolUseID": "8448763b-753a-4a9f-96af-6f04adfaabe0",
+  "type": "system",
+  "userType": "external",
+  "uuid": "d4552d49-7f56-4bd6-b456-492643ce71d7",
+  "version": "2.1.160"
+}

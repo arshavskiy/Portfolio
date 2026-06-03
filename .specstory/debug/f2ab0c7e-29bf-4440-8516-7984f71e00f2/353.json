@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 163,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\portfolio.js\",\"content\":\"import { defineStore } from 'pinia'\\nimport { ref } from 'vue'\\nimport api from '@/composables/useApi'\\n\\nexport const usePortfolioStore = defineStore('portfolio', () =\u003e {\\n  const positions = ref([])\\n  const totalValue = ref(0)\\n  const totalCost = ref(0)\\n  const totalPnl = ref(0)\\n  const totalPnlPercent = ref(0)\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totalValue.value = data.totalValue\\n      totalCost.value = data.totalCost\\n      totalPnl.value = data.totalPnl\\n      totalPnlPercent.value = data.totalPnlPercent\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function addTransaction(payload) {\\n    const data = await api.post('/portfolio/transaction', payload)\\n    await fetchPortfolio()\\n    return data\\n  }\\n\\n  async function deletePosition(id) {\\n    await api.delete(`/portfolio/position/${id}`)\\n    await fetchPortfolio()\\n  }\\n\\n  return { positions, totalValue, totalCost, totalPnl, totalPnlPercent, loading, fetchPortfolio, addTransaction, deletePosition }\\n})\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\portfolio.js\",\"content\":\"import { defineStore } from 'pinia'\\nimport { ref } from 'vue'\\nimport api from '@/composables/useApi'\\n\\nexport const usePortfolioStore = defineStore('portfolio', () =\u003e {\\n  const positions = ref([])\\n  const totalValue = ref(0)\\n  const totalCost = ref(0)\\n  const totalPnl = ref(0)\\n  const totalPnlPercent = ref(0)\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totalValue.value = data.totalValue\\n      totalCost.value = data.totalCost\\n      totalPnl.value = data.totalPnl\\n      totalPnlPercent.value = data.totalPnlPercent\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function addTransaction(payload) {\\n    const data = await api.post('/portfolio/transaction', payload)\\n    await fetchPortfolio()\\n    return data\\n  }\\n\\n  async function deletePosition(id) {\\n    await api.delete(`/portfolio/position/${id}`)\\n    await fetchPortfolio()\\n  }\\n\\n  return { positions, totalValue, totalCost, totalPnl, totalPnlPercent, loading, fetchPortfolio, addTransaction, deletePosition }\\n})\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01DzNz5rdPJVFDHLYsDVMbio\",\"duration_ms\":18}\n",
+    "toolUseID": "toolu_01DzNz5rdPJVFDHLYsDVMbio",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "f367e085-9679-4779-a064-928e7a5bc2dd",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:09.958Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a3fa9fd8-f9d4-414f-820b-94cc823da2b4",
+  "version": "2.1.160"
+}

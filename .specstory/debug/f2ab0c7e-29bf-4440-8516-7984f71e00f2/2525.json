@@ -1,0 +1,32 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "{\r\n  \"user\": \"6a1f500176f69bd22311c72e\",\r\n  \"name\": \"Poalim\",\r\n  \"country\": \"Israel\",\r\n  \"currency\": \"ILS\",\r\n  \"buyFee\": {\r\n    \"type\": \"percent\",\r\n    \"value\": 0,\r\n    \"minFee\": 0\r\n  },\r\n  \"sellFee\": {\r\n    \"type\": \"percent\",\r\n    \"value\": 0,\r\n    \"minFee\": 0\r\n  },\r\n  \"capitalGainsTax\": 25,\r\n  \"isDefault\": true,\r\n  \"_id\": \"6a1faeed8b8fa20bb414954e\",\r\n  \"createdAt\": \"2026-06-03T04:34:53.597Z\",\r\n  \"updatedAt\": \"2026-06-03T04:34:53.597Z\",\r\n  \"__v\": 0\r\n}",
+        "is_error": false,
+        "tool_use_id": "toolu_01XFVgCLWZpB7xst4y7UtF16",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "bca222d3-231e-400c-993d-1eeb20bbeecd",
+  "promptId": "af1c6dc1-72b8-46bd-9bbb-f272f3f292f8",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "bca222d3-231e-400c-993d-1eeb20bbeecd",
+  "timestamp": "2026-06-03T04:34:54.180Z",
+  "toolUseResult": {
+    "interrupted": false,
+    "isImage": false,
+    "stderr": "",
+    "stdout": "{\r\n  \"user\": \"6a1f500176f69bd22311c72e\",\r\n  \"name\": \"Poalim\",\r\n  \"country\": \"Israel\",\r\n  \"currency\": \"ILS\",\r\n  \"buyFee\": {\r\n    \"type\": \"percent\",\r\n    \"value\": 0,\r\n    \"minFee\": 0\r\n  },\r\n  \"sellFee\": {\r\n    \"type\": \"percent\",\r\n    \"value\": 0,\r\n    \"minFee\": 0\r\n  },\r\n  \"capitalGainsTax\": 25,\r\n  \"isDefault\": true,\r\n  \"_id\": \"6a1faeed8b8fa20bb414954e\",\r\n  \"createdAt\": \"2026-06-03T04:34:53.597Z\",\r\n  \"updatedAt\": \"2026-06-03T04:34:53.597Z\",\r\n  \"__v\": 0\r\n}"
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "6cf42d14-0399-4f5a-9674-5ec5fcbb25f2",
+  "version": "2.1.160"
+}

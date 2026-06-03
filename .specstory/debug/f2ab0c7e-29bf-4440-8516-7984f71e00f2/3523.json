@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1323,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\StockDetailView.vue\",\"old_string\":\"    \u003cdiv v-if=\\\"quote\\\" class=\\\"quote-summary\\\"\u003e\\n      \u003cp class=\\\"current-price\\\"\u003e{{ useTickerCurrency(quote.price, ticker) }}\u003c/p\u003e\\n      \u003cp :class=\\\"gainLossClass(quote.change)\\\" class=\\\"price-change\\\"\u003e\\n        {{ useTickerCurrency(quote.change, ticker) }} ({{ usePercent(quote.changePercent) }})\\n      \u003c/p\u003e\\n    \u003c/div\u003e\",\"new_string\":\"    \u003cdiv v-if=\\\"quote\\\" class=\\\"quote-summary\\\"\u003e\\n      \u003cp class=\\\"current-price\\\" :class=\\\"quote.change \u003e= 0 ? 'neon-green' : 'neon-red'\\\"\u003e\\n        {{ useTickerCurrency(quote.price, ticker) }}\\n      \u003c/p\u003e\\n      \u003cp :class=\\\"gainLossClass(quote.change)\\\" class=\\\"price-change\\\"\u003e\\n        {{ useTickerCurrency(quote.change, ticker) }} ({{ usePercent(quote.changePercent) }})\\n      \u003c/p\u003e\\n    \u003c/div\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01NzBsGLNa3HWSovXdCjzC4Y\"}\n",
+    "toolUseID": "toolu_01NzBsGLNa3HWSovXdCjzC4Y",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "99306869-1521-421a-b285-ba3129d19dbb",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:28:15.027Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "621ae28d-a226-475d-8a3b-5d83f5b9e106",
+  "version": "2.1.160"
+}

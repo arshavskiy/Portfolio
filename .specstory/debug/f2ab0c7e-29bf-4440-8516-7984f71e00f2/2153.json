@@ -1,0 +1,27 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "Screenshot failed: UnknownVizError",
+        "is_error": true,
+        "tool_use_id": "toolu_0115yTJ3x9u7bdHbLmkhZn4W",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "a743aea5-f4dd-4879-b708-758a44e0dd60",
+  "promptId": "7b426324-23db-47e2-9860-7a843e41a371",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "a743aea5-f4dd-4879-b708-758a44e0dd60",
+  "timestamp": "2026-06-03T03:59:42.965Z",
+  "toolUseResult": "Error: Screenshot failed: UnknownVizError",
+  "type": "user",
+  "userType": "external",
+  "uuid": "88ff2852-38b5-4ced-b128-c22b89469031",
+  "version": "2.1.160"
+}

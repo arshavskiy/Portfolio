@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 773,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\charts\\\\AllocationChart.vue\",\"old_string\":\"  // Center label\\n  let totalLabel\\n  if (isMixed) {\\n    totalLabel = useCurrency(props.combinedUsd.value, 'USD')\\n  } else {\\n    const currency = props.positions[0]?.currency || 'USD'\\n    const total = d3.sum(data, (d) =\u003e d.value)\\n    totalLabel = useCurrency(total, currency)\\n  }\\n\\n  g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.2em')\\n    .attr('fill', '#94a3b8').attr('font-size', '11')\\n    .text(isMixed ? 'Total USD' : 'Total')\",\"new_string\":\"  // Center label — hide total when mixed currencies (values incomparable)\\n  const isMixed = props.positions.some(p =\u003e p.currency === 'ILS') \u0026\u0026 props.positions.some(p =\u003e p.currency === 'USD')\\n  const totalLabel = isMixed ? null : useCurrency(d3.sum(data, d =\u003e d.value), props.positions[0]?.currency || 'USD')\\n\\n  g.append('text').attr('text-anchor', 'middle').attr('dy', isMixed ? '0.35em' : '-0.2em')\\n    .attr('fill', '#94a3b8').attr('font-size', '11')\\n    .text(isMixed ? 'Mixed' : 'Total')\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Tza3kpGpzNHzkAbNgxdN3n\"}\n",
+    "toolUseID": "toolu_01Tza3kpGpzNHzkAbNgxdN3n",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a943c54c-010c-4519-8058-8904568fa94e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:08:47.675Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "05161c0e-7bdb-4bff-acbe-b94c73bbda1d",
+  "version": "2.1.160"
+}

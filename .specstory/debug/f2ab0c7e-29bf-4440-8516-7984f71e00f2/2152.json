@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 586,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:mcp__Claude_Preview__preview_screenshot",
+    "stderr": "[MCPHealthCheck] No MCP config found for Claude_Preview; skipping preflight probe\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"mcp__Claude_Preview__preview_screenshot\",\"tool_input\":{\"serverId\":\"4bced04f-5254-4a7e-b852-eea24c9aa81a\"},\"tool_use_id\":\"toolu_0115yTJ3x9u7bdHbLmkhZn4W\",\"error\":\"Screenshot failed: UnknownVizError\",\"is_interrupt\":false,\"duration_ms\":155}\n",
+    "toolUseID": "toolu_0115yTJ3x9u7bdHbLmkhZn4W",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "88ff2852-38b5-4ced-b128-c22b89469031",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:59:42.964Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8201613b-0b2c-49e8-b49c-9186c39c3d8c",
+  "version": "2.1.160"
+}

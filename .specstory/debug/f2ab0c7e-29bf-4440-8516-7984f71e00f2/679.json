@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_28248",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 4175,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "sleep 4 \u0026\u0026 cat \"C:\\Users\\User\\AppData\\Local\\Temp\\claude\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\tasks\\b0h28df9w.output\"",
+        "description": "Check server startup output"
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": "\u003e server@1.0.0 dev\n\u003e node --watch index.js\n\n◇ injected env (5) from .env // tip: ⌁ auth for agents [www.vestauth.com]\nMongoDB connected\nCron jobs started\nServer running on port 3000"
+      },
+      "tool_use_id": "toolu_01WBDrmXDHBGg6NqDfAQ4HY6",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"sleep 4 \u0026\u0026 cat \\\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\\\tasks\\\\b0h28df9w.output\\\"\",\"description\":\"Check server startup output\"},\"tool_response\":{\"stdout\":\"\u003e server@1.0.0 dev\\n\u003e node --watch index.js\\n\\n◇ injected env (5) from .env // tip: ⌁ auth for agents [www.vestauth.com]\\nMongoDB connected\\nCron jobs started\\nServer running on port 3000\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01WBDrmXDHBGg6NqDfAQ4HY6\",\"duration_ms\":4175}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "dded8e43-4c3a-4e99-a0b8-7b957fc644b1",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:45:56.453Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "44a5ae25-7bfb-497d-ab0d-dd1cb0b8e60a",
+  "version": "2.1.160"
+}

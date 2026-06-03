@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 2871,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:PowerShell",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"PowerShell\",\"tool_input\":{\"command\":\"$token = (Invoke-RestMethod -Uri \\\"http://localhost:3000/api/auth/login\\\" -Method POST -ContentType \\\"application/json\\\" -Body '{\\\"email\\\":\\\"arshavsky.pasha@gmail.com\\\",\\\"password\\\":\\\"qawsed123!\\\"}').token\\nInvoke-RestMethod -Uri \\\"http://localhost:3000/api/stocks/search?q=Apple\\\" -Headers @{Authorization=\\\"Bearer $token\\\"} | ConvertTo-Json\",\"description\":\"Test search API\"},\"tool_use_id\":\"toolu_01ECR56ntvugBuurSHV6WUek\"}\n",
+    "toolUseID": "toolu_01ECR56ntvugBuurSHV6WUek",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "7257ffc8-b60b-46ec-9723-1fe27e49707a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:44:52.494Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "f3ad37f6-e431-4fc3-935f-18ecec199ceb",
+  "version": "2.1.160"
+}

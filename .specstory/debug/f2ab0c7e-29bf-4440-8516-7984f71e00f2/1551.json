@@ -1,0 +1,68 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "caller": {
+          "type": "direct"
+        },
+        "id": "toolu_01Cr2ySbShhqxFRcGsP3o11x",
+        "input": {
+          "content": "\u003cscript setup\u003e\nimport { ref, watch, onMounted, nextTick } from 'vue'\nimport * as d3 from 'd3'\nimport { useRouter } from 'vue-router'\n\nconst props = defineProps({\n  positions: { type: Array, default: () =\u003e [] },\n})\n\nconst router = useRouter()\nconst svgRef = ref(null)\nconst containerRef = ref(null)\n\nfunction draw() {\n  if (!svgRef.value || !props.positions.length) return\n\n  const svg = d3.select(svgRef.value)\n  svg.selectAll('*').remove()\n\n  const sorted = [...props.positions]\n    .filter((p) =\u003e p.changePercent != null)\n    .sort((a, b) =\u003e b.changePercent - a.changePercent)\n\n  const top = [\n    ...sorted.slice(0, 3),\n    ...sorted.slice(-Math.min(3, sorted.length)).reverse(),\n  ].filter((v, i, a) =\u003e a.findIndex(x =\u003e x.ticker === v.ticker) === i)\n\n  if (!top.length) return\n\n  const W = containerRef.value.clientWidth\n  const margin = { top: 4, right: 60, bottom: 4, left: 70 }\n  const rowH = 32\n  const H = top.length * rowH + margin.top + margin.bottom\n\n  svg.attr('width', W).attr('height', H)\n  const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)\n\n  const w = W - margin.left - margin.right\n  const maxAbs = d3.max(top, (d) =\u003e Math.abs(d.changePercent)) || 1\n  const x = d3.scaleLinear().domain([-maxAbs, maxAbs]).range([0, w])\n  const y = d3.scaleBand().domain(top.map(d =\u003e d.ticker)).range([0, H - margin.top - margin.bottom]).padding(0.25)\n\n  const zero = x(0)\n\n  // Zero line\n  g.append('line')\n    .attr('x1', zero).attr('x2', zero)\n    .attr('y1', 0).attr('y2', H - margin.top - margin.bottom)\n    .attr('stroke', '#334155').attr('stroke-width', 1)\n\n  // Bars\n  g.selectAll('.bar')\n    .data(top)\n    .enter().append('rect')\n    .attr('class', 'bar')\n    .attr('x', (d) =\u003e d.changePercent \u003e= 0 ? zero : x(d.changePercent))\n    .attr('y', (d) =\u003e y(d.ticker))\n    .attr('width', (d) =\u003e Math.abs(x(d.changePercent) - zero))\n    .attr('height', y.bandwidth())\n    .attr('fill', (d) =\u003e d.changePercent \u003e= 0 ? '#22c55e' : '#ef4444')\n    .attr('rx', 3)\n    .style('cursor', 'pointer')\n    .on('click', (_, d) =\u003e router.push(`/stock/${d.ticker}`))\n\n  // Ticker labels\n  g.selectAll('.label')\n    .data(top)\n    .enter().append('text')\n    .attr('x', -6).attr('y', (d) =\u003e y(d.ticker) + y.bandwidth() / 2)\n    .attr('text-anchor', 'end').attr('dominant-baseline', 'middle')\n    .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')\n    .text((d) =\u003e d.ticker)\n    .style('cursor', 'pointer')\n    .on('click', (_, d) =\u003e router.push(`/stock/${d.ticker}`))\n\n  // Percent labels\n  g.selectAll('.pct')\n    .data(top)\n    .enter().append('text')\n    .attr('x', (d) =\u003e d.changePercent \u003e= 0 ? x(d.changePercent) + 4 : x(d.changePercent) - 4)\n    .attr('y', (d) =\u003e y(d.ticker) + y.bandwidth() / 2)\n    .attr('text-anchor', (d) =\u003e d.changePercent \u003e= 0 ? 'start' : 'end')\n    .attr('dominant-baseline', 'middle')\n    .attr('fill', (d) =\u003e d.changePercent \u003e= 0 ? '#22c55e' : '#ef4444')\n    .attr('font-size', '11')\n    .text((d) =\u003e `${d.changePercent \u003e= 0 ? '+' : ''}${d.changePercent.toFixed(2)}%`)\n}\n\nonMounted(() =\u003e nextTick(draw))\nwatch(() =\u003e props.positions, () =\u003e nextTick(draw), { deep: true })\n\nconst ro = new ResizeObserver(() =\u003e nextTick(draw))\nonMounted(() =\u003e { if (containerRef.value) ro.observe(containerRef.value) })\n\u003c/script\u003e\n\n\u003ctemplate\u003e\n  \u003cdiv v-if=\"positions.length\" ref=\"containerRef\" class=\"movers-wrap\"\u003e\n    \u003csvg ref=\"svgRef\" style=\"display:block;width:100%;\" /\u003e\n  \u003c/div\u003e\n\u003c/template\u003e\n\n\u003cstyle scoped\u003e\n.movers-wrap { width: 100%; }\n\u003c/style\u003e\n",
+          "file_path": "E:\\Projects\\Portfolio\\client\\src\\components\\charts\\TopMoversChart.vue"
+        },
+        "name": "Write",
+        "type": "tool_use"
+      }
+    ],
+    "diagnostics": null,
+    "id": "msg_01VN8xfoTGpfBMpa6FaCzCE2",
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 1357,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 1357,
+      "cache_read_input_tokens": 142723,
+      "inference_geo": "not_available",
+      "input_tokens": 1,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 1357,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 1357,
+          "cache_read_input_tokens": 142723,
+          "input_tokens": 1,
+          "output_tokens": 1460,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 1460,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  },
+  "parentUuid": "af61e462-6035-415a-a62e-66460f785720",
+  "requestId": "req_011CbfCbHa1mzjsZzBtiqAz7",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:12:27.501Z",
+  "type": "assistant",
+  "userType": "external",
+  "uuid": "f2bcd89f-bb65-41f6-ba58-efd288ed97dc",
+  "version": "2.1.160"
+}

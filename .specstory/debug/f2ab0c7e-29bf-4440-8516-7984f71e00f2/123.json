@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 256,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env.example\",\"content\":\"PORT=3000\\nMONGODB_URI=mongodb+srv://\u003cuser\u003e:\u003cpassword\u003e@cluster0.mongodb.net/stocksportfolio?retryWrites=true\u0026w=majority\\nJWT_SECRET=change_this_to_a_long_random_string\\nJWT_EXPIRES_IN=7d\\nCLIENT_URL=http://localhost:5173\\n\"},\"tool_use_id\":\"toolu_01XJFjm9WiZbRmaP4dWthkUz\"}\n",
+    "toolUseID": "toolu_01XJFjm9WiZbRmaP4dWthkUz",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "bbb0d2ab-2b1e-4a77-869b-acb652aa7f3b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:50.425Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2eea01ad-0d07-4829-a462-d0874919d9ce",
+  "version": "2.1.160"
+}

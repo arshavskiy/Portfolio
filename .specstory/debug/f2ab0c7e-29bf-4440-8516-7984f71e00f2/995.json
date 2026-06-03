@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 381,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\WatchlistView.vue\",\"old_string\":\"import { useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\",\"new_string\":\"import { useTickerCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\",\"replace_all\":false},\"tool_use_id\":\"toolu_017uKzYahh1eZjMDiELbAotV\"}\n",
+    "toolUseID": "toolu_017uKzYahh1eZjMDiELbAotV",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "77f227e9-97ad-4435-a947-babcce5abf2b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:58:54.604Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7781f05d-a36e-4df8-b185-72ff8d85dc15",
+  "version": "2.1.160"
+}

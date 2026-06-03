@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:write:doc-file-warning\" \"scripts/hooks/doc-file-warning.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 327,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\stockController.js\",\"content\":\"const { getQuote, getHistory, searchTicker } = require('../services/stockService')\\n\\nexports.getQuote = async (req, res) =\u003e {\\n  try {\\n    const data = await getQuote(req.params.ticker.toUpperCase())\\n    res.json(data)\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\\nexports.getHistory = async (req, res) =\u003e {\\n  try {\\n    const { range = '3mo' } = req.query\\n    const data = await getHistory(req.params.ticker.toUpperCase(), range)\\n    res.json(data)\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\\nexports.search = async (req, res) =\u003e {\\n  try {\\n    const { q } = req.query\\n    if (!q) return res.json([])\\n    const results = await searchTicker(q)\\n    res.json(results)\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\"},\"tool_use_id\":\"toolu_018JxLdJoFQh9EW3DnVsSXJ7\"}\n",
+    "toolUseID": "toolu_018JxLdJoFQh9EW3DnVsSXJ7",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "53d90634-bf51-4d04-89e9-2a9c010c8e0c",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:54.595Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "acc0c164-4702-48e9-879a-8194987fcca2",
+  "version": "2.1.160"
+}

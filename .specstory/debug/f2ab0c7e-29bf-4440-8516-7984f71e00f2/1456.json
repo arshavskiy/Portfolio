@@ -1,0 +1,23 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_31668",
+    "response": {},
+    "stderr": "[ContinuousLearning] Session has 193 messages - evaluate for extractable patterns\n[ContinuousLearning] Save learned skills to: C:\\Users\\User/.claude/skills/learned/\n",
+    "stdout": "",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "13007c2f-1cf1-4d1c-9d70-f2a2226fe279",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:08:36.596Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8cc9d5e2-1ed6-4db4-8ce8-1ce379ad04bb",
+  "version": "2.1.160"
+}

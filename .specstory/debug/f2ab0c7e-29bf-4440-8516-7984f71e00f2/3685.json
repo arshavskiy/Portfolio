@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 573,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\HoldingsView.vue\",\"old_string\":\"const router = useRouter()\\nconst toast = useToast()\\nconst confirm = useConfirm()\\nconst portfolio = usePortfolioStore()\\nconst showModal = ref(false)\\n\\nonMounted(() =\u003e portfolio.fetchPortfolio())\",\"new_string\":\"const router = useRouter()\\nconst toast = useToast()\\nconst confirm = useConfirm()\\nconst portfolio = usePortfolioStore()\\nconst showModal = ref(false)\\nconst sparklines = ref({})\\n\\nonMounted(async () =\u003e {\\n  await portfolio.fetchPortfolio()\\n  fetchSparklines()\\n})\\n\\nasync function fetchSparklines() {\\n  for (const pos of portfolio.positions) {\\n    try {\\n      const data = await api.get(`/stocks/history/${pos.ticker}?range=1mo`)\\n      sparklines.value[pos.ticker] = data\\n    } catch {}\\n  }\\n}\",\"replace_all\":false},\"tool_use_id\":\"toolu_012LBYUMub6GyUEa7ZtqAyFu\"}\n",
+    "toolUseID": "toolu_012LBYUMub6GyUEa7ZtqAyFu",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "bbf6f881-887f-408b-8888-fb9ea4bb1157",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:38:20.655Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "92a2c70d-5068-44d0-8d68-cc80e86ac9de",
+  "version": "2.1.160"
+}

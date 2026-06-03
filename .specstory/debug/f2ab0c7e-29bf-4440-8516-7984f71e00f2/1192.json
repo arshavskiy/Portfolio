@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 392,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\\AddTransactionModal.vue\",\"old_string\":\"        \u003cInputNumber v-model=\\\"price\\\" mode=\\\"currency\\\" currency=\\\"USD\\\" :min=\\\"0.01\\\" :max-fraction-digits=\\\"4\\\" placeholder=\\\"$0.00\\\" fluid /\u003e\",\"new_string\":\"        \u003cInputNumber v-model=\\\"price\\\" mode=\\\"currency\\\" :currency=\\\"currency\\\" :min=\\\"0.01\\\" :max-fraction-digits=\\\"4\\\" :placeholder=\\\"`${currencySymbol}0.00`\\\" fluid /\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01MLYQvoT4HFGTN6JgMtWNfU\"}\n",
+    "toolUseID": "toolu_01MLYQvoT4HFGTN6JgMtWNfU",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "ee6e4838-b0c5-46dd-87d8-d26e4d196217",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:02:24.214Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6d0b4dbb-e349-4ee9-9afe-3a4e3e5a6217",
+  "version": "2.1.160"
+}

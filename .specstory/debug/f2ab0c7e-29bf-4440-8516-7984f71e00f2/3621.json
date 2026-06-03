@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 332,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"        \u003ch2\u003eToday's Movers\u003c/h2\u003e\",\"new_string\":\"        \u003ch2 class=\\\"section-title\\\"\u003eToday's Movers\u003c/h2\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_011DLB1Qpq7pqakftV9MGigQ\"}\n",
+    "toolUseID": "toolu_011DLB1Qpq7pqakftV9MGigQ",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b4bf0ba2-2e19-485f-87b8-b9f8b75e376a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:33:30.052Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e7821f5c-f438-4ee9-b7ea-50d288a352bd",
+  "version": "2.1.160"
+}

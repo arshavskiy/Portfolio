@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 278,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"const yahooFinance = require('yahoo-finance2').default\",\"new_string\":\"const YahooFinance = require('yahoo-finance2').default\\nconst yahooFinance = new YahooFinance()\",\"replace_all\":false},\"tool_use_id\":\"toolu_0177JuuRKHfXskgGiWx5nvDF\"}\n",
+    "toolUseID": "toolu_0177JuuRKHfXskgGiWx5nvDF",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a1d1e288-44fc-49e0-95d3-78e73e4ef2df",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:53:21.440Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "f01697e0-4f14-436a-b496-e17380b13d6e",
+  "version": "2.1.160"
+}

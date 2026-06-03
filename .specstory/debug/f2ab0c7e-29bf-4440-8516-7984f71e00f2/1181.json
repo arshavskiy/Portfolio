@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 276,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\\AddTransactionModal.vue\",\"old_string\":\"const suggestions = ref([])\\n\\nwatch(() =\u003e props.visible, (v) =\u003e {\",\"new_string\":\"const suggestions = ref([])\\n\\nconst currentTicker = computed(() =\u003e {\\n  const t = typeof ticker.value === 'object' ? ticker.value.value : ticker.value\\n  return t || ''\\n})\\nconst currency = computed(() =\u003e tickerCurrency(currentTicker.value))\\nconst currencySymbol = computed(() =\u003e currency.value === 'ILS' ? '₪' : '$')\\n\\nwatch(() =\u003e props.visible, (v) =\u003e {\",\"replace_all\":false},\"tool_use_id\":\"toolu_01RvM6pEoXmPq5E66wopWqZE\"}\n",
+    "toolUseID": "toolu_01RvM6pEoXmPq5E66wopWqZE",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "0132047e-7bb8-4764-93d0-d14332f0cdac",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:02:22.647Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e7f3a34c-d43d-410e-8df4-ec5d92a634f0",
+  "version": "2.1.160"
+}

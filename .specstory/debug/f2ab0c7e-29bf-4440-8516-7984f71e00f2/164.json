@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 160,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Position.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst positionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true, trim: true },\\n    companyName: { type: String },\\n    shares: { type: Number, required: true, min: 0 },\\n    avgCost: { type: Number, required: true, min: 0 },\\n  },\\n  { timestamps: true }\\n)\\n\\npositionSchema.index({ user: 1, ticker: 1 }, { unique: true })\\n\\nmodule.exports = mongoose.model('Position', positionSchema)\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Position.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst positionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true, trim: true },\\n    companyName: { type: String },\\n    shares: { type: Number, required: true, min: 0 },\\n    avgCost: { type: Number, required: true, min: 0 },\\n  },\\n  { timestamps: true }\\n)\\n\\npositionSchema.index({ user: 1, ticker: 1 }, { unique: true })\\n\\nmodule.exports = mongoose.model('Position', positionSchema)\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01Q7MvssKXJ3om92rvdekETA\",\"duration_ms\":19}\n",
+    "toolUseID": "toolu_01Q7MvssKXJ3om92rvdekETA",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "6a1746df-d142-4aa0-ad2f-ec1963239b25",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:05.117Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a91f8d48-4d3f-4497-bad5-bbfa0f145be7",
+  "version": "2.1.160"
+}

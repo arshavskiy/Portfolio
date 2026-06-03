@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 226,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\PositionDetailView.vue\",\"old_string\":\"    \u003cAddTransactionModal\\n      v-model:visible=\\\"showModal\\\"\\n      :default-ticker=\\\"ticker\\\"\\n      @hide=\\\"fetchLots\\\"\\n    /\u003e\",\"new_string\":\"    \u003cAddTransactionModal\\n      v-model:visible=\\\"showModal\\\"\\n      :default-ticker=\\\"ticker\\\"\\n      @hide=\\\"fetchLots\\\"\\n    /\u003e\\n\\n    \u003cEditTransactionModal\\n      v-model:visible=\\\"!!editingTx\\\"\\n      :transaction=\\\"editingTx\\\"\\n      @update:visible=\\\"v =\u003e { if (!v) editingTx = null }\\\"\\n      @saved=\\\"fetchLots\\\"\\n    /\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Vz9gGccDhQTcrqQ9QFhnZt\"}\n",
+    "toolUseID": "toolu_01Vz9gGccDhQTcrqQ9QFhnZt",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "495cd0d1-ad3c-4276-9c49-017db78f6966",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:21:41.631Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a56d0b9b-51b2-4312-be22-9ad759fa153c",
+  "version": "2.1.160"
+}

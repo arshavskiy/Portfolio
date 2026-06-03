@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 273,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cat \\\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\\\tasks\\\\b0h28df9w.output\\\" | tail -20\",\"description\":\"Check server error logs\"},\"tool_use_id\":\"toolu_01AxZY95s6P6Fo6zEbNtkrnR\"}\n",
+    "toolUseID": "toolu_01AxZY95s6P6Fo6zEbNtkrnR",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "f78dc5f2-3971-4868-8fa7-42cd5f9188b8",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:59:51.498Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2bf35d05-7f04-47e3-825a-e98a9e16545d",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\"",
+    "content": "",
+    "durationMs": 250,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cat \\\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\\\tasks\\\\b0h28df9w.output\\\" | tail -20\",\"description\":\"Check server error logs\"},\"tool_use_id\":\"toolu_01AxZY95s6P6Fo6zEbNtkrnR\"}\n",
+    "toolUseID": "toolu_01AxZY95s6P6Fo6zEbNtkrnR",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "240c9aed-139b-425f-968f-dfd51e6a55ba",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:59:51.475Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7e564a7f-5669-4e40-8fbb-3a04f4d57009",
+  "version": "2.1.160"
+}

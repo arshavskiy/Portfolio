@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 531,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:mcp__Claude_Preview__preview_screenshot",
+    "stderr": "[MCPHealthCheck] No MCP config found for Claude_Preview; skipping preflight probe\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"mcp__Claude_Preview__preview_screenshot\",\"tool_input\":{\"serverId\":\"4bced04f-5254-4a7e-b852-eea24c9aa81a\"},\"tool_use_id\":\"toolu_01K9TWBMbttDn53fZsoUNCCG\"}\n",
+    "toolUseID": "toolu_01K9TWBMbttDn53fZsoUNCCG",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e945e9e0-a3c6-4107-959e-b899be0fb384",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:13:42.909Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6381148a-1204-4369-8ca3-b92345e54878",
+  "version": "2.1.160"
+}

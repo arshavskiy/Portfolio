@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 364,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cp \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env.example\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env\\\" 2\u003e\u00261\",\"description\":\"Create .env from example\"},\"tool_use_id\":\"toolu_014q8Q8m6PvQ2Q8AnWWSvCqr\"}\n",
+    "toolUseID": "toolu_014q8Q8m6PvQ2Q8AnWWSvCqr",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e93a8c82-daf1-4841-8be3-440d4237e21e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:28:53.542Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "35a76a3a-2ec4-4a56-88dc-680a86b08e01",
+  "version": "2.1.160"
+}

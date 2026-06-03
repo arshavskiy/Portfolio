@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 453,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Grep",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Grep\",\"tool_input\":{\"pattern\":\"section-title|\\\\.section h2\",\"path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\",\"glob\":\"*.vue\",\"output_mode\":\"content\"},\"tool_use_id\":\"toolu_01M3aVMrJAarnWhYKBp6eggE\"}\n",
+    "toolUseID": "toolu_01M3aVMrJAarnWhYKBp6eggE",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "19fc0060-b737-475e-acb8-38bf8744cc82",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:33:10.277Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "1bf51735-2e3b-48f7-b50c-69d13d1b78b2",
+  "version": "2.1.160"
+}

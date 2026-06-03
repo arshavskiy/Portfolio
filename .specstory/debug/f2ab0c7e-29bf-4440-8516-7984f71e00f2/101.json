@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\"",
+    "content": "",
+    "durationMs": 295,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm install express mongoose bcryptjs jsonwebtoken dotenv cors yahoo-finance2 node-cron express-rate-limit 2\u003e\u00261\",\"description\":\"Install server dependencies\"},\"tool_use_id\":\"toolu_016Jsf94AVPGkUnetQ5G6VLR\"}\n",
+    "toolUseID": "toolu_016Jsf94AVPGkUnetQ5G6VLR",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "f968c68f-02fa-4cd3-98ee-69b76c704b8d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:15.522Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a618928a-f7aa-4c95-a34b-22435ed8b3a9",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1183,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\portfolio.js\",\"old_string\":\"router.delete('/position/:id', deletePosition)\",\"new_string\":\"router.put('/transaction/:id', updateTransaction)\\nrouter.delete('/position/:id', deletePosition)\",\"replace_all\":false},\"tool_response\":{\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\portfolio.js\",\"oldString\":\"router.delete('/position/:id', deletePosition)\",\"newString\":\"router.put('/transaction/:id', updateTransaction)\\nrouter.delete('/position/:id', deletePosition)\",\"originalFile\":\"const router = require('express').Router()\\nconst auth = require('../middleware/auth')\\nconst { getPortfolio, addTransaction, getTransactions, updateTransaction, deletePosition } = require('../controllers/portfolioController')\\n\\nrouter.use(auth)\\nrouter.get('/', getPortfolio)\\nrouter.post('/transaction', addTransaction)\\nrouter.get('/transactions', getTransactions)\\nrouter.delete('/position/:id', deletePosition)\\n\\nmodule.exports = router\\n\",\"structuredPatch\":[{\"oldStart\":6,\"oldLines\":6,\"newStart\":6,\"newLines\":7,\"lines\":[\" router.get('/', getPortfolio)\",\" router.post('/transaction', addTransaction)\",\" router.get('/transactions', getTransactions)\",\"+router.put('/transaction/:id', updateTransaction)\",\" router.delete('/position/:id', deletePosition)\",\" \",\" module.exports = router\"]}],\"userModified\":false,\"replaceAll\":false},\"tool_use_id\":\"toolu_01QR3E3UySqxienXFJjVUVWC\",\"duration_ms\":191}\n",
+    "toolUseID": "toolu_01QR3E3UySqxienXFJjVUVWC",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8db36fe4-a2d0-4352-b877-ae618326deec",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:20:14.819Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "3e31b6b9-3593-44db-ac95-d3596ab1462c",
+  "version": "2.1.160"
+}

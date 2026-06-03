@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 295,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git log --oneline -1\",\"description\":\"Verify commit was created\"},\"tool_use_id\":\"toolu_01Mv1WpKwAeHtfT8jHJUmFCn\",\"error\":\"Exit code 128\\nfatal: your current branch 'master' does not have any commits yet\",\"is_interrupt\":false,\"duration_ms\":260}\n",
+    "toolUseID": "toolu_01Mv1WpKwAeHtfT8jHJUmFCn",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "d1039f13-4f99-418e-b70d-fcea416d74a2",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:50:07.425Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c9f3dc0d-0239-400d-b6cd-2c2239a3e72f",
+  "version": "2.1.160"
+}

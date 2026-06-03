@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 849,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\portfolio.js\",\"old_string\":\"router.delete('/position/:id', deletePosition)\",\"new_string\":\"router.put('/transaction/:id', updateTransaction)\\nrouter.delete('/position/:id', deletePosition)\",\"replace_all\":false},\"tool_use_id\":\"toolu_01QR3E3UySqxienXFJjVUVWC\"}\n",
+    "toolUseID": "toolu_01QR3E3UySqxienXFJjVUVWC",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b164c0ee-6e22-4f50-baf0-203743bd29fa",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:20:12.733Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "465d32d4-a0be-439b-9135-2f5ec450d0eb",
+  "version": "2.1.160"
+}

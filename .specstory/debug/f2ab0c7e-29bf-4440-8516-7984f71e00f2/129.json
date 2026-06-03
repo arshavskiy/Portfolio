@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 162,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env.example\",\"content\":\"PORT=3000\\nMONGODB_URI=mongodb+srv://\u003cuser\u003e:\u003cpassword\u003e@cluster0.mongodb.net/stocksportfolio?retryWrites=true\u0026w=majority\\nJWT_SECRET=change_this_to_a_long_random_string\\nJWT_EXPIRES_IN=7d\\nCLIENT_URL=http://localhost:5173\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env.example\",\"content\":\"PORT=3000\\nMONGODB_URI=mongodb+srv://\u003cuser\u003e:\u003cpassword\u003e@cluster0.mongodb.net/stocksportfolio?retryWrites=true\u0026w=majority\\nJWT_SECRET=change_this_to_a_long_random_string\\nJWT_EXPIRES_IN=7d\\nCLIENT_URL=http://localhost:5173\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01XJFjm9WiZbRmaP4dWthkUz\",\"duration_ms\":15}\n",
+    "toolUseID": "toolu_01XJFjm9WiZbRmaP4dWthkUz",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e7e98821-0048-4eac-97c5-c89801e0daf9",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:50.700Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "94dda839-889f-4884-9c7b-5ecf6cee1c0f",
+  "version": "2.1.160"
+}

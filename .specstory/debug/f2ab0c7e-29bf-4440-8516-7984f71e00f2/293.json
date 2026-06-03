@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 297,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\vite.config.js\",\"content\":\"import { defineConfig } from 'vite'\\nimport vue from '@vitejs/plugin-vue'\\nimport { VitePWA } from 'vite-plugin-pwa'\\nimport { fileURLToPath, URL } from 'node:url'\\n\\nexport default defineConfig({\\n  resolve: {\\n    alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },\\n  },\\n  plugins: [\\n    vue(),\\n    VitePWA({\\n      registerType: 'autoUpdate',\\n      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],\\n      manifest: {\\n        name: 'StockFolio',\\n        short_name: 'StockFolio',\\n        description: 'Personal Stocks Portfolio Tracker',\\n        theme_color: '#0f172a',\\n        background_color: '#0f172a',\\n        display: 'standalone',\\n        orientation: 'portrait',\\n        start_url: '/',\\n        icons: [\\n          { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png' },\\n          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png' },\\n          { src: 'pwa-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },\\n        ],\\n      },\\n      workbox: {\\n        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],\\n        runtimeCaching: [\\n          {\\n            urlPattern: /^https:\\\\/\\\\/.*\\\\/api\\\\//,\\n            handler: 'NetworkFirst',\\n            options: { cacheName: 'api-cache', expiration: { maxEntries: 50, maxAgeSeconds: 300 } },\\n          },\\n        ],\\n      },\\n    }),\\n  ],\\n  server: {\\n    proxy: {\\n      '/api': { target: 'http://localhost:3000', changeOrigin: true },\\n    },\\n  },\\n})\\n\"},\"tool_use_id\":\"toolu_01R6amPzBrqcxciXJWU9FX97\"}\n",
+    "toolUseID": "toolu_01R6amPzBrqcxciXJWU9FX97",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c7100225-8447-45fd-8b7f-fc6a05d37fd4",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:19.889Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "902c766d-12ad-4329-9751-186725a75e0f",
+  "version": "2.1.160"
+}

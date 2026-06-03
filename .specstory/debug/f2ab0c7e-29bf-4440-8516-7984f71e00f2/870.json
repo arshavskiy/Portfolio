@@ -1,0 +1,19 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": "yahoo search error : \n\"Call `const yahooFinance = new YahooFinance()` first.  Upgrading from v2?  See https://github.com/gadicc/yahoo-finance2/blob/dev/docs/UPGRADING.md.\"",
+    "role": "user"
+  },
+  "parentUuid": "81a1ca33-5ce1-4819-b76e-46a97aa8eb23",
+  "permissionMode": "acceptEdits",
+  "promptId": "22a8f879-4c2f-4cce-903f-37e5c3e7d4ed",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:53:16.367Z",
+  "type": "user",
+  "userType": "external",
+  "uuid": "02cf6e6e-5626-44b8-b9c9-26a5ba010d93",
+  "version": "2.1.160"
+}

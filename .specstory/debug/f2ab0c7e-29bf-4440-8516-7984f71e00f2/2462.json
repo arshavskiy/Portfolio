@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:git-push-reminder\" \"scripts/hooks/pre-bash-git-push-reminder.js\" \"strict\"",
+    "content": "",
+    "durationMs": 1146,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"curl -s -X POST http://localhost:3000/api/auth/login -H \\\"Content-Type: application/json\\\" -d \\\"{\\\\\\\"email\\\\\\\":\\\\\\\"arshavsky.pasha@gmail.com\\\\\\\",\\\\\\\"password\\\\\\\":\\\\\\\"qawsed123!\\\\\\\"}\\\" 2\u003e\u00261\",\"description\":\"Login to get JWT token\"},\"tool_use_id\":\"toolu_01PTLNAQLKzYTPcbtcVtGkzd\"}\n",
+    "toolUseID": "toolu_01PTLNAQLKzYTPcbtcVtGkzd",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8662fe37-1506-489e-a61e-91ef910e0a44",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:26:41.820Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "1ca240e4-6ad9-41bd-adca-fbbbe163ee5e",
+  "version": "2.1.160"
+}

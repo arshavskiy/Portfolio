@@ -1,0 +1,23 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_29540",
+    "response": {},
+    "stderr": "[SessionEnd] Updated session file: C:\\Users\\User\\.claude\\sessions\\2026-06-03-Portfolio-session.tmp\n",
+    "stdout": "",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "32ed30f2-6df7-4f65-b361-bb891e239993",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:36:50.354Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c21953eb-ce53-4b50-a05c-031a6e7fa99c",
+  "version": "2.1.160"
+}

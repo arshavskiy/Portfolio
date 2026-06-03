@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 332,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\auth.js\",\"content\":\"const router = require('express').Router()\\nconst { register, login, me } = require('../controllers/authController')\\nconst auth = require('../middleware/auth')\\n\\nrouter.post('/register', register)\\nrouter.post('/login', login)\\nrouter.get('/me', auth, me)\\n\\nmodule.exports = router\\n\"},\"tool_use_id\":\"toolu_01A1gbtf4P1piG28Hhb6amys\"}\n",
+    "toolUseID": "toolu_01A1gbtf4P1piG28Hhb6amys",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "d965bc17-4ec2-473c-beda-d2807f7b05f0",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:04.215Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "19dde1f5-f1b1-4d02-a0b2-15d21823e4a6",
+  "version": "2.1.160"
+}

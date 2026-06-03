@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 352,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\style.css\",\"content\":\"*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\\n\\n:root {\\n  --bg-primary: #0f172a;\\n  --bg-secondary: #1e293b;\\n  --bg-card: #1e293b;\\n  --border: #334155;\\n  --text-primary: #f1f5f9;\\n  --text-secondary: #94a3b8;\\n  --green: #22c55e;\\n  --red: #ef4444;\\n  --accent: #3b82f6;\\n  --nav-height: 64px;\\n  --safe-bottom: env(safe-area-inset-bottom, 0px);\\n}\\n\\nhtml, body, #app {\\n  height: 100%;\\n  background: var(--bg-primary);\\n  color: var(--text-primary);\\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;\\n  -webkit-font-smoothing: antialiased;\\n}\\n\\n.gain { color: var(--green); }\\n.loss { color: var(--red); }\\n.text-muted { color: var(--text-secondary); }\\n\\n.safe-bottom { padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem); }\\n\\n::-webkit-scrollbar { width: 4px; }\\n::-webkit-scrollbar-track { background: transparent; }\\n::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }\\n\"},\"tool_use_id\":\"toolu_01WbyBhUSVGjM8QcyVQVekCA\"}\n",
+    "toolUseID": "toolu_01WbyBhUSVGjM8QcyVQVekCA",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b4aae8e8-e61b-4b03-8eed-4be25b3005aa",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:52.199Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "90065a5b-0644-4d8f-af56-c56d38115ab0",
+  "version": "2.1.160"
+}

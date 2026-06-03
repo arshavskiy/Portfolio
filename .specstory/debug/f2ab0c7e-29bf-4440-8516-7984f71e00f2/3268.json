@@ -1,0 +1,27 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "\u003ctool_use_error\u003eString to replace not found in file.\nString: import Button from 'primevue/button'\nimport Tag from 'primevue/tag'\nimport AddTransactionModal from '@/components/ui/AddTransactionModal.vue'\u003c/tool_use_error\u003e",
+        "is_error": true,
+        "tool_use_id": "toolu_01WPUAKun2X8varaLfhqJMA3",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "64579fd0-3c13-4ebc-8f15-bd50601d07bb",
+  "promptId": "d97824bc-d758-4b01-946b-a5b158812ca2",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "64579fd0-3c13-4ebc-8f15-bd50601d07bb",
+  "timestamp": "2026-06-03T05:20:53.046Z",
+  "toolUseResult": "Error: String to replace not found in file.\nString: import Button from 'primevue/button'\nimport Tag from 'primevue/tag'\nimport AddTransactionModal from '@/components/ui/AddTransactionModal.vue'",
+  "type": "user",
+  "userType": "external",
+  "uuid": "c7b37237-83ca-4e99-ad1f-283d59d99fc9",
+  "version": "2.1.160"
+}

@@ -1,0 +1,33 @@
+{
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `new YahooFinance({ suppressNotices: ['ripHistorical'] })`.\nrows: 60 first: {\"date\":\"2026-03-04T07:50:00.000Z\",\"high\":8186,\"volume\":7080642,\"open\":7999,\"low\":7900,\"close\":8000,\"adjClose\":7998.55078125}",
+        "is_error": false,
+        "tool_use_id": "toolu_01DrdP1qwEsBhYhrjWG6hixK",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "194d85bc-e0f7-4cc6-a2c0-6086c8595df7",
+  "promptId": "bb47af4c-d806-4347-a34e-9bdad95cade0",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "194d85bc-e0f7-4cc6-a2c0-6086c8595df7",
+  "timestamp": "2026-06-02T22:00:31.647Z",
+  "toolUseResult": {
+    "interrupted": false,
+    "isImage": false,
+    "noOutputExpected": false,
+    "stderr": "",
+    "stdout": "[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `new YahooFinance({ suppressNotices: ['ripHistorical'] })`.\nrows: 60 first: {\"date\":\"2026-03-04T07:50:00.000Z\",\"high\":8186,\"volume\":7080642,\"open\":7999,\"low\":7900,\"close\":8000,\"adjClose\":7998.55078125}"
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "b2d80553-c741-4033-b6c2-c5e639455c1a",
+  "version": "2.1.160"
+}

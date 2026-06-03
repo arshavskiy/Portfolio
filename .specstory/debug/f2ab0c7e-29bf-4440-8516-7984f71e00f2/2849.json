@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1579,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\portfolio.js\",\"old_string\":\"  const positions = ref([])\\n  const totals = ref([]) // [{ currency, value, cost, pnl, pnlPercent }]\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totals.value = data.totals || []\\n    } finally {\\n      loading.value = false\\n    }\\n  }\",\"new_string\":\"  const positions = ref([])\\n  const totals = ref([])\\n  const combinedUsd = ref(null)\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totals.value = data.totals || []\\n      combinedUsd.value = data.combinedUsd || null\\n    } finally {\\n      loading.value = false\\n    }\\n  }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01MccyrzMJJRGKib5XVFHF8m\"}\n",
+    "toolUseID": "toolu_01MccyrzMJJRGKib5XVFHF8m",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a6fb0161-cb89-4a21-a0d4-3036d8875d60",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:03:44.404Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "bfbe89d4-59d8-4247-bf3b-192f1922405a",
+  "version": "2.1.160"
+}

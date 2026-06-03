@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_11788",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio\\client",
+      "duration_ms": 42646,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm install \u0026\u0026 npm install vue-router@4 pinia @primevue/themes primevue primeicons d3 vite-plugin-pwa 2\u003e\u00261",
+        "description": "Install client dependencies"
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": "added 35 packages, and audited 36 packages in 17s\n\n9 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\nnpm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions\nnpm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me\nnpm warn deprecated @primevue/themes@4.5.4: Deprecated. This package is no longer maintained. Please migrate to @primeuix/themes: https://www.npmjs.com/package/@primeuix/themes\n\nadded 381 packages, and audited 417 packages in 25s\n\n107 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities"
+      },
+      "tool_use_id": "toolu_01Kif8huqdwYSKvHMirHJ9Uf",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\client\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm install \u0026\u0026 npm install vue-router@4 pinia @primevue/themes primevue primeicons d3 vite-plugin-pwa 2\u003e\u00261\",\"description\":\"Install client dependencies\"},\"tool_response\":{\"stdout\":\"added 35 packages, and audited 36 packages in 17s\\n\\n9 packages are looking for funding\\n  run `npm fund` for details\\n\\nfound 0 vulnerabilities\\nnpm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions\\nnpm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me\\nnpm warn deprecated @primevue/themes@4.5.4: Deprecated. This package is no longer maintained. Please migrate to @primeuix/themes: https://www.npmjs.com/package/@primeuix/themes\\n\\nadded 381 packages, and audited 417 packages in 25s\\n\\n107 packages are looking for funding\\n  run `npm fund` for details\\n\\nfound 0 vulnerabilities\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01Kif8huqdwYSKvHMirHJ9Uf\",\"duration_ms\":42646}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b61f052b-31f8-4200-ab98-4916269d703e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:11.670Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e7df6fdc-9233-4a94-b6c5-74fa6407c7c4",
+  "version": "2.1.160"
+}

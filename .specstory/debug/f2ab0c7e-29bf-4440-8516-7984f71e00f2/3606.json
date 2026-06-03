@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 460,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\style.css\",\"old_string\":\"/* ── Neon card borders ── */\",\"new_string\":\"/* ── Section h2 gradient (global override) ── */\\n.section h2,\\n.section-title,\\n.fee-section-title {\\n  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);\\n  -webkit-background-clip: text;\\n  -webkit-text-fill-color: transparent;\\n  background-clip: text;\\n}\\n\\n/* ── Neon card borders ── */\",\"replace_all\":false},\"tool_use_id\":\"toolu_016P4tkc9snmrHAw8f33eG3w\"}\n",
+    "toolUseID": "toolu_016P4tkc9snmrHAw8f33eG3w",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a52aa105-e338-42d0-b02c-db59dd3969ea",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:33:20.769Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "0aecf24b-ce91-401e-9736-05205b34cfdd",
+  "version": "2.1.160"
+}

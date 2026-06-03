@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 166,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\client\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\memory\\\\MEMORY.md\",\"content\":\"# Memory Index\\n\\n- [StockFolio Project](project_stockfolio.md) — Multi-user stocks portfolio tracker, Vite+Vue3+PrimeVue+D3+Node+MongoDB Atlas, JS only, mobile-first PWA\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\memory\\\\MEMORY.md\",\"content\":\"# Memory Index\\n\\n- [StockFolio Project](project_stockfolio.md) — Multi-user stocks portfolio tracker, Vite+Vue3+PrimeVue+D3+Node+MongoDB Atlas, JS only, mobile-first PWA\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01KJV1TnHQSTDFY5JwnZy1oA\",\"duration_ms\":4}\n",
+    "toolUseID": "toolu_01KJV1TnHQSTDFY5JwnZy1oA",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b8ad7ff2-03df-4b21-b4a6-76d9edbd7a5b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:30:23.862Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2b6c7776-987c-4bac-9d3e-1c2ed3c5794a",
+  "version": "2.1.160"
+}

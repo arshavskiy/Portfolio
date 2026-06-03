@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 354,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm install express mongoose bcryptjs jsonwebtoken dotenv cors yahoo-finance2 node-cron express-rate-limit 2\u003e\u00261\",\"description\":\"Install server dependencies\"},\"tool_use_id\":\"toolu_016Jsf94AVPGkUnetQ5G6VLR\"}\n",
+    "toolUseID": "toolu_016Jsf94AVPGkUnetQ5G6VLR",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "527049ae-613b-46f5-9edd-a5afd925e666",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:15.581Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c2e1e1d7-5195-456e-bf79-ad0291c084af",
+  "version": "2.1.160"
+}

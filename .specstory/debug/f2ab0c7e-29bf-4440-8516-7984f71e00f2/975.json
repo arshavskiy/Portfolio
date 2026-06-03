@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 303,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\HoldingsView.vue\",\"old_string\":\"            \u003cspan class=\\\"value\\\"\u003e{{ useCurrency(pos.value) }}\u003c/span\u003e\\n            \u003cspan :class=\\\"gainLossClass(pos.pnl)\\\" class=\\\"pnl\\\"\u003e\\n              {{ useCurrency(pos.pnl) }} ({{ usePercent(pos.pnlPercent) }})\\n            \u003c/span\u003e\",\"new_string\":\"            \u003cspan class=\\\"value\\\"\u003e{{ useTickerCurrency(pos.value, pos.ticker) }}\u003c/span\u003e\\n            \u003cspan :class=\\\"gainLossClass(pos.pnl)\\\" class=\\\"pnl\\\"\u003e\\n              {{ useTickerCurrency(pos.pnl, pos.ticker) }} ({{ usePercent(pos.pnlPercent) }})\\n            \u003c/span\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Wt5dt1HsuLLBsqmTTw7VPW\"}\n",
+    "toolUseID": "toolu_01Wt5dt1HsuLLBsqmTTw7VPW",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "6205f16c-b73e-4896-9ad0-0e4d4676df65",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:58:47.729Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2dd4c33e-0858-47a0-a07b-b298e0d3955a",
+  "version": "2.1.160"
+}

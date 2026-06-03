@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 302,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"  const result = await yahooFinance.historical(ticker, {\\n    period1: startDate.toISOString().split('T')[0],\\n    interval: days \u003c= 5 ? '1h' : '1d',\\n  })\",\"new_string\":\"  const result = await yahooFinance.historical(ticker, {\\n    period1: startDate.toISOString().split('T')[0],\\n    interval: '1d',\\n  })\",\"replace_all\":false},\"tool_use_id\":\"toolu_01LAbfdocKfoe5HTEdwkmK2d\"}\n",
+    "toolUseID": "toolu_01LAbfdocKfoe5HTEdwkmK2d",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a5e4d760-0648-4eef-a3ed-364418945eff",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:59:31.795Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7b476fd2-0080-4b92-939f-61c8a65bc935",
+  "version": "2.1.160"
+}

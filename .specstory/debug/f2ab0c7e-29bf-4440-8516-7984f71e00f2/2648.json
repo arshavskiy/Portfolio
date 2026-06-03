@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1596,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\\AddTransactionModal.vue\",\"old_string\":\"async function searchTicker(event) {\\n  if (!event.query || event.query.length \u003c 1) { suggestions.value = []; return }\\n  try {\\n    const results = await api.get(`/stocks/search?q=${encodeURIComponent(event.query)}`)\\n    suggestions.value = results.map((r) =\u003e ({ label: `${r.ticker} — ${r.name}`, value: r.ticker }))\\n  } catch { suggestions.value = [] }\\n}\",\"new_string\":\"async function searchTicker(event) {\\n  const q = event.query?.trim()\\n  if (!q || q.length \u003c 1) { suggestions.value = []; return }\\n  try {\\n    const results = await api.get(`/stocks/search?q=${encodeURIComponent(q)}`)\\n    suggestions.value = results.map((r) =\u003e `${r.ticker} — ${r.name}`)\\n  } catch { suggestions.value = [] }\\n}\",\"replace_all\":false},\"tool_use_id\":\"toolu_011CEDXQF4rweZ9NMtz7ENgN\"}\n",
+    "toolUseID": "toolu_011CEDXQF4rweZ9NMtz7ENgN",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "6dbbc0cd-f1be-43d6-ab6c-770c1af29d23",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:41:39.509Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6ab8c545-46ec-4c0a-8546-41024058dfb5",
+  "version": "2.1.160"
+}

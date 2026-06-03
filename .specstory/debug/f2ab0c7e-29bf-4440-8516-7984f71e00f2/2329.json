@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 2291,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\\AddTransactionModal.vue\",\"old_string\":\"      \u003cdiv class=\\\"total-row\\\" v-if=\\\"shares \u0026\u0026 price\\\"\u003e\\n        \u003cdiv class=\\\"total-line\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\"\u003eSubtotal\u003c/span\u003e\\n          \u003cspan\u003e{{ currencySymbol }}{{ (shares * price).toFixed(2) }}\u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv v-if=\\\"feeAmount \u003e 0\\\" class=\\\"total-line fee-line\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\"\u003eFee\u003c/span\u003e\\n          \u003cspan class=\\\"loss\\\"\u003e+{{ currencySymbol }}{{ feeAmount.toFixed(2) }}\u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"total-line total-final\\\"\u003e\\n          \u003cspan\u003eTotal (incl. fees)\u003c/span\u003e\\n          \u003cspan class=\\\"total-amount\\\"\u003e{{ currencySymbol }}{{ ((shares * price) + feeAmount).toFixed(2) }}\u003c/span\u003e\\n        \u003c/div\u003e\\n      \u003c/div\u003e\",\"new_string\":\"      \u003cdiv class=\\\"total-row\\\" v-if=\\\"shares \u0026\u0026 price\\\"\u003e\\n        \u003cdiv class=\\\"total-line\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\"\u003eSubtotal\u003c/span\u003e\\n          \u003cspan\u003e{{ currencySymbol }}{{ (shares * price).toFixed(2) }}\u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv v-if=\\\"feeAmount \u003e 0\\\" class=\\\"total-line fee-line\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\"\u003e{{ type === 'buy' ? 'Buy' : 'Sell' }} fee\u003c/span\u003e\\n          \u003cspan class=\\\"loss\\\"\u003e{{ type === 'buy' ? '+' : '-' }}{{ currencySymbol }}{{ feeAmount.toFixed(2) }}\u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv v-if=\\\"type === 'sell' \u0026\u0026 selectedProfile?.capitalGainsTax\\\" class=\\\"total-line fee-line\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\"\u003eCapital gains tax ({{ selectedProfile.capitalGainsTax }}%)\u003c/span\u003e\\n          \u003cspan class=\\\"loss\\\"\u003ecalculated on profit at sell\u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"total-line total-final\\\"\u003e\\n          \u003cspan\u003e{{ type === 'buy' ? 'Total cost' : 'Net proceeds' }}\u003c/span\u003e\\n          \u003cspan class=\\\"total-amount\\\"\u003e\\n            {{ currencySymbol }}{{ type === 'buy'\\n              ? ((shares * price) + feeAmount).toFixed(2)\\n              : ((shares * price) - feeAmount).toFixed(2) }}\\n            \u003cspan v-if=\\\"type === 'sell' \u0026\u0026 selectedProfile?.capitalGainsTax\\\" class=\\\"text-muted\\\" style=\\\"font-size:0.75rem\\\"\u003e (before tax)\u003c/span\u003e\\n          \u003c/span\u003e\\n        \u003c/div\u003e\\n      \u003c/div\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01G3EwzBBeA7FjBg9nQ1bvDS\"}\n",
+    "toolUseID": "toolu_01G3EwzBBeA7FjBg9nQ1bvDS",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "0fdf6706-8a60-45e0-90b5-e03f70d5d9cb",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:08:18.299Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c28a89f4-edf1-4791-92c7-a804b2a25411",
+  "version": "2.1.160"
+}

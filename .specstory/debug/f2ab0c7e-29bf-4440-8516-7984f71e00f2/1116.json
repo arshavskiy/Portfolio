@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 324,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 node -e \\\"\\nconst YahooFinance = require('yahoo-finance2').default\\nconst yf = new YahooFinance()\\nconst start = new Date(); start.setDate(start.getDate() - 90)\\nyf.historical('POLI.TA', { period1: start.toISOString().split('T')[0], interval: '1d' })\\n  .then(r =\u003e console.log('rows:', r.length, 'first:', JSON.stringify(r[0])))\\n  .catch(e =\u003e console.error('ERROR:', e.message))\\n\\\" 2\u003e\u00261\",\"description\":\"Test yahoo-finance2 historical for POLI.TA\"},\"tool_use_id\":\"toolu_0143qJKd7ZwbHuSAGPEhsEew\"}\n",
+    "toolUseID": "toolu_0143qJKd7ZwbHuSAGPEhsEew",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "586d5895-747e-4f38-acfe-5088bc1f841b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:00:02.353Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "deca1932-0f49-4cf9-9e4a-58bc6c7ea64d",
+  "version": "2.1.160"
+}

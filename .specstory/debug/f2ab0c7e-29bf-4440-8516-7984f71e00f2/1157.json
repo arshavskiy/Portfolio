@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 340,
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Everything is working perfectly:\\n\\n- ₪6,940.00 price with ₪ throughout\\n- 3-month D3 chart rendering with Yahoo Finance-style red area chart\\n- All stats (Open, Day High, Day Low, Volume) showing ₪ correctly\\n- Range selector working\\n\\nWhat's next — more stocks, Phase 2 features, or anything to tweak on the UI?\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "toolUseID": "ef004888-3529-41be-aa8e-00cb947f0c69",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "235f28ed-20d8-428d-a099-23c832da52c5",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:00:49.265Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "37d59077-9b46-4463-b5f1-154672f991c7",
+  "version": "2.1.160"
+}

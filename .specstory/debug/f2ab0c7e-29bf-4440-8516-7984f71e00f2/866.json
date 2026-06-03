@@ -1,0 +1,42 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "hasOutput": true,
+  "hookCount": 6,
+  "hookErrors": [],
+  "hookInfos": [
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:check-console-log\" \"scripts/hooks/check-console-log.js\" \"standard,strict\"",
+      "durationMs": 398
+    },
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:session-end\" \"scripts/hooks/session-end.js\" \"minimal,standard,strict\""
+    },
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:evaluate-session\" \"scripts/hooks/evaluate-session.js\" \"minimal,standard,strict\""
+    },
+    {
+      "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"stop:cost-tracker\" \"scripts/hooks/cost-tracker.js\" \"minimal,standard,strict\""
+    },
+    {
+      "command": "callback"
+    },
+    {
+      "command": "callback"
+    }
+  ],
+  "isSidechain": false,
+  "level": "suggestion",
+  "parentUuid": "cc648fe6-6d43-44ff-81ed-cf43d4e26719",
+  "preventedContinuation": false,
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "stopReason": "",
+  "subtype": "stop_hook_summary",
+  "timestamp": "2026-06-02T21:50:00.253Z",
+  "toolUseID": "9b1b3e2a-1ee4-421d-bcf7-f7f63433ebce",
+  "type": "system",
+  "userType": "external",
+  "uuid": "81a1ca33-5ce1-4819-b76e-46a97aa8eb23",
+  "version": "2.1.160"
+}

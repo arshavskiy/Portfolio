@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 320,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\package.json\",\"old_string\":\"  \\\"scripts\\\": {\\n    \\\"test\\\": \\\"echo \\\\\\\"Error: no test specified\\\\\\\" \u0026\u0026 exit 1\\\"\\n  },\",\"new_string\":\"  \\\"scripts\\\": {\\n    \\\"start\\\": \\\"node index.js\\\",\\n    \\\"dev\\\": \\\"node --watch index.js\\\"\\n  },\",\"replace_all\":false},\"tool_use_id\":\"toolu_01FPMFZ32aMsL4Q7BciVhJEa\"}\n",
+    "toolUseID": "toolu_01FPMFZ32aMsL4Q7BciVhJEa",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "06dfef6b-0889-4574-b418-62ded1b2b2f5",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:28:49.716Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "4c06c01f-3607-4675-91eb-4039df8547ab",
+  "version": "2.1.160"
+}

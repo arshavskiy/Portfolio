@@ -1,0 +1,19 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": "how to seach TLV:POLI",
+    "role": "user"
+  },
+  "parentUuid": "b0b50ec5-ba82-4752-9b2a-5d6551d358d0",
+  "permissionMode": "acceptEdits",
+  "promptId": "373b7215-e69f-41c5-aa20-23886cd21248",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:54:10.458Z",
+  "type": "user",
+  "userType": "external",
+  "uuid": "e5b59462-5c20-4011-8cbc-8bdda16c7847",
+  "version": "2.1.160"
+}

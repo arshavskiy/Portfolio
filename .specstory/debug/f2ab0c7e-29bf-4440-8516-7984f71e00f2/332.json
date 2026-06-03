@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 384,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\router\\\\index.js\",\"content\":\"import { createRouter, createWebHistory } from 'vue-router'\\nimport { useAuthStore } from '@/stores/auth'\\n\\nconst routes = [\\n  { path: '/login', name: 'Login', component: () =\u003e import('@/views/LoginView.vue'), meta: { guest: true } },\\n  { path: '/register', name: 'Register', component: () =\u003e import('@/views/RegisterView.vue'), meta: { guest: true } },\\n  {\\n    path: '/',\\n    component: () =\u003e import('@/layouts/MobileLayout.vue'),\\n    meta: { requiresAuth: true },\\n    children: [\\n      { path: '', name: 'Dashboard', component: () =\u003e import('@/views/DashboardView.vue') },\\n      { path: 'holdings', name: 'Holdings', component: () =\u003e import('@/views/HoldingsView.vue') },\\n      { path: 'watchlist', name: 'Watchlist', component: () =\u003e import('@/views/WatchlistView.vue') },\\n      { path: 'transactions', name: 'Transactions', component: () =\u003e import('@/views/TransactionsView.vue') },\\n      { path: 'stock/:ticker', name: 'StockDetail', component: () =\u003e import('@/views/StockDetailView.vue') },\\n      { path: 'profile', name: 'Profile', component: () =\u003e import('@/views/ProfileView.vue') },\\n    ],\\n  },\\n  { path: '/:pathMatch(.*)*', redirect: '/' },\\n]\\n\\nconst router = createRouter({\\n  history: createWebHistory(),\\n  routes,\\n  scrollBehavior: () =\u003e ({ top: 0 }),\\n})\\n\\nrouter.beforeEach((to) =\u003e {\\n  const auth = useAuthStore()\\n  if (to.meta.requiresAuth \u0026\u0026 !auth.token) return { name: 'Login' }\\n  if (to.meta.guest \u0026\u0026 auth.token) return { name: 'Dashboard' }\\n})\\n\\nexport default router\\n\"},\"tool_use_id\":\"toolu_01Ltde1vQfgRnJ7wX4TqnduN\"}\n",
+    "toolUseID": "toolu_01Ltde1vQfgRnJ7wX4TqnduN",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "78d9fa69-7aef-456d-b3ef-95ae8c49512b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:59.911Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d9ad140b-3592-46ae-bd50-f5d5ee7ee22b",
+  "version": "2.1.160"
+}

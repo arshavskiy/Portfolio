@@ -1,0 +1,18 @@
+{
+  "attachment": {
+    "content": [],
+    "itemCount": 0,
+    "type": "task_reminder"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "6ec4dbf4-fd6f-48f0-b72e-b8947077b67f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:02:31.955Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d0cc0ed2-4b8c-415b-8a1c-09806f3f603e",
+  "version": "2.1.160"
+}

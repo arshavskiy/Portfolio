@@ -1,0 +1,51 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_32916",
+    "response": {
+      "background_tasks": [
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\server\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start server",
+          "id": "b0h28df9w",
+          "status": "running",
+          "type": "shell"
+        },
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start Vite dev server",
+          "id": "b0wqwgot7",
+          "status": "running",
+          "type": "shell"
+        }
+      ],
+      "cwd": "E:\\Projects\\Portfolio",
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "Stop",
+      "last_assistant_message": "Yahoo Finance uses a different format for Tel Aviv Stock Exchange tickers — it's `POLI.TA` not `TLV:POLI`. The `.TA` suffix is the Yahoo Finance convention for TASE stocks.\n\nTry typing **`POLI.TA`** in the search box.\n\nOther common TASE examples:\n| TASE | Yahoo Finance |\n|---|---|\n| TLV:POLI | `POLI.TA` |\n| TLV:TEVA | `TEVA` (dual listed, use as-is) |\n| TLV:NICE | `NICE` (dual listed) |\n| TLV:ESLT | `ESLT.TA` |",
+      "permission_mode": "acceptEdits",
+      "session_crons": [],
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "stop_hook_active": false,
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Yahoo Finance uses a different format for Tel Aviv Stock Exchange tickers — it's `POLI.TA` not `TLV:POLI`. The `.TA` suffix is the Yahoo Finance convention for TASE stocks.\\n\\nTry typing **`POLI.TA`** in the search box.\\n\\nOther common TASE examples:\\n| TASE | Yahoo Finance |\\n|---|---|\\n| TLV:POLI | `POLI.TA` |\\n| TLV:TEVA | `TEVA` (dual listed, use as-is) |\\n| TLV:NICE | `NICE` (dual listed) |\\n| TLV:ESLT | `ESLT.TA` |\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "fe680cac-90d2-4c21-8964-05abb4683242",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:58:17.679Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e25efe95-e70c-4a79-9c44-c7caad8690ef",
+  "version": "2.1.160"
+}

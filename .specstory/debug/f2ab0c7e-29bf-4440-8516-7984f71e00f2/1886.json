@@ -1,0 +1,30 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "No matching deferred tools found",
+        "tool_use_id": "toolu_01CoQ1TDUfaiA2bacRtwULEc",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "ccabecf6-b795-4d33-8abb-fe31479e0659",
+  "promptId": "261922ca-ed19-4592-98b2-b2d513d7838a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "ccabecf6-b795-4d33-8abb-fe31479e0659",
+  "timestamp": "2026-06-03T03:33:18.098Z",
+  "toolUseResult": {
+    "matches": [],
+    "query": "select:mcp__Claude_Preview__preview_navigate",
+    "total_deferred_tools": 104
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "d5f357bf-363e-4365-b887-855a35d366ef",
+  "version": "2.1.160"
+}

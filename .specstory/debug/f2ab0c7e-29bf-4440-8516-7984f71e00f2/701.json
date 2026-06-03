@@ -1,0 +1,35 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "1\tconst jwt = require('jsonwebtoken')\n2\tconst User = require('../models/User')\n3\t\n4\tmodule.exports = async (req, res, next) =\u003e {\n5\t  const header = req.headers.authorization\n6\t  if (!header || !header.startsWith('Bearer ')) {\n7\t    return res.status(401).json({ message: 'No token provided' })\n8\t  }\n9\t  const token = header.split(' ')[1]\n10\t  try {\n11\t    const decoded = jwt.verify(token, process.env.JWT_SECRET)\n12\t    req.user = await User.findById(decoded.id).select('-password')\n13\t    if (!req.user) return res.status(401).json({ message: 'User not found' })\n14\t    next()\n15\t  } catch {\n16\t    res.status(401).json({ message: 'Invalid token' })\n17\t  }\n18\t}\n19\t",
+        "tool_use_id": "toolu_01PqaN9pR9Pir6RcB3246pK9",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "ee59f8ce-201f-4e59-b494-1c1c2e1554de",
+  "promptId": "8be9cd38-3890-485e-b338-d6af4e9dc3ce",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "ee59f8ce-201f-4e59-b494-1c1c2e1554de",
+  "timestamp": "2026-06-02T21:46:17.855Z",
+  "toolUseResult": {
+    "file": {
+      "content": "const jwt = require('jsonwebtoken')\nconst User = require('../models/User')\n\nmodule.exports = async (req, res, next) =\u003e {\n  const header = req.headers.authorization\n  if (!header || !header.startsWith('Bearer ')) {\n    return res.status(401).json({ message: 'No token provided' })\n  }\n  const token = header.split(' ')[1]\n  try {\n    const decoded = jwt.verify(token, process.env.JWT_SECRET)\n    req.user = await User.findById(decoded.id).select('-password')\n    if (!req.user) return res.status(401).json({ message: 'User not found' })\n    next()\n  } catch {\n    res.status(401).json({ message: 'Invalid token' })\n  }\n}\n",
+      "filePath": "E:\\Projects\\Portfolio\\server\\middleware\\auth.js",
+      "numLines": 19,
+      "startLine": 1,
+      "totalLines": 19
+    },
+    "type": "text"
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "c391c74f-5087-4152-894e-03b32fc7539c",
+  "version": "2.1.160"
+}

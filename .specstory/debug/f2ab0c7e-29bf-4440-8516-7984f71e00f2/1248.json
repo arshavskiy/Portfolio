@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 235,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"module.exports = { getQuote, getQuotes, getHistory, searchTicker }\",\"new_string\":\"function invalidateCache(ticker) {\\n  quoteCache.delete(ticker.toUpperCase())\\n}\\n\\nmodule.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01FhthkCHijeRq4Qswc26Nfj\"}\n",
+    "toolUseID": "toolu_01FhthkCHijeRq4Qswc26Nfj",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "d717d686-d8af-45aa-81b9-8fe8d07810f2",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:04:46.314Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7c1b7c36-5ff7-45ba-a33c-e557fe83701c",
+  "version": "2.1.160"
+}

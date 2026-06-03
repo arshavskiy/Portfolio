@@ -1,0 +1,33 @@
+{
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `new YahooFinance({ suppressNotices: ['ripHistorical'] })`.\n[yahooFinance.historical] Invalid options (\"#/definitions/ChartOptions\")\n{\n  \"errors\": [\n    {\n      \"instancePath\": \"/period2\",\n      \"schemaPath\": \"#/definitions/ChartOptions\",\n      \"message\": \"should match some schema in anyOf\",\n      \"subErrors\": [\n        {\n          \"instancePath\": \"/period2\",\n          \"schemaPath\": \"#/definitions/ChartOptions/anyOf/0\",\n          \"message\": \"Expecting date'ish\",\n          \"params\": {\n            \"schema\": {\n              \"type\": \"string\",\n              \"format\": \"date-time\"\n            }\n          }\n        },\n        {\n          \"instancePath\": \"/period2\",\n          \"schemaPath\": \"#/definitions/ChartOptions/anyOf/1\",\n          \"message\": \"Expected a string\"\n        },\n        {\n          \"instancePath\": \"/period2\",\n          \"schemaPath\": \"#/definitions/ChartOptions/anyOf/2\",\n          \"message\": \"Expected a number'ish\"\n        }\n      ]\n    }\n  ],\n  \"input\": {\n    \"period1\": \"2026-03-04T00:00:00.000Z\",\n    \"interval\": \"1d\",\n    \"events\": \"\"\n  }\n}\nERROR: yahooFinance.historical called with invalid options.",
+        "is_error": false,
+        "tool_use_id": "toolu_0143qJKd7ZwbHuSAGPEhsEew",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "7c3bd0fc-e6bb-43a2-b11b-d60ef7b7718c",
+  "promptId": "bb47af4c-d806-4347-a34e-9bdad95cade0",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "7c3bd0fc-e6bb-43a2-b11b-d60ef7b7718c",
+  "timestamp": "2026-06-02T22:00:09.474Z",
+  "toolUseResult": {
+    "interrupted": false,
+    "isImage": false,
+    "noOutputExpected": false,
+    "stderr": "",
+    "stdout": "[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `new YahooFinance({ suppressNotices: ['ripHistorical'] })`.\n[yahooFinance.historical] Invalid options (\"#/definitions/ChartOptions\")\n{\n  \"errors\": [\n    {\n      \"instancePath\": \"/period2\",\n      \"schemaPath\": \"#/definitions/ChartOptions\",\n      \"message\": \"should match some schema in anyOf\",\n      \"subErrors\": [\n        {\n          \"instancePath\": \"/period2\",\n          \"schemaPath\": \"#/definitions/ChartOptions/anyOf/0\",\n          \"message\": \"Expecting date'ish\",\n          \"params\": {\n            \"schema\": {\n              \"type\": \"string\",\n              \"format\": \"date-time\"\n            }\n          }\n        },\n        {\n          \"instancePath\": \"/period2\",\n          \"schemaPath\": \"#/definitions/ChartOptions/anyOf/1\",\n          \"message\": \"Expected a string\"\n        },\n        {\n          \"instancePath\": \"/period2\",\n          \"schemaPath\": \"#/definitions/ChartOptions/anyOf/2\",\n          \"message\": \"Expected a number'ish\"\n        }\n      ]\n    }\n  ],\n  \"input\": {\n    \"period1\": \"2026-03-04T00:00:00.000Z\",\n    \"interval\": \"1d\",\n    \"events\": \"\"\n  }\n}\nERROR: yahooFinance.historical called with invalid options."
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "179cd36c-cab0-40c0-8bc6-862ca2e2c7ea",
+  "version": "2.1.160"
+}

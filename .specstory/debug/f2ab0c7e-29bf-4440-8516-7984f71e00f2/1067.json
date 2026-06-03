@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 266,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"  const result = await yahooFinance.quote(ticker, {\\n    fields: ['symbol', 'shortName', 'regularMarketPrice', 'regularMarketChange',\\n      'regularMarketChangePercent', 'regularMarketVolume', 'marketCap',\\n      'regularMarketDayHigh', 'regularMarketDayLow', 'regularMarketOpen',\\n      'fiftyTwoWeekHigh', 'fiftyTwoWeekLow', 'trailingPE'],\\n  })\",\"new_string\":\"  const result = await yahooFinance.quote(ticker)\",\"replace_all\":false},\"tool_use_id\":\"toolu_01SXLZBhwT2W1qCgEESXjVVQ\"}\n",
+    "toolUseID": "toolu_01SXLZBhwT2W1qCgEESXjVVQ",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "16bb7959-77a9-4bde-9221-55f5c330c556",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:59:30.411Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8f0bde8d-faa2-4b46-a970-d91db0675409",
+  "version": "2.1.160"
+}

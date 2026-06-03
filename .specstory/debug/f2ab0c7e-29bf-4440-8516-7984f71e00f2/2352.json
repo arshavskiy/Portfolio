@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1089,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\PositionDetailView.vue\",\"old_string\":\".lot-fee { font-size: 0.75rem; }\",\"new_string\":\".lot-fee { font-size: 0.75rem; }\\n.lot-net { font-size: 0.75rem; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01SLBKKXBuETWr5RwPmDmaZz\"}\n",
+    "toolUseID": "toolu_01SLBKKXBuETWr5RwPmDmaZz",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e160153c-510d-4713-bb57-28ef9e8fb9ab",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:09:07.743Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "1c3ef3f8-2a6b-4820-b672-1b79efd891b5",
+  "version": "2.1.160"
+}

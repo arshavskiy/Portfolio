@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:write:doc-file-warning\" \"scripts/hooks/doc-file-warning.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 2046,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\FeeProfile.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst feeRuleSchema = new mongoose.Schema({\\n  type: { type: String, enum: ['percent', 'flat'], default: 'percent' },\\n  value: { type: Number, required: true, min: 0 },\\n  minFee: { type: Number, default: 0 },\\n}, { _id: false })\\n\\nconst feeProfileSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    name: { type: String, required: true, trim: true },   // e.g. \\\"IBI\\\", \\\"Meitav\\\"\\n    country: { type: String, default: '' },               // e.g. \\\"Israel\\\", \\\"USA\\\"\\n    currency: { type: String, default: 'USD' },\\n\\n    buyFee: { type: feeRuleSchema, default: () =\u003e ({ type: 'percent', value: 0, minFee: 0 }) },\\n    sellFee: { type: feeRuleSchema, default: () =\u003e ({ type: 'percent', value: 0, minFee: 0 }) },\\n\\n    capitalGainsTax: { type: Number, default: 0 },         // % e.g. 25 for Israel\\n    isDefault: { type: Boolean, default: false },\\n  },\\n  { timestamps: true }\\n)\\n\\nfeeProfileSchema.index({ user: 1 })\\n\\nmodule.exports = mongoose.model('FeeProfile', feeProfileSchema)\\n\"},\"tool_use_id\":\"toolu_018W6nC4nzpV6HQRHQLbjcEX\"}\n",
+    "toolUseID": "toolu_018W6nC4nzpV6HQRHQLbjcEX",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8b779e3e-a703-4266-8190-beb4021497b6",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:04:50.160Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "746c7265-8c94-462d-a60d-28d3ead5ff8a",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 211,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\portfolioController.js\",\"old_string\":\"    let totalValue = 0\\n    let totalCost = 0\\n\\n    const enriched = positions.map((p) =\u003e {\\n      const q = quoteMap[p.ticker] || {}\\n      const currentPrice = q.price || 0\\n      const value = currentPrice * p.shares\\n      const cost = p.avgCost * p.shares\\n      const pnl = value - cost\\n      const pnlPercent = cost \u003e 0 ? (pnl / cost) * 100 : 0\\n      totalValue += value\\n      totalCost += cost\\n      return {\\n        _id: p._id,\\n        ticker: p.ticker,\\n        companyName: q.name || p.companyName,\\n        shares: p.shares,\\n        avgCost: p.avgCost,\\n        currentPrice,\\n        value,\\n        cost,\\n        pnl,\\n        pnlPercent,\\n        change: q.change,\\n        changePercent: q.changePercent,\\n      }\\n    })\\n\\n    res.json({\\n      positions: enriched,\\n      totalValue,\\n      totalCost,\\n      totalPnl: totalValue - totalCost,\\n      totalPnlPercent: totalCost \u003e 0 ? ((totalValue - totalCost) / totalCost) * 100 : 0,\\n    })\",\"new_string\":\"    const totals = {}\\n\\n    const enriched = positions.map((p) =\u003e {\\n      const q = quoteMap[p.ticker] || {}\\n      const currency = p.ticker.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD'\\n      const currentPrice = q.price || 0\\n      const value = currentPrice * p.shares\\n      const cost = p.avgCost * p.shares\\n      const pnl = value - cost\\n      const pnlPercent = cost \u003e 0 ? (pnl / cost) * 100 : 0\\n\\n      if (!totals[currency]) totals[currency] = { value: 0, cost: 0 }\\n      totals[currency].value += value\\n      totals[currency].cost += cost\\n\\n      return {\\n        _id: p._id,\\n        ticker: p.ticker,\\n        currency,\\n        companyName: q.name || p.companyName,\\n        shares: p.shares,\\n        avgCost: p.avgCost,\\n        currentPrice,\\n        value,\\n        cost,\\n        pnl,\\n        pnlPercent,\\n        change: q.change,\\n        changePercent: q.changePercent,\\n      }\\n    })\\n\\n    const totalsArray = Object.entries(totals).map(([currency, t]) =\u003e ({\\n      currency,\\n      value: t.value,\\n      cost: t.cost,\\n      pnl: t.value - t.cost,\\n      pnlPercent: t.cost \u003e 0 ? ((t.value - t.cost) / t.cost) * 100 : 0,\\n    }))\\n\\n    res.json({ positions: enriched, totals: totalsArray })\",\"replace_all\":false},\"tool_use_id\":\"toolu_017iuskhw3ojSDvt1aDREBf6\"}\n",
+    "toolUseID": "toolu_017iuskhw3ojSDvt1aDREBf6",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "0c62d43a-0804-4a0d-a21b-3c3461d67f91",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:06:22.790Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "ad93b1c9-fb5b-47ed-b899-ac2aa0c4d9d5",
+  "version": "2.1.160"
+}

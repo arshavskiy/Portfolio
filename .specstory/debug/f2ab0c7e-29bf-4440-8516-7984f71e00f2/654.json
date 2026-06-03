@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 171,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"Start-Sleep -Seconds 4; Get-Content \\\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\\\tasks\\\\b0h28df9w.output\\\"\",\"description\":\"Check server startup output\"},\"tool_use_id\":\"toolu_016gk8pmNfAatZKVnwkpG6xN\",\"error\":\"Exit code 127\\n/usr/bin/bash: line 3: Start-Sleep: command not found\\n/usr/bin/bash: line 3: Get-Content: command not found\",\"is_interrupt\":false,\"duration_ms\":154}\n",
+    "toolUseID": "toolu_016gk8pmNfAatZKVnwkpG6xN",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b1ff6e2d-f5c8-46e5-8658-2523da9b138e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:45:38.882Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "418632ef-6ed0-42de-9ebc-2abdaa788ed3",
+  "version": "2.1.160"
+}

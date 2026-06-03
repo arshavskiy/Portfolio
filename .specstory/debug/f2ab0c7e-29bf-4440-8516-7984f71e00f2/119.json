@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:bash:pr-created\" \"scripts/hooks/post-bash-pr-created.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 232,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"mkdir \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\\middleware\\\" 2\u003e\u00261\\nmkdir \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\layouts\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\charts\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\composables\\\" \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\router\\\" 2\u003e\u00261\",\"description\":\"Create folder structure\"},\"tool_response\":{\"stdout\":\"\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":true},\"tool_use_id\":\"toolu_01RHgERqxxdCX5Q9fxkjXenn\",\"duration_ms\":157}\n",
+    "toolUseID": "toolu_01RHgERqxxdCX5Q9fxkjXenn",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "be35b9fa-c774-4883-8d01-51d8cb2ea75d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:46.222Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "ae3e6ca0-620f-41a0-9143-8e1fd27138eb",
+  "version": "2.1.160"
+}

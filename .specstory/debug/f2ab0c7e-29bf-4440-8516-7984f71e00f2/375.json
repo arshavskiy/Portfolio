@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 247,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\composables\\\\useFormat.js\",\"content\":\"export function useCurrency(val, currency = 'USD') {\\n  if (val == null) return '—'\\n  return new Intl.NumberFormat('en-US', { style: 'currency', currency, minimumFractionDigits: 2 }).format(val)\\n}\\n\\nexport function usePercent(val) {\\n  if (val == null) return '—'\\n  const sign = val \u003e= 0 ? '+' : ''\\n  return `${sign}${val.toFixed(2)}%`\\n}\\n\\nexport function useLargeNumber(val) {\\n  if (val == null) return '—'\\n  if (val \u003e= 1e12) return `$${(val / 1e12).toFixed(2)}T`\\n  if (val \u003e= 1e9) return `$${(val / 1e9).toFixed(2)}B`\\n  if (val \u003e= 1e6) return `$${(val / 1e6).toFixed(2)}M`\\n  return useCurrency(val)\\n}\\n\\nexport function gainLossClass(val) {\\n  if (val == null) return ''\\n  return val \u003e= 0 ? 'gain' : 'loss'\\n}\\n\"},\"tool_use_id\":\"toolu_01FGvu8nE1GLtBiQd5rFeoE3\"}\n",
+    "toolUseID": "toolu_01FGvu8nE1GLtBiQd5rFeoE3",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "692ac0d2-b436-4515-ad05-e0ac9df059ed",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:21.600Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "b8aa9aa2-64db-4300-b6b6-9ecb9abf4b2b",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 165,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\watchlist.js\",\"content\":\"const router = require('express').Router()\\nconst auth = require('../middleware/auth')\\nconst { getWatchlist, addToWatchlist, removeFromWatchlist } = require('../controllers/watchlistController')\\n\\nrouter.use(auth)\\nrouter.get('/', getWatchlist)\\nrouter.post('/', addToWatchlist)\\nrouter.delete('/:id', removeFromWatchlist)\\n\\nmodule.exports = router\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\watchlist.js\",\"content\":\"const router = require('express').Router()\\nconst auth = require('../middleware/auth')\\nconst { getWatchlist, addToWatchlist, removeFromWatchlist } = require('../controllers/watchlistController')\\n\\nrouter.use(auth)\\nrouter.get('/', getWatchlist)\\nrouter.post('/', addToWatchlist)\\nrouter.delete('/:id', removeFromWatchlist)\\n\\nmodule.exports = router\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_019ZBM6zFQtP3hcgd3taqxTU\",\"duration_ms\":22}\n",
+    "toolUseID": "toolu_019ZBM6zFQtP3hcgd3taqxTU",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "61795a44-5c0a-441c-a61e-fe8f23f5ac13",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:08.001Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "71e8368d-a008-4ca5-88e9-cb6f95efb031",
+  "version": "2.1.160"
+}

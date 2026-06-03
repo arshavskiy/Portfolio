@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:console-warn\" \"scripts/hooks/post-edit-console-warn.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1736,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\main.js\",\"old_string\":\"app.use(ToastService)\\napp.use(ConfirmationService)\",\"new_string\":\"app.use(ToastService)\\napp.use(ConfirmationService)\\napp.directive('tooltip', Tooltip)\",\"replace_all\":false},\"tool_response\":{\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\main.js\",\"oldString\":\"app.use(ToastService)\\napp.use(ConfirmationService)\",\"newString\":\"app.use(ToastService)\\napp.use(ConfirmationService)\\napp.directive('tooltip', Tooltip)\",\"originalFile\":\"import { createApp } from 'vue'\\nimport { createPinia } from 'pinia'\\nimport PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport Tooltip from 'primevue/tooltip'\\nimport 'primeicons/primeicons.css'\\nimport './style.css'\\n\\nimport App from './App.vue'\\nimport router from './router'\\n\\nconst app = createApp(App)\\n\\napp.use(createPinia())\\napp.use(router)\\napp.use(PrimeVue, {\\n  theme: {\\n    preset: Aura,\\n    options: {\\n      prefix: 'p',\\n      darkModeSelector: '.dark',\\n      cssLayer: false,\\n    },\\n  },\\n})\\napp.use(ToastService)\\napp.use(ConfirmationService)\\n\\napp.mount('#app')\\n\",\"structuredPatch\":[{\"oldStart\":27,\"oldLines\":5,\"newStart\":27,\"newLines\":6,\"lines\":[\" })\",\" app.use(ToastService)\",\" app.use(ConfirmationService)\",\"+app.directive('tooltip', Tooltip)\",\" \",\" app.mount('#app')\"]}],\"userModified\":false,\"replaceAll\":false},\"tool_use_id\":\"toolu_01QpaxNLmis3eCAmaB9wk4Ds\",\"duration_ms\":172}\n",
+    "toolUseID": "toolu_01QpaxNLmis3eCAmaB9wk4Ds",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "100bdeff-8498-4672-acb5-7b8700b2ad8d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:46:23.731Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "eec0447c-206f-46cb-a7ac-b5bcbb97104d",
+  "version": "2.1.160"
+}

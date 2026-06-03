@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_30132",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 160,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "cat \"C:\\Users\\User\\AppData\\Local\\Temp\\claude\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\tasks\\b0h28df9w.output\" | tail -20",
+        "description": "Check server error logs"
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": "Cron jobs started\nServer running on port 3000\nRestarting 'index.js'\n◇ injected env (5) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }\nMongoDB connected\nCron jobs started\nServer running on port 3000\nFailed running 'index.js'\nRestarting 'index.js'\n◇ injected env (5) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }\nMongoDB connected\nCron jobs started\nServer running on port 3000\nRestarting 'index.js'\n◇ injected env (5) from .env // tip: ⌁ auth for agents [www.vestauth.com]\nRestarting 'index.js'\n◇ injected env (5) from .env // tip: ⌘ override existing { override: true }\nMongoDB connected\nCron jobs started\nServer running on port 3000"
+      },
+      "tool_use_id": "toolu_01AxZY95s6P6Fo6zEbNtkrnR",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cat \\\"C:\\\\Users\\\\User\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2\\\\tasks\\\\b0h28df9w.output\\\" | tail -20\",\"description\":\"Check server error logs\"},\"tool_response\":{\"stdout\":\"Cron jobs started\\nServer running on port 3000\\nRestarting 'index.js'\\n◇ injected env (5) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }\\nMongoDB connected\\nCron jobs started\\nServer running on port 3000\\nFailed running 'index.js'\\nRestarting 'index.js'\\n◇ injected env (5) from .env // tip: ⌘ custom filepath { path: '/custom/path/.env' }\\nMongoDB connected\\nCron jobs started\\nServer running on port 3000\\nRestarting 'index.js'\\n◇ injected env (5) from .env // tip: ⌁ auth for agents [www.vestauth.com]\\nRestarting 'index.js'\\n◇ injected env (5) from .env // tip: ⌘ override existing { override: true }\\nMongoDB connected\\nCron jobs started\\nServer running on port 3000\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01AxZY95s6P6Fo6zEbNtkrnR\",\"duration_ms\":160}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "7550f78d-7d90-4e0e-9188-b5e83bff376a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:59:55.370Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "491155c2-6957-40f5-b979-56a7ebb0f740",
+  "version": "2.1.160"
+}

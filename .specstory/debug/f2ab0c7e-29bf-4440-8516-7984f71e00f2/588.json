@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:write:doc-file-warning\" \"scripts/hooks/doc-file-warning.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 333,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\client\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\memory\\\\MEMORY.md\",\"content\":\"# Memory Index\\n\\n- [StockFolio Project](project_stockfolio.md) — Multi-user stocks portfolio tracker, Vite+Vue3+PrimeVue+D3+Node+MongoDB Atlas, JS only, mobile-first PWA\\n\"},\"tool_use_id\":\"toolu_01KJV1TnHQSTDFY5JwnZy1oA\"}\n",
+    "toolUseID": "toolu_01KJV1TnHQSTDFY5JwnZy1oA",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "3363b321-af12-46f0-968b-ef9969cdc7a3",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:30:23.662Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "40d540bb-19d9-4107-a63f-83e1a8c4eb82",
+  "version": "2.1.160"
+}

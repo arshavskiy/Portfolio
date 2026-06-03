@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 360,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\portfolio.js\",\"content\":\"import { defineStore } from 'pinia'\\nimport { ref } from 'vue'\\nimport api from '@/composables/useApi'\\n\\nexport const usePortfolioStore = defineStore('portfolio', () =\u003e {\\n  const positions = ref([])\\n  const totalValue = ref(0)\\n  const totalCost = ref(0)\\n  const totalPnl = ref(0)\\n  const totalPnlPercent = ref(0)\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totalValue.value = data.totalValue\\n      totalCost.value = data.totalCost\\n      totalPnl.value = data.totalPnl\\n      totalPnlPercent.value = data.totalPnlPercent\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function addTransaction(payload) {\\n    const data = await api.post('/portfolio/transaction', payload)\\n    await fetchPortfolio()\\n    return data\\n  }\\n\\n  async function deletePosition(id) {\\n    await api.delete(`/portfolio/position/${id}`)\\n    await fetchPortfolio()\\n  }\\n\\n  return { positions, totalValue, totalCost, totalPnl, totalPnlPercent, loading, fetchPortfolio, addTransaction, deletePosition }\\n})\\n\"},\"tool_use_id\":\"toolu_01DzNz5rdPJVFDHLYsDVMbio\"}\n",
+    "toolUseID": "toolu_01DzNz5rdPJVFDHLYsDVMbio",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "6e6ee2e1-009a-4d5b-9a0e-11849f35b600",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:09.772Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "19f01d03-4347-42b8-8324-281b2303c2f4",
+  "version": "2.1.160"
+}

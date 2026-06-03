@@ -1,0 +1,47 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "processId": "async_hook_13992",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio\\server",
+      "duration_ms": 21,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "content": "const mongoose = require('mongoose')\n\nconst transactionSchema = new mongoose.Schema(\n  {\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\n    ticker: { type: String, required: true, uppercase: true },\n    type: { type: String, enum: ['buy', 'sell'], required: true },\n    shares: { type: Number, required: true, min: 0 },\n    price: { type: Number, required: true, min: 0 },\n    total: { type: Number, required: true },\n    date: { type: Date, default: Date.now },\n    notes: { type: String },\n  },\n  { timestamps: true }\n)\n\ntransactionSchema.index({ user: 1, date: -1 })\n\nmodule.exports = mongoose.model('Transaction', transactionSchema)\n",
+        "file_path": "E:\\Projects\\Portfolio\\server\\models\\Transaction.js"
+      },
+      "tool_name": "Write",
+      "tool_response": {
+        "content": "const mongoose = require('mongoose')\n\nconst transactionSchema = new mongoose.Schema(\n  {\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\n    ticker: { type: String, required: true, uppercase: true },\n    type: { type: String, enum: ['buy', 'sell'], required: true },\n    shares: { type: Number, required: true, min: 0 },\n    price: { type: Number, required: true, min: 0 },\n    total: { type: Number, required: true },\n    date: { type: Date, default: Date.now },\n    notes: { type: String },\n  },\n  { timestamps: true }\n)\n\ntransactionSchema.index({ user: 1, date: -1 })\n\nmodule.exports = mongoose.model('Transaction', transactionSchema)\n",
+        "filePath": "E:\\Projects\\Portfolio\\server\\models\\Transaction.js",
+        "originalFile": null,
+        "structuredPatch": [],
+        "type": "create",
+        "userModified": false
+      },
+      "tool_use_id": "toolu_018WEFRe4NrxVwWRHybxkL5Q",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_018WEFRe4NrxVwWRHybxkL5Q\",\"duration_ms\":21}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e8a789d3-7799-4ba8-b05f-01688795fcba",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:09.046Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "f8e4b7d3-f18b-4731-a84f-b184695cd519",
+  "version": "2.1.160"
+}

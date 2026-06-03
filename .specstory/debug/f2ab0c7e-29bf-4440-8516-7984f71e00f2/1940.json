@@ -1,0 +1,73 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "caller": {
+          "type": "direct"
+        },
+        "id": "toolu_011Q51YcpXcui3BYL857DU43",
+        "input": {
+          "content": "const mongoose = require('mongoose')\n\nconst feeProfileSchema = new mongoose.Schema(\n  {\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\n    name: { type: String, required: true, trim: true },        // e.g. \"IBI\", \"Meitav\"\n    type: { type: String, enum: ['percent', 'flat'], default: 'percent' },\n    value: { type: Number, required: true, min: 0 },           // % or flat amount\n    minFee: { type: Number, default: 0 },                      // minimum fee per trade\n    currency: { type: String, default: 'USD' },                // currency for flat/min fee\n    isDefault: { type: Boolean, default: false },\n  },\n  { timestamps: true }\n)\n\nfeeProfileSchema.index({ user: 1 })\n\nmodule.exports = mongoose.model('FeeProfile', feeProfileSchema)\n",
+          "file_path": "E:\\Projects\\Portfolio\\server\\models\\FeeProfile.js"
+        },
+        "name": "Write",
+        "type": "tool_use"
+      }
+    ],
+    "diagnostics": {
+      "cache_miss_reason": {
+        "cache_missed_input_tokens": 112063,
+        "type": "messages_changed"
+      }
+    },
+    "id": "msg_01EzrERR92QNshto3tqLMsee",
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 4660,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 4660,
+      "cache_read_input_tokens": 183948,
+      "inference_geo": "not_available",
+      "input_tokens": 3,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 4660,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 4660,
+          "cache_read_input_tokens": 183948,
+          "input_tokens": 3,
+          "output_tokens": 422,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 422,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  },
+  "parentUuid": "ff4a2e18-0292-4a3e-aec1-d329b67b52fa",
+  "requestId": "req_011Cbfeh5koovKua6Qz2ESeh",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:54:40.354Z",
+  "type": "assistant",
+  "userType": "external",
+  "uuid": "9bc7bbd6-d865-461d-8f5d-d82d29ff1de5",
+  "version": "2.1.160"
+}

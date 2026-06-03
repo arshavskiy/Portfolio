@@ -1,0 +1,19 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": "for israeli market Price per share will be in shekels in Buy Stock",
+    "role": "user"
+  },
+  "parentUuid": "f74570e3-5ab9-43b8-8804-9d1aaae460c8",
+  "permissionMode": "acceptEdits",
+  "promptId": "f7919f37-37a7-420e-804f-d149533b17b6",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:02:08.187Z",
+  "type": "user",
+  "userType": "external",
+  "uuid": "aa540eb5-de7f-4147-96e0-cbc663e6c45c",
+  "version": "2.1.160"
+}

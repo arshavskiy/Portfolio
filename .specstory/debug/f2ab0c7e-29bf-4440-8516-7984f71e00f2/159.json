@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 289,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Position.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst positionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true, trim: true },\\n    companyName: { type: String },\\n    shares: { type: Number, required: true, min: 0 },\\n    avgCost: { type: Number, required: true, min: 0 },\\n  },\\n  { timestamps: true }\\n)\\n\\npositionSchema.index({ user: 1, ticker: 1 }, { unique: true })\\n\\nmodule.exports = mongoose.model('Position', positionSchema)\\n\"},\"tool_use_id\":\"toolu_01Q7MvssKXJ3om92rvdekETA\"}\n",
+    "toolUseID": "toolu_01Q7MvssKXJ3om92rvdekETA",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "3b054fb2-910c-4378-8a06-221b6211f582",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:04.864Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2d3f4813-ac4e-4bff-ba75-f45242480b7d",
+  "version": "2.1.160"
+}

@@ -1,0 +1,17 @@
+{
+  "attachment": {
+    "newDate": "2026-06-03",
+    "type": "date_change"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "359ec323-df32-4991-9c4a-830f3a9daf36",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:03:45.438Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "ee348179-3f92-407e-844b-256d3a017505",
+  "version": "2.1.160"
+}

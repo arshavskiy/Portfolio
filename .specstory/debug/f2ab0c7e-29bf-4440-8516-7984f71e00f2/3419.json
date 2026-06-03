@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 355,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\HoldingsView.vue\",\"old_string\":\"      \u003cdiv\\n        v-for=\\\"pos in portfolio.positions\\\"\\n        :key=\\\"pos.ticker\\\"\\n        class=\\\"position-card\\\"\",\"new_string\":\"      \u003cdiv\\n        v-for=\\\"pos in portfolio.positions\\\"\\n        :key=\\\"pos.ticker\\\"\\n        class=\\\"position-card\\\"\\n        :class=\\\"pos.pnl \u003e= 0 ? 'neon-card-gain' : 'neon-card-loss'\\\"\",\"replace_all\":false},\"tool_use_id\":\"toolu_01U7w6vwAHVxbGuLe3kEBvAk\"}\n",
+    "toolUseID": "toolu_01U7w6vwAHVxbGuLe3kEBvAk",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "ef7b65ba-7f38-4e71-ad2b-050ae60ae56d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:26:06.157Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "deaecb60-9205-4017-9bab-9940fd307f58",
+  "version": "2.1.160"
+}

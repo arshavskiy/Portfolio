@@ -1,0 +1,94 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #000000;
+  --bg-secondary: #111111;
+  --bg-card: #111111;
+  --border: #222222;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --green: #00ff88;
+  --red: #ff3366;
+  --accent: #3b82f6;
+  --neon-green: #00ff88;
+  --neon-red: #ff3366;
+  --neon-blue: #00cfff;
+  --nav-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+html, body, #app {
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Neon text ── */
+.gain { color: var(--neon-green); }
+.loss { color: var(--neon-red); }
+.text-muted { color: var(--text-secondary); }
+
+/* ── Gradient titles ── */
+.gradient-title,
+.gradient-title ~ * h2,
+h2.gradient-h2 {
+  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.gradient-title {
+  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.section-h2 {
+  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Section h2 gradient (global override) ── */
+.section h2,
+.section-title,
+.fee-section-title {
+  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Neon card borders ── */
+.neon-card-gain {
+  border-color: rgba(0,255,136,0.5) !important;
+  box-shadow: 0 0 12px rgba(0,255,136,0.25), inset 0 0 8px rgba(0,255,136,0.04);
+}
+.neon-card-loss {
+  border-color: rgba(255,51,102,0.5) !important;
+  box-shadow: 0 0 12px rgba(255,51,102,0.25), inset 0 0 8px rgba(255,51,102,0.04);
+}
+
+/* ── Neon glow on active nav ── */
+.nav-item.active i {
+  filter: drop-shadow(0 0 6px var(--neon-blue));
+}
+
+.safe-bottom { padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem); }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }

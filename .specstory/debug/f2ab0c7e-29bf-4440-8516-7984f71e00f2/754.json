@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 202,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:AskUserQuestion",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"AskUserQuestion\",\"tool_input\":{\"questions\":[{\"question\":\"Which servers would you like to start?\",\"header\":\"Launch\",\"options\":[{\"label\":\"Both\",\"description\":\"Start the Vite client (5174) and Express server (3000) together\"},{\"label\":\"Client only\",\"description\":\"Start just the Vite dev server on port 5174\"},{\"label\":\"Server only\",\"description\":\"Start just the Express API server on port 3000\"}],\"multiSelect\":false}]},\"tool_use_id\":\"toolu_01XjpYpQZ51G18botQkCzeit\"}\n",
+    "toolUseID": "toolu_01XjpYpQZ51G18botQkCzeit",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b4168740-ea96-499f-9910-241006d8e439",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:47:13.618Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "adca3022-4e0b-433f-9a3b-9bfb19ffd89b",
+  "version": "2.1.160"
+}

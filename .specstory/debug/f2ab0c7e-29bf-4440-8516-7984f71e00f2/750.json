@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 215,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\.claude\\\\launch.json\",\"content\":\"{\\n  \\\"version\\\": \\\"0.0.1\\\",\\n  \\\"configurations\\\": [\\n    {\\n      \\\"name\\\": \\\"StockFolio Client (Vite)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"client\\\",\\n      \\\"port\\\": 5174\\n    },\\n    {\\n      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000\\n    }\\n  ]\\n}\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\.claude\\\\launch.json\",\"content\":\"{\\n  \\\"version\\\": \\\"0.0.1\\\",\\n  \\\"configurations\\\": [\\n    {\\n      \\\"name\\\": \\\"StockFolio Client (Vite)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"client\\\",\\n      \\\"port\\\": 5174\\n    },\\n    {\\n      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000\\n    }\\n  ]\\n}\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01G9KYFXpaLEJA2Fdw7mbyhq\",\"duration_ms\":4}\n",
+    "toolUseID": "toolu_01G9KYFXpaLEJA2Fdw7mbyhq",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "ffd64ee8-6086-48a7-8975-0f5f9ff2a88a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:47:08.472Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "1bfffe16-9004-4a9e-9797-733fc0b5433a",
+  "version": "2.1.160"
+}

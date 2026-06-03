@@ -1,0 +1,68 @@
+{
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "caller": {
+          "type": "direct"
+        },
+        "id": "toolu_015RKqYVFHczerA3Eay3ME6v",
+        "input": {
+          "content": "const BASE = '/api'\n\nfunction getToken() {\n  return localStorage.getItem('token')\n}\n\nasync function request(method, path, body) {\n  const headers = { 'Content-Type': 'application/json' }\n  const token = getToken()\n  if (token) headers['Authorization'] = `Bearer ${token}`\n\n  const res = await fetch(`${BASE}${path}`, {\n    method,\n    headers,\n    body: body ? JSON.stringify(body) : undefined,\n  })\n\n  if (res.status === 401) {\n    localStorage.removeItem('token')\n    localStorage.removeItem('user')\n    window.location.href = '/login'\n    return\n  }\n\n  const data = await res.json()\n  if (!res.ok) throw new Error(data.message || 'Request failed')\n  return data\n}\n\nexport default {\n  get: (path) =\u003e request('GET', path),\n  post: (path, body) =\u003e request('POST', path, body),\n  delete: (path) =\u003e request('DELETE', path),\n  put: (path, body) =\u003e request('PUT', path, body),\n}\n",
+          "file_path": "E:\\Projects\\Portfolio\\client\\src\\composables\\useApi.js"
+        },
+        "name": "Write",
+        "type": "tool_use"
+      }
+    ],
+    "diagnostics": null,
+    "id": "msg_01W6rNh5CvRoDUpM4EnjsLyt",
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 1323,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 1323,
+      "cache_read_input_tokens": 51121,
+      "inference_geo": "not_available",
+      "input_tokens": 1,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 1323,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 1323,
+          "cache_read_input_tokens": 51121,
+          "input_tokens": 1,
+          "output_tokens": 721,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 721,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  },
+  "parentUuid": "d0e91e8d-40d5-4275-b0cd-66eb40d1fd0d",
+  "requestId": "req_011Cbf91iMUmz9XSuTiiS37f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:17.630Z",
+  "type": "assistant",
+  "userType": "external",
+  "uuid": "6c93267e-2e20-4068-a367-009e05528c0c",
+  "version": "2.1.160"
+}

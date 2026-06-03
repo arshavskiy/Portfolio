@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 182,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:mcp__Claude_Preview__preview_fill",
+    "stderr": "[MCPHealthCheck] No MCP config found for Claude_Preview; skipping preflight probe\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"mcp__Claude_Preview__preview_fill\",\"tool_input\":{\"serverId\":\"4bced04f-5254-4a7e-b852-eea24c9aa81a\",\"selector\":\"input[type=\\\"email\\\"]\",\"value\":\"arshavsky.pasha@gmail.com\"},\"tool_use_id\":\"toolu_01WHn9Zz8C9jhLwcixn5fDhm\"}\n",
+    "toolUseID": "toolu_01WHn9Zz8C9jhLwcixn5fDhm",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "73bbc107-bd40-4c95-bb8b-3bea36c61e9f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:49:40.009Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "59cf0eac-134d-4e4d-b72f-5780c4fec6ca",
+  "version": "2.1.160"
+}

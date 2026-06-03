@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 342,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env.example\",\"content\":\"PORT=3000\\nMONGODB_URI=mongodb+srv://\u003cuser\u003e:\u003cpassword\u003e@cluster0.mongodb.net/stocksportfolio?retryWrites=true\u0026w=majority\\nJWT_SECRET=change_this_to_a_long_random_string\\nJWT_EXPIRES_IN=7d\\nCLIENT_URL=http://localhost:5173\\n\"},\"tool_use_id\":\"toolu_01XJFjm9WiZbRmaP4dWthkUz\"}\n",
+    "toolUseID": "toolu_01XJFjm9WiZbRmaP4dWthkUz",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a5f8963a-c087-476c-aaa5-4b7de38bbd46",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:22:50.511Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "b0182baa-3ef4-4a7f-9e03-6bd3e326d253",
+  "version": "2.1.160"
+}

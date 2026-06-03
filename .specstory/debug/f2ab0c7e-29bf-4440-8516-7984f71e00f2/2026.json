@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1929,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\portfolioController.js\",\"old_string\":\"exports.addTransaction = async (req, res) =\u003e {\\n  try {\\n    const { ticker, type, shares, price, date, notes } = req.body\\n    if (!ticker || !type || !shares || !price)\\n      return res.status(400).json({ message: 'ticker, type, shares, price required' })\\n\\n    const total = shares * price\\n    invalidateCache(ticker)\\n    const tx = await Transaction.create({\\n      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,\\n    })\",\"new_string\":\"exports.addTransaction = async (req, res) =\u003e {\\n  try {\\n    const { ticker, type, shares, price, date, notes, feeProfileId } = req.body\\n    if (!ticker || !type || !shares || !price)\\n      return res.status(400).json({ message: 'ticker, type, shares, price required' })\\n\\n    const total = shares * price\\n\\n    let feeProfile = null\\n    let feeAmount = 0\\n    if (feeProfileId) {\\n      feeProfile = await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })\\n      if (feeProfile) feeAmount = computeFee(feeProfile, total)\\n    }\\n\\n    invalidateCache(ticker)\\n    const tx = await Transaction.create({\\n      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,\\n      feeProfile: feeProfile?._id || null,\\n      feeAmount,\\n      totalWithFees: total + feeAmount,\\n    })\",\"replace_all\":false},\"tool_use_id\":\"toolu_015D6kDbmr1Q6kXie4iM3mji\"}\n",
+    "toolUseID": "toolu_015D6kDbmr1Q6kXie4iM3mji",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "f4f961c9-02d1-4459-bd61-a6df333726c6",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:55:54.163Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d98c37f2-23be-42ad-8ae8-99ed38f4b963",
+  "version": "2.1.160"
+}

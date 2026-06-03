@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:edit-write:suggest-compact\" \"scripts/hooks/suggest-compact.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 276,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[StrategicCompact] 3575 tool calls - good checkpoint for /compact if context is stale\n",
+    "stdout": "",
+    "toolUseID": "toolu_01RvM6pEoXmPq5E66wopWqZE",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e7f3a34c-d43d-410e-8df4-ec5d92a634f0",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:02:22.647Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d50ba8b5-679b-41b0-a9dc-816603123d6d",
+  "version": "2.1.160"
+}

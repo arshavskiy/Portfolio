@@ -1,0 +1,27 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+        "is_error": true,
+        "tool_use_id": "toolu_01WuMLvtFAgztaNELN7upurq",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "bb33b3a9-0cad-4009-8bad-b3724595043a",
+  "promptId": "7b426324-23db-47e2-9860-7a843e41a371",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "bb33b3a9-0cad-4009-8bad-b3724595043a",
+  "timestamp": "2026-06-03T04:03:12.267Z",
+  "toolUseResult": "Error: preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+  "type": "user",
+  "userType": "external",
+  "uuid": "47127651-09dc-4ff0-be1b-b3a9b78759e0",
+  "version": "2.1.160"
+}

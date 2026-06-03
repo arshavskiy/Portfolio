@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1429,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\portfolioController.js\",\"old_string\":\"exports.addTransaction = async (req, res) =\u003e {\\n  try {\\n    const { ticker, type, shares, price, date, notes } = req.body\\n    if (!ticker || !type || !shares || !price)\\n      return res.status(400).json({ message: 'ticker, type, shares, price required' })\\n\\n    const total = shares * price\\n    invalidateCache(ticker)\\n    const tx = await Transaction.create({\\n      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,\\n    })\",\"new_string\":\"exports.addTransaction = async (req, res) =\u003e {\\n  try {\\n    const { ticker, type, shares, price, date, notes, feeProfileId } = req.body\\n    if (!ticker || !type || !shares || !price)\\n      return res.status(400).json({ message: 'ticker, type, shares, price required' })\\n\\n    const total = shares * price\\n\\n    let feeProfile = null\\n    let feeAmount = 0\\n    if (feeProfileId) {\\n      feeProfile = await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })\\n      if (feeProfile) feeAmount = computeFee(feeProfile, total)\\n    }\\n\\n    invalidateCache(ticker)\\n    const tx = await Transaction.create({\\n      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,\\n      feeProfile: feeProfile?._id || null,\\n      feeAmount,\\n      totalWithFees: total + feeAmount,\\n    })\",\"replace_all\":false},\"tool_use_id\":\"toolu_015D6kDbmr1Q6kXie4iM3mji\"}\n",
+    "toolUseID": "toolu_015D6kDbmr1Q6kXie4iM3mji",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "109477d7-e251-4fc3-b1e1-e2c01a0e77aa",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:55:53.662Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "4c3ad125-015f-4541-9c4b-46db0d15c37e",
+  "version": "2.1.160"
+}

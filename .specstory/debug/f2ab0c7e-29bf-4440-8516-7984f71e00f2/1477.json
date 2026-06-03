@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 472,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:TaskCreate",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"TaskCreate\",\"tool_input\":{\"subject\":\"Phase 4: Transactions — filters + CSV export\",\"description\":\"Add filter by ticker/type and CSV export to transactions view\",\"activeForm\":\"Building Phase 4 transaction filters and export\"},\"tool_use_id\":\"toolu_01NJQGqED6eK5KDGib2szxE1\"}\n",
+    "toolUseID": "toolu_01NJQGqED6eK5KDGib2szxE1",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c6b5241b-7ac7-473d-8459-26141060aaed",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:10:17.985Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "70de1299-bcc2-42b4-b189-debf2e077614",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 362,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\charts\\\\AllocationChart.vue\",\"old_string\":\"import { useCurrency } from '@/composables/useFormat'\",\"new_string\":\"import { useCurrency, tickerCurrency } from '@/composables/useFormat'\",\"replace_all\":false},\"tool_use_id\":\"toolu_01BHNAjQ67XBLy1whZrwbVqu\"}\n",
+    "toolUseID": "toolu_01BHNAjQ67XBLy1whZrwbVqu",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "bb624e4b-9a50-4f08-b45a-c6be664b8d88",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:08:03.310Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "f94d6966-940f-4137-a3c4-9e0f75fb0a69",
+  "version": "2.1.160"
+}

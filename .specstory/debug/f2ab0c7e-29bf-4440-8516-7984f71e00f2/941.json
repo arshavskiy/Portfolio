@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 223,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"import { useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\",\"new_string\":\"import { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\",\"replace_all\":false},\"tool_use_id\":\"toolu_013hWUS4RVVznmbkjMgzVjAR\"}\n",
+    "toolUseID": "toolu_013hWUS4RVVznmbkjMgzVjAR",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "3aa3b6c1-35d2-42e0-a3b0-87a95fe40224",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:58:39.861Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "9633831f-7563-4fa2-a4a3-364d38d8323a",
+  "version": "2.1.160"
+}

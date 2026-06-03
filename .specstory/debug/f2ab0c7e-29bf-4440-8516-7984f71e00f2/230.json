@@ -1,0 +1,47 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "processId": "async_hook_10108",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio\\server",
+      "duration_ms": 4,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "content": "const jwt = require('jsonwebtoken')\nconst User = require('../models/User')\n\nfunction signToken(id) {\n  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })\n}\n\nexports.register = async (req, res) =\u003e {\n  try {\n    const { name, email, password } = req.body\n    if (!name || !email || !password)\n      return res.status(400).json({ message: 'All fields required' })\n\n    const exists = await User.findOne({ email })\n    if (exists) return res.status(409).json({ message: 'Email already registered' })\n\n    const user = await User.create({ name, email, password })\n    const token = signToken(user._id)\n    res.status(201).json({ token, user })\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.login = async (req, res) =\u003e {\n  try {\n    const { email, password } = req.body\n    if (!email || !password)\n      return res.status(400).json({ message: 'Email and password required' })\n\n    const user = await User.findOne({ email })\n    if (!user || !(await user.comparePassword(password)))\n      return res.status(401).json({ message: 'Invalid credentials' })\n\n    const token = signToken(user._id)\n    res.json({ token, user })\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.me = async (req, res) =\u003e {\n  res.json({ user: req.user })\n}\n",
+        "file_path": "E:\\Projects\\Portfolio\\server\\controllers\\authController.js"
+      },
+      "tool_name": "Write",
+      "tool_response": {
+        "content": "const jwt = require('jsonwebtoken')\nconst User = require('../models/User')\n\nfunction signToken(id) {\n  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })\n}\n\nexports.register = async (req, res) =\u003e {\n  try {\n    const { name, email, password } = req.body\n    if (!name || !email || !password)\n      return res.status(400).json({ message: 'All fields required' })\n\n    const exists = await User.findOne({ email })\n    if (exists) return res.status(409).json({ message: 'Email already registered' })\n\n    const user = await User.create({ name, email, password })\n    const token = signToken(user._id)\n    res.status(201).json({ token, user })\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.login = async (req, res) =\u003e {\n  try {\n    const { email, password } = req.body\n    if (!email || !password)\n      return res.status(400).json({ message: 'Email and password required' })\n\n    const user = await User.findOne({ email })\n    if (!user || !(await user.comparePassword(password)))\n      return res.status(401).json({ message: 'Invalid credentials' })\n\n    const token = signToken(user._id)\n    res.json({ token, user })\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.me = async (req, res) =\u003e {\n  res.json({ user: req.user })\n}\n",
+        "filePath": "E:\\Projects\\Portfolio\\server\\controllers\\authController.js",
+        "originalFile": null,
+        "structuredPatch": [],
+        "type": "create",
+        "userModified": false
+      },
+      "tool_use_id": "toolu_01JJ9iWkQhvEJkZHbjaCbMNR",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\authController.js\",\"content\":\"const jwt = require('jsonwebtoken')\\nconst User = require('../models/User')\\n\\nfunction signToken(id) {\\n  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })\\n}\\n\\nexports.register = async (req, res) =\u003e {\\n  try {\\n    const { name, email, password } = req.body\\n    if (!name || !email || !password)\\n      return res.status(400).json({ message: 'All fields required' })\\n\\n    const exists = await User.findOne({ email })\\n    if (exists) return res.status(409).json({ message: 'Email already registered' })\\n\\n    const user = await User.create({ name, email, password })\\n    const token = signToken(user._id)\\n    res.status(201).json({ token, user })\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\\nexports.login = async (req, res) =\u003e {\\n  try {\\n    const { email, password } = req.body\\n    if (!email || !password)\\n      return res.status(400).json({ message: 'Email and password required' })\\n\\n    const user = await User.findOne({ email })\\n    if (!user || !(await user.comparePassword(password)))\\n      return res.status(401).json({ message: 'Invalid credentials' })\\n\\n    const token = signToken(user._id)\\n    res.json({ token, user })\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\\nexports.me = async (req, res) =\u003e {\\n  res.json({ user: req.user })\\n}\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\controllers\\\\authController.js\",\"content\":\"const jwt = require('jsonwebtoken')\\nconst User = require('../models/User')\\n\\nfunction signToken(id) {\\n  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })\\n}\\n\\nexports.register = async (req, res) =\u003e {\\n  try {\\n    const { name, email, password } = req.body\\n    if (!name || !email || !password)\\n      return res.status(400).json({ message: 'All fields required' })\\n\\n    const exists = await User.findOne({ email })\\n    if (exists) return res.status(409).json({ message: 'Email already registered' })\\n\\n    const user = await User.create({ name, email, password })\\n    const token = signToken(user._id)\\n    res.status(201).json({ token, user })\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\\nexports.login = async (req, res) =\u003e {\\n  try {\\n    const { email, password } = req.body\\n    if (!email || !password)\\n      return res.status(400).json({ message: 'Email and password required' })\\n\\n    const user = await User.findOne({ email })\\n    if (!user || !(await user.comparePassword(password)))\\n      return res.status(401).json({ message: 'Invalid credentials' })\\n\\n    const token = signToken(user._id)\\n    res.json({ token, user })\\n  } catch (err) {\\n    res.status(500).json({ message: err.message })\\n  }\\n}\\n\\nexports.me = async (req, res) =\u003e {\\n  res.json({ user: req.user })\\n}\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01JJ9iWkQhvEJkZHbjaCbMNR\",\"duration_ms\":4}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "358ef72e-9341-49c2-9a49-28210fb3c033",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:49.062Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5637981a-3df6-450d-9c09-83ff7bf84983",
+  "version": "2.1.160"
+}

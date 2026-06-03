@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 376,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\HoldingsView.vue\",\"old_string\":\"            \u003cspan\u003e{{ useCurrency(pos.avgCost) }}\u003c/span\u003e\\n          \u003c/div\u003e\\n          \u003cdiv class=\\\"detail\\\"\u003e\\n            \u003cspan class=\\\"text-muted\\\"\u003eCurrent\u003c/span\u003e\\n            \u003cspan\u003e{{ useCurrency(pos.currentPrice) }}\u003c/span\u003e\",\"new_string\":\"            \u003cspan\u003e{{ useTickerCurrency(pos.avgCost, pos.ticker) }}\u003c/span\u003e\\n          \u003c/div\u003e\\n          \u003cdiv class=\\\"detail\\\"\u003e\\n            \u003cspan class=\\\"text-muted\\\"\u003eCurrent\u003c/span\u003e\\n            \u003cspan\u003e{{ useTickerCurrency(pos.currentPrice, pos.ticker) }}\u003c/span\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Gsa8HTr2eyEzUTAxc9fKQR\"}\n",
+    "toolUseID": "toolu_01Gsa8HTr2eyEzUTAxc9fKQR",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "81447079-9b94-411e-893a-b2464a8ccf8b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:58:49.934Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "85f839b4-4c67-4926-8b70-3e887b2f27da",
+  "version": "2.1.160"
+}

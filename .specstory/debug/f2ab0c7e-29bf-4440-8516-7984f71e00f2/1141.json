@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 152,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 node -e \\\"\\nconst YahooFinance = require('yahoo-finance2').default\\nconst yf = new YahooFinance()\\nconst end = new Date(); const start = new Date(); start.setDate(start.getDate() - 90)\\nconst fmt = d =\u003e d.toISOString().split('T')[0]\\nyf.historical('POLI.TA', { period1: fmt(start), period2: fmt(end), interval: '1d' })\\n  .then(r =\u003e console.log('rows:', r.length, 'first:', JSON.stringify(r[0])))\\n  .catch(e =\u003e console.error('ERROR:', e.message))\\n\\\" 2\u003e\u00261\",\"description\":\"Verify historical fix for POLI.TA\"},\"tool_response\":{\"stdout\":\"[Deprecated] historical() relies on an API that Yahoo have removed.  We'll map this request to chart() for convenience, but, please consider using chart() directly instead; for more info see https://github.com/gadicc/yahoo-finance2/issues/795.  This will only be shown once, but you can suppress this message in future with `new YahooFinance({ suppressNotices: ['ripHistorical'] })`.\\nrows: 60 first: {\\\"date\\\":\\\"2026-03-04T07:50:00.000Z\\\",\\\"high\\\":8186,\\\"volume\\\":7080642,\\\"open\\\":7999,\\\"low\\\":7900,\\\"close\\\":8000,\\\"adjClose\\\":7998.55078125}\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01DrdP1qwEsBhYhrjWG6hixK\",\"duration_ms\":748}\n",
+    "toolUseID": "toolu_01DrdP1qwEsBhYhrjWG6hixK",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b2d80553-c741-4033-b6c2-c5e639455c1a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:00:31.582Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8783f240-f60f-44e0-991a-45760e0e289b",
+  "version": "2.1.160"
+}

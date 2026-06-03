@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 343,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm install \u0026\u0026 npm install vue-router@4 pinia @primevue/themes primevue primeicons d3 vite-plugin-pwa 2\u003e\u00261\",\"description\":\"Install client dependencies\"},\"tool_use_id\":\"toolu_01Kif8huqdwYSKvHMirHJ9Uf\"}\n",
+    "toolUseID": "toolu_01Kif8huqdwYSKvHMirHJ9Uf",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "d182bd55-692a-4844-b990-9f9d43712b77",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:07:00.191Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "579cdd1d-c0ad-4fc6-90dc-ec97c2f4eca0",
+  "version": "2.1.160"
+}

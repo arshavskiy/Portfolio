@@ -1,0 +1,23 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_22544",
+    "response": {},
+    "stderr": "[ContinuousLearning] Session too short (6 messages), skipping\n",
+    "stdout": "",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8cec7639-0446-4cac-9db6-33141162dc9d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T20:59:10.690Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "01064f3d-16af-486f-b988-5a67654d6f56",
+  "version": "2.1.160"
+}

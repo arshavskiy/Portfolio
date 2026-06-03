@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 403,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"\u003cscript setup\u003e\\nimport { onMounted } from 'vue'\\nimport { usePortfolioStore } from '@/stores/portfolio'\\nimport { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\\nimport AllocationChart from '@/components/charts/AllocationChart.vue'\\nimport TopMoversChart from '@/components/charts/TopMoversChart.vue'\\nimport SkeletonCard from '@/components/ui/SkeletonCard.vue'\\n\\nconst portfolio = usePortfolioStore()\\n\\nonMounted(() =\u003e portfolio.fetchPortfolio())\\n\u003c/script\u003e\",\"new_string\":\"\u003cscript setup\u003e\\nimport { ref, onMounted, watch } from 'vue'\\nimport { usePortfolioStore } from '@/stores/portfolio'\\nimport { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\\nimport AllocationChart from '@/components/charts/AllocationChart.vue'\\nimport TopMoversChart from '@/components/charts/TopMoversChart.vue'\\nimport SparklineChart from '@/components/charts/SparklineChart.vue'\\nimport SkeletonCard from '@/components/ui/SkeletonCard.vue'\\nimport api from '@/composables/useApi'\\n\\nconst portfolio = usePortfolioStore()\\nconst sparklines = ref({}) // ticker -\u003e [{ close }]\\n\\nonMounted(async () =\u003e {\\n  await portfolio.fetchPortfolio()\\n  fetchSparklines()\\n})\\n\\nasync function fetchSparklines() {\\n  for (const pos of portfolio.positions) {\\n    try {\\n      const data = await api.get(`/stocks/history/${pos.ticker}?range=1mo`)\\n      sparklines.value[pos.ticker] = data\\n    } catch {}\\n  }\\n}\\n\\nwatch(() =\u003e portfolio.positions, fetchSparklines, { deep: true })\\n\\nfunction neonStyle(pnlPercent) {\\n  if (pnlPercent == null) return {}\\n  const isWin = pnlPercent \u003e= 0\\n  const intensity = Math.min(Math.abs(pnlPercent) / 20, 1) // max glow at 20%\\n  const color = isWin ? `rgba(0,255,136,${0.4 + intensity * 0.6})` : `rgba(255,51,102,${0.4 + intensity * 0.6})`\\n  const spread = 4 + intensity * 8\\n  return {\\n    borderColor: color,\\n    boxShadow: `0 0 ${spread}px ${color}, inset 0 0 ${spread * 0.5}px ${isWin ? 'rgba(0,255,136,0.05)' : 'rgba(255,51,102,0.05)'}`,\\n  }\\n}\\n\u003c/script\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01WNAD8wD1iwdUjgdTqqRmhL\"}\n",
+    "toolUseID": "toolu_01WNAD8wD1iwdUjgdTqqRmhL",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "54d26b50-3b13-47fb-b136-e18970bc2802",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:18:32.533Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "73a114bc-5019-4ba8-b49d-3fe5971dda24",
+  "version": "2.1.160"
+}

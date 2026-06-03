@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 305,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\".total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }\\n.total-value { font-size: 1.3rem; font-weight: 700; }\\n.total-pnl { font-size: 0.88rem; font-weight: 600; }\\n.total-day { font-size: 0.85rem; font-weight: 500; }\",\"new_string\":\".total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }\\n.total-values { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }\\n.total-value { font-size: 1.3rem; font-weight: 700; }\\n.total-converted { font-size: 0.78rem; }\\n.total-pnl { font-size: 0.88rem; font-weight: 600; }\\n.total-day { font-size: 0.85rem; font-weight: 500; }\\n.fx-note { font-size: 0.72rem; text-align: right; margin-top: 0.15rem; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_0157Bh76wNgMPurGLVEXWQEj\"}\n",
+    "toolUseID": "toolu_0157Bh76wNgMPurGLVEXWQEj",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "adc5c5d5-5df6-493c-9d32-2296d80d5423",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:15:56.649Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e3bb3cea-b15d-4208-92b2-1a37c7404865",
+  "version": "2.1.160"
+}

@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_31844",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 188,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\"",
+        "description": "Generate secure JWT secret"
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": "2613753e9bfff087e8cd6bf6ae361355bbfce4d5ede5275ebda1f48b1b4337ffa590b1ae62c2b196e50f0005b2784038"
+      },
+      "tool_use_id": "toolu_017fguzpdnE4Ahhhor3fF2iC",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"node -e \\\"console.log(require('crypto').randomBytes(48).toString('hex'))\\\"\",\"description\":\"Generate secure JWT secret\"},\"tool_response\":{\"stdout\":\"2613753e9bfff087e8cd6bf6ae361355bbfce4d5ede5275ebda1f48b1b4337ffa590b1ae62c2b196e50f0005b2784038\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_017fguzpdnE4Ahhhor3fF2iC\",\"duration_ms\":188}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "106a9d55-9879-435b-b1ac-3716ff6ea333",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:45:07.197Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "0f5a7961-84c1-479d-8a89-21b422db5e80",
+  "version": "2.1.160"
+}

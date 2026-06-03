@@ -1,0 +1,37 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": [
+          {
+            "tool_name": "mcp__Claude_Preview__preview_start",
+            "type": "tool_reference"
+          }
+        ],
+        "tool_use_id": "toolu_01Fq86gRTjrX6yRvJ1M6wtPB",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "b1a824b0-e2df-458a-89f1-3dd390bb084d",
+  "promptId": "3ffa1b5d-3093-48eb-a959-257ef554e0ee",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "b1a824b0-e2df-458a-89f1-3dd390bb084d",
+  "timestamp": "2026-06-02T21:47:22.982Z",
+  "toolUseResult": {
+    "matches": [
+      "mcp__Claude_Preview__preview_start"
+    ],
+    "query": "select:mcp__Claude_Preview__preview_start",
+    "total_deferred_tools": 104
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "2e08077c-007f-481f-b275-7d888d27541f",
+  "version": "2.1.160"
+}

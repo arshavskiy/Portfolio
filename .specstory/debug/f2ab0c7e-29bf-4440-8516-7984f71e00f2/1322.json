@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 282,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\portfolio.js\",\"old_string\":\"  const positions = ref([])\\n  const totalValue = ref(0)\\n  const totalCost = ref(0)\\n  const totalPnl = ref(0)\\n  const totalPnlPercent = ref(0)\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totalValue.value = data.totalValue\\n      totalCost.value = data.totalCost\\n      totalPnl.value = data.totalPnl\\n      totalPnlPercent.value = data.totalPnlPercent\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function addTransaction(payload) {\\n    const data = await api.post('/portfolio/transaction', payload)\\n    await fetchPortfolio()\\n    return data\\n  }\\n\\n  async function deletePosition(id) {\\n    await api.delete(`/portfolio/position/${id}`)\\n    await fetchPortfolio()\\n  }\\n\\n  return { positions, totalValue, totalCost, totalPnl, totalPnlPercent, loading, fetchPortfolio, addTransaction, deletePosition }\",\"new_string\":\"  const positions = ref([])\\n  const totals = ref([]) // [{ currency, value, cost, pnl, pnlPercent }]\\n  const loading = ref(false)\\n\\n  async function fetchPortfolio() {\\n    loading.value = true\\n    try {\\n      const data = await api.get('/portfolio')\\n      positions.value = data.positions\\n      totals.value = data.totals || []\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function addTransaction(payload) {\\n    const data = await api.post('/portfolio/transaction', payload)\\n    await fetchPortfolio()\\n    return data\\n  }\\n\\n  async function deletePosition(id) {\\n    await api.delete(`/portfolio/position/${id}`)\\n    await fetchPortfolio()\\n  }\\n\\n  return { positions, totals, loading, fetchPortfolio, addTransaction, deletePosition }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01EbY95ZJCRAfv3f8DUrsX8M\"}\n",
+    "toolUseID": "toolu_01EbY95ZJCRAfv3f8DUrsX8M",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a4c13156-9b39-497e-bb6a-3943a250e5d8",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:06:34.739Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c231e3ab-112f-483f-9182-e6d2e17fabe3",
+  "version": "2.1.160"
+}

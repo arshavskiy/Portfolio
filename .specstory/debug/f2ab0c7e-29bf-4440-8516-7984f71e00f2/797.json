@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/auto-tmux-dev.js\"",
+    "content": "",
+    "durationMs": 273,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"netstat -ano | grep :3000 2\u003e\u00261 || echo \\\"not found\\\"\",\"description\":\"Find PID on port 3000\"},\"tool_use_id\":\"toolu_012p7MHJCUWytwdkSLpoyDF6\"}",
+    "toolUseID": "toolu_012p7MHJCUWytwdkSLpoyDF6",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8a3bb0b0-6b53-4565-bfad-364f84085667",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:47:51.057Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "1b55be23-5f45-4ab3-8d04-5290e22d8b2a",
+  "version": "2.1.160"
+}

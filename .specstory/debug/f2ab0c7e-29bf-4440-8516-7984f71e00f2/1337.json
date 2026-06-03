@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 641,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"import { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\",\"new_string\":\"import { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\\n\\nconst CURRENCY_SYMBOL = { USD: '$', ILS: '₪' }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01WeSbEQ92yGQu5DEhAuck8g\"}\n",
+    "toolUseID": "toolu_01WeSbEQ92yGQu5DEhAuck8g",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "568d5842-960e-4744-98ab-a31e92af7d0b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:06:41.025Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "abbbdcc8-d3b4-4dd4-94b8-289d1c7e3b1c",
+  "version": "2.1.160"
+}

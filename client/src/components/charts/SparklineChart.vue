@@ -1,0 +1,76 @@
+<script setup>
+import { ref, watch, onMounted, nextTick } from 'vue'
+import * as d3 from 'd3'
+
+const props = defineProps({
+  data: { type: Array, default: () => [] },   // array of { close }
+  pnlPercent: { type: Number, default: 0 },
+})
+
+const svgRef = ref(null)
+
+function draw() {
+  if (!svgRef.value || !props.data.length) return
+  const svg = d3.select(svgRef.value)
+  svg.selectAll('*').remove()
+
+  const W = svgRef.value.clientWidth || 120
+  const H = 40
+  svg.attr('width', W).attr('height', H)
+
+  const isWin = props.pnlPercent >= 0
+  const color = isWin ? '#00ff88' : '#ff3366'
+
+  const x = d3.scaleLinear().domain([0, props.data.length - 1]).range([0, W])
+  const yMin = d3.min(props.data, d => d.close)
+  const yMax = d3.max(props.data, d => d.close)
+  const yPad = (yMax - yMin) * 0.1 || 1
+  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([H - 2, 2])
+
+  const line = d3.line()
+    .x((_, i) => x(i))
+    .y(d => y(d.close))
+    .curve(d3.curveMonotoneX)
+
+  // Glow filter
+  const defs = svg.append('defs')
+  const filterId = `glow-${Math.random().toString(36).slice(2)}`
+  const filter = defs.append('filter').attr('id', filterId)
+  filter.append('feGaussianBlur').attr('stdDeviation', '2.5').attr('result', 'blur')
+  const feMerge = filter.append('feMerge')
+  feMerge.append('feMergeNode').attr('in', 'blur')
+  feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
+
+  // Area fill
+  const area = d3.area()
+    .x((_, i) => x(i))
+    .y0(H)
+    .y1(d => y(d.close))
+    .curve(d3.curveMonotoneX)
+
+  svg.append('path')
+    .datum(props.data)
+    .attr('fill', isWin ? 'rgba(0,255,136,0.08)' : 'rgba(255,51,102,0.08)')
+    .attr('d', area)
+
+  // Line with glow
+  svg.append('path')
+    .datum(props.data)
+    .attr('fill', 'none')
+    .attr('stroke', color)
+    .attr('stroke-width', 1.5)
+    .attr('filter', `url(#${filterId})`)
+    .attr('d', line)
+}
+
+onMounted(() => nextTick(draw))
+watch(() => [props.data, props.pnlPercent], () => nextTick(draw), { deep: true })
+</script>
+
+<template>
+  <svg ref="svgRef" class="sparkline" />
+</template>
+
+<style scoped>
+.sparkline { display: block; width: 100%; height: 40px; }
+</style>

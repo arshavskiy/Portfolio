@@ -1,0 +1,68 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Edit",
+    "processId": "async_hook_33552",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 10,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "file_path": "E:\\Projects\\Portfolio\\.claude\\launch.json",
+        "new_string": "      \"name\": \"StockFolio Server (Express)\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"cwd\": \"server\",\n      \"port\": 3000,\n      \"autoPort\": false",
+        "old_string": "      \"name\": \"StockFolio Server (Express)\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"cwd\": \"server\",\n      \"port\": 3000",
+        "replace_all": false
+      },
+      "tool_name": "Edit",
+      "tool_response": {
+        "filePath": "E:\\Projects\\Portfolio\\.claude\\launch.json",
+        "newString": "      \"name\": \"StockFolio Server (Express)\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"cwd\": \"server\",\n      \"port\": 3000,\n      \"autoPort\": false",
+        "oldString": "      \"name\": \"StockFolio Server (Express)\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"cwd\": \"server\",\n      \"port\": 3000",
+        "originalFile": "{\n  \"version\": \"0.0.1\",\n  \"configurations\": [\n    {\n      \"name\": \"StockFolio Client (Vite)\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"cwd\": \"client\",\n      \"port\": 5174\n    },\n    {\n      \"name\": \"StockFolio Server (Express)\",\n      \"runtimeExecutable\": \"npm\",\n      \"runtimeArgs\": [\"run\", \"dev\"],\n      \"cwd\": \"server\",\n      \"port\": 3000\n    }\n  ]\n}\n",
+        "replaceAll": false,
+        "structuredPatch": [
+          {
+            "lines": [
+              "       \"runtimeExecutable\": \"npm\",",
+              "       \"runtimeArgs\": [\"run\", \"dev\"],",
+              "       \"cwd\": \"server\",",
+              "-      \"port\": 3000",
+              "+      \"port\": 3000,",
+              "+      \"autoPort\": false",
+              "     }",
+              "   ]",
+              " }"
+            ],
+            "newLines": 8,
+            "newStart": 13,
+            "oldLines": 7,
+            "oldStart": 13
+          }
+        ],
+        "userModified": false
+      },
+      "tool_use_id": "toolu_011etC5cPdfjjBfE43KdsCZE",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\.claude\\\\launch.json\",\"old_string\":\"      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000\",\"new_string\":\"      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000,\\n      \\\"autoPort\\\": false\",\"replace_all\":false},\"tool_response\":{\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\.claude\\\\launch.json\",\"oldString\":\"      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000\",\"newString\":\"      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000,\\n      \\\"autoPort\\\": false\",\"originalFile\":\"{\\n  \\\"version\\\": \\\"0.0.1\\\",\\n  \\\"configurations\\\": [\\n    {\\n      \\\"name\\\": \\\"StockFolio Client (Vite)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"client\\\",\\n      \\\"port\\\": 5174\\n    },\\n    {\\n      \\\"name\\\": \\\"StockFolio Server (Express)\\\",\\n      \\\"runtimeExecutable\\\": \\\"npm\\\",\\n      \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\\n      \\\"cwd\\\": \\\"server\\\",\\n      \\\"port\\\": 3000\\n    }\\n  ]\\n}\\n\",\"structuredPatch\":[{\"oldStart\":13,\"oldLines\":7,\"newStart\":13,\"newLines\":8,\"lines\":[\"       \\\"runtimeExecutable\\\": \\\"npm\\\",\",\"       \\\"runtimeArgs\\\": [\\\"run\\\", \\\"dev\\\"],\",\"       \\\"cwd\\\": \\\"server\\\",\",\"-      \\\"port\\\": 3000\",\"+      \\\"port\\\": 3000,\",\"+      \\\"autoPort\\\": false\",\"     }\",\"   ]\",\" }\"]}],\"userModified\":false,\"replaceAll\":false},\"tool_use_id\":\"toolu_011etC5cPdfjjBfE43KdsCZE\",\"duration_ms\":10}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "7ccdd24f-7f8a-4664-acc7-90a414da4158",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:47:35.210Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "ed23ee99-8ca4-476f-86cf-b06784cb4eb0",
+  "version": "2.1.160"
+}

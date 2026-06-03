@@ -1,0 +1,75 @@
+{
+  "attributionMcpServer": "Claude Preview",
+  "attributionMcpTool": "preview_screenshot",
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "caller": {
+          "type": "direct"
+        },
+        "id": "toolu_01GvgBvatzNEzCGGUvgrHZRX",
+        "input": {
+          "file_path": "E:\\Projects\\Portfolio\\client\\src\\components\\ui\\AddTransactionModal.vue",
+          "limit": 15,
+          "offset": 38
+        },
+        "name": "Read",
+        "type": "tool_use"
+      }
+    ],
+    "diagnostics": {
+      "cache_miss_reason": {
+        "type": "unavailable"
+      }
+    },
+    "id": "msg_01UM8Rwx5GNS7XGeAPPcVLqa",
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 1061,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 1061,
+      "cache_read_input_tokens": 251815,
+      "inference_geo": "not_available",
+      "input_tokens": 1,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 1061,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 1061,
+          "cache_read_input_tokens": 251815,
+          "input_tokens": 1,
+          "output_tokens": 160,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 160,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  },
+  "parentUuid": "1f898ae4-5478-4ca8-bb93-6bc7229002b6",
+  "requestId": "req_011CbfiPS1RbrYoUJ9x2SD4X",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:42:59.583Z",
+  "type": "assistant",
+  "userType": "external",
+  "uuid": "5ba09eb1-2610-4802-b65e-cb2fe11f05d1",
+  "version": "2.1.160"
+}

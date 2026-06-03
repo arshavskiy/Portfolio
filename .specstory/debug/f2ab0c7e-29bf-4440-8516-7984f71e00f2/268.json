@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 302,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\stocks.js\",\"content\":\"const router = require('express').Router()\\nconst auth = require('../middleware/auth')\\nconst { getQuote, getHistory, search } = require('../controllers/stockController')\\n\\nrouter.use(auth)\\nrouter.get('/search', search)\\nrouter.get('/quote/:ticker', getQuote)\\nrouter.get('/history/:ticker', getHistory)\\n\\nmodule.exports = router\\n\"},\"tool_use_id\":\"toolu_01Q6npWqKjGBW8R5qdRXjd9R\"}\n",
+    "toolUseID": "toolu_01Q6npWqKjGBW8R5qdRXjd9R",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "9d5a7161-25c0-4901-a30d-ecb086c5c50c",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:06.761Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "23790aa4-8227-48d6-8790-9391c4612847",
+  "version": "2.1.160"
+}

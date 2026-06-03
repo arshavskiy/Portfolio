@@ -1,0 +1,17 @@
+{
+  "attachment": {
+    "allowedTools": [],
+    "type": "command_permissions"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "32ca655e-3960-4fbd-a3f8-f48c4e5d1457",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T20:58:42.685Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "3c1a34ad-d508-421d-839f-a6c6ff5c219e",
+  "version": "2.1.160"
+}

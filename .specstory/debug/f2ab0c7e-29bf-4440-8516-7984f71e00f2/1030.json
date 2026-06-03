@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 302,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\StockDetailView.vue\",\"old_string\":\"      \u003cp class=\\\"current-price\\\"\u003e{{ useCurrency(quote.price) }}\u003c/p\u003e\\n      \u003cp :class=\\\"gainLossClass(quote.change)\\\" class=\\\"price-change\\\"\u003e\\n        {{ useCurrency(quote.change) }} ({{ usePercent(quote.changePercent) }})\",\"new_string\":\"      \u003cp class=\\\"current-price\\\"\u003e{{ useTickerCurrency(quote.price, ticker) }}\u003c/p\u003e\\n      \u003cp :class=\\\"gainLossClass(quote.change)\\\" class=\\\"price-change\\\"\u003e\\n        {{ useTickerCurrency(quote.change, ticker) }} ({{ usePercent(quote.changePercent) }})\",\"replace_all\":false},\"tool_use_id\":\"toolu_01ECCm4qj7qp6ZHNLjwUUE7y\"}\n",
+    "toolUseID": "toolu_01ECCm4qj7qp6ZHNLjwUUE7y",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "7e9443b3-6c7a-4681-b3f8-de09edb13a32",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:59:04.090Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a8c4587a-f448-4724-821b-c3b1dc9816ed",
+  "version": "2.1.160"
+}

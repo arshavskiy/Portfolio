@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 278,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\FeeProfile.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst feeProfileSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    name: { type: String, required: true, trim: true },        // e.g. \\\"IBI\\\", \\\"Meitav\\\"\\n    type: { type: String, enum: ['percent', 'flat'], default: 'percent' },\\n    value: { type: Number, required: true, min: 0 },           // % or flat amount\\n    minFee: { type: Number, default: 0 },                      // minimum fee per trade\\n    currency: { type: String, default: 'USD' },                // currency for flat/min fee\\n    isDefault: { type: Boolean, default: false },\\n  },\\n  { timestamps: true }\\n)\\n\\nfeeProfileSchema.index({ user: 1 })\\n\\nmodule.exports = mongoose.model('FeeProfile', feeProfileSchema)\\n\"},\"tool_use_id\":\"toolu_011Q51YcpXcui3BYL857DU43\"}\n",
+    "toolUseID": "toolu_011Q51YcpXcui3BYL857DU43",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c1be61ad-44dc-458f-9b48-ac66f9d10d96",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:54:40.635Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5e97b706-d70a-46bc-a78c-b49c39c5afee",
+  "version": "2.1.160"
+}

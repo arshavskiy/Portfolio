@@ -1,0 +1,70 @@
+{
+  "attributionMcpServer": "Claude Preview",
+  "attributionMcpTool": "preview_screenshot",
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "caller": {
+          "type": "direct"
+        },
+        "id": "toolu_017WKfdyFiouDX3TZB9G6zCs",
+        "input": {
+          "max_results": 1,
+          "query": "select:mcp__Claude_Preview__preview_console_logs"
+        },
+        "name": "ToolSearch",
+        "type": "tool_use"
+      }
+    ],
+    "diagnostics": null,
+    "id": "msg_01YFFNEUzxax3hx21gC8rM2H",
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 837,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 837,
+      "cache_read_input_tokens": 119747,
+      "inference_geo": "not_available",
+      "input_tokens": 3,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 837,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 837,
+          "cache_read_input_tokens": 119747,
+          "input_tokens": 3,
+          "output_tokens": 99,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 99,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  },
+  "parentUuid": "87286aad-7df2-4744-835b-b746f284d8ba",
+  "requestId": "req_011CbfCC3qP2Mxt8fweiuLer",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:06:56.470Z",
+  "type": "assistant",
+  "userType": "external",
+  "uuid": "5406096f-72c0-4f9b-8c8c-2d334b5736e3",
+  "version": "2.1.160"
+}

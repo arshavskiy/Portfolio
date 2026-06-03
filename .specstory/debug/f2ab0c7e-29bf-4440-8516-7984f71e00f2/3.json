@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "bash -lc 'input=$(cat); for root in \"${CLAUDE_PLUGIN_ROOT:-}\" \"$HOME/.claude/plugins/everything-claude-code\" \"$HOME/.claude/plugins/everything-claude-code@everything-claude-code\" \"$HOME/.claude/plugins/marketplace/everything-claude-code\"; do if [ -n \"$root\" ] \u0026\u0026 [ -f \"$root/scripts/hooks/run-with-flags.js\" ]; then printf \"%s\" \"$input\" | node \"$root/scripts/hooks/run-with-flags.js\" \"session:start\" \"scripts/hooks/session-start.js\" \"minimal,standard,strict\"; exit $?; fi; done; for parent in \"$HOME/.claude/plugins\" \"$HOME/.claude/plugins/marketplace\"; do if [ -d \"$parent\" ]; then candidate=$(find \"$parent\" -maxdepth 2 -type f -path \"*/scripts/hooks/run-with-flags.js\" 2\u003e/dev/null | head -n 1); if [ -n \"$candidate\" ]; then root=$(dirname \"$(dirname \"$(dirname \"$candidate\")\")\"); printf \"%s\" \"$input\" | node \"$root/scripts/hooks/run-with-flags.js\" \"session:start\" \"scripts/hooks/session-start.js\" \"minimal,standard,strict\"; exit $?; fi; fi; done; echo \"[SessionStart] WARNING: could not resolve ECC plugin root; skipping session-start hook\" \u003e\u00262; printf \"%s\" \"$input\"; exit 0'",
+    "content": "Previous session summary:\n# Session: 2026-06-02\n**Date:** 2026-06-02\n**Started:** 16:58\n**Last Updated:** 23:15\n**Project:** server\n**Branch:** master\n**Worktree:** E:\\Projects\\Reminder\\server\n\n---\n\u003c!-- ECC:SUMMARY:START --\u003e\n## Session Summary\n\n### Tasks\n- continue\n\n### Tools Used\nBash, PowerShell\n\n### Stats\n- Total user messages: 1\n\u003c!-- ECC:SUMMARY:END --\u003e\n\n### Notes for Next Session\n-\n\n### Context to Load\n```\n[relevant files]\n```",
+    "durationMs": 1110,
+    "exitCode": 0,
+    "hookEvent": "SessionStart",
+    "hookName": "SessionStart:startup",
+    "stderr": "[SessionStart] Found 8 recent session(s)\n[SessionStart] Latest: C:\\Users\\User\\.claude\\sessions\\2026-06-02-server-session.tmp\n[SessionStart] Package manager: npm (default)\n[SessionStart] No package manager preference found.\n[PackageManager] No package manager preference detected.\nSupported package managers: npm, pnpm, yarn, bun\n\nTo set your preferred package manager:\n  - Global: Set CLAUDE_PACKAGE_MANAGER environment variable\n  - Or add to ~/.claude/package-manager.json: {\"packageManager\": \"pnpm\"}\n  - Or add to package.json: {\"packageManager\": \"pnpm@8\"}\n  - Or add a lock file to your project (e.g., pnpm-lock.yaml)\n\n[SessionStart] No specific project type detected\n",
+    "stdout": "Previous session summary:\n# Session: 2026-06-02\n**Date:** 2026-06-02\n**Started:** 16:58\n**Last Updated:** 23:15\n**Project:** server\n**Branch:** master\n**Worktree:** E:\\Projects\\Reminder\\server\n\n---\n\u003c!-- ECC:SUMMARY:START --\u003e\n## Session Summary\n\n### Tasks\n- continue\n\n### Tools Used\nBash, PowerShell\n\n### Stats\n- Total user messages: 1\n\u003c!-- ECC:SUMMARY:END --\u003e\n\n### Notes for Next Session\n-\n\n### Context to Load\n```\n[relevant files]\n```\n\n",
+    "toolUseID": "dbe9aa84-67ba-4a8c-bb50-99dfb7d5bb9d",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b6360d63-7ace-4a73-9e0c-b47a16d95611",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T20:47:12.209Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "130061cf-5891-48a9-b0ee-77217f588ec4",
+  "version": "2.1.160"
+}

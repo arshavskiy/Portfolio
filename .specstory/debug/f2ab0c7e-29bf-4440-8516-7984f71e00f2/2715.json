@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1137,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\\AddTransactionModal.vue\",\"old_string\":\"const feeOptions = computed(() =\u003e [\\n  { label: 'No fee', value: null },\\n  ...feeStore.profiles.map((p) =\u003e ({\\n    label: `${p.name} (${p.type === 'percent' ? p.value + '%' : p.currency + ' ' + p.value})`,\\n    value: p._id,\\n    profile: p,\\n  })),\\n])\",\"new_string\":\"const feeOptions = computed(() =\u003e [\\n  { label: 'No fee', value: null },\\n  ...feeStore.profiles.map((p) =\u003e {\\n    const fee = type.value === 'buy' ? p.buyFee : p.sellFee\\n    const feeStr = fee?.value ? (fee.type === 'percent' ? `${fee.value}%` : `${p.currency} ${fee.value}`) : '0%'\\n    const taxStr = p.capitalGainsTax ? ` · Tax ${p.capitalGainsTax}%` : ''\\n    return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id, profile: p }\\n  }),\\n])\",\"replace_all\":false},\"tool_use_id\":\"toolu_01NNBB3i4TiW6mXPHmaxcWLo\"}\n",
+    "toolUseID": "toolu_01NNBB3i4TiW6mXPHmaxcWLo",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "45ebd451-f4d3-4f13-bf87-607d24d01301",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:43:23.792Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "79a27e06-d456-40fa-995a-b687234c9d4a",
+  "version": "2.1.160"
+}

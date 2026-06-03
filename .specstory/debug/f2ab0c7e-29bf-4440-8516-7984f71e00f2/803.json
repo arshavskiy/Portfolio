@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_32808",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 696,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "lsof -ti :3000 | xargs kill -9 2\u003e\u00261; echo \"done\"",
+        "description": "Kill process on port 3000"
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": "/usr/bin/bash: line 3: lsof: command not found\nkill: not enough arguments\ndone"
+      },
+      "tool_use_id": "toolu_015YS47kYmLghs7R7DcNvbxE",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"lsof -ti :3000 | xargs kill -9 2\u003e\u00261; echo \\\"done\\\"\",\"description\":\"Kill process on port 3000\"},\"tool_response\":{\"stdout\":\"/usr/bin/bash: line 3: lsof: command not found\\nkill: not enough arguments\\ndone\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_015YS47kYmLghs7R7DcNvbxE\",\"duration_ms\":696}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "bdb64f91-9bfc-465c-aa8d-811428432c68",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:48:16.937Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "00ac5022-4242-493b-868f-e99637df9e43",
+  "version": "2.1.160"
+}

@@ -1,0 +1,33 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "/usr/bin/bash: line 3: lsof: command not found\nkill: not enough arguments\ndone",
+        "is_error": false,
+        "tool_use_id": "toolu_015YS47kYmLghs7R7DcNvbxE",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "9740e5fb-da60-4c4d-9166-eec95c86a7b7",
+  "promptId": "3ffa1b5d-3093-48eb-a959-257ef554e0ee",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "9740e5fb-da60-4c4d-9166-eec95c86a7b7",
+  "timestamp": "2026-06-02T21:47:47.770Z",
+  "toolUseResult": {
+    "interrupted": false,
+    "isImage": false,
+    "noOutputExpected": false,
+    "stderr": "",
+    "stdout": "/usr/bin/bash: line 3: lsof: command not found\nkill: not enough arguments\ndone"
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "ef579d8d-9686-4c8a-8d51-4fa058c1ede1",
+  "version": "2.1.160"
+}

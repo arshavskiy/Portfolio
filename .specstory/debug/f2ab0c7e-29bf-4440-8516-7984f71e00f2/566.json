@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:git-push-reminder\" \"scripts/hooks/pre-bash-git-push-reminder.js\" \"strict\"",
+    "content": "",
+    "durationMs": 339,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npx vite build 2\u003e\u00261\",\"description\":\"Test client build\"},\"tool_use_id\":\"toolu_012CRtoufMZvsTHvFSktR3pK\"}\n",
+    "toolUseID": "toolu_012CRtoufMZvsTHvFSktR3pK",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "2d6d9376-489e-433b-aea8-480c7b9bce60",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:28:57.084Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6a9b0d64-fbbd-452e-8a74-31b2175d7a7a",
+  "version": "2.1.160"
+}

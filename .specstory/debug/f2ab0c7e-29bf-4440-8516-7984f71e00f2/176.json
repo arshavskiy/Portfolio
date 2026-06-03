@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 259,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Watchlist.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst watchlistSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true, trim: true },\\n    companyName: { type: String },\\n    addedAt: { type: Date, default: Date.now },\\n  },\\n  { timestamps: true }\\n)\\n\\nwatchlistSchema.index({ user: 1, ticker: 1 }, { unique: true })\\n\\nmodule.exports = mongoose.model('Watchlist', watchlistSchema)\\n\"},\"tool_use_id\":\"toolu_017gHziJtxiwb6RUh7k2Kx92\"}\n",
+    "toolUseID": "toolu_017gHziJtxiwb6RUh7k2Kx92",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "d085bc13-668d-4761-8597-cdce1c73165a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:23:08.761Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2fe22a11-89a9-4bbe-b539-db485686db56",
+  "version": "2.1.160"
+}

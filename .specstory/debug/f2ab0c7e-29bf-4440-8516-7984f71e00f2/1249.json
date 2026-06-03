@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 287,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"module.exports = { getQuote, getQuotes, getHistory, searchTicker }\",\"new_string\":\"function invalidateCache(ticker) {\\n  quoteCache.delete(ticker.toUpperCase())\\n}\\n\\nmodule.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01FhthkCHijeRq4Qswc26Nfj\"}\n",
+    "toolUseID": "toolu_01FhthkCHijeRq4Qswc26Nfj",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "7c1b7c36-5ff7-45ba-a33c-e557fe83701c",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T22:04:46.366Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "31a1c0df-424b-464e-93ef-4bd804038421",
+  "version": "2.1.160"
+}

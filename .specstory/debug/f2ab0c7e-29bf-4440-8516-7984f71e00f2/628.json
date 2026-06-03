@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 268,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\.env\",\"old_string\":\"JWT_SECRET=change_this_to_a_long_random_string\",\"new_string\":\"JWT_SECRET=2613753e9bfff087e8cd6bf6ae361355bbfce4d5ede5275ebda1f48b1b4337ffa590b1ae62c2b196e50f0005b2784038\",\"replace_all\":false},\"tool_use_id\":\"toolu_011iGg6cDGdqzb3Yu9oTmybf\"}\n",
+    "toolUseID": "toolu_011iGg6cDGdqzb3Yu9oTmybf",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "6df7a8d3-369a-4e51-98bd-c88c3ffec711",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:45:06.692Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "72be8afb-304b-4cd1-9104-83a51991d5bd",
+  "version": "2.1.160"
+}

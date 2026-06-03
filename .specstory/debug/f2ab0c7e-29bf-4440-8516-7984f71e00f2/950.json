@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 208,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"            \u003cspan class=\\\"price\\\"\u003e{{ useCurrency(pos.currentPrice) }}\u003c/span\u003e\",\"new_string\":\"            \u003cspan class=\\\"price\\\"\u003e{{ useTickerCurrency(pos.currentPrice, pos.ticker) }}\u003c/span\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_012YoebiYQTbHBuEk3yXWoUt\"}\n",
+    "toolUseID": "toolu_012YoebiYQTbHBuEk3yXWoUt",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "323173f6-2d89-4524-980d-262ded9e2175",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:58:41.111Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "f5eb8d29-be05-4393-abb5-ad1a92a7b736",
+  "version": "2.1.160"
+}

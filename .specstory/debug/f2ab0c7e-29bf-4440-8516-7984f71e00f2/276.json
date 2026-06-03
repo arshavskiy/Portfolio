@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 290,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\watchlist.js\",\"content\":\"const router = require('express').Router()\\nconst auth = require('../middleware/auth')\\nconst { getWatchlist, addToWatchlist, removeFromWatchlist } = require('../controllers/watchlistController')\\n\\nrouter.use(auth)\\nrouter.get('/', getWatchlist)\\nrouter.post('/', addToWatchlist)\\nrouter.delete('/:id', removeFromWatchlist)\\n\\nmodule.exports = router\\n\"},\"tool_use_id\":\"toolu_019ZBM6zFQtP3hcgd3taqxTU\"}\n",
+    "toolUseID": "toolu_019ZBM6zFQtP3hcgd3taqxTU",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "737b6f80-dbfd-42cc-88d8-dfeb3b6ccd01",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:24:07.689Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5675d188-bb40-4fbb-851b-e359640e1f9b",
+  "version": "2.1.160"
+}

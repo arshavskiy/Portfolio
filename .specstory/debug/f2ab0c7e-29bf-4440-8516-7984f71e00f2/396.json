@@ -1,0 +1,71 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "processId": "async_hook_5748",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio\\server",
+      "duration_ms": 10,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "content": "\u003cscript setup\u003e\nimport { onMounted } from 'vue'\nimport Toast from 'primevue/toast'\nimport ConfirmDialog from 'primevue/confirmdialog'\n\nonMounted(() =\u003e document.documentElement.classList.add('dark'))\n\u003c/script\u003e\n\n\u003ctemplate\u003e\n  \u003cToast position=\"top-center\" /\u003e\n  \u003cConfirmDialog /\u003e\n  \u003cRouterView /\u003e\n\u003c/template\u003e\n",
+        "file_path": "E:\\Projects\\Portfolio\\client\\src\\App.vue"
+      },
+      "tool_name": "Write",
+      "tool_response": {
+        "content": "\u003cscript setup\u003e\nimport { onMounted } from 'vue'\nimport Toast from 'primevue/toast'\nimport ConfirmDialog from 'primevue/confirmdialog'\n\nonMounted(() =\u003e document.documentElement.classList.add('dark'))\n\u003c/script\u003e\n\n\u003ctemplate\u003e\n  \u003cToast position=\"top-center\" /\u003e\n  \u003cConfirmDialog /\u003e\n  \u003cRouterView /\u003e\n\u003c/template\u003e\n",
+        "filePath": "E:\\Projects\\Portfolio\\client\\src\\App.vue",
+        "originalFile": "\u003cscript setup\u003e\nimport HelloWorld from './components/HelloWorld.vue'\n\u003c/script\u003e\n\n\u003ctemplate\u003e\n  \u003cHelloWorld /\u003e\n\u003c/template\u003e\n",
+        "structuredPatch": [
+          {
+            "lines": [
+              " \u003cscript setup\u003e",
+              "-import HelloWorld from './components/HelloWorld.vue'",
+              "+import { onMounted } from 'vue'",
+              "+import Toast from 'primevue/toast'",
+              "+import ConfirmDialog from 'primevue/confirmdialog'",
+              "+",
+              "+onMounted(() =\u003e document.documentElement.classList.add('dark'))",
+              " \u003c/script\u003e",
+              " ",
+              " \u003ctemplate\u003e",
+              "-  \u003cHelloWorld /\u003e",
+              "+  \u003cToast position=\"top-center\" /\u003e",
+              "+  \u003cConfirmDialog /\u003e",
+              "+  \u003cRouterView /\u003e",
+              " \u003c/template\u003e"
+            ],
+            "newLines": 13,
+            "newStart": 1,
+            "oldLines": 7,
+            "oldStart": 1
+          }
+        ],
+        "type": "update",
+        "userModified": false
+      },
+      "tool_use_id": "toolu_012HrC4rSj2qfZxohxGomWw9",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\App.vue\",\"content\":\"\u003cscript setup\u003e\\nimport { onMounted } from 'vue'\\nimport Toast from 'primevue/toast'\\nimport ConfirmDialog from 'primevue/confirmdialog'\\n\\nonMounted(() =\u003e document.documentElement.classList.add('dark'))\\n\u003c/script\u003e\\n\\n\u003ctemplate\u003e\\n  \u003cToast position=\\\"top-center\\\" /\u003e\\n  \u003cConfirmDialog /\u003e\\n  \u003cRouterView /\u003e\\n\u003c/template\u003e\\n\"},\"tool_response\":{\"type\":\"update\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\App.vue\",\"content\":\"\u003cscript setup\u003e\\nimport { onMounted } from 'vue'\\nimport Toast from 'primevue/toast'\\nimport ConfirmDialog from 'primevue/confirmdialog'\\n\\nonMounted(() =\u003e document.documentElement.classList.add('dark'))\\n\u003c/script\u003e\\n\\n\u003ctemplate\u003e\\n  \u003cToast position=\\\"top-center\\\" /\u003e\\n  \u003cConfirmDialog /\u003e\\n  \u003cRouterView /\u003e\\n\u003c/template\u003e\\n\",\"structuredPatch\":[{\"oldStart\":1,\"oldLines\":7,\"newStart\":1,\"newLines\":13,\"lines\":[\" \u003cscript setup\u003e\",\"-import HelloWorld from './components/HelloWorld.vue'\",\"+import { onMounted } from 'vue'\",\"+import Toast from 'primevue/toast'\",\"+import ConfirmDialog from 'primevue/confirmdialog'\",\"+\",\"+onMounted(() =\u003e document.documentElement.classList.add('dark'))\",\" \u003c/script\u003e\",\" \",\" \u003ctemplate\u003e\",\"-  \u003cHelloWorld /\u003e\",\"+  \u003cToast position=\\\"top-center\\\" /\u003e\",\"+  \u003cConfirmDialog /\u003e\",\"+  \u003cRouterView /\u003e\",\" \u003c/template\u003e\"]}],\"originalFile\":\"\u003cscript setup\u003e\\nimport HelloWorld from './components/HelloWorld.vue'\\n\u003c/script\u003e\\n\\n\u003ctemplate\u003e\\n  \u003cHelloWorld /\u003e\\n\u003c/template\u003e\\n\",\"userModified\":false},\"tool_use_id\":\"toolu_012HrC4rSj2qfZxohxGomWw9\",\"duration_ms\":10}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "220c4c90-fbce-4d4b-805d-47b9f0169b9c",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:25:28.594Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "665ed61f-f749-4b02-aff7-cffb0bb66315",
+  "version": "2.1.160"
+}

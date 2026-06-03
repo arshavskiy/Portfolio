@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/auto-tmux-dev.js\"",
+    "content": "",
+    "durationMs": 1185,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"curl -s -X POST http://localhost:3000/api/auth/login -H \\\"Content-Type: application/json\\\" -d \\\"{\\\\\\\"email\\\\\\\":\\\\\\\"arshavsky.pasha@gmail.com\\\\\\\",\\\\\\\"password\\\\\\\":\\\\\\\"qawsed123!\\\\\\\"}\\\" 2\u003e\u00261\",\"description\":\"Login to get JWT token\"},\"tool_use_id\":\"toolu_01PTLNAQLKzYTPcbtcVtGkzd\"}",
+    "toolUseID": "toolu_01PTLNAQLKzYTPcbtcVtGkzd",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "1ca240e4-6ad9-41bd-adca-fbbbe163ee5e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:26:41.938Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "227df5cd-fa77-468f-a2fd-31eda1a89cf4",
+  "version": "2.1.160"
+}

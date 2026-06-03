@@ -1,0 +1,48 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "processId": "async_hook_20224",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 8,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
+        "description": "Start Vite dev server",
+        "run_in_background": true
+      },
+      "tool_name": "Bash",
+      "tool_response": {
+        "backgroundTaskId": "b0wqwgot7",
+        "interrupted": false,
+        "isImage": false,
+        "noOutputExpected": false,
+        "stderr": "",
+        "stdout": ""
+      },
+      "tool_use_id": "toolu_012WWQRVQEK8StTLX3ZUVvBe",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\",\"description\":\"Start Vite dev server\",\"run_in_background\":true},\"tool_response\":{\"stdout\":\"\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false,\"backgroundTaskId\":\"b0wqwgot7\"},\"tool_use_id\":\"toolu_012WWQRVQEK8StTLX3ZUVvBe\",\"duration_ms\":8}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "44a5ae25-7bfb-497d-ab0d-dd1cb0b8e60a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-02T21:45:56.453Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c4b3f8df-14f9-47d0-afb3-b05b7565da5f",
+  "version": "2.1.160"
+}

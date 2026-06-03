@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 357,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\charts\\\\AllocationChart.vue\",\"old_string\":\"  g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')\\n    .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')\\n    .text(totalLabel)\",\"new_string\":\"  if (totalLabel) {\\n    g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')\\n      .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')\\n      .text(totalLabel)\\n  }\",\"replace_all\":false},\"tool_use_id\":\"toolu_019dykftdSQnJZWpjdQV3BC3\"}\n",
+    "toolUseID": "toolu_019dykftdSQnJZWpjdQV3BC3",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e75fb1c1-26c2-44fa-8d6a-b715732a7cf3",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:08:57.897Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5aa29b9c-dcfb-4dfe-9948-ef4fe619b980",
+  "version": "2.1.160"
+}
