@@ -382,7 +382,7 @@ const simulation = computed(() => {
     />
 
     <EditTransactionModal
-      v-model:visible="!!editingTx"
+      :visible="!!editingTx"
       :transaction="editingTx"
       @update:visible="v => { if (!v) editingTx = null }"
       @saved="fetchLots"
