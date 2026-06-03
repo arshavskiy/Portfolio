@@ -1,51 +1,19 @@
 {
-  "attachment": {
-    "exitCode": 0,
-    "hookEvent": "Stop",
-    "hookName": "Stop",
-    "processId": "async_hook_35488",
-    "response": {
-      "background_tasks": [
-        {
-          "command": "cd \"E:\\Projects\\Portfolio\\server\" \u0026\u0026 npm run dev 2\u003e\u00261",
-          "description": "Start server",
-          "id": "b0h28df9w",
-          "status": "running",
-          "type": "shell"
-        },
-        {
-          "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
-          "description": "Start Vite dev server",
-          "id": "b0wqwgot7",
-          "status": "running",
-          "type": "shell"
-        }
-      ],
-      "cwd": "E:\\Projects\\Portfolio",
-      "effort": {
-        "level": "low"
-      },
-      "hook_event_name": "Stop",
-      "last_assistant_message": "Done. **Poalim** profile created:\n\n- 🇮🇱 Country: Israel\n- 💰 Currency: ILS\n- 📈 Buy fee: 0% (update in Profile → Fee Profiles when you know the rate)\n- 📉 Sell fee: 0% (same)\n- 🏛️ Capital gains tax: **25%**\n- ✅ Set as default — will auto-select in the Buy/Sell modal\n\nNow when you add a sell transaction and select Poalim, it will automatically calculate 25% tax on your profit.",
-      "permission_mode": "acceptEdits",
-      "session_crons": [],
-      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
-      "stop_hook_active": false,
-      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
-    },
-    "stderr": "",
-    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Done. **Poalim** profile created:\\n\\n- 🇮🇱 Country: Israel\\n- 💰 Currency: ILS\\n- 📈 Buy fee: 0% (update in Profile → Fee Profiles when you know the rate)\\n- 📉 Sell fee: 0% (same)\\n- 🏛️ Capital gains tax: **25%**\\n- ✅ Set as default — will auto-select in the Buy/Sell modal\\n\\nNow when you add a sell transaction and select Poalim, it will automatically calculate 25% tax on your profit.\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
-    "type": "async_hook_response"
-  },
   "cwd": "E:\\Projects\\Portfolio",
   "entrypoint": "claude-desktop",
   "gitBranch": "HEAD",
   "isSidechain": false,
-  "parentUuid": "c21953eb-ce53-4b50-a05c-031a6e7fa99c",
+  "message": {
+    "content": "i want to see the sell price calculated simulation as well",
+    "role": "user"
+  },
+  "parentUuid": "bf2ed815-107a-4f49-ba9c-cefe21b0f885",
+  "permissionMode": "acceptEdits",
+  "promptId": "0aa423e6-e238-4ab8-ba9b-4298d19d31ac",
   "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
   "timestamp": "2026-06-03T04:36:50.354Z",
-  "type": "attachment",
+  "type": "user",
   "userType": "external",
-  "uuid": "6401b488-bfbe-488f-9384-43d92edb5583",
+  "uuid": "bd77404f-4d0b-4256-b102-5710c84119a8",
   "version": "2.1.160"
 }

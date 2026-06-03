@@ -1,19 +1,36 @@
 {
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_33528",
+    "response": {
+      "background_tasks": [],
+      "cwd": "E:\\Projects\\Portfolio",
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "Stop",
+      "last_assistant_message": "What would you like to do — wire up Atlas and test the app, or jump into Phase 2 features?",
+      "permission_mode": "acceptEdits",
+      "session_crons": [],
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "stop_hook_active": false,
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"What would you like to do — wire up Atlas and test the app, or jump into Phase 2 features?\",\"background_tasks\":[],\"session_crons\":[]}\n",
+    "type": "async_hook_response"
+  },
   "cwd": "E:\\Projects\\Portfolio",
   "entrypoint": "claude-desktop",
   "gitBranch": "HEAD",
   "isSidechain": false,
-  "message": {
-    "content": "atlas is on",
-    "role": "user"
-  },
-  "parentUuid": "7a7caf81-b5e9-4643-8a79-c663e452e225",
-  "permissionMode": "acceptEdits",
-  "promptId": "28faeb51-0979-4e76-b366-b664c899a40e",
+  "parentUuid": "896b291a-7362-489a-beca-86e5e5cc3b02",
   "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
   "timestamp": "2026-06-02T21:44:50.227Z",
-  "type": "user",
+  "type": "attachment",
   "userType": "external",
-  "uuid": "6c86695b-5021-4716-8fe7-717ebc671382",
+  "uuid": "05874217-6eaa-4346-b38a-63bcb5aa984a",
   "version": "2.1.160"
 }

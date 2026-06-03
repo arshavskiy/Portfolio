@@ -1,19 +1,51 @@
 {
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_26100",
+    "response": {
+      "background_tasks": [
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\server\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start server",
+          "id": "b0h28df9w",
+          "status": "running",
+          "type": "shell"
+        },
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start Vite dev server",
+          "id": "b0wqwgot7",
+          "status": "running",
+          "type": "shell"
+        }
+      ],
+      "cwd": "E:\\Projects\\Portfolio",
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "Stop",
+      "last_assistant_message": "Sell Simulator is live and open by default. It shows:\n\n- **Sell price** — pre-filled with current market price ₪69.40, editable\n- **Fee profile** — Poalim auto-selected (your default)\n- **Gross proceeds** → sell fee → tax → **Net proceeds**\n- **Net profit/loss** with % — currently -16.39% / -₪3,345.60\n\nNo tax showing because the position is at a loss (tax only applies on profit). Change the sell price to something above ₪83 and the 25% capital gains tax will appear automatically.",
+      "permission_mode": "acceptEdits",
+      "session_crons": [],
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "stop_hook_active": false,
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Sell Simulator is live and open by default. It shows:\\n\\n- **Sell price** — pre-filled with current market price ₪69.40, editable\\n- **Fee profile** — Poalim auto-selected (your default)\\n- **Gross proceeds** → sell fee → tax → **Net proceeds**\\n- **Net profit/loss** with % — currently -16.39% / -₪3,345.60\\n\\nNo tax showing because the position is at a loss (tax only applies on profit). Change the sell price to something above ₪83 and the 25% capital gains tax will appear automatically.\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "type": "async_hook_response"
+  },
   "cwd": "E:\\Projects\\Portfolio",
   "entrypoint": "claude-desktop",
   "gitBranch": "HEAD",
   "isSidechain": false,
-  "message": {
-    "content": "add stock not working, i want it to do the search api",
-    "role": "user"
-  },
-  "parentUuid": "96116344-b6b8-4c93-a621-83e4d5e3b81a",
-  "permissionMode": "acceptEdits",
-  "promptId": "41bc3f9d-1aba-4888-8448-b198ec910d9e",
+  "parentUuid": "70a67ce5-f06a-444c-b593-9bd03ffc0f6a",
   "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
   "timestamp": "2026-06-03T04:40:45.628Z",
-  "type": "user",
+  "type": "attachment",
   "userType": "external",
-  "uuid": "aaf018f4-1560-4d11-a3ef-35acb367d967",
+  "uuid": "485ec99b-2996-426d-8f9f-8b9611dbf3c8",
   "version": "2.1.160"
 }

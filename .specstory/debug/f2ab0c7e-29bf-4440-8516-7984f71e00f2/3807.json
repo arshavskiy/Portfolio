@@ -1,6 +1,6 @@
 {
   "attachment": {
-    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:git-push-reminder\" \"scripts/hooks/pre-bash-git-push-reminder.js\" \"strict\"",
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\"",
     "content": "",
     "durationMs": 1380,
     "exitCode": 0,
@@ -15,12 +15,12 @@
   "entrypoint": "claude-desktop",
   "gitBranch": "HEAD",
   "isSidechain": false,
-  "parentUuid": "ec8fa49e-4c4e-4ea4-8f70-6d3276bd91bc",
+  "parentUuid": "3e012d8f-99ff-4ade-b308-31abb7eb36e8",
   "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
   "slug": "compressed-watching-dusk",
   "timestamp": "2026-06-03T05:52:33.246Z",
   "type": "attachment",
   "userType": "external",
-  "uuid": "0c0ac4f6-f04d-4d29-9e52-031670db9558",
+  "uuid": "ec8fa49e-4c4e-4ea4-8f70-6d3276bd91bc",
   "version": "2.1.160"
 }
