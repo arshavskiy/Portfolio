@@ -1,0 +1,28 @@
+{
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "\u003ctool_use_error\u003eFile has not been read yet. Read it first before writing to it.\u003c/tool_use_error\u003e",
+        "is_error": true,
+        "tool_use_id": "toolu_013n6PRvEKu2nAr84eXVyT58",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "3ef003b3-7918-41d7-bd5b-5ef288afd585",
+  "promptId": "8e4cb432-924b-4ae6-8e43-6bc85024218d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "sourceToolAssistantUUID": "3ef003b3-7918-41d7-bd5b-5ef288afd585",
+  "timestamp": "2026-06-03T06:00:41.546Z",
+  "toolUseResult": "Error: File has not been read yet. Read it first before writing to it.",
+  "type": "user",
+  "userType": "external",
+  "uuid": "04145ca0-c0c5-49dc-aaac-aa17cde4d6f2",
+  "version": "2.1.160"
+}

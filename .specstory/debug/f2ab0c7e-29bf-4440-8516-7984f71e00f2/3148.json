@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 915,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:TaskCreate",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"TaskCreate\",\"tool_input\":{\"subject\":\"Add sparkline with neon glow to dashboard stock cards\",\"description\":\"D3 mini line chart on each stock card showing recent price, border glows neon green/red based on P\u0026L %\",\"activeForm\":\"Building sparkline charts\"},\"tool_use_id\":\"toolu_0164HJZJ7NbZ8LbpAQXJ5NXX\"}\n",
+    "toolUseID": "toolu_0164HJZJ7NbZ8LbpAQXJ5NXX",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "92bade2a-863f-4896-b946-0850664748ba",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:17:31.260Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7f45d982-82a0-4b0f-a31c-41b96bd8efba",
+  "version": "2.1.160"
+}

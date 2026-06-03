@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1238,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\PositionDetailView.vue\",\"old_string\":\"function fmt(val) {\\n  return val \u003e= 0 ? '+' : ''\\n}\",\"new_string\":\"function fmt(val) {\\n  return val \u003e= 0 ? '+' : ''\\n}\\n\\nconst tickerCurr = computed(() =\u003e ticker.endsWith('.TA') ? 'ILS' : 'USD')\\nconst currSymbol = computed(() =\u003e tickerCurr.value === 'ILS' ? '₪' : '$')\\n\\nconst simulation = computed(() =\u003e {\\n  if (!simPrice.value || !summary.value) return null\\n  const { shares, avgCost, totalCost, totalBuyFees } = summary.value\\n  const sellPrice = simPrice.value\\n  const grossProceeds = sellPrice * shares\\n\\n  // Get sell fee from selected profile\\n  const profile = feeStore.profiles.find(p =\u003e p._id === simFeeProfileId.value)\\n  let sellFee = 0\\n  if (profile?.sellFee?.value) {\\n    sellFee = profile.sellFee.type === 'percent'\\n      ? (grossProceeds * profile.sellFee.value) / 100\\n      : profile.sellFee.value\\n    if (profile.sellFee.minFee \u0026\u0026 sellFee \u003c profile.sellFee.minFee)\\n      sellFee = profile.sellFee.minFee\\n    sellFee = Math.round(sellFee * 100) / 100\\n  }\\n\\n  // Capital gains tax on profit only\\n  const taxRate = profile?.capitalGainsTax || 0\\n  const gain = grossProceeds - totalCost\\n  const tax = gain \u003e 0 \u0026\u0026 taxRate \u003e 0\\n    ? Math.round(gain * taxRate / 100 * 100) / 100\\n    : 0\\n\\n  const netProceeds = grossProceeds - sellFee - tax\\n  // Net profit = net proceeds - original cost - buy fees already paid\\n  const netProfit = netProceeds - totalCost - totalBuyFees\\n  const netProfitPct = (totalCost + totalBuyFees) \u003e 0\\n    ? (netProfit / (totalCost + totalBuyFees)) * 100 : 0\\n\\n  return {\\n    sellPrice, shares, grossProceeds,\\n    sellFee, tax, taxRate,\\n    netProceeds, netProfit, netProfitPct,\\n    profileName: profile?.name || null,\\n  }\\n})\",\"replace_all\":false},\"tool_use_id\":\"toolu_017mbKtWo7BsjagbuRcBjv9M\"}\n",
+    "toolUseID": "toolu_017mbKtWo7BsjagbuRcBjv9M",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "5ccffb8c-845a-4123-94ad-8c30a86c4e24",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:38:14.289Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "4a01cd4c-8b23-4add-ad87-84e15600a909",
+  "version": "2.1.160"
+}

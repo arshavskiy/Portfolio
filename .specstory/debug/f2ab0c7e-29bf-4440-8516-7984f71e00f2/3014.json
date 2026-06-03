@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 811,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\charts\\\\AllocationChart.vue\",\"old_string\":\"          \u003cspan class=\\\"legend-pct text-muted\\\"\u003e\\n            {{ (() =\u003e {\\n              const isMixed = combinedUsd \u0026\u0026 positions.some(p =\u003e p.currency === 'ILS') \u0026\u0026 positions.some(p =\u003e p.currency === 'USD')\\n              const val = isMixed ? (pos.valueUsd || 0) : pos.value\\n              const total = positions.reduce((s, p) =\u003e s + (isMixed ? (p.valueUsd || 0) : p.value), 0)\\n              return total \u003e 0 ? (val / total * 100).toFixed(1) + '%' : ''\\n            })() }}\\n          \u003c/span\u003e\",\"new_string\":\"          \u003cspan class=\\\"legend-pct text-muted\\\"\u003e\\n            {{ (() =\u003e {\\n              const total = positions.reduce((s, p) =\u003e s + p.value, 0)\\n              return total \u003e 0 ? (pos.value / total * 100).toFixed(1) + '%' : ''\\n            })() }}\\n          \u003c/span\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01PcpJFJ7SpMarSz1PrGkUwL\"}\n",
+    "toolUseID": "toolu_01PcpJFJ7SpMarSz1PrGkUwL",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "370b3e8c-335c-48a2-8b17-40f15bf52934",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:09:09.299Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "414b37c7-b487-4acb-8642-5def05ef8657",
+  "version": "2.1.160"
+}

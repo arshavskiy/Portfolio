@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 882,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd /mnt/e/Projects/Portfolio/client \u0026\u0026 npx vercel --prod --yes 2\u003e\u00261 | head -50\",\"timeout\":120000,\"description\":\"Deploy frontend to Vercel\"},\"tool_use_id\":\"toolu_01QAn83YMYuWKLvrkzX1EPt6\",\"error\":\"Exit code 1\\n/usr/bin/bash: line 3: cd: /mnt/e/Projects/Portfolio/client: No such file or directory\",\"is_interrupt\":false,\"duration_ms\":954}\n",
+    "toolUseID": "toolu_01QAn83YMYuWKLvrkzX1EPt6",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "c2d0b2b3-5702-426d-8921-a132aff69e87",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:59:46.163Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "930a58d2-7e40-4fef-b30e-926648668149",
+  "version": "2.1.160"
+}

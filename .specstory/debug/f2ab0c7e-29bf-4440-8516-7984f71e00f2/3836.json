@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 806,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh auth status 2\u003e\u00261 | head -5\",\"description\":\"Check GitHub authentication status\"},\"tool_use_id\":\"toolu_01FgMt86wHwWuDeD918Q8abr\"}\n",
+    "toolUseID": "toolu_01FgMt86wHwWuDeD918Q8abr",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "1c42ddd2-0dd8-499b-ae6f-697feb6d21ab",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:53:20.631Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8499a702-fe6f-4ef8-9e2a-50f2c6d64f1b",
+  "version": "2.1.160"
+}

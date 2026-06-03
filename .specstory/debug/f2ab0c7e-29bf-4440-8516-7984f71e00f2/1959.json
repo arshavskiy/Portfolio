@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:format\" \"scripts/hooks/post-edit-format.js\" \"strict\"",
+    "content": "",
+    "durationMs": 203,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"old_string\":\"    date: { type: Date, default: Date.now },\\n    notes: { type: String },\",\"new_string\":\"    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\\n    totalWithFees: { type: Number },            // total + feeAmount (real cost)\",\"replace_all\":false},\"tool_response\":{\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"oldString\":\"    date: { type: Date, default: Date.now },\\n    notes: { type: String },\",\"newString\":\"    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\\n    totalWithFees: { type: Number },            // total + feeAmount (real cost)\",\"originalFile\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\",\"structuredPatch\":[{\"oldStart\":10,\"oldLines\":6,\"newStart\":10,\"newLines\":9,\"lines\":[\"     total: { type: Number, required: true },\",\"     date: { type: Date, default: Date.now },\",\"     notes: { type: String },\",\"+    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\",\"+    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\",\"+    totalWithFees: { type: Number },            // total + feeAmount (real cost)\",\"   },\",\"   { timestamps: true }\",\" )\"]}],\"userModified\":false,\"replaceAll\":false},\"tool_use_id\":\"toolu_01XtvTLriZWrMZ16oGgeeDck\",\"duration_ms\":11}\n",
+    "toolUseID": "toolu_01XtvTLriZWrMZ16oGgeeDck",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "f78b2c01-49b7-4a75-986c-20471e7fa588",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:54:54.649Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6fc97fda-a920-42ef-9c7e-4d464cf007c3",
+  "version": "2.1.160"
+}

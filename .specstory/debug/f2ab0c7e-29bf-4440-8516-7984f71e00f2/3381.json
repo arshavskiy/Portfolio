@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:write:doc-file-warning\" \"scripts/hooks/doc-file-warning.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 821,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\style.css\",\"content\":\"*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }\\n\\n:root {\\n  --bg-primary: #000000;\\n  --bg-secondary: #111111;\\n  --bg-card: #111111;\\n  --border: #222222;\\n  --text-primary: #f1f5f9;\\n  --text-secondary: #94a3b8;\\n  --green: #00ff88;\\n  --red: #ff3366;\\n  --accent: #3b82f6;\\n  --neon-green: #00ff88;\\n  --neon-red: #ff3366;\\n  --neon-blue: #00cfff;\\n  --nav-height: 64px;\\n  --safe-bottom: env(safe-area-inset-bottom, 0px);\\n}\\n\\nhtml, body, #app {\\n  height: 100%;\\n  background: var(--bg-primary);\\n  color: var(--text-primary);\\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;\\n  -webkit-font-smoothing: antialiased;\\n}\\n\\n/* ── Neon text ── */\\n.gain { color: var(--neon-green); }\\n.loss { color: var(--neon-red); }\\n.text-muted { color: var(--text-secondary); }\\n\\n/* ── Gradient title ── */\\n.gradient-title {\\n  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);\\n  -webkit-background-clip: text;\\n  -webkit-text-fill-color: transparent;\\n  background-clip: text;\\n  font-weight: 800;\\n  letter-spacing: -0.5px;\\n}\\n\\n/* ── Neon card borders ── */\\n.neon-card-gain {\\n  border-color: rgba(0,255,136,0.5) !important;\\n  box-shadow: 0 0 12px rgba(0,255,136,0.25), inset 0 0 8px rgba(0,255,136,0.04);\\n}\\n.neon-card-loss {\\n  border-color: rgba(255,51,102,0.5) !important;\\n  box-shadow: 0 0 12px rgba(255,51,102,0.25), inset 0 0 8px rgba(255,51,102,0.04);\\n}\\n\\n/* ── Neon glow on active nav ── */\\n.nav-item.active i {\\n  filter: drop-shadow(0 0 6px var(--neon-blue));\\n}\\n\\n.safe-bottom { padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem); }\\n\\n::-webkit-scrollbar { width: 4px; }\\n::-webkit-scrollbar-track { background: transparent; }\\n::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }\\n\"},\"tool_use_id\":\"toolu_01Lf2NN3iE4BcpUeZpctzSKB\"}\n",
+    "toolUseID": "toolu_01Lf2NN3iE4BcpUeZpctzSKB",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e3db4dc3-20d5-4ca3-895b-a44eda608a56",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:25:17.092Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "64052bf8-1336-4d5c-93ef-eb5f88e6ff72",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1071,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\client\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npx vite build 2\u003e\u00261 | tail -10\",\"description\":\"Check build\"},\"tool_response\":{\"stdout\":\"dist/assets/index-PYuLCGqL.js                      340.40 kB │ gzip:  76.51 kB\\n\\n\\u001b[32m✓ built in 4.02s\\u001b[39m\\n\\nPWA v1.3.0\\nmode      generateSW\\nprecache  43 entries (1209.21 KiB)\\nfiles generated\\n  dist/sw.js\\n  dist/workbox-e4022e15.js\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01Ngxdsks8LPJZep3ZLu85QK\",\"duration_ms\":29416}\n",
+    "toolUseID": "toolu_01Ngxdsks8LPJZep3ZLu85QK",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a156ff0a-11eb-4240-a015-0b1d4543c849",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:10:30.422Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "e1bdab79-5e38-4f9f-a82d-a32988481b12",
+  "version": "2.1.160"
+}

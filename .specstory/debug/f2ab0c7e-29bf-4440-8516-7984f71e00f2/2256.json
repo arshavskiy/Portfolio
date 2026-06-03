@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 825,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },         // buy or sell fee\\n    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)\\n    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)\\n    netProceeds: { type: Number },                   // sell only: total - fee - tax\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\"},\"tool_use_id\":\"toolu_011KeQZpPcpeP9N7qDsbu53a\"}\n",
+    "toolUseID": "toolu_011KeQZpPcpeP9N7qDsbu53a",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8781cab6-09b0-4d29-aaf4-30a5e0df1419",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:05:06.860Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7f4b69ff-7758-4ced-87b9-fcd8fb4d53f6",
+  "version": "2.1.160"
+}

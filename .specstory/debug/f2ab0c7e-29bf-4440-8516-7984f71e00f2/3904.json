@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1398,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\client\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"git add -A \u0026\u0026 git commit -m \\\"Fix v-model syntax in EditTransactionModal\\\"\",\"description\":\"Commit build fix\"},\"tool_use_id\":\"toolu_01CiT9ooKHA446jbYWzcdy1H\"}\n",
+    "toolUseID": "toolu_01CiT9ooKHA446jbYWzcdy1H",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "24ce0538-05c3-427e-a1d3-ed501d7f8588",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T06:00:57.308Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8440daba-0cae-4cf1-882d-9f4f4d962206",
+  "version": "2.1.160"
+}

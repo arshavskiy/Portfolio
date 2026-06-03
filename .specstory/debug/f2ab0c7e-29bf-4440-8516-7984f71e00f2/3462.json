@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 589,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\WatchlistView.vue\",\"old_string\":\".watch-list { display: flex; flex-direction: column; }\\n.watch-item { display: flex; align-items: center; padding: 0.85rem 0; border-bottom: 1px solid var(--border); gap: 0.5rem; }\",\"new_string\":\".watch-list { display: flex; flex-direction: column; gap: 0.5rem; }\\n.watch-item {\\n  display: flex; align-items: center; padding: 0.85rem 1rem;\\n  background: var(--bg-card); border: 1px solid var(--border);\\n  border-radius: 12px; gap: 0.5rem; transition: box-shadow 0.2s;\\n}\",\"replace_all\":false},\"tool_use_id\":\"toolu_01BMRyEhFbWehzxCWEkmoXwU\"}\n",
+    "toolUseID": "toolu_01BMRyEhFbWehzxCWEkmoXwU",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "79ba22b4-2edd-4316-9151-ada1fca0693b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:27:01.571Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "2dc821bb-e0ba-4633-8c87-5472685e71e3",
+  "version": "2.1.160"
+}

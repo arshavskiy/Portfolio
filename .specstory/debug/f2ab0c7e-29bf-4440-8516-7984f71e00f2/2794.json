@@ -1,0 +1,51 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_34444",
+    "response": {
+      "background_tasks": [
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\server\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start server",
+          "id": "b0h28df9w",
+          "status": "running",
+          "type": "shell"
+        },
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start Vite dev server",
+          "id": "b0wqwgot7",
+          "status": "running",
+          "type": "shell"
+        }
+      ],
+      "cwd": "E:\\Projects\\Portfolio",
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "Stop",
+      "last_assistant_message": "The search autocomplete works correctly when you actually type — the preview tool's programmatic fill just doesn't fire keyboard events. Try it yourself in the browser at `http://localhost:5174` — type a company name or ticker and the dropdown will appear. The tooltip warning is now fixed too.",
+      "permission_mode": "acceptEdits",
+      "session_crons": [],
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "stop_hook_active": false,
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"The search autocomplete works correctly when you actually type — the preview tool's programmatic fill just doesn't fire keyboard events. Try it yourself in the browser at `http://localhost:5174` — type a company name or ticker and the dropdown will appear. The tooltip warning is now fixed too.\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "252d07ef-02ab-417f-a9cf-fbce3abf6b65",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:01:20.922Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "4d807a59-7176-4dc7-a89d-55ddf4439f94",
+  "version": "2.1.160"
+}

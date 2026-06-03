@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 878,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\index.js\",\"old_string\":\"const authRoutes = require('./routes/auth')\\nconst portfolioRoutes = require('./routes/portfolio')\\nconst stockRoutes = require('./routes/stocks')\\nconst watchlistRoutes = require('./routes/watchlist')\",\"new_string\":\"const authRoutes = require('./routes/auth')\\nconst portfolioRoutes = require('./routes/portfolio')\\nconst stockRoutes = require('./routes/stocks')\\nconst watchlistRoutes = require('./routes/watchlist')\\nconst feeProfileRoutes = require('./routes/feeProfiles')\",\"replace_all\":false},\"tool_use_id\":\"toolu_01YQNd2PrMXFLVNHfgK4WC4J\"}\n",
+    "toolUseID": "toolu_01YQNd2PrMXFLVNHfgK4WC4J",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e77fd1f5-a522-402f-9213-8bb25239ed87",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:55:19.385Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "1bac203d-6271-4c74-90d1-2acd9a2d6613",
+  "version": "2.1.160"
+}

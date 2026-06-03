@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1339,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:mcp__Claude_Preview__preview_screenshot",
+    "stderr": "[MCPHealthCheck] No MCP config found for Claude_Preview; skipping preflight probe\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"mcp__Claude_Preview__preview_screenshot\",\"tool_input\":{\"serverId\":\"4d1182ac-c676-4f3d-a42a-4093dfe48da5\"},\"tool_use_id\":\"toolu_01WuMLvtFAgztaNELN7upurq\",\"error\":\"preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.\",\"is_interrupt\":false,\"duration_ms\":30051}\n",
+    "toolUseID": "toolu_01WuMLvtFAgztaNELN7upurq",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "47127651-09dc-4ff0-be1b-b3a9b78759e0",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:03:12.265Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "07d0b4f9-a647-4668-be5a-4e9a2ff4dcab",
+  "version": "2.1.160"
+}

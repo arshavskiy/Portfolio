@@ -1,0 +1,51 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_22156",
+    "response": {
+      "background_tasks": [
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\server\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start server",
+          "id": "b0h28df9w",
+          "status": "running",
+          "type": "shell"
+        },
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start Vite dev server",
+          "id": "b0wqwgot7",
+          "status": "running",
+          "type": "shell"
+        }
+      ],
+      "cwd": "E:\\Projects\\Portfolio",
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "Stop",
+      "last_assistant_message": "One combined card now shows everything in local currencies:\n\n- **Total Portfolio** — **$4,456.40 + ₪17,072.40**\n- P\u0026L — **+$4,016.40 (+912.82%) · -₪3,345.60 (-16.39%)**\n- **Today** — **-$30.80 · -₪270.60**\n\nEach currency stays in its own denomination, no conversion needed.",
+      "permission_mode": "acceptEdits",
+      "session_crons": [],
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "stop_hook_active": false,
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"One combined card now shows everything in local currencies:\\n\\n- **Total Portfolio** — **$4,456.40 + ₪17,072.40**\\n- P\u0026L — **+$4,016.40 (+912.82%) · -₪3,345.60 (-16.39%)**\\n- **Today** — **-$30.80 · -₪270.60**\\n\\nEach currency stays in its own denomination, no conversion needed.\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "775a4150-1d8d-48f7-b0eb-15bcc9d95a79",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:13:37.239Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "77d217de-33c4-4c17-8d81-06a0f5f0d502",
+  "version": "2.1.160"
+}

@@ -1,0 +1,22 @@
+{
+  "attachment": {
+    "content": [
+      "A preview server is running. Before ending your turn, if this change is observable in the browser preview (per \u003cwhen_to_verify\u003e), follow \u003cverification_workflow\u003e."
+    ],
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "toolUseID": "toolu_01GQYu97CtgALwvnwYd8GLm5",
+    "type": "hook_additional_context"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "1c4db631-70cf-48e1-9f81-8090ee18f54a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:14:29.144Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a7c085d7-ae5e-48f5-a01f-528256a7624f",
+  "version": "2.1.160"
+}

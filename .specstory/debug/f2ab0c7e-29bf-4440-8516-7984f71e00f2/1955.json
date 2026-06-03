@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 189,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"old_string\":\"    date: { type: Date, default: Date.now },\\n    notes: { type: String },\",\"new_string\":\"    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\\n    totalWithFees: { type: Number },            // total + feeAmount (real cost)\",\"replace_all\":false},\"tool_use_id\":\"toolu_01XtvTLriZWrMZ16oGgeeDck\"}\n",
+    "toolUseID": "toolu_01XtvTLriZWrMZ16oGgeeDck",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "1eee13e1-935d-48f9-a737-2f56fe41ede1",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:54:54.355Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a0e38050-3183-48e1-8bb4-b8949923011b",
+  "version": "2.1.160"
+}

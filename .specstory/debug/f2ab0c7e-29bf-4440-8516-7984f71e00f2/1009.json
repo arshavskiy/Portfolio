@@ -1,8 +1,8 @@
 {
   "attachment": {
-    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:format\" \"scripts/hooks/post-edit-format.js\" \"strict\"",
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:typecheck\" \"scripts/hooks/post-edit-typecheck.js\" \"strict\"",
     "content": "",
-    "durationMs": 541,
+    "durationMs": 540,
     "exitCode": 0,
     "hookEvent": "PostToolUse",
     "hookName": "PostToolUse:Edit",
@@ -15,11 +15,11 @@
   "entrypoint": "claude-desktop",
   "gitBranch": "HEAD",
   "isSidechain": false,
-  "parentUuid": "b66f37ad-ad24-4ea6-887f-9259db72a80c",
+  "parentUuid": "dccf75d0-1a31-4f7c-bf0b-e4e58a2d9cc3",
   "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
   "timestamp": "2026-06-02T21:58:56.727Z",
   "type": "attachment",
   "userType": "external",
-  "uuid": "79881729-8cbe-4e2d-affe-13200a1685de",
+  "uuid": "b868935e-00e7-451e-9dc2-26783a1b2c5d",
   "version": "2.1.160"
 }

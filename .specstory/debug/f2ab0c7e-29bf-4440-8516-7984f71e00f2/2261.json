@@ -1,0 +1,68 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "processId": "async_hook_21056",
+    "response": {
+      "cwd": "E:\\Projects\\Portfolio",
+      "duration_ms": 82,
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "PostToolUse",
+      "permission_mode": "acceptEdits",
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "tool_input": {
+        "content": "const mongoose = require('mongoose')\n\nconst transactionSchema = new mongoose.Schema(\n  {\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\n    ticker: { type: String, required: true, uppercase: true },\n    type: { type: String, enum: ['buy', 'sell'], required: true },\n    shares: { type: Number, required: true, min: 0 },\n    price: { type: Number, required: true, min: 0 },\n    total: { type: Number, required: true },\n    date: { type: Date, default: Date.now },\n    notes: { type: String },\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\n    feeAmount: { type: Number, default: 0 },         // buy or sell fee\n    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)\n    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)\n    netProceeds: { type: Number },                   // sell only: total - fee - tax\n  },\n  { timestamps: true }\n)\n\ntransactionSchema.index({ user: 1, date: -1 })\n\nmodule.exports = mongoose.model('Transaction', transactionSchema)\n",
+        "file_path": "E:\\Projects\\Portfolio\\server\\models\\Transaction.js"
+      },
+      "tool_name": "Write",
+      "tool_response": {
+        "content": "const mongoose = require('mongoose')\n\nconst transactionSchema = new mongoose.Schema(\n  {\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\n    ticker: { type: String, required: true, uppercase: true },\n    type: { type: String, enum: ['buy', 'sell'], required: true },\n    shares: { type: Number, required: true, min: 0 },\n    price: { type: Number, required: true, min: 0 },\n    total: { type: Number, required: true },\n    date: { type: Date, default: Date.now },\n    notes: { type: String },\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\n    feeAmount: { type: Number, default: 0 },         // buy or sell fee\n    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)\n    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)\n    netProceeds: { type: Number },                   // sell only: total - fee - tax\n  },\n  { timestamps: true }\n)\n\ntransactionSchema.index({ user: 1, date: -1 })\n\nmodule.exports = mongoose.model('Transaction', transactionSchema)\n",
+        "filePath": "E:\\Projects\\Portfolio\\server\\models\\Transaction.js",
+        "originalFile": "const mongoose = require('mongoose')\n\nconst transactionSchema = new mongoose.Schema(\n  {\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\n    ticker: { type: String, required: true, uppercase: true },\n    type: { type: String, enum: ['buy', 'sell'], required: true },\n    shares: { type: Number, required: true, min: 0 },\n    price: { type: Number, required: true, min: 0 },\n    total: { type: Number, required: true },\n    date: { type: Date, default: Date.now },\n    notes: { type: String },\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\n    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\n    totalWithFees: { type: Number },            // total + feeAmount (real cost)\n  },\n  { timestamps: true }\n)\n\ntransactionSchema.index({ user: 1, date: -1 })\n\nmodule.exports = mongoose.model('Transaction', transactionSchema)\n",
+        "structuredPatch": [
+          {
+            "lines": [
+              "     date: { type: Date, default: Date.now },",
+              "     notes: { type: String },",
+              "     feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },",
+              "-    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot",
+              "-    totalWithFees: { type: Number },            // total + feeAmount (real cost)",
+              "+    feeAmount: { type: Number, default: 0 },         // buy or sell fee",
+              "+    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)",
+              "+    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)",
+              "+    netProceeds: { type: Number },                   // sell only: total - fee - tax",
+              "   },",
+              "   { timestamps: true }",
+              " )"
+            ],
+            "newLines": 10,
+            "newStart": 11,
+            "oldLines": 8,
+            "oldStart": 11
+          }
+        ],
+        "type": "update",
+        "userModified": false
+      },
+      "tool_use_id": "toolu_011KeQZpPcpeP9N7qDsbu53a",
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },         // buy or sell fee\\n    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)\\n    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)\\n    netProceeds: { type: Number },                   // sell only: total - fee - tax\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\"},\"tool_response\":{\"type\":\"update\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\models\\\\Transaction.js\",\"content\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },         // buy or sell fee\\n    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)\\n    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)\\n    netProceeds: { type: Number },                   // sell only: total - fee - tax\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\",\"structuredPatch\":[{\"oldStart\":11,\"oldLines\":8,\"newStart\":11,\"newLines\":10,\"lines\":[\"     date: { type: Date, default: Date.now },\",\"     notes: { type: String },\",\"     feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\",\"-    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\",\"-    totalWithFees: { type: Number },            // total + feeAmount (real cost)\",\"+    feeAmount: { type: Number, default: 0 },         // buy or sell fee\",\"+    taxAmount: { type: Number, default: 0 },         // capital gains tax (sell only)\",\"+    totalWithFees: { type: Number },                 // total ± feeAmount (real cost/proceeds)\",\"+    netProceeds: { type: Number },                   // sell only: total - fee - tax\",\"   },\",\"   { timestamps: true }\",\" )\"]}],\"originalFile\":\"const mongoose = require('mongoose')\\n\\nconst transactionSchema = new mongoose.Schema(\\n  {\\n    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },\\n    ticker: { type: String, required: true, uppercase: true },\\n    type: { type: String, enum: ['buy', 'sell'], required: true },\\n    shares: { type: Number, required: true, min: 0 },\\n    price: { type: Number, required: true, min: 0 },\\n    total: { type: Number, required: true },\\n    date: { type: Date, default: Date.now },\\n    notes: { type: String },\\n    feeProfile: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeProfile', default: null },\\n    feeAmount: { type: Number, default: 0 },   // actual fee charged for this lot\\n    totalWithFees: { type: Number },            // total + feeAmount (real cost)\\n  },\\n  { timestamps: true }\\n)\\n\\ntransactionSchema.index({ user: 1, date: -1 })\\n\\nmodule.exports = mongoose.model('Transaction', transactionSchema)\\n\",\"userModified\":false},\"tool_use_id\":\"toolu_011KeQZpPcpeP9N7qDsbu53a\",\"duration_ms\":82}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "64b660b6-39ca-4b61-ad7a-e15c9e2a22da",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:05:08.139Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "fd0f75cd-d71d-4849-bc1f-964c935e6ab1",
+  "version": "2.1.160"
+}

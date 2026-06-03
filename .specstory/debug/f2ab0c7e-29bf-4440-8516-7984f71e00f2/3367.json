@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 239,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:TaskCreate",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"TaskCreate\",\"tool_input\":{\"subject\":\"Apply neon glow style across all views + gradient title font\",\"description\":\"Holdings neon cards, Watchlist neon, Stock Detail neon price, bottom nav glow, gradient Portfolio title\",\"activeForm\":\"Applying neon style system-wide\"},\"tool_use_id\":\"toolu_01UiFzUdmAYG8Py3qqmUXNnv\"}\n",
+    "toolUseID": "toolu_01UiFzUdmAYG8Py3qqmUXNnv",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "97f9ebc9-ee50-4979-aaf3-ff141fd1776e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:24:40.912Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "6ef1b599-d076-47a9-8d04-cff62574e5bc",
+  "version": "2.1.160"
+}

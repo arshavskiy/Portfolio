@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1617,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\services\\\\stockService.js\",\"old_string\":\"function invalidateCache(ticker) {\\n  quoteCache.delete(ticker.toUpperCase())\\n}\\n\\nmodule.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache }\",\"new_string\":\"function invalidateCache(ticker) {\\n  quoteCache.delete(ticker.toUpperCase())\\n}\\n\\nlet fxCache = { rate: null, ts: 0 }\\nconst FX_TTL = 60 * 60 * 1000 // 1 hour\\n\\nasync function getIlsToUsd() {\\n  if (fxCache.rate \u0026\u0026 Date.now() - fxCache.ts \u003c FX_TTL) return fxCache.rate\\n  try {\\n    const result = await yahooFinance.quote('ILS=X')\\n    const rate = result.regularMarketPrice // ILS per 1 USD → invert for ILS→USD\\n    fxCache = { rate: 1 / rate, ts: Date.now() }\\n    return fxCache.rate\\n  } catch {\\n    return fxCache.rate || 0.27 // fallback ~0.27 USD per ILS\\n  }\\n}\\n\\nmodule.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Tune5LArSiMq88FyqFEokX\"}\n",
+    "toolUseID": "toolu_01Tune5LArSiMq88FyqFEokX",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b3055c16-cf8c-4d0a-bf2d-a7f19edbd759",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:02:20.607Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7c67ba45-979b-4d61-8c77-52fdfdaccfa5",
+  "version": "2.1.160"
+}

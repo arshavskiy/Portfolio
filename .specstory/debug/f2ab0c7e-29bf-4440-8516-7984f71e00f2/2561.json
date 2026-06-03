@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1534,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\PositionDetailView.vue\",\"old_string\":\"const ticker = route.params.ticker.toUpperCase()\\nconst transactions = ref([])\\nconst currentPrice = ref(null)\\nconst loading = ref(false)\\nconst showModal = ref(false)\",\"new_string\":\"const ticker = route.params.ticker.toUpperCase()\\nconst transactions = ref([])\\nconst currentPrice = ref(null)\\nconst loading = ref(false)\\nconst showModal = ref(false)\\nconst showSimulator = ref(false)\\nconst simPrice = ref(null)\\nconst simFeeProfileId = ref(null)\\nconst feeStore = useFeeProfileStore()\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Tjf6fUJS8LAHzVeAk1kDKo\"}\n",
+    "toolUseID": "toolu_01Tjf6fUJS8LAHzVeAk1kDKo",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "4586dffa-0d48-4c5f-a372-f3649ca32e89",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:37:45.838Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "00d9ba9d-5a45-4e0e-b1f6-d60c7d3ec312",
+  "version": "2.1.160"
+}

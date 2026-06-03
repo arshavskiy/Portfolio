@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 317,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\".summary-value { font-size: 2rem; font-weight: 700; }\",\"new_string\":\".summary-value { font-size: 2rem; font-weight: 700; }\\n.combined-value { font-size: 1.4rem; display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 0; }\\n.combined-pnl { display: flex; flex-wrap: wrap; justify-content: center; gap: 0; }\\n.plus { color: var(--text-secondary); font-weight: 400; font-size: 1.2rem; margin: 0 4px; }\\n.combined-day { display: flex; flex-wrap: wrap; gap: 0; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_01W1VDmAcvPQYNDfk64sU18m\"}\n",
+    "toolUseID": "toolu_01W1VDmAcvPQYNDfk64sU18m",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "5955ef74-8cb7-47e9-9972-02ea3355d89a",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:11:18.329Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "cd931502-4e21-4055-bfe8-49d33ced6951",
+  "version": "2.1.160"
+}

@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 636,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:Read",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"Read\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\"},\"tool_use_id\":\"toolu_01LzDfQvLAr1Pbr9KFEE1NpG\",\"error\":\"EISDIR: illegal operation on a directory, read 'E:\\\\Projects\\\\Portfolio\\\\client\\\\src'\",\"is_interrupt\":false,\"duration_ms\":9}\n",
+    "toolUseID": "toolu_01LzDfQvLAr1Pbr9KFEE1NpG",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "2bf33d65-838c-4ce6-93f6-9d602e2f3ccc",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T06:14:09.067Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c8e9a31e-0c24-4dcf-9df6-4cf812ead6c3",
+  "version": "2.1.160"
+}

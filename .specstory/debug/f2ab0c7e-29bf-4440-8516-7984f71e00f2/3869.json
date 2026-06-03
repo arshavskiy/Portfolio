@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\"",
+    "content": "",
+    "durationMs": 527,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"cd /mnt/e/Projects/Portfolio/client \u0026\u0026 npx vercel --prod --yes 2\u003e\u00261 | head -50\",\"timeout\":120000,\"description\":\"Deploy frontend to Vercel\"},\"tool_use_id\":\"toolu_01QAn83YMYuWKLvrkzX1EPt6\"}\n",
+    "toolUseID": "toolu_01QAn83YMYuWKLvrkzX1EPt6",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b9a7ef02-71a5-49c0-a36f-3c287f38ba97",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:58:00.868Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "bbafc256-3e97-45db-a1fd-3ebdc5b6ad01",
+  "version": "2.1.160"
+}

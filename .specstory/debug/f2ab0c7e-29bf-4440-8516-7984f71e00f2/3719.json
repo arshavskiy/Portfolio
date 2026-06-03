@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1819,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\HoldingsView.vue\",\"old_string\":\".positions-list { display: flex; flex-direction: column; gap: 0.75rem; }\\n.position-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }\\n.pos-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; cursor: pointer; }\",\"new_string\":\".positions-list { display: flex; flex-direction: column; gap: 0.75rem; }\\n.position-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }\\n.pos-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; cursor: pointer; }\\n.pos-spark { margin: 0 -1px; width: calc(100% + 2px); height: 50px; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_013SHVJCf9B3TfjDNQ4fSHzD\"}\n",
+    "toolUseID": "toolu_013SHVJCf9B3TfjDNQ4fSHzD",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "380480db-f0b7-4c9e-9ee1-26ddee7b66c1",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:38:48.395Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "03fea11b-6307-4ca6-a7a0-cec4084c594d",
+  "version": "2.1.160"
+}

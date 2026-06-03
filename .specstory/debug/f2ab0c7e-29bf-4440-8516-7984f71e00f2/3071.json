@@ -1,0 +1,19 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": "i want ech card for stock and a total card in local curency only",
+    "role": "user"
+  },
+  "parentUuid": "48fab595-2978-4d2b-bf2d-f840f2b606c4",
+  "permissionMode": "acceptEdits",
+  "promptId": "32535776-ea58-404e-825a-10bf9eb27ffe",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:13:37.239Z",
+  "type": "user",
+  "userType": "external",
+  "uuid": "4a3cbefe-c4fa-4aa6-bb76-81b73dcd4fe8",
+  "version": "2.1.160"
+}

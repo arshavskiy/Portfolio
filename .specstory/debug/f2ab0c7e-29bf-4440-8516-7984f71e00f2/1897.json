@@ -1,0 +1,29 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "error": {
+    "connection": {
+      "code": "ECONNRESET",
+      "isSSLError": false,
+      "message": "The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()"
+    },
+    "formatted": "Unable to connect to API (ECONNRESET)",
+    "isNetworkDown": false,
+    "message": "Connection error.",
+    "rateLimits": null
+  },
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "level": "error",
+  "maxRetries": 10,
+  "parentUuid": "44987edb-b850-43e0-95d0-6cbc6e3a388e",
+  "retryAttempt": 1,
+  "retryInMs": 578.8030263746256,
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "subtype": "api_error",
+  "timestamp": "2026-06-03T03:33:56.036Z",
+  "type": "system",
+  "userType": "external",
+  "uuid": "d4956f52-a074-479f-ada8-f4bf1c1e833f",
+  "version": "2.1.160"
+}

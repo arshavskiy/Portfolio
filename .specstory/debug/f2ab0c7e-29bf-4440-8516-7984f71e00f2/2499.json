@@ -1,0 +1,26 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "error": {
+    "connection": null,
+    "formatted": "502 Bad Gateway",
+    "isNetworkDown": false,
+    "message": "502 \u003chtml\u003e\r\n\u003chead\u003e\u003ctitle\u003e502 Bad Gateway\u003c/title\u003e\u003c/head\u003e\r\n\u003cbody\u003e\r\n\u003ccenter\u003e\u003ch1\u003e502 Bad Gateway\u003c/h1\u003e\u003c/center\u003e\r\n\u003chr\u003e\u003ccenter\u003ecloudflare\u003c/center\u003e\r\n\u003c/body\u003e\r\n\u003c/html\u003e\r\n",
+    "rateLimits": null,
+    "status": 502
+  },
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "level": "error",
+  "maxRetries": 10,
+  "parentUuid": "f5da85b2-8e9d-4d9a-9018-c921d4ea5641",
+  "retryAttempt": 3,
+  "retryInMs": 2254.79427728524,
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "subtype": "api_error",
+  "timestamp": "2026-06-03T04:32:18.991Z",
+  "type": "system",
+  "userType": "external",
+  "uuid": "f6a91d49-d53e-4b9f-9c9c-d989b2d25970",
+  "version": "2.1.160"
+}

@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1192,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\index.js\",\"old_string\":\"const authRoutes = require('./routes/auth')\\nconst portfolioRoutes = require('./routes/portfolio')\\nconst stockRoutes = require('./routes/stocks')\\nconst watchlistRoutes = require('./routes/watchlist')\",\"new_string\":\"const authRoutes = require('./routes/auth')\\nconst portfolioRoutes = require('./routes/portfolio')\\nconst stockRoutes = require('./routes/stocks')\\nconst watchlistRoutes = require('./routes/watchlist')\\nconst feeProfileRoutes = require('./routes/feeProfiles')\",\"replace_all\":false},\"tool_use_id\":\"toolu_01YQNd2PrMXFLVNHfgK4WC4J\"}\n",
+    "toolUseID": "toolu_01YQNd2PrMXFLVNHfgK4WC4J",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "cca2ab81-b563-4c86-a8e7-91cc648986a1",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:55:19.698Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "31cb1709-4a29-4789-b763-934160affa75",
+  "version": "2.1.160"
+}

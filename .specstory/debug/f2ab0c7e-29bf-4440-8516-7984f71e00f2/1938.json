@@ -1,0 +1,51 @@
+{
+  "attachment": {
+    "exitCode": 0,
+    "hookEvent": "Stop",
+    "hookName": "Stop",
+    "processId": "async_hook_8092",
+    "response": {
+      "background_tasks": [
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\server\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start server",
+          "id": "b0h28df9w",
+          "status": "running",
+          "type": "shell"
+        },
+        {
+          "command": "cd \"E:\\Projects\\Portfolio\\client\" \u0026\u0026 npm run dev 2\u003e\u00261",
+          "description": "Start Vite dev server",
+          "id": "b0wqwgot7",
+          "status": "running",
+          "type": "shell"
+        }
+      ],
+      "cwd": "E:\\Projects\\Portfolio",
+      "effort": {
+        "level": "low"
+      },
+      "hook_event_name": "Stop",
+      "last_assistant_message": "Working exactly as you described. The view now shows:\n\n- **Overall P\u0026L** — -₪191,517 / **-78.97%** based on weighted avg ₪329.97 vs current ₪69.40\n- **Formula shown** — Avg ₪329.97 → Current ₪69.40 so you see exactly how it's calculated\n- **Stats** — Shares, Avg Cost, Total Cost, Current Value\n- **Each lot** — shows the running average after that purchase\n\nThe -78.97% is correct given your data has one lot at ₪830 (the old wrong entry before the agorot fix) dragging the average up. Once you delete that old lot and re-enter correctly, the number will be accurate.",
+      "permission_mode": "acceptEdits",
+      "session_crons": [],
+      "session_id": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+      "stop_hook_active": false,
+      "transcript_path": "C:\\Users\\User\\.claude\\projects\\E--Projects-Portfolio\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl"
+    },
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"Stop\",\"stop_hook_active\":false,\"last_assistant_message\":\"Working exactly as you described. The view now shows:\\n\\n- **Overall P\u0026L** — -₪191,517 / **-78.97%** based on weighted avg ₪329.97 vs current ₪69.40\\n- **Formula shown** — Avg ₪329.97 → Current ₪69.40 so you see exactly how it's calculated\\n- **Stats** — Shares, Avg Cost, Total Cost, Current Value\\n- **Each lot** — shows the running average after that purchase\\n\\nThe -78.97% is correct given your data has one lot at ₪830 (the old wrong entry before the agorot fix) dragging the average up. Once you delete that old lot and re-enter correctly, the number will be accurate.\",\"background_tasks\":[{\"id\":\"b0h28df9w\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"},{\"id\":\"b0wqwgot7\",\"type\":\"shell\",\"status\":\"running\",\"description\":\"Start Vite dev server\",\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\client\\\" \u0026\u0026 npm run dev 2\u003e\u00261\"}],\"session_crons\":[]}\n",
+    "type": "async_hook_response"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "0be54136-1d22-4e72-b0ba-ecd22289388b",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:54:23.734Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "91530a7b-caf5-41b6-b924-937b0730d216",
+  "version": "2.1.160"
+}

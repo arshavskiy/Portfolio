@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 914,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"      \u003c!-- Total card per currency --\u003e\\n      \u003cdiv\\n        v-for=\\\"t in portfolio.totals\\\"\\n        :key=\\\"`total-${t.currency}`\\\"\\n        class=\\\"total-card\\\"\\n      \u003e\\n        \u003cdiv class=\\\"total-row\\\"\u003e\\n          \u003cspan class=\\\"total-label\\\"\u003eTotal · {{ t.currency }}\u003c/span\u003e\\n          \u003cspan class=\\\"total-value\\\"\u003e{{ useCurrency(t.value, t.currency) }}\u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"total-row\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\" style=\\\"font-size:0.78rem\\\"\u003eP\u0026L\u003c/span\u003e\\n          \u003cspan :class=\\\"gainLossClass(t.pnl)\\\" class=\\\"total-pnl\\\"\u003e\\n            {{ t.pnl \u003e= 0 ? '+' : '' }}{{ useCurrency(t.pnl, t.currency) }}\\n            ({{ usePercent(t.pnlPercent) }})\\n          \u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"total-row\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\" style=\\\"font-size:0.78rem\\\"\u003eToday\u003c/span\u003e\\n          \u003cspan :class=\\\"gainLossClass(t.dayPnl)\\\" class=\\\"total-day\\\"\u003e\\n            {{ t.dayPnl \u003e= 0 ? '+' : '' }}{{ useCurrency(t.dayPnl, t.currency) }}\\n          \u003c/span\u003e\\n        \u003c/div\u003e\\n      \u003c/div\u003e\",\"new_string\":\"      \u003c!-- Total card per currency --\u003e\\n      \u003cdiv\\n        v-for=\\\"t in portfolio.totals\\\"\\n        :key=\\\"`total-${t.currency}`\\\"\\n        class=\\\"total-card\\\"\\n      \u003e\\n        \u003cdiv class=\\\"total-row\\\"\u003e\\n          \u003cspan class=\\\"total-label\\\"\u003eTotal · {{ t.currency }}\u003c/span\u003e\\n          \u003cdiv class=\\\"total-values\\\"\u003e\\n            \u003cspan class=\\\"total-value\\\"\u003e{{ useCurrency(t.value, t.currency) }}\u003c/span\u003e\\n            \u003cspan class=\\\"total-converted text-muted\\\" v-if=\\\"portfolio.combinedUsd?.ilsToUsd\\\"\u003e\\n              {{ t.currency === 'ILS'\\n                ? useCurrency(t.value * portfolio.combinedUsd.ilsToUsd, 'USD')\\n                : useCurrency(t.value / portfolio.combinedUsd.ilsToUsd, 'ILS') }}\\n            \u003c/span\u003e\\n          \u003c/div\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"total-row\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\" style=\\\"font-size:0.78rem\\\"\u003eP\u0026L\u003c/span\u003e\\n          \u003cspan :class=\\\"gainLossClass(t.pnl)\\\" class=\\\"total-pnl\\\"\u003e\\n            {{ t.pnl \u003e= 0 ? '+' : '' }}{{ useCurrency(t.pnl, t.currency) }}\\n            ({{ usePercent(t.pnlPercent) }})\\n          \u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"total-row\\\"\u003e\\n          \u003cspan class=\\\"text-muted\\\" style=\\\"font-size:0.78rem\\\"\u003eToday\u003c/span\u003e\\n          \u003cspan :class=\\\"gainLossClass(t.dayPnl)\\\" class=\\\"total-day\\\"\u003e\\n            {{ t.dayPnl \u003e= 0 ? '+' : '' }}{{ useCurrency(t.dayPnl, t.currency) }}\\n          \u003c/span\u003e\\n        \u003c/div\u003e\\n        \u003cdiv class=\\\"fx-note text-muted\\\" v-if=\\\"portfolio.combinedUsd?.ilsToUsd\\\"\u003e\\n          ₪1 = ${{ portfolio.combinedUsd.ilsToUsd.toFixed(4) }}\\n        \u003c/div\u003e\\n      \u003c/div\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_01CXNF754Mp1rv1kAmijTamy\"}\n",
+    "toolUseID": "toolu_01CXNF754Mp1rv1kAmijTamy",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "fbbde28c-f52c-43d7-8316-9dbb5c7d93dd",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:15:45.241Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "f355f6dc-70d9-4e6d-b768-16871982cd98",
+  "version": "2.1.160"
+}

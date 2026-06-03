@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:config-protection\" \"scripts/hooks/config-protection.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 879,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "[Hook] run() error for pre:config-protection: The \"chunk\" argument must be of type string or an instance of Buffer, TypedArray, or DataView. Received an instance of Object\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\PositionDetailView.vue\",\"old_string\":\".lot-avg { font-size: 0.75rem; }\\n.lot-shares { font-size: 0.75rem; }\",\"new_string\":\".lot-avg { font-size: 0.75rem; }\\n.lot-shares { font-size: 0.75rem; }\\n.lot-edit-btn { margin-top: 2px; opacity: 0.6; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_015dVQi2sVb1oyACNfGgtLfz\"}\n",
+    "toolUseID": "toolu_015dVQi2sVb1oyACNfGgtLfz",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "23bb4c4b-b466-4bb9-9520-b54797a1253f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:22:06.780Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8b3bbb94-69cb-49bb-bb5b-e7c03ad29b6d",
+  "version": "2.1.160"
+}

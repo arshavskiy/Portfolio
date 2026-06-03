@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 922,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\routes\\\\feeProfiles.js\",\"content\":\"const router = require('express').Router()\\nconst auth = require('../middleware/auth')\\nconst { getProfiles, createProfile, updateProfile, deleteProfile } = require('../controllers/feeProfileController')\\n\\nrouter.use(auth)\\nrouter.get('/', getProfiles)\\nrouter.post('/', createProfile)\\nrouter.put('/:id', updateProfile)\\nrouter.delete('/:id', deleteProfile)\\n\\nmodule.exports = router\\n\"},\"tool_use_id\":\"toolu_01UJKkPofsMkM7KQGoLoDCVX\"}\n",
+    "toolUseID": "toolu_01UJKkPofsMkM7KQGoLoDCVX",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "f2526ce1-040f-4b3b-83e2-bab13b1f466c",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:55:10.122Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "7190b70f-c931-47c5-b038-e3aa78516581",
+  "version": "2.1.160"
+}

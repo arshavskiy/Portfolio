@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:bash:pr-created\" \"scripts/hooks/post-bash-pr-created.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1767,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"gh auth status 2\u003e\u00261 | head -5\",\"description\":\"Check GitHub authentication status\"},\"tool_response\":{\"stdout\":\"github.com\\n  ✓ Logged in to github.com account arshavskiy (keyring)\\n  - Active account: true\\n  - Git operations protocol: https\\n  - Token: gho_************************************\",\"stderr\":\"\",\"interrupted\":false,\"isImage\":false,\"noOutputExpected\":false},\"tool_use_id\":\"toolu_01FgMt86wHwWuDeD918Q8abr\",\"duration_ms\":5299}\n",
+    "toolUseID": "toolu_01FgMt86wHwWuDeD918Q8abr",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a96d6bc6-8e01-4488-bda5-a480e0363844",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:53:45.062Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "5b885a7d-cab2-4753-b006-4ed7b3513b36",
+  "version": "2.1.160"
+}

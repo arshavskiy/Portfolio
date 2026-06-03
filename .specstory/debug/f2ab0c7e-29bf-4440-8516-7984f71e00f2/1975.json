@@ -1,0 +1,33 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "File created successfully at: E:\\Projects\\Portfolio\\server\\controllers\\feeProfileController.js (file state is current in your context — no need to Read it back)",
+        "tool_use_id": "toolu_01KuNF4fkb4f6KrrEGByjiSu",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "b61aed29-762f-46d4-8169-7bd0f490d788",
+  "promptId": "7b426324-23db-47e2-9860-7a843e41a371",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "b61aed29-762f-46d4-8169-7bd0f490d788",
+  "timestamp": "2026-06-03T03:55:09.147Z",
+  "toolUseResult": {
+    "content": "const FeeProfile = require('../models/FeeProfile')\n\nexports.getProfiles = async (req, res) =\u003e {\n  try {\n    const profiles = await FeeProfile.find({ user: req.user._id }).sort({ isDefault: -1, name: 1 })\n    res.json(profiles)\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.createProfile = async (req, res) =\u003e {\n  try {\n    const { name, type, value, minFee, currency, isDefault } = req.body\n    if (!name || value == null) return res.status(400).json({ message: 'name and value required' })\n\n    if (isDefault) await FeeProfile.updateMany({ user: req.user._id }, { isDefault: false })\n\n    const profile = await FeeProfile.create({\n      user: req.user._id, name, type: type || 'percent', value, minFee: minFee || 0,\n      currency: currency || 'USD', isDefault: !!isDefault,\n    })\n    res.status(201).json(profile)\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.updateProfile = async (req, res) =\u003e {\n  try {\n    const profile = await FeeProfile.findOne({ _id: req.params.id, user: req.user._id })\n    if (!profile) return res.status(404).json({ message: 'Not found' })\n\n    const { name, type, value, minFee, currency, isDefault } = req.body\n    if (isDefault) await FeeProfile.updateMany({ user: req.user._id }, { isDefault: false })\n\n    Object.assign(profile, { name, type, value, minFee, currency, isDefault: !!isDefault })\n    await profile.save()\n    res.json(profile)\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\nexports.deleteProfile = async (req, res) =\u003e {\n  try {\n    const profile = await FeeProfile.findOne({ _id: req.params.id, user: req.user._id })\n    if (!profile) return res.status(404).json({ message: 'Not found' })\n    await profile.deleteOne()\n    res.json({ message: 'Deleted' })\n  } catch (err) {\n    res.status(500).json({ message: err.message })\n  }\n}\n\n// Utility: compute fee amount for a given total\nexports.computeFee = (profile, total) =\u003e {\n  if (!profile) return 0\n  let fee = profile.type === 'percent' ? (total * profile.value) / 100 : profile.value\n  if (profile.minFee \u0026\u0026 fee \u003c profile.minFee) fee = profile.minFee\n  return Math.round(fee * 100) / 100\n}\n",
+    "filePath": "E:\\Projects\\Portfolio\\server\\controllers\\feeProfileController.js",
+    "originalFile": null,
+    "structuredPatch": [],
+    "type": "create",
+    "userModified": false
+  },
+  "type": "user",
+  "userType": "external",
+  "uuid": "a970b815-30e0-4ca5-972a-c840d9848f3e",
+  "version": "2.1.160"
+}

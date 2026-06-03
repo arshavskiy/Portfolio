@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 743,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\HoldingsView.vue\",\"old_string\":\"import { usePortfolioStore } from '@/stores/portfolio'\\nimport { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\\nimport Button from 'primevue/button'\\nimport AddTransactionModal from '@/components/ui/AddTransactionModal.vue'\",\"new_string\":\"import { usePortfolioStore } from '@/stores/portfolio'\\nimport { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'\\nimport Button from 'primevue/button'\\nimport SparklineChart from '@/components/charts/SparklineChart.vue'\\nimport AddTransactionModal from '@/components/ui/AddTransactionModal.vue'\\nimport api from '@/composables/useApi'\",\"replace_all\":false},\"tool_use_id\":\"toolu_01XL94vnyfxqSBCqNSxP2MdT\"}\n",
+    "toolUseID": "toolu_01XL94vnyfxqSBCqNSxP2MdT",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "76d0ad99-54d9-4e99-8936-f2bf36233071",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T05:38:14.188Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "357e673f-1adb-403d-800e-b37ad0c86962",
+  "version": "2.1.160"
+}

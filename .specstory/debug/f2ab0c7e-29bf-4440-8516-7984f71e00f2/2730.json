@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 2002,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\ui\\\\AddTransactionModal.vue\",\"old_string\":\"        \u003cAutoComplete\\n          v-model=\\\"ticker\\\"\\n          :suggestions=\\\"suggestions\\\"\\n          @complete=\\\"searchTicker\\\"\\n          @option-select=\\\"(e) =\u003e { ticker = e.value.split(' — ')[0].trim() }\\\"\\n          placeholder=\\\"AAPL, TSLA, POLI.TA...\\\"\\n          fluid\\n        /\u003e\",\"new_string\":\"        \u003cAutoComplete\\n          v-model=\\\"ticker\\\"\\n          :suggestions=\\\"suggestions\\\"\\n          @complete=\\\"searchTicker\\\"\\n          @item-select=\\\"(e) =\u003e { ticker = e.value.split(' — ')[0].trim() }\\\"\\n          placeholder=\\\"AAPL, TSLA, POLI.TA...\\\"\\n          :delay=\\\"300\\\"\\n          fluid\\n        /\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_0178kpx3ypSDMd7KxMnkhD8i\"}\n",
+    "toolUseID": "toolu_0178kpx3ypSDMd7KxMnkhD8i",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "594b40bd-5a7f-4d0d-a919-fd264cc95f30",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:43:37.379Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "b3734ba8-2778-462d-9c3b-b755b541c292",
+  "version": "2.1.160"
+}

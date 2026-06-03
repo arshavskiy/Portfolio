@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1023,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\PositionDetailView.vue\",\"old_string\":\".lot-avg { font-size: 0.75rem; }\\n.lot-shares { font-size: 0.75rem; }\",\"new_string\":\".lot-avg { font-size: 0.75rem; }\\n.lot-shares { font-size: 0.75rem; }\\n.lot-edit-btn { margin-top: 2px; opacity: 0.6; }\",\"replace_all\":false},\"tool_use_id\":\"toolu_015dVQi2sVb1oyACNfGgtLfz\"}\n",
+    "toolUseID": "toolu_015dVQi2sVb1oyACNfGgtLfz",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "8b3bbb94-69cb-49bb-bb5b-e7c03ad29b6d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:22:06.925Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "c9ab1594-768b-4107-b9bd-675811b77bc8",
+  "version": "2.1.160"
+}

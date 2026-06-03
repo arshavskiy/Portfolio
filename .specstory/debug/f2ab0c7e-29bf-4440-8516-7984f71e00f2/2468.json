@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 511,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:Bash",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"Bash\",\"tool_input\":{\"command\":\"curl -s -X POST http://localhost:3000/api/auth/login -H \\\"Content-Type: application/json\\\" -d \\\"{\\\\\\\"email\\\\\\\":\\\\\\\"arshavsky.pasha@gmail.com\\\\\\\",\\\\\\\"password\\\\\\\":\\\\\\\"qawsed123!\\\\\\\"}\\\" 2\u003e\u00261\",\"description\":\"Login to get JWT token\"},\"tool_use_id\":\"toolu_01PTLNAQLKzYTPcbtcVtGkzd\",\"error\":\"Exit code 56\",\"is_interrupt\":false,\"duration_ms\":918}\n",
+    "toolUseID": "toolu_01PTLNAQLKzYTPcbtcVtGkzd",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "da24bb3f-ec42-459d-850a-0f0e7024986d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:27:16.195Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "76bb2f12-efd2-4524-a7e6-ae1d7e638d12",
+  "version": "2.1.160"
+}

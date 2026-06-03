@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 421,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:mcp__Claude_Preview__preview_eval",
+    "stderr": "[MCPHealthCheck] No MCP config found for Claude_Preview; skipping preflight probe\n",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"mcp__Claude_Preview__preview_eval\",\"tool_input\":{\"serverId\":\"4bced04f-5254-4a7e-b852-eea24c9aa81a\",\"script\":\"window.location.href = '/holdings'\"},\"tool_use_id\":\"toolu_01WkeUBXcVcBwLLtYabbTVJV\",\"error\":\"MCP error -32602: Input validation error: Invalid arguments for tool preview_eval: [\\n  {\\n    \\\"code\\\": \\\"invalid_type\\\",\\n    \\\"expected\\\": \\\"string\\\",\\n    \\\"received\\\": \\\"undefined\\\",\\n    \\\"path\\\": [\\n      \\\"expression\\\"\\n    ],\\n    \\\"message\\\": \\\"Required\\\"\\n  }\\n]\",\"is_interrupt\":false,\"duration_ms\":45}\n",
+    "toolUseID": "toolu_01WkeUBXcVcBwLLtYabbTVJV",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "56694686-9190-4091-9731-18a349ae0808",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:33:23.861Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "0a0087a1-6549-44f0-8a19-bd48bf9daacc",
+  "version": "2.1.160"
+}

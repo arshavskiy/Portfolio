@@ -1,0 +1,36 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": [
+          {
+            "text": "[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.",
+            "type": "text"
+          }
+        ],
+        "tool_use_id": "toolu_01QGyeSwjSQdgmrbdPMZULvg",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "998dfc59-4602-4b26-b36d-bc913c6b072f",
+  "promptId": "7b426324-23db-47e2-9860-7a843e41a371",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "sourceToolAssistantUUID": "998dfc59-4602-4b26-b36d-bc913c6b072f",
+  "timestamp": "2026-06-03T04:01:06.849Z",
+  "toolUseResult": [
+    {
+      "text": "[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connecting...\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.\n[debug] [vite] connected.",
+      "type": "text"
+    }
+  ],
+  "type": "user",
+  "userType": "external",
+  "uuid": "ad5579f3-0659-48c0-af2e-3ca4d5156263",
+  "version": "2.1.160"
+}

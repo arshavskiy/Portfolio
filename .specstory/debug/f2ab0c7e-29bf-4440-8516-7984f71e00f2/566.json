@@ -1,6 +1,6 @@
 {
   "attachment": {
-    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:git-push-reminder\" \"scripts/hooks/pre-bash-git-push-reminder.js\" \"strict\"",
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:bash:tmux-reminder\" \"scripts/hooks/pre-bash-tmux-reminder.js\" \"strict\"",
     "content": "",
     "durationMs": 339,
     "exitCode": 0,
@@ -15,11 +15,11 @@
   "entrypoint": "claude-desktop",
   "gitBranch": "HEAD",
   "isSidechain": false,
-  "parentUuid": "2d6d9376-489e-433b-aea8-480c7b9bce60",
+  "parentUuid": "220d1163-a82c-4897-9b3e-a94eb886c4f3",
   "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
   "timestamp": "2026-06-02T21:28:57.084Z",
   "type": "attachment",
   "userType": "external",
-  "uuid": "6a9b0d64-fbbd-452e-8a74-31b2175d7a7a",
+  "uuid": "2033adae-dfbf-450d-b109-8f82efbb680d",
   "version": "2.1.160"
 }

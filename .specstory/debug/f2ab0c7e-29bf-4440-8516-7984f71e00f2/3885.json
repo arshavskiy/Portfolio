@@ -1,0 +1,72 @@
+{
+  "attributionMcpServer": "956cbfac-0df9-4fab-af61-4a28cc91cf08",
+  "attributionMcpTool": "deploy_to_vercel",
+  "cwd": "E:\\Projects\\Portfolio\\client",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "caller": {
+          "type": "direct"
+        },
+        "id": "toolu_01QJMt1CfbDfdEXKXad1uSio",
+        "input": {
+          "file_path": "E:\\Projects\\Portfolio\\client\\src\\views\\PositionDetailView.vue",
+          "limit": 10,
+          "offset": 380
+        },
+        "name": "Read",
+        "type": "tool_use"
+      }
+    ],
+    "diagnostics": null,
+    "id": "msg_017PNCZ51KqQpgG8bSEoGXdo",
+    "model": "claude-haiku-4-5-20251001",
+    "role": "assistant",
+    "stop_details": null,
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 309,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 309,
+      "cache_read_input_tokens": 149511,
+      "inference_geo": "not_available",
+      "input_tokens": 2,
+      "iterations": [
+        {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 309,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 309,
+          "cache_read_input_tokens": 149511,
+          "input_tokens": 2,
+          "output_tokens": 105,
+          "type": "message"
+        }
+      ],
+      "output_tokens": 105,
+      "server_tool_use": {
+        "web_fetch_requests": 0,
+        "web_search_requests": 0
+      },
+      "service_tier": "standard",
+      "speed": "standard"
+    }
+  },
+  "parentUuid": "04145ca0-c0c5-49dc-aaac-aa17cde4d6f2",
+  "requestId": "req_011CbfpKgWeMku5L3znMKjQy",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T06:00:44.361Z",
+  "type": "assistant",
+  "userType": "external",
+  "uuid": "e6e31266-ed2c-4596-a221-fca440e35424",
+  "version": "2.1.160"
+}

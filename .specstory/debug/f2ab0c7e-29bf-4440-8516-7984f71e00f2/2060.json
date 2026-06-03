@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1129,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\feeProfiles.js\",\"content\":\"import { defineStore } from 'pinia'\\nimport { ref } from 'vue'\\nimport api from '@/composables/useApi'\\n\\nexport const useFeeProfileStore = defineStore('feeProfiles', () =\u003e {\\n  const profiles = ref([])\\n  const loading = ref(false)\\n\\n  async function fetchProfiles() {\\n    loading.value = true\\n    try {\\n      profiles.value = await api.get('/fee-profiles')\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function createProfile(payload) {\\n    const p = await api.post('/fee-profiles', payload)\\n    profiles.value.unshift(p)\\n    return p\\n  }\\n\\n  async function updateProfile(id, payload) {\\n    const p = await api.put(`/fee-profiles/${id}`, payload)\\n    const idx = profiles.value.findIndex((x) =\u003e x._id === id)\\n    if (idx !== -1) profiles.value[idx] = p\\n    return p\\n  }\\n\\n  async function deleteProfile(id) {\\n    await api.delete(`/fee-profiles/${id}`)\\n    profiles.value = profiles.value.filter((x) =\u003e x._id !== id)\\n  }\\n\\n  return { profiles, loading, fetchProfiles, createProfile, updateProfile, deleteProfile }\\n})\\n\"},\"tool_response\":{\"type\":\"create\",\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\stores\\\\feeProfiles.js\",\"content\":\"import { defineStore } from 'pinia'\\nimport { ref } from 'vue'\\nimport api from '@/composables/useApi'\\n\\nexport const useFeeProfileStore = defineStore('feeProfiles', () =\u003e {\\n  const profiles = ref([])\\n  const loading = ref(false)\\n\\n  async function fetchProfiles() {\\n    loading.value = true\\n    try {\\n      profiles.value = await api.get('/fee-profiles')\\n    } finally {\\n      loading.value = false\\n    }\\n  }\\n\\n  async function createProfile(payload) {\\n    const p = await api.post('/fee-profiles', payload)\\n    profiles.value.unshift(p)\\n    return p\\n  }\\n\\n  async function updateProfile(id, payload) {\\n    const p = await api.put(`/fee-profiles/${id}`, payload)\\n    const idx = profiles.value.findIndex((x) =\u003e x._id === id)\\n    if (idx !== -1) profiles.value[idx] = p\\n    return p\\n  }\\n\\n  async function deleteProfile(id) {\\n    await api.delete(`/fee-profiles/${id}`)\\n    profiles.value = profiles.value.filter((x) =\u003e x._id !== id)\\n  }\\n\\n  return { profiles, loading, fetchProfiles, createProfile, updateProfile, deleteProfile }\\n})\\n\",\"structuredPatch\":[],\"originalFile\":null,\"userModified\":false},\"tool_use_id\":\"toolu_01QBLduk4yZUHnxWnEQVboqw\",\"duration_ms\":193}\n",
+    "toolUseID": "toolu_01QBLduk4yZUHnxWnEQVboqw",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "e74a08a2-d2ef-4362-82bb-06df1336f9d1",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:56:41.543Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "eee7b20d-2783-4e82-904d-5767c0946ca6",
+  "version": "2.1.160"
+}

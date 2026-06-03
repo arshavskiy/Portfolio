@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 3735,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:PowerShell",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"PowerShell\",\"tool_input\":{\"command\":\"railway login 2\u003e\u00261\",\"timeout\":30000,\"description\":\"Railway login and setup\"},\"tool_use_id\":\"toolu_01WDTToDEQdsDNsLUwVgDGju\",\"error\":\"Exit code 1\\nCannot login in non-interactive mode. For non-interactive environments, set RAILWAY_API_TOKEN or RAILWAY_TOKEN.\",\"is_interrupt\":false,\"duration_ms\":7909}\n",
+    "toolUseID": "toolu_01WDTToDEQdsDNsLUwVgDGju",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "027fa498-bcf9-459a-810f-58381352bae0",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T06:14:02.302Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "4b2c5ca1-92d3-4a09-9b6a-8e6ca25b4b95",
+  "version": "2.1.160"
+}

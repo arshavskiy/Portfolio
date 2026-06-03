@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 648,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\style.css\",\"old_string\":\"/* ── Neon card borders ── */\",\"new_string\":\"/* ── Section h2 gradient (global override) ── */\\n.section h2,\\n.section-title,\\n.fee-section-title {\\n  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);\\n  -webkit-background-clip: text;\\n  -webkit-text-fill-color: transparent;\\n  background-clip: text;\\n}\\n\\n/* ── Neon card borders ── */\",\"replace_all\":false},\"tool_use_id\":\"toolu_016P4tkc9snmrHAw8f33eG3w\"}\n",
+    "toolUseID": "toolu_016P4tkc9snmrHAw8f33eG3w",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "4b0d71db-101c-4630-a5d4-5bcd75a810e6",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:33:20.973Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "b067f84d-4bf2-4d4f-928b-f75884b5ca7b",
+  "version": "2.1.160"
+}

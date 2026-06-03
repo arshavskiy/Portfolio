@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1143,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\server\\\\index.js\",\"old_string\":\"app.use('/api/watchlist', watchlistRoutes)\",\"new_string\":\"app.use('/api/watchlist', watchlistRoutes)\\napp.use('/api/fee-profiles', feeProfileRoutes)\",\"replace_all\":false},\"tool_use_id\":\"toolu_01Cit7Rgsih7x74Xkz1ypN83\"}\n",
+    "toolUseID": "toolu_01Cit7Rgsih7x74Xkz1ypN83",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "de1e0040-6605-4b67-88cb-1f70c5e6c797",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:55:22.622Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "d8aac2c8-07f2-4259-a9fa-ccd55286c5be",
+  "version": "2.1.160"
+}

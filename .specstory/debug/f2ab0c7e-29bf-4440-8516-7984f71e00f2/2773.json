@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:edit:format\" \"scripts/hooks/post-edit-format.js\" \"strict\"",
+    "content": "",
+    "durationMs": 1245,
+    "exitCode": 0,
+    "hookEvent": "PostToolUse",
+    "hookName": "PostToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PostToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\main.js\",\"old_string\":\"import PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport 'primeicons/primeicons.css'\",\"new_string\":\"import PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport Tooltip from 'primevue/tooltip'\\nimport 'primeicons/primeicons.css'\",\"replace_all\":false},\"tool_response\":{\"filePath\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\main.js\",\"oldString\":\"import PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport 'primeicons/primeicons.css'\",\"newString\":\"import PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport Tooltip from 'primevue/tooltip'\\nimport 'primeicons/primeicons.css'\",\"originalFile\":\"import { createApp } from 'vue'\\nimport { createPinia } from 'pinia'\\nimport PrimeVue from 'primevue/config'\\nimport Aura from '@primevue/themes/aura'\\nimport ToastService from 'primevue/toastservice'\\nimport ConfirmationService from 'primevue/confirmationservice'\\nimport 'primeicons/primeicons.css'\\nimport './style.css'\\n\\nimport App from './App.vue'\\nimport router from './router'\\n\\nconst app = createApp(App)\\n\\napp.use(createPinia())\\napp.use(router)\\napp.use(PrimeVue, {\\n  theme: {\\n    preset: Aura,\\n    options: {\\n      prefix: 'p',\\n      darkModeSelector: '.dark',\\n      cssLayer: false,\\n    },\\n  },\\n})\\napp.use(ToastService)\\napp.use(ConfirmationService)\\n\\napp.mount('#app')\\n\",\"structuredPatch\":[{\"oldStart\":4,\"oldLines\":6,\"newStart\":4,\"newLines\":7,\"lines\":[\" import Aura from '@primevue/themes/aura'\",\" import ToastService from 'primevue/toastservice'\",\" import ConfirmationService from 'primevue/confirmationservice'\",\"+import Tooltip from 'primevue/tooltip'\",\" import 'primeicons/primeicons.css'\",\" import './style.css'\",\" \"]}],\"userModified\":false,\"replaceAll\":false},\"tool_use_id\":\"toolu_01RpgZpNXcFeHksAeDCLdxTm\",\"duration_ms\":142}\n",
+    "toolUseID": "toolu_01RpgZpNXcFeHksAeDCLdxTm",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "cfe95cc8-713b-4659-ac96-f63bec3792fc",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T04:45:50.379Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "46c26255-c864-475c-9a70-83fa6c546d70",
+  "version": "2.1.160"
+}

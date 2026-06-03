@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:insaits-security\" \"scripts/hooks/insaits-security-wrapper.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 1138,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Write",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Write\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\components\\\\charts\\\\SparklineChart.vue\",\"content\":\"\u003cscript setup\u003e\\nimport { ref, watch, onMounted, nextTick } from 'vue'\\nimport * as d3 from 'd3'\\n\\nconst props = defineProps({\\n  data: { type: Array, default: () =\u003e [] },   // array of { close }\\n  pnlPercent: { type: Number, default: 0 },\\n})\\n\\nconst svgRef = ref(null)\\n\\nfunction draw() {\\n  if (!svgRef.value || !props.data.length) return\\n  const svg = d3.select(svgRef.value)\\n  svg.selectAll('*').remove()\\n\\n  const W = svgRef.value.clientWidth || 120\\n  const H = 40\\n  svg.attr('width', W).attr('height', H)\\n\\n  const isWin = props.pnlPercent \u003e= 0\\n  const color = isWin ? '#00ff88' : '#ff3366'\\n\\n  const x = d3.scaleLinear().domain([0, props.data.length - 1]).range([0, W])\\n  const yMin = d3.min(props.data, d =\u003e d.close)\\n  const yMax = d3.max(props.data, d =\u003e d.close)\\n  const yPad = (yMax - yMin) * 0.1 || 1\\n  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([H - 2, 2])\\n\\n  const line = d3.line()\\n    .x((_, i) =\u003e x(i))\\n    .y(d =\u003e y(d.close))\\n    .curve(d3.curveMonotoneX)\\n\\n  // Glow filter\\n  const defs = svg.append('defs')\\n  const filterId = `glow-${Math.random().toString(36).slice(2)}`\\n  const filter = defs.append('filter').attr('id', filterId)\\n  filter.append('feGaussianBlur').attr('stdDeviation', '2.5').attr('result', 'blur')\\n  const feMerge = filter.append('feMerge')\\n  feMerge.append('feMergeNode').attr('in', 'blur')\\n  feMerge.append('feMergeNode').attr('in', 'SourceGraphic')\\n\\n  // Area fill\\n  const area = d3.area()\\n    .x((_, i) =\u003e x(i))\\n    .y0(H)\\n    .y1(d =\u003e y(d.close))\\n    .curve(d3.curveMonotoneX)\\n\\n  svg.append('path')\\n    .datum(props.data)\\n    .attr('fill', isWin ? 'rgba(0,255,136,0.08)' : 'rgba(255,51,102,0.08)')\\n    .attr('d', area)\\n\\n  // Line with glow\\n  svg.append('path')\\n    .datum(props.data)\\n    .attr('fill', 'none')\\n    .attr('stroke', color)\\n    .attr('stroke-width', 1.5)\\n    .attr('filter', `url(#${filterId})`)\\n    .attr('d', line)\\n}\\n\\nonMounted(() =\u003e nextTick(draw))\\nwatch(() =\u003e [props.data, props.pnlPercent], () =\u003e nextTick(draw), { deep: true })\\n\u003c/script\u003e\\n\\n\u003ctemplate\u003e\\n  \u003csvg ref=\\\"svgRef\\\" class=\\\"sparkline\\\" /\u003e\\n\u003c/template\u003e\\n\\n\u003cstyle scoped\u003e\\n.sparkline { display: block; width: 100%; height: 40px; }\\n\u003c/style\u003e\\n\"},\"tool_use_id\":\"toolu_01L5dFMmDSfS1EP7ACX8m7ck\"}\n",
+    "toolUseID": "toolu_01L5dFMmDSfS1EP7ACX8m7ck",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "a0e20f46-91eb-4768-840e-6cfebf2d399d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:18:09.515Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "4e9f73af-1786-40d0-9175-ba3c0c73daf2",
+  "version": "2.1.160"
+}

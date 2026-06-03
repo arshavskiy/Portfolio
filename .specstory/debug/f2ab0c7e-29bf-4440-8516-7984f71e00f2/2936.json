@@ -1,0 +1,25 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"pre:governance-capture\" \"scripts/hooks/governance-capture.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 519,
+    "exitCode": 0,
+    "hookEvent": "PreToolUse",
+    "hookName": "PreToolUse:Edit",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\",\"permission_mode\":\"acceptEdits\",\"effort\":{\"level\":\"low\"},\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Edit\",\"tool_input\":{\"file_path\":\"E:\\\\Projects\\\\Portfolio\\\\client\\\\src\\\\views\\\\DashboardView.vue\",\"old_string\":\"      \u003cAllocationChart :positions=\\\"portfolio.positions\\\" /\u003e\",\"new_string\":\"      \u003cAllocationChart :positions=\\\"portfolio.positions\\\" :combined-usd=\\\"portfolio.combinedUsd\\\" /\u003e\",\"replace_all\":false},\"tool_use_id\":\"toolu_012si8pKU3DuEkt9szJSAUsS\"}\n",
+    "toolUseID": "toolu_012si8pKU3DuEkt9szJSAUsS",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "821847e9-b296-4320-8d7f-ccc03e2bca8f",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T05:06:55.393Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "a63310fe-218a-4d4e-a375-812a7d84fce0",
+  "version": "2.1.160"
+}

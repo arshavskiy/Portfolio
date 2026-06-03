@@ -1,0 +1,26 @@
+{
+  "attachment": {
+    "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/hooks/run-with-flags.js\" \"post:mcp-health-check\" \"scripts/hooks/mcp-health-check.js\" \"standard,strict\"",
+    "content": "",
+    "durationMs": 290,
+    "exitCode": 0,
+    "hookEvent": "PostToolUseFailure",
+    "hookName": "PostToolUseFailure:PowerShell",
+    "stderr": "",
+    "stdout": "{\"session_id\":\"f2ab0c7e-29bf-4440-8516-7984f71e00f2\",\"transcript_path\":\"C:\\\\Users\\\\User\\\\.claude\\\\projects\\\\E--Projects-Portfolio\\\\f2ab0c7e-29bf-4440-8516-7984f71e00f2.jsonl\",\"cwd\":\"E:\\\\Projects\\\\Portfolio\\\\server\",\"permission_mode\":\"acceptEdits\",\"hook_event_name\":\"PostToolUseFailure\",\"tool_name\":\"PowerShell\",\"tool_input\":{\"command\":\"cd \\\"E:\\\\Projects\\\\Portfolio\\\\server\\\" \u0026\u0026 railway login 2\u003e\u00261 | head -20\",\"timeout\":30000,\"description\":\"Railway login\"},\"tool_use_id\":\"toolu_01HwKGnXxz65P2qmUQQME1eU\",\"error\":\"Exit code 1\\n\\u001b[31;1mrailway: \\u001b[31;1mThe term 'railway' is not recognized as a name of a cmdlet, function, script file, or executable program.\\u001b[0m\\r\\n\\u001b[31;1m\\u001b[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\\u001b[0m\",\"is_interrupt\":false,\"duration_ms\":2182}\n",
+    "toolUseID": "toolu_01HwKGnXxz65P2qmUQQME1eU",
+    "type": "hook_success"
+  },
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "b1757aa0-2cc0-44c7-9333-617ffe78eb56",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "timestamp": "2026-06-03T06:13:17.854Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "8c0ed2b3-bec6-43ec-8a33-27a2a142a272",
+  "version": "2.1.160"
+}

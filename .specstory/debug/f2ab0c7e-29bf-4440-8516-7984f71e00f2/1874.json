@@ -1,0 +1,46 @@
+{
+  "attachment": {
+    "content": [
+      {
+        "activeForm": "Building Phase 2 stock detail enhancements",
+        "blockedBy": [],
+        "blocks": [],
+        "description": "Add candlestick/line toggle, fix 1d range to use intraday data, auto-refresh quote every 60s",
+        "id": "1",
+        "status": "completed",
+        "subject": "Phase 2: Stock Detail — candlestick chart, 1d intraday, auto-refresh"
+      },
+      {
+        "activeForm": "Building Phase 3 dashboard enhancements",
+        "blockedBy": [],
+        "blocks": [],
+        "description": "Add today's P\u0026L card and top gainers/losers bar chart to dashboard",
+        "id": "2",
+        "status": "completed",
+        "subject": "Phase 3: Dashboard — day P\u0026L card, top movers section"
+      },
+      {
+        "activeForm": "Building Phase 4 transaction filters and export",
+        "blockedBy": [],
+        "blocks": [],
+        "description": "Add filter by ticker/type and CSV export to transactions view",
+        "id": "3",
+        "status": "completed",
+        "subject": "Phase 4: Transactions — filters + CSV export"
+      }
+    ],
+    "itemCount": 3,
+    "type": "task_reminder"
+  },
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "parentUuid": "30f9ca3b-c860-45b0-a6a2-32f1e126642e",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "timestamp": "2026-06-03T03:32:57.740Z",
+  "type": "attachment",
+  "userType": "external",
+  "uuid": "240f7795-b8e6-46c1-8cb6-b46b72ea1d98",
+  "version": "2.1.160"
+}

@@ -1,0 +1,27 @@
+{
+  "cwd": "E:\\Projects\\Portfolio",
+  "entrypoint": "claude-desktop",
+  "error": {
+    "connection": null,
+    "formatted": "401 The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+    "isNetworkDown": false,
+    "message": "401 The socket connection was closed unexpectedly. For more information, pass `verbose: true` in the second argument to fetch()",
+    "rateLimits": null,
+    "requestId": "req_011CbfhbLFNg2TJU8Dr9cjER",
+    "status": 401
+  },
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "level": "error",
+  "maxRetries": 10,
+  "parentUuid": "b72fb4a2-7f52-4725-af58-ab9a38c1d476",
+  "retryAttempt": 5,
+  "retryInMs": 9434.1335371889,
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "subtype": "api_error",
+  "timestamp": "2026-06-03T04:32:27.378Z",
+  "type": "system",
+  "userType": "external",
+  "uuid": "a4b738c1-95ab-4ad0-86e5-f3623a8d1d0a",
+  "version": "2.1.160"
+}

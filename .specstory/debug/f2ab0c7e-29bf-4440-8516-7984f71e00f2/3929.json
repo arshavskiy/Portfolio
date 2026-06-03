@@ -1,0 +1,28 @@
+{
+  "cwd": "E:\\Projects\\Portfolio\\server",
+  "entrypoint": "claude-desktop",
+  "gitBranch": "HEAD",
+  "isSidechain": false,
+  "message": {
+    "content": [
+      {
+        "content": "Exit code 1\n\u001b[31;1mrailway: \u001b[31;1mThe term 'railway' is not recognized as a name of a cmdlet, function, script file, or executable program.\u001b[0m\r\n\u001b[31;1m\u001b[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\u001b[0m",
+        "is_error": true,
+        "tool_use_id": "toolu_01HwKGnXxz65P2qmUQQME1eU",
+        "type": "tool_result"
+      }
+    ],
+    "role": "user"
+  },
+  "parentUuid": "6f7bb4be-5357-4329-a9a6-0a5b2dcf4f8d",
+  "promptId": "8e4cb432-924b-4ae6-8e43-6bc85024218d",
+  "sessionId": "f2ab0c7e-29bf-4440-8516-7984f71e00f2",
+  "slug": "compressed-watching-dusk",
+  "sourceToolAssistantUUID": "6f7bb4be-5357-4329-a9a6-0a5b2dcf4f8d",
+  "timestamp": "2026-06-03T06:13:17.854Z",
+  "toolUseResult": "Error: Exit code 1\n\u001b[31;1mrailway: \u001b[31;1mThe term 'railway' is not recognized as a name of a cmdlet, function, script file, or executable program.\u001b[0m\r\n\u001b[31;1m\u001b[31;1mCheck the spelling of the name, or if a path was included, verify that the path is correct and try again.\u001b[0m",
+  "type": "user",
+  "userType": "external",
+  "uuid": "b1757aa0-2cc0-44c7-9333-617ffe78eb56",
+  "version": "2.1.160"
+}
