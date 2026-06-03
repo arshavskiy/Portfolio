@@ -1,28 +1,34 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { usePortfolioStore } from '@/stores/portfolio'
+import { useHistoryStore } from '@/stores/history'
 import { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'
 import AllocationChart from '@/components/charts/AllocationChart.vue'
 import TopMoversChart from '@/components/charts/TopMoversChart.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
-import api from '@/composables/useApi'
 
 const portfolio = usePortfolioStore()
+const historyStore = useHistoryStore()
 const sparklines = ref({}) // ticker -> [{ close }]
 
 onMounted(async () => {
-  await portfolio.fetchPortfolio()
-  fetchSparklines()
+  try {
+    await portfolio.fetchPortfolio()
+    await fetchSparklines()
+  } catch {}
 })
 
 async function fetchSparklines() {
-  for (const pos of portfolio.positions) {
+  const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      const data = await api.get(`/stocks/history/${pos.ticker}?range=1mo`)
-      sparklines.value[pos.ticker] = data
-    } catch {}
-  }
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, '1mo')]
+    } catch {
+      return null
+    }
+  }))
+
+  sparklines.value = Object.fromEntries(entries.filter(Boolean))
 }
 
 watch(() => portfolio.positions, fetchSparklines, { deep: true })
@@ -153,6 +159,7 @@ function neonStyle(pnlPercent) {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
+  min-height: 140px;
   padding: 0.9rem 1rem;
   margin-bottom: 0.5rem;
   cursor: pointer;

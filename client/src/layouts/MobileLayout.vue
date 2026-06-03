@@ -20,12 +20,15 @@ const auth = useAuthStore()
 .mobile-layout {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   background: var(--bg-primary);
 }
 .main-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
 }
 </style>

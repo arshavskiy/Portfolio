@@ -44,7 +44,11 @@ app.use(cors({
   credentials: true,
 }))
 app.use(express.json())
-app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
+app.use(rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  skip: () => process.env.NODE_ENV !== 'production',
+}))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/portfolio', portfolioRoutes)

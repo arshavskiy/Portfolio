@@ -4,31 +4,37 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { usePortfolioStore } from '@/stores/portfolio'
+import { useHistoryStore } from '@/stores/history'
 import { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'
 import Button from 'primevue/button'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
-import api from '@/composables/useApi'
 
 const router = useRouter()
 const toast = useToast()
 const confirm = useConfirm()
 const portfolio = usePortfolioStore()
+const historyStore = useHistoryStore()
 const showModal = ref(false)
 const sparklines = ref({})
 
 onMounted(async () => {
-  await portfolio.fetchPortfolio()
-  fetchSparklines()
+  try {
+    await portfolio.fetchPortfolio()
+    await fetchSparklines()
+  } catch {}
 })
 
 async function fetchSparklines() {
-  for (const pos of portfolio.positions) {
+  const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      const data = await api.get(`/stocks/history/${pos.ticker}?range=1mo`)
-      sparklines.value[pos.ticker] = data
-    } catch {}
-  }
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, '1mo')]
+    } catch {
+      return null
+    }
+  }))
+
+  sparklines.value = Object.fromEntries(entries.filter(Boolean))
 }
 
 function confirmDelete(pos) {
@@ -134,6 +140,7 @@ function confirmDelete(pos) {
 
 .positions-list { display: flex; flex-direction: column; gap: 0.75rem; }
 .position-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.position-card.neon-card-gain { min-height: 173px; }
 .pos-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; cursor: pointer; }
 .pos-spark { margin: 0 -1px; width: calc(100% + 2px); height: 50px; }
 .ticker { font-weight: 700; font-size: 1.1rem; display: block; }

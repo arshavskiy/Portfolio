@@ -29,7 +29,7 @@ function draw() {
   if (!top.length) return
 
   const W = containerRef.value.clientWidth
-  const margin = { top: 4, right: 60, bottom: 4, left: 70 }
+  const margin = { top: 4, right: 72, bottom: 4, left: 86 }
   const rowH = 32
   const H = top.length * rowH + margin.top + margin.bottom
 
@@ -78,12 +78,13 @@ function draw() {
   g.selectAll('.pct')
     .data(top)
     .enter().append('text')
-    .attr('x', (d) => d.changePercent >= 0 ? x(d.changePercent) + 4 : x(d.changePercent) - 4)
+    .attr('x', w + 8)
     .attr('y', (d) => y(d.ticker) + y.bandwidth() / 2)
-    .attr('text-anchor', (d) => d.changePercent >= 0 ? 'start' : 'end')
+    .attr('text-anchor', 'start')
     .attr('dominant-baseline', 'middle')
     .attr('fill', (d) => d.changePercent >= 0 ? '#22c55e' : '#ef4444')
     .attr('font-size', '11')
+    .attr('font-weight', '600')
     .text((d) => `${d.changePercent >= 0 ? '+' : ''}${d.changePercent.toFixed(2)}%`)
 }
 

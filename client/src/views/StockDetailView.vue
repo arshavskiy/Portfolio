@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import { useTickerCurrency, usePercent, useLargeNumber, gainLossClass } from '@/composables/useFormat'
 import { useWatchlistStore } from '@/stores/watchlist'
+import { useHistoryStore } from '@/stores/history'
 import api from '@/composables/useApi'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
@@ -14,6 +15,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const watchlist = useWatchlistStore()
+const historyStore = useHistoryStore()
 
 const ticker = ref(route.params.ticker?.toUpperCase())
 const quote = ref(null)
@@ -40,7 +42,7 @@ async function loadQuote() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    history.value = await api.get(`/stocks/history/${ticker.value}?range=${selectedRange.value}`)
+    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value)
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
   } finally {

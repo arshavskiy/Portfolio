@@ -7,7 +7,7 @@ function getToken() {
   return localStorage.getItem('token')
 }
 
-async function request(method, path, body) {
+async function fetchRequest(method, path, body) {
   const headers = { 'Content-Type': 'application/json' }
   const token = getToken()
   if (token) headers['Authorization'] = `Bearer ${token}`
@@ -25,9 +25,36 @@ async function request(method, path, body) {
     return
   }
 
-  const data = await res.json()
-  if (!res.ok) throw new Error(data.message || 'Request failed')
+  const raw = await res.text()
+  const contentType = res.headers.get('content-type') || ''
+  let data = null
+
+  if (raw) {
+    if (contentType.includes('application/json')) {
+      try {
+        data = JSON.parse(raw)
+      } catch {
+        data = raw
+      }
+    } else {
+      try {
+        data = JSON.parse(raw)
+      } catch {
+        data = raw
+      }
+    }
+  }
+
+  if (!res.ok) {
+    const message = typeof data === 'string' ? data : data?.message
+    throw new Error(message || `Request failed (${res.status})`)
+  }
+
   return data
+}
+
+async function request(method, path, body) {
+  return fetchRequest(method, path, body)
 }
 
 export default {
