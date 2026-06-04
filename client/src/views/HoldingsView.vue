@@ -100,6 +100,14 @@ async function onTransactionDone() {
     <header class="page-header">
       <h1 class="gradient-title">Holdings</h1>
       <div class="header-actions">
+        <Button
+            v-tooltip.bottom="compactMode ? 'Card view' : 'Compact view'"
+            :icon="compactMode ? 'pi pi-bars' : 'pi pi-list'"
+            :outlined="compactMode"
+            size="small"
+            text
+            @click="compactMode = !compactMode"
+        />
         <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
           <SettingsRow icon="pi pi-chart-line" label="Chart range">
@@ -113,14 +121,6 @@ async function onTransactionDone() {
               >{{ opt.label }}
               </button>
             </div>
-          </SettingsRow>
-          <SettingsRow icon="pi pi-list" label="Compact view">
-            <button
-                :class="{ active: compactMode }"
-                class="toggle-btn"
-                @click="compactMode = !compactMode"
-            >{{ compactMode ? 'On' : 'Off' }}
-            </button>
           </SettingsRow>
           <SettingsRow icon="pi pi-objects-column" label="Group by">
             <Select
