@@ -1,15 +1,23 @@
 const Watchlist = require('../models/Watchlist')
-const { getQuotes } = require('../services/stockService')
+const {getQuotes, getHistory} = require('../services/stockService')
 
 exports.getWatchlist = async (req, res) => {
   try {
+      const range = ['1wk', '1mo'].includes(req.query.range) ? req.query.range : '1mo'
     const items = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 })
     if (!items.length) return res.json([])
 
     const tickers = items.map((i) => i.ticker)
-    const quotes = await getQuotes(tickers)
+      const [quotes, histories] = await Promise.all([
+          getQuotes(tickers),
+          Promise.all(tickers.map((t) => getHistory(t, range).catch(() => []))),
+      ])
     const quoteMap = {}
     quotes.forEach((q) => { if (q) quoteMap[q.ticker] = q })
+      const historyMap = {}
+      tickers.forEach((t, i) => {
+          historyMap[t] = histories[i]
+      })
 
     const enriched = items.map((item) => ({
       _id: item._id,
@@ -17,6 +25,7 @@ exports.getWatchlist = async (req, res) => {
       companyName: item.companyName,
       addedAt: item.addedAt,
       ...(quoteMap[item.ticker] || {}),
+        history: historyMap[item.ticker] || [],
     }))
 
     res.json(enriched)
@@ -40,6 +49,28 @@ exports.addToWatchlist = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
+}
+
+exports.syncHoldings = async (req, res) => {
+    try {
+        const Position = require('../models/Position')
+        const positions = await Position.find({user: req.user._id})
+        if (!positions.length) return res.json({synced: 0})
+        
+        await Promise.all(
+            positions.map((p) =>
+                Watchlist.findOneAndUpdate(
+                    {user: req.user._id, ticker: p.ticker},
+                    {$setOnInsert: {user: req.user._id, ticker: p.ticker, companyName: p.companyName || p.ticker}},
+                    {upsert: true, new: true}
+                )
+            )
+        )
+        
+        res.json({synced: positions.length})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
 }
 
 exports.removeFromWatchlist = async (req, res) => {

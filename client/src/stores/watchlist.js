@@ -1,24 +1,26 @@
-import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import {defineStore} from 'pinia'
+import {ref} from 'vue'
 import api from '@/composables/useApi'
 
 export const useWatchlistStore = defineStore('watchlist', () => {
   const items = ref([])
   const loading = ref(false)
-
-  async function fetchWatchlist() {
+    let lastRange = '1mo'
+    
+    async function fetchWatchlist(range = '1mo') {
+        lastRange = range
     loading.value = true
     try {
-      items.value = await api.get('/watchlist')
+        await api.post('/watchlist/sync-holdings', {})
+        items.value = await api.get(`/watchlist?range=${encodeURIComponent(range)}`)
     } finally {
       loading.value = false
     }
   }
 
   async function addItem(ticker, companyName) {
-    const item = await api.post('/watchlist', { ticker, companyName })
-    items.value.unshift(item)
-    return item
+      await api.post('/watchlist', {ticker, companyName})
+      await fetchWatchlist(lastRange)
   }
 
   async function removeItem(id) {

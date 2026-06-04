@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { usePortfolioStore } from '@/stores/portfolio'
-import { useHistoryStore } from '@/stores/history'
-import { useTickerCurrency, useCurrency, usePercent, gainLossClass } from '@/composables/useFormat'
+import {onMounted, ref, watch} from 'vue'
+import {usePortfolioStore} from '@/stores/portfolio'
+import {useHistoryStore} from '@/stores/history'
+import {useChartRange} from '@/composables/useChartRange'
+import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import AllocationChart from '@/components/charts/AllocationChart.vue'
 import TopMoversChart from '@/components/charts/TopMoversChart.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
@@ -10,7 +11,8 @@ import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 
 const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
-const sparklines = ref({}) // ticker -> [{ close }]
+const range = useChartRange()
+const sparklines = ref({})
 
 onMounted(async () => {
   try {
@@ -22,16 +24,16 @@ onMounted(async () => {
 async function fetchSparklines() {
   const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, '1mo')]
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value)]
     } catch {
       return null
     }
   }))
-
   sparklines.value = Object.fromEntries(entries.filter(Boolean))
 }
 
 watch(() => portfolio.positions, fetchSparklines, { deep: true })
+watch(range, fetchSparklines)
 
 function neonStyle(pnlPercent) {
   if (pnlPercent == null) return {}

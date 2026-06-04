@@ -1,9 +1,10 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import { usePortfolioStore } from '@/stores/portfolio'
-import { useFeeProfileStore } from '@/stores/feeProfiles'
-import { tickerCurrency } from '@/composables/useFormat'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useToast} from 'primevue/usetoast'
+import {usePortfolioStore} from '@/stores/portfolio'
+import {useFeeProfileStore} from '@/stores/feeProfiles'
+import {tickerCurrency} from '@/composables/useFormat'
+import {MARKETS, useMarketSuffix} from '@/composables/useMarketSuffix'
 import api from '@/composables/useApi'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
@@ -23,6 +24,7 @@ const emit = defineEmits(['update:visible', 'hide'])
 const toast = useToast()
 const portfolio = usePortfolioStore()
 const feeStore = useFeeProfileStore()
+const {suffix: marketSuffix, selected: selectedMarket, applyTo, searchQuery} = useMarketSuffix('tx-add-market')
 
 const type = ref('buy')
 const ticker = ref('')
@@ -94,8 +96,11 @@ watch(() => props.visible, (v) => {
 })
 
 async function searchTicker(event) {
-  const q = event.query?.trim()
-  if (!q || q.length < 1) { suggestions.value = []; return }
+  const q = searchQuery(event.query?.trim() || '')
+  if (!q) {
+    suggestions.value = [];
+    return
+  }
   try {
     const results = await api.get(`/stocks/search?q=${encodeURIComponent(q)}`)
     suggestions.value = results.map((r) => `${r.ticker} — ${r.name}`)
@@ -104,7 +109,7 @@ async function searchTicker(event) {
 
 async function submit() {
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
-  const t = (raw || '').split(' — ')[0].trim().toUpperCase()
+  const t = applyTo((raw || '').split(' — ')[0].trim().toUpperCase())
   if (!t || !shares.value || !price.value) {
     toast.add({ severity: 'warn', summary: 'Fill all fields', life: 2000 })
     return
@@ -143,6 +148,22 @@ async function submit() {
     <div class="tx-form">
       <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select" />
 
+      <!-- Market selector -->
+      <div class="field">
+        <label>Market</label>
+        <div class="market-grid">
+          <button
+              v-for="m in MARKETS"
+              :key="m.value"
+              :class="{ active: marketSuffix === m.value }"
+              class="market-chip"
+              @click="marketSuffix = m.value; ticker = ''"
+          >
+            {{ m.label }}
+          </button>
+        </div>
+      </div>
+
       <div class="field">
         <label>Ticker</label>
         <AutoComplete
@@ -150,10 +171,13 @@ async function submit() {
           :suggestions="suggestions"
           @complete="searchTicker"
           @item-select="(e) => { ticker = e.value.split(' — ')[0].trim() }"
-          placeholder="AAPL, TSLA, POLI.TA..."
+          :placeholder="selectedMarket.placeholder"
           :delay="300"
           fluid
         />
+        <span v-if="marketSuffix" class="suffix-hint">
+          Suffix <code>{{ marketSuffix }}</code> will be appended automatically
+        </span>
       </div>
 
       <div class="fields-row">
@@ -235,4 +259,38 @@ async function submit() {
 .fee-line { font-size: 0.82rem; }
 .total-final { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; font-weight: 600; }
 .total-amount { font-size: 1.05rem; }
+
+.market-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.market-chip {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.market-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.suffix-hint {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+.suffix-hint code {
+  color: var(--accent);
+  font-family: monospace;
+}
 </style>
