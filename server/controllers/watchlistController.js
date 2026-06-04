@@ -4,7 +4,7 @@ const {getQuotes, getHistory} = require('../services/stockService')
 
 exports.getWatchlist = async (req, res) => {
   try {
-      const range = ['1wk', '1mo'].includes(req.query.range) ? req.query.range : '1mo'
+      const range = ['1d', '5d', '1mo', '3mo', '6mo', '1y'].includes(req.query.range) ? req.query.range : '1mo'
     const items = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 })
     if (!items.length) return res.json([])
 

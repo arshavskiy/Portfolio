@@ -29,13 +29,12 @@ const legend = computed(() =>
     }))
 )
 
-// Top gainer + top loser for the compact movers strip.
+// Movers strip: every holding with a known day change, sorted by magnitude
+// (biggest movers first) so stocks AND crypto both appear.
 const movers = computed(() => {
-  const withChange = props.positions.filter((p) => p.changePercent != null)
-  if (!withChange.length) return []
-  const sorted = [...withChange].sort((a, b) => b.changePercent - a.changePercent)
-  const picks = [sorted[0], sorted[sorted.length - 1]]
-  return picks.filter((v, i, a) => a.findIndex((x) => x.ticker === v.ticker) === i)
+  return props.positions
+    .filter((p) => p.changePercent != null)
+    .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))
 })
 
 function draw() {
@@ -74,7 +73,7 @@ function draw() {
       .on('mouseout', function () {
         d3.select(this).attr('d', arc)
       })
-      .on('click', (_, d) => router.push(`/stock/${d.data.ticker}`))
+      .on('click', (_, d) => router.push(`/stock/${encodeURIComponent(d.data.ticker)}`))
 
   g.append('text').attr('text-anchor', 'middle').attr('dy', isMixed.value ? '0.35em' : '-0.3em')
       .attr('fill', '#94a3b8').attr('font-size', '10').text(isMixed.value ? 'Mixed' : 'Total')
@@ -101,7 +100,7 @@ watch(() => props.positions, () => nextTick(draw), {deep: true})
             v-for="item in legend"
             :key="item.ticker"
             class="legend-item"
-            @click="router.push(`/stock/${item.ticker}`)"
+            @click="router.push(`/stock/${encodeURIComponent(item.ticker)}`)"
         >
           <span :style="{ background: item.color }" class="legend-dot"/>
           <span class="legend-ticker">{{ item.ticker }}</span>
@@ -120,7 +119,7 @@ watch(() => props.positions, () => nextTick(draw), {deep: true})
               v-for="m in movers"
               :key="m.ticker"
               class="mover"
-              @click="router.push(`/stock/${m.ticker}`)"
+              @click="router.push(`/stock/${encodeURIComponent(m.ticker)}`)"
           >
             <span class="mover-ticker">{{ m.ticker }}</span>
             <span :class="m.changePercent >= 0 ? 'up' : 'down'" class="mover-pct">

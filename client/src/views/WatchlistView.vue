@@ -11,6 +11,7 @@ import Select from 'primevue/select'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
+import RangeBar from '@/components/ui/RangeBar.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
 
@@ -25,11 +26,6 @@ const groupMode = useStorage('watchlist-group-mode', 'none')
 function onImported() {
   watchlist.fetchWatchlist(range.value)
 }
-
-const RANGE_OPTIONS = [
-  {label: '1W', value: '1wk'},
-  {label: '1M', value: '1mo'},
-]
 
 const grouped = computed(() => groupItems(watchlist.items, groupMode.value))
 
@@ -59,18 +55,6 @@ async function remove(item) {
         />
         <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
-          <SettingsRow icon="pi pi-chart-line" label="Chart range">
-            <div class="toggle-group">
-              <button
-                  v-for="opt in RANGE_OPTIONS"
-                  :key="opt.value"
-                  :class="{ active: range === opt.value }"
-                  class="toggle-btn"
-                  @click="range = opt.value"
-              >{{ opt.label }}
-              </button>
-            </div>
-          </SettingsRow>
           <SettingsRow icon="pi pi-objects-column" label="Group by">
             <Select
                 v-model="groupMode"
@@ -83,6 +67,8 @@ async function remove(item) {
         </PageSettings>
       </div>
     </header>
+
+    <RangeBar class="page-range" />
 
     <div v-if="watchlist.loading" class="skeleton-list">
       <div v-for="n in 5" :key="n" class="skeleton-row"/>
@@ -113,6 +99,7 @@ async function remove(item) {
 
 <style scoped>
 .watchlist { padding: 1rem; }
+.page-range { margin-bottom: 1rem; }
 
 @media (min-width: 768px) {
   .watchlist {

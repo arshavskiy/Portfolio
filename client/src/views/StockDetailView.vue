@@ -35,7 +35,7 @@ let refreshTimer = null
 
 async function loadQuote() {
   try {
-    quote.value = await api.get(`/stocks/quote/${ticker.value}`)
+    quote.value = await api.get(`/stocks/quote/${encodeURIComponent(ticker.value)}`)
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to refresh', detail: err.message, life: 2000 })
   }

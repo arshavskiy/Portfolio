@@ -14,6 +14,7 @@ import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
+import RangeBar from '@/components/ui/RangeBar.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
 
@@ -27,11 +28,6 @@ const showModal = ref(false)
 const sparklines = ref({})
 const groupMode = useStorage('holdings-group-mode', 'none')
 const compactMode = useStorage('holdings-compact', false)
-
-const RANGE_OPTIONS = [
-  {label: '1W', value: '1wk'},
-  {label: '1M', value: '1mo'},
-]
 
 const grouped = computed(() => groupItems(portfolio.positions, groupMode.value))
 
@@ -125,18 +121,6 @@ async function onTransactionDone() {
         />
         <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
-          <SettingsRow icon="pi pi-chart-line" label="Chart range">
-            <div class="toggle-group">
-              <button
-                  v-for="opt in RANGE_OPTIONS"
-                  :key="opt.value"
-                  :class="{ active: range === opt.value }"
-                  class="toggle-btn"
-                  @click="range = opt.value"
-              >{{ opt.label }}
-              </button>
-            </div>
-          </SettingsRow>
           <SettingsRow icon="pi pi-objects-column" label="Group by">
             <Select
                 v-model="groupMode"
@@ -149,6 +133,8 @@ async function onTransactionDone() {
         </PageSettings>
       </div>
     </header>
+
+    <RangeBar class="page-range" />
 
     <div v-if="portfolio.loading" class="loading text-muted">Loading...</div>
 
@@ -292,4 +278,6 @@ async function onTransactionDone() {
     padding: 2rem;
   }
 }
+
+.page-range { margin-bottom: 1rem; }
 </style>

@@ -103,6 +103,68 @@ function invalidateCache(ticker) {
   quoteCache.delete(ticker.toUpperCase())
 }
 
+// ── Global market indices ──
+const MARKET_GROUPS = {
+  US: [
+    { symbol: '^GSPC', name: 'S&P 500' },
+    { symbol: '^DJI', name: 'Dow 30' },
+    { symbol: '^IXIC', name: 'Nasdaq' },
+    { symbol: '^RUT', name: 'Russell 2000' },
+    { symbol: '^VIX', name: 'VIX' },
+    { symbol: 'GC=F', name: 'Gold' },
+  ],
+  Europe: [
+    { symbol: '^FTSE', name: 'FTSE 100' },
+    { symbol: '^GDAXI', name: 'DAX' },
+    { symbol: '^FCHI', name: 'CAC 40' },
+    { symbol: '^STOXX50E', name: 'Euro Stoxx 50' },
+  ],
+  Asia: [
+    { symbol: '^N225', name: 'Nikkei 225' },
+    { symbol: '^HSI', name: 'Hang Seng' },
+    { symbol: '000001.SS', name: 'Shanghai' },
+    { symbol: '^TA125.TA', name: 'TA-125' },
+  ],
+  Crypto: [
+    { symbol: 'BTC-USD', name: 'Bitcoin' },
+    { symbol: 'ETH-USD', name: 'Ethereum' },
+    { symbol: 'SOL-USD', name: 'Solana' },
+    { symbol: 'BNB-USD', name: 'BNB' },
+  ],
+}
+
+let marketsCache = new Map() // group -> { data, ts }
+const MARKETS_TTL = 5 * 60 * 1000
+
+async function getMarkets(group = 'US') {
+  const list = MARKET_GROUPS[group] || MARKET_GROUPS.US
+  const cached = marketsCache.get(group)
+  if (cached && Date.now() - cached.ts < MARKETS_TTL) return cached.data
+
+  const symbols = list.map((m) => m.symbol)
+  const [quotes, histories] = await Promise.all([
+    Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
+    Promise.all(symbols.map((s) => getHistory(s, '5d').catch(() => []))),
+  ])
+
+  const data = list.map((m, i) => {
+    const q = quotes[i]
+    return {
+      symbol: m.symbol,
+      name: m.name,
+      price: q?.regularMarketPrice ?? null,
+      change: q?.regularMarketChange ?? null,
+      changePercent: q?.regularMarketChangePercent ?? null,
+      history: (histories[i] || []).map((h) => ({ close: h.close })),
+    }
+  })
+
+  marketsCache.set(group, { data, ts: Date.now() })
+  return data
+}
+
+const MARKET_GROUP_NAMES = Object.keys(MARKET_GROUPS)
+
 let fxCache = { rate: null, ts: 0 }
 const FX_TTL = 60 * 60 * 1000 // 1 hour
 
@@ -118,4 +180,4 @@ async function getIlsToUsd() {
   }
 }
 
-module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd }
+module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd, getMarkets, MARKET_GROUP_NAMES }

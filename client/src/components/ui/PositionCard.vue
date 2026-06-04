@@ -136,14 +136,14 @@ const activeAlerts = computed(() =>
           text
           @click="router.push(`/position/${encodeURIComponent(pos.ticker)}`)"
       />
-      <Button
-          icon="pi pi-arrow-up-right"
-          label="Sell"
-          outlined
-          severity="warn"
-          size="small"
-          @click="emit('sell', pos)"
-      />
+<!--      <Button-->
+<!--          icon="pi pi-arrow-up-right"-->
+<!--          label="Sell"-->
+<!--          outlined-->
+<!--          severity="warn"-->
+<!--          size="small"-->
+<!--          @click="emit('sell', pos)"-->
+<!--      />-->
       <Button
           v-tooltip="'Remove position'"
           icon="pi pi-trash"

@@ -4,14 +4,41 @@ import {useRouter} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
+import {usePwaInstall, useFullscreen} from '@/composables/usePwa'
+import {useToast} from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Avatar from 'primevue/avatar'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 
 const router = useRouter()
+const toast = useToast()
 const auth = useAuthStore()
 const portfolio = usePortfolioStore()
 const showFeeProfiles = ref(false)
+
+const { canInstall, installed, isIos, promptInstall } = usePwaInstall()
+const { isFullscreen, supported: fsSupported, toggle: toggleFullscreen } = useFullscreen()
+
+async function install() {
+  if (canInstall.value) {
+    const ok = await promptInstall()
+    if (ok) toast.add({ severity: 'success', summary: 'App installed', life: 2000 })
+  } else if (isIos) {
+    toast.add({
+      severity: 'info',
+      summary: 'Add to Home Screen',
+      detail: 'Tap Share → "Add to Home Screen" to install on iOS.',
+      life: 5000,
+    })
+  } else {
+    toast.add({
+      severity: 'info',
+      summary: 'Install',
+      detail: 'Use Chrome menu (⋮) → "Install app" / "Add to Home screen".',
+      life: 5000,
+    })
+  }
+}
 
 const summary = computed(() => portfolio.combinedUsd)
 const positionCount = computed(() => portfolio.positions.length)
@@ -91,6 +118,20 @@ function logout() {
       <button class="menu-item" @click="router.push('/transactions')">
         <i class="pi pi-history menu-icon"/>
         <span>Transaction History</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
+    </div>
+
+    <!-- App -->
+    <div class="menu-list">
+      <button v-if="!installed" class="menu-item" @click="install">
+        <i class="pi pi-download menu-icon"/>
+        <span>Install App</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
+      <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
+        <i class="pi pi-window-maximize menu-icon"/>
+        <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
     </div>

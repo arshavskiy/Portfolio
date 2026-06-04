@@ -9,6 +9,7 @@ import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/compo
 import api from '@/composables/useApi'
 import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
+import MarketsCard from '@/components/charts/MarketsCard.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
@@ -91,7 +92,7 @@ function neonStyle(pnlPercent) {
 <template>
   <div class="dashboard">
     <header class="dash-header">
-      <h1 class="gradient-title">Portfolio</h1>
+      <h1 class="gradient-title">Stockfolio</h1>
       <PageSettings>
         <SettingsRow icon="pi pi-chart-line" label="Chart range">
           <div class="toggle-group">
@@ -116,6 +117,9 @@ function neonStyle(pnlPercent) {
         </SettingsRow>
       </PageSettings>
     </header>
+
+    <!-- Global markets overview (always shown) -->
+    <MarketsCard />
 
     <div v-if="portfolio.loading" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />
@@ -352,9 +356,10 @@ function neonStyle(pnlPercent) {
 /* Totals grid */
 .totals-grid {
   display: grid;
-  //grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   margin: 0.25rem 0 0.75rem;
+  margin-bottom: 45px;
 }
 
 .totals-grid > .total-card:only-child {
