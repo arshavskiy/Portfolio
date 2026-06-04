@@ -165,6 +165,44 @@ async function getMarkets(group = 'US') {
 
 const MARKET_GROUP_NAMES = Object.keys(MARKET_GROUPS)
 
+// ── Trending tickers ──
+let trendingCache = { data: null, ts: 0 }
+const TRENDING_TTL = 10 * 60 * 1000
+
+async function getTrending() {
+  if (trendingCache.data && Date.now() - trendingCache.ts < TRENDING_TTL) return trendingCache.data
+
+  let symbols = []
+  try {
+    const t = await yahooFinance.trendingSymbols('US', { count: 10 })
+    symbols = (t.quotes || []).map((q) => q.symbol).filter(Boolean).slice(0, 8)
+  } catch {
+    symbols = []
+  }
+  // Fallback if Yahoo returns nothing.
+  if (!symbols.length) symbols = ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMZN', 'BTC-USD']
+
+  const [quotes, histories] = await Promise.all([
+    Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
+    Promise.all(symbols.map((s) => getHistory(s, '5d').catch(() => []))),
+  ])
+
+  const data = symbols.map((s, i) => {
+    const q = quotes[i]
+    return {
+      symbol: s,
+      name: q?.shortName || q?.longName || s,
+      price: q?.regularMarketPrice ?? null,
+      change: q?.regularMarketChange ?? null,
+      changePercent: q?.regularMarketChangePercent ?? null,
+      history: (histories[i] || []).map((h) => ({ close: h.close })),
+    }
+  }).filter((d) => d.price != null)
+
+  trendingCache = { data, ts: Date.now() }
+  return data
+}
+
 let fxCache = { rate: null, ts: 0 }
 const FX_TTL = 60 * 60 * 1000 // 1 hour
 
@@ -180,4 +218,4 @@ async function getIlsToUsd() {
   }
 }
 
-module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd, getMarkets, MARKET_GROUP_NAMES }
+module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd, getMarkets, MARKET_GROUP_NAMES, getTrending }

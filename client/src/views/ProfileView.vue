@@ -134,6 +134,11 @@ function logout() {
         <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
+      <button class="menu-item" @click="router.push('/about')">
+        <i class="pi pi-info-circle menu-icon"/>
+        <span>About &amp; Donate</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
     </div>
 
     <Button

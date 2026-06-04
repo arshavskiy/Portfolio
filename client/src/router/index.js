@@ -7,16 +7,18 @@ const routes = [
   {
     path: '/',
     component: () => import('@/layouts/MobileLayout.vue'),
-    meta: { requiresAuth: true },
     children: [
-      { path: '', name: 'Dashboard', component: () => import('@/views/DashboardView.vue') },
-      { path: 'holdings', name: 'Holdings', component: () => import('@/views/HoldingsView.vue') },
-      { path: 'watchlist', name: 'Watchlist', component: () => import('@/views/WatchlistView.vue') },
-      { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue') },
-      { path: 'stock/:ticker', name: 'StockDetail', component: () => import('@/views/StockDetailView.vue') },
-      { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue') },
-        {path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue')},
-      { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue') },
+      { path: '', name: 'Dashboard', component: () => import('@/views/DashboardView.vue'), meta: { requiresAuth: true } },
+      { path: 'holdings', name: 'Holdings', component: () => import('@/views/HoldingsView.vue'), meta: { requiresAuth: true } },
+      { path: 'watchlist', name: 'Watchlist', component: () => import('@/views/WatchlistView.vue'), meta: { requiresAuth: true } },
+      { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
+      { path: 'stock/:ticker', name: 'StockDetail', component: () => import('@/views/StockDetailView.vue'), meta: { requiresAuth: true } },
+      { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue'), meta: { requiresAuth: true } },
+      { path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue'), meta: { requiresAuth: true } },
+      { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
+      // About is public (reachable from the landing footer) but still renders
+      // inside the layout, so logged-in users get the sidebar/nav.
+      { path: 'about', name: 'About', component: () => import('@/views/AboutView.vue') },
     ],
   },
   { path: '/:pathMatch(.*)*', redirect: '/' },

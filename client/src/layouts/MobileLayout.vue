@@ -30,6 +30,7 @@ import BottomNav from '@/components/ui/BottomNav.vue'
   -webkit-overflow-scrolling: touch;
   /* Clear the device status bar / notch in fullscreen PWA mode. */
   padding-top: env(safe-area-inset-top, 0px);
+  margin-bottom: 75px;
 }
 
 /* Content stays full-bleed on mobile; centered with a cap on larger screens. */

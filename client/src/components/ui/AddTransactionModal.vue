@@ -238,9 +238,7 @@ async function submit() {
     :draggable="false"
   >
     <div class="tx-form">
-      <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select" style="position: absolute;
-    top: 23px;
-    left: 210px;"/>
+      <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select"/>
 
       <!-- Market selector -->
       <div class="field">

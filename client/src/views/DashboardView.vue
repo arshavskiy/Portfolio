@@ -10,6 +10,7 @@ import api from '@/composables/useApi'
 import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
+import TrendingCard from '@/components/charts/TrendingCard.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
@@ -92,7 +93,7 @@ function neonStyle(pnlPercent) {
 <template>
   <div class="dashboard">
     <header class="dash-header">
-      <h1 class="gradient-title">Stockfolio</h1>
+      <h1 class="gradient-title">StockFolio</h1>
       <PageSettings>
         <SettingsRow icon="pi pi-chart-line" label="Chart range">
           <div class="toggle-group">
@@ -120,6 +121,9 @@ function neonStyle(pnlPercent) {
 
     <!-- Global markets overview (always shown) -->
     <MarketsCard />
+
+    <!-- Trending tickers -->
+    <TrendingCard />
 
     <div v-if="portfolio.loading" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />
@@ -359,7 +363,6 @@ function neonStyle(pnlPercent) {
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   margin: 0.25rem 0 0.75rem;
-  margin-bottom: 75px;
 }
 
 .totals-grid > .total-card:only-child {

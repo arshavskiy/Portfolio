@@ -259,6 +259,8 @@ async function submit() {
 
     <!-- Footer -->
     <footer class="landing-footer">
+      <RouterLink to="/about" class="footer-link">About</RouterLink>
+      <span class="footer-sep">·</span>
       © {{ new Date().getFullYear() }} StockFolio · handcoded.tech. All rights reserved.
     </footer>
   </div>
@@ -890,4 +892,6 @@ async function submit() {
   padding: 1.25rem 1rem;
   padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
 }
+.footer-link { color: var(--accent); text-decoration: none; }
+.footer-sep { margin: 0 0.4rem; }
 </style>

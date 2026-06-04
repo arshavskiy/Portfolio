@@ -9,6 +9,8 @@ const tabs = [
   { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist' },
   { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History' },
   { name: 'Profile', to: '/profile', icon: 'pi pi-user', label: 'Profile' },
+  // Desktop sidebar has room for an extra item; hidden on the mobile bottom bar.
+  { name: 'About', to: '/about', icon: 'pi pi-info-circle', label: 'About', desktopOnly: true },
 ]
 
 function isActive(tab) {
@@ -27,7 +29,7 @@ function isActive(tab) {
       <RouterLink
           v-for="tab in tabs"
           :key="tab.name"
-          :class="{ active: isActive(tab) }"
+          :class="{ active: isActive(tab), 'desktop-only': tab.desktopOnly }"
           :to="tab.to"
           class="nav-item"
       >
@@ -79,8 +81,12 @@ function isActive(tab) {
 .nav-item.active i { filter: drop-shadow(0 0 6px var(--neon-blue)); }
 .nav-item.active span { text-shadow: 0 0 8px var(--neon-blue); }
 
+/* Hidden on the cramped mobile bottom bar; shown in the desktop sidebar. */
+.nav-item.desktop-only { display: none; }
+
 /* ── Desktop: vertical sidebar ── */
 @media (min-width: 1024px) {
+  .nav-item.desktop-only { display: flex; }
   .app-nav {
     position: relative;
     bottom: auto;

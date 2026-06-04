@@ -1,10 +1,18 @@
-const { getQuote, getHistory, searchTicker, getMarkets, MARKET_GROUP_NAMES } = require('../services/stockService')
+const { getQuote, getHistory, searchTicker, getMarkets, MARKET_GROUP_NAMES, getTrending } = require('../services/stockService')
 
 exports.getMarkets = async (req, res) => {
   try {
     const group = req.query.group || 'US'
     const data = await getMarkets(group)
     res.json({ group, groups: MARKET_GROUP_NAMES, indices: data })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.getTrending = async (req, res) => {
+  try {
+    res.json(await getTrending())
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
