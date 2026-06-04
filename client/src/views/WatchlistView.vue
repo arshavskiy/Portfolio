@@ -5,7 +5,9 @@ import {useStorage} from '@vueuse/core'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
+import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
 import Button from 'primevue/button'
+import Select from 'primevue/select'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
@@ -16,28 +18,14 @@ const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
-const groupByMarket = useStorage('watchlist-group-market', false)
+const groupMode = useStorage('watchlist-group-mode', 'none')
 
 const RANGE_OPTIONS = [
   {label: '1W', value: '1wk'},
   {label: '1M', value: '1mo'},
 ]
 
-function marketOf(ticker) {
-  return ticker.toUpperCase().endsWith('.TA') ? 'TASE' : 'US'
-}
-
-const grouped = computed(() => {
-  if (!groupByMarket.value) return [{market: null, items: watchlist.items}]
-  const map = {}
-  for (const item of watchlist.items) {
-    const m = marketOf(item.ticker)
-    ;(map[m] ||= []).push(item)
-  }
-  return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([market, items]) => ({market, items}))
-})
+const grouped = computed(() => groupItems(watchlist.items, groupMode.value))
 
 onMounted(() => {
   alerts.fetchAlerts()
@@ -56,7 +44,7 @@ async function remove(item) {
     <header class="page-header">
       <h1 class="gradient-title">Watchlist</h1>
       <div class="header-actions">
-        <Button icon="pi pi-plus" label="Add" size="small" @click="showModal = true"/>
+        <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
           <SettingsRow icon="pi pi-chart-line" label="Chart range">
             <div class="toggle-group">
@@ -70,13 +58,14 @@ async function remove(item) {
               </button>
             </div>
           </SettingsRow>
-          <SettingsRow icon="pi pi-globe" label="Group by market">
-            <button
-                :class="{ active: groupByMarket }"
-                class="toggle-btn"
-                @click="groupByMarket = !groupByMarket"
-            >{{ groupByMarket ? 'On' : 'Off' }}
-            </button>
+          <SettingsRow icon="pi pi-objects-column" label="Group by">
+            <Select
+                v-model="groupMode"
+                :options="GROUP_MODES"
+                class="group-select"
+                option-label="label"
+                option-value="value"
+            />
           </SettingsRow>
         </PageSettings>
       </div>
@@ -93,11 +82,11 @@ async function remove(item) {
     </div>
 
     <div v-else class="watch-list">
-      <template v-for="group in grouped" :key="group.market">
-        <div v-if="group.market" class="market-header">{{ group.market }}</div>
+      <template v-for="section in grouped" :key="section.group ?? '_all'">
+        <div v-if="section.group" class="market-header">{{ section.group }}</div>
         <WatchRow
-            v-for="item in group.items"
-            :key="item._id"
+            v-for="item in section.items"
+            :key="`${section.group ?? ''}-${item._id}`"
             :item="item"
             @remove="remove"
         />
@@ -194,5 +183,14 @@ async function remove(item) {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+.group-select {
+  min-width: 110px;
+}
+
+.group-select :deep(.p-select-label) {
+  padding: 4px 8px;
+  font-size: 0.8rem;
 }
 </style>

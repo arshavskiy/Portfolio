@@ -3,6 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
+import {useGroupsStore} from '@/stores/groups'
 import {tickerCurrency} from '@/composables/useFormat'
 import {MARKETS, useMarketSuffix} from '@/composables/useMarketSuffix'
 import api from '@/composables/useApi'
@@ -27,6 +28,7 @@ const emit = defineEmits(['update:visible', 'hide'])
 const toast = useToast()
 const portfolio = usePortfolioStore()
 const feeStore = useFeeProfileStore()
+const groupsStore = useGroupsStore()
 const {suffix: marketSuffix, selected: selectedMarket, applyTo, searchQuery} = useMarketSuffix('tx-add-market')
 
 const type = ref('buy')
@@ -38,6 +40,8 @@ const notes = ref('')
 const selectedFeeProfile = ref(null)
 const loading = ref(false)
 const suggestions = ref([])
+const groups = ref([])              // selected group tags (array of strings)
+const groupSuggestions = ref([])    // filtered existing tags for the dropdown
 
 const currentTicker = computed(() => {
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
@@ -93,8 +97,10 @@ watch(() => props.visible, (v) => {
     price.value = props.defaultPrice ?? null
     date.value = new Date()
     notes.value = ''
+    groups.value = []
     type.value = props.defaultType === 'sell' ? 'sell' : 'buy'
     selectedFeeProfile.value = feeStore.profiles.find((p) => p.isDefault)?._id || null
+    groupsStore.fetchGroups()
   }
 })
 
@@ -108,6 +114,29 @@ async function searchTicker(event) {
     const results = await api.get(`/stocks/search?q=${encodeURIComponent(q)}`)
     suggestions.value = results.map((r) => `${r.ticker} — ${r.name}`)
   } catch { suggestions.value = [] }
+}
+
+// Suggest existing tags that match what's typed and aren't already selected.
+function searchGroups(event) {
+  const q = (event.query || '').trim().toLowerCase()
+  const selected = new Set(groups.value.map((g) => g.toLowerCase()))
+  groupSuggestions.value = groupsStore.tags.filter(
+      (t) => !selected.has(t.toLowerCase()) && t.toLowerCase().includes(q)
+  )
+}
+
+// PrimeVue's multiple AutoComplete only adds *selected* suggestions, not free
+// text. Pressing Enter on unmatched input creates a new tag.
+function addTypedGroup(event) {
+  const input = event.target
+  const val = (input.value || '').trim().slice(0, 30)
+  if (!val) return
+  event.preventDefault()
+  if (!groups.value.some((g) => g.toLowerCase() === val.toLowerCase())) {
+    groups.value = [...groups.value, val]
+  }
+  input.value = ''
+  groupSuggestions.value = []
 }
 
 async function submit() {
@@ -127,6 +156,7 @@ async function submit() {
       date: date.value,
       notes: notes.value || undefined,
       feeProfileId: selectedFeeProfile.value || undefined,
+      groups: type.value === 'buy' && groups.value.length ? groups.value : undefined,
     })
     toast.add({ severity: 'success', summary: `${type.value === 'buy' ? 'Bought' : 'Sold'} ${t}`, life: 2000 })
     emit('update:visible', false)
@@ -209,6 +239,22 @@ async function submit() {
         <DatePicker v-model="date" :max-date="new Date()" date-format="dd/mm/yy" show-icon fluid />
       </div>
 
+      <div v-if="type === 'buy'" class="field">
+        <label>Groups <span class="text-muted">(optional)</span></label>
+        <AutoComplete
+            v-model="groups"
+            :suggestions="groupSuggestions"
+            :typeahead="false"
+            complete-on-focus
+            fluid
+            multiple
+            placeholder="Tech, Long-term…"
+            @complete="searchGroups"
+            @keydown.enter="addTypedGroup"
+        />
+        <span class="text-muted hint">Type to create a new group or pick an existing one</span>
+      </div>
+
       <div class="field">
         <label>Brokerage fee</label>
         <Select
@@ -254,6 +300,7 @@ async function submit() {
         :label="type === 'buy' ? 'Buy' : 'Sell'"
         :severity="type === 'buy' ? 'success' : 'danger'"
         :loading="loading"
+        outlined
         fluid
         @click="submit"
       />
@@ -283,6 +330,10 @@ async function submit() {
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+}
+
+.hint {
+  font-size: 0.72rem;
 }
 .total-row { display: flex; flex-direction: column; gap: 4px; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
 .total-line { display: flex; justify-content: space-between; }

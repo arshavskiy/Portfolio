@@ -100,7 +100,7 @@ async function turnOnPush() {
         This device doesn't support push. Alerts still show in-app.
       </Message>
 
-      <Button :loading="loading" fluid label="Create Alert" @click="submit"/>
+      <Button :loading="loading" fluid label="Create Alert" outlined @click="submit"/>
     </div>
   </Dialog>
 </template>

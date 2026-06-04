@@ -95,7 +95,7 @@ async function submit() {
         </span>
       </div>
 
-      <Button label="Add to Watchlist" :loading="loading" fluid @click="submit" />
+      <Button :loading="loading" fluid label="Add to Watchlist" outlined @click="submit"/>
     </div>
   </Dialog>
 </template>

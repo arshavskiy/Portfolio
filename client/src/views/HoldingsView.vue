@@ -7,9 +7,12 @@ import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
+import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
 import Button from 'primevue/button'
+import Select from 'primevue/select'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
+import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
 
@@ -21,7 +24,7 @@ const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
 const sparklines = ref({})
-const groupByMarket = useStorage('holdings-group-market', false)
+const groupMode = useStorage('holdings-group-mode', 'none')
 const compactMode = useStorage('holdings-compact', false)
 
 const RANGE_OPTIONS = [
@@ -29,21 +32,7 @@ const RANGE_OPTIONS = [
   {label: '1M', value: '1mo'},
 ]
 
-function marketOf(ticker) {
-  return ticker.toUpperCase().endsWith('.TA') ? 'TASE' : 'US'
-}
-
-const grouped = computed(() => {
-  if (!groupByMarket.value) return [{market: null, items: portfolio.positions}]
-  const map = {}
-  for (const pos of portfolio.positions) {
-    const m = marketOf(pos.ticker)
-    ;(map[m] ||= []).push(pos)
-  }
-  return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([market, items]) => ({market, items}))
-})
+const grouped = computed(() => groupItems(portfolio.positions, groupMode.value))
 
 onMounted(async () => {
   try {
@@ -87,6 +76,18 @@ function openSell(pos) {
   showSellModal.value = true
 }
 
+const groupPos = ref(null)
+const showGroupModal = ref(false)
+
+function openGroups(pos) {
+  groupPos.value = pos
+  showGroupModal.value = true
+}
+
+async function onGroupsSaved() {
+  await portfolio.fetchPortfolio()
+}
+
 // addTransaction() already refreshes the portfolio store; just resync sparklines
 // since positions may have appeared/disappeared.
 async function onTransactionDone() {
@@ -99,7 +100,7 @@ async function onTransactionDone() {
     <header class="page-header">
       <h1 class="gradient-title">Holdings</h1>
       <div class="header-actions">
-        <Button icon="pi pi-plus" label="Add" size="small" @click="showModal = true"/>
+        <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
           <SettingsRow icon="pi pi-chart-line" label="Chart range">
             <div class="toggle-group">
@@ -121,13 +122,14 @@ async function onTransactionDone() {
             >{{ compactMode ? 'On' : 'Off' }}
             </button>
           </SettingsRow>
-          <SettingsRow icon="pi pi-globe" label="Group by market">
-            <button
-                :class="{ active: groupByMarket }"
-                class="toggle-btn"
-                @click="groupByMarket = !groupByMarket"
-            >{{ groupByMarket ? 'On' : 'Off' }}
-            </button>
+          <SettingsRow icon="pi pi-objects-column" label="Group by">
+            <Select
+                v-model="groupMode"
+                :options="GROUP_MODES"
+                class="group-select"
+                option-label="label"
+                option-value="value"
+            />
           </SettingsRow>
         </PageSettings>
       </div>
@@ -142,16 +144,17 @@ async function onTransactionDone() {
     </div>
 
     <div v-else :class="compactMode ? 'positions-compact' : 'positions-list'">
-      <template v-for="group in grouped" :key="group.market">
-        <div v-if="group.market" class="market-header">{{ group.market }}</div>
+      <template v-for="section in grouped" :key="section.group ?? '_all'">
+        <div v-if="section.group" class="market-header">{{ section.group }}</div>
         <PositionCard
-          v-for="pos in group.items"
-          :key="pos.ticker"
+            v-for="pos in section.items"
+            :key="`${section.group ?? ''}-${pos.ticker}`"
           :pos="pos"
           :sparkline="sparklines[pos.ticker]"
           :compact="compactMode"
           @delete="confirmDelete"
           @sell="openSell"
+            @edit-groups="openGroups"
         />
       </template>
     </div>
@@ -164,6 +167,11 @@ async function onTransactionDone() {
         :max-shares="sellPos?.shares ?? null"
         default-type="sell"
         @hide="onTransactionDone"
+    />
+    <GroupEditModal
+        v-model:visible="showGroupModal"
+        :position="groupPos"
+        @saved="onGroupsSaved"
     />
   </div>
 </template>
@@ -231,5 +239,14 @@ async function onTransactionDone() {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+.group-select {
+  min-width: 110px;
+}
+
+.group-select :deep(.p-select-label) {
+  padding: 4px 8px;
+  font-size: 0.8rem;
 }
 </style>

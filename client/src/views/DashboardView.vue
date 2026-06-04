@@ -1,11 +1,13 @@
 <script setup>
-import {onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useChartRange} from '@/composables/useChartRange'
+import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
 import {useStorage} from '@vueuse/core'
 import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import api from '@/composables/useApi'
+import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
@@ -31,6 +33,9 @@ const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
 const range = useChartRange()
 const sparklines = ref({})
+const groupMode = useStorage('dashboard-group-mode', 'none')
+
+const groupedPositions = computed(() => groupItems(portfolio.positions, groupMode.value))
 
 const historyRange = useStorage('dashboard-history-range', '1mo')
 const history = ref([])
@@ -101,6 +106,15 @@ function neonStyle(pnlPercent) {
             </button>
           </div>
         </SettingsRow>
+        <SettingsRow icon="pi pi-objects-column" label="Group by">
+          <Select
+              v-model="groupMode"
+              :options="GROUP_MODES"
+              class="group-select"
+              option-label="label"
+              option-value="value"
+          />
+        </SettingsRow>
       </PageSettings>
     </header>
 
@@ -128,44 +142,49 @@ function neonStyle(pnlPercent) {
         <PortfolioHistoryChart :data="history" :loading="historyLoading"/>
       </section>
 
-      <!-- One card per stock -->
-      <div
-        v-for="pos in portfolio.positions"
-        :key="pos.ticker"
-        class="stock-card"
-        :style="neonStyle(pos.pnlPercent)"
-        @click="$router.push(`/stock/${pos.ticker}`)"
-      >
-        <div class="stock-top">
-          <div class="stock-left">
-            <span class="ticker">{{ pos.ticker }}</span>
-            <span class="company text-muted">{{ pos.companyName }}</span>
+      <!-- One card per stock (optionally grouped) -->
+      <template v-for="section in groupedPositions" :key="section.group ?? '_all'">
+        <div v-if="section.group" class="group-header">{{ section.group }}</div>
+        <div
+            v-for="pos in section.items"
+            :key="`${section.group ?? ''}-${pos.ticker}`"
+            :style="neonStyle(pos.pnlPercent)"
+            class="stock-card"
+            @click="$router.push(`/stock/${pos.ticker}`)"
+        >
+          <div class="stock-top">
+            <div class="stock-left">
+              <span class="ticker">{{ pos.ticker }}</span>
+              <span class="company text-muted">{{ pos.companyName }}</span>
+            </div>
+            <div class="stock-right">
+              <span class="stock-value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
+              <span class="stock-price text-muted">{{ pos.shares }} × {{
+                  useTickerCurrency(pos.currentPrice, pos.ticker)
+                }}</span>
+            </div>
           </div>
-          <div class="stock-right">
-            <span class="stock-value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
-            <span class="stock-price text-muted">{{ pos.shares }} × {{ useTickerCurrency(pos.currentPrice, pos.ticker) }}</span>
+
+          <!-- Sparkline -->
+          <SparklineChart
+              v-if="sparklines[pos.ticker]?.length"
+              :data="sparklines[pos.ticker]"
+              :pnl-percent="pos.pnlPercent"
+              class="stock-spark"
+          />
+
+          <div class="stock-pnl">
+            <span class="text-muted" style="font-size:0.78rem">P&L</span>
+            <span :class="gainLossClass(pos.pnl)" class="pnl-val">
+              {{ pos.pnl >= 0 ? '+' : '' }}{{ useTickerCurrency(pos.pnl, pos.ticker) }}
+              ({{ usePercent(pos.pnlPercent) }})
+            </span>
+            <span :class="gainLossClass(pos.changePercent)" class="day-pnl">
+              Today {{ usePercent(pos.changePercent) }}
+            </span>
           </div>
         </div>
-
-        <!-- Sparkline -->
-        <SparklineChart
-          v-if="sparklines[pos.ticker]?.length"
-          :data="sparklines[pos.ticker]"
-          :pnl-percent="pos.pnlPercent"
-          class="stock-spark"
-        />
-
-        <div class="stock-pnl">
-          <span class="text-muted" style="font-size:0.78rem">P&L</span>
-          <span :class="gainLossClass(pos.pnl)" class="pnl-val">
-            {{ pos.pnl >= 0 ? '+' : '' }}{{ useTickerCurrency(pos.pnl, pos.ticker) }}
-            ({{ usePercent(pos.pnlPercent) }})
-          </span>
-          <span :class="gainLossClass(pos.changePercent)" class="day-pnl">
-            Today {{ usePercent(pos.changePercent) }}
-          </span>
-        </div>
-      </div>
+      </template>
 
       <!-- Total card per currency -->
       <div class="totals-grid">
@@ -276,6 +295,26 @@ function neonStyle(pnlPercent) {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
+}
+
+.group-select {
+  min-width: 110px;
+}
+
+.group-select :deep(.p-select-label) {
+  padding: 4px 8px;
+  font-size: 0.8rem;
+}
+
+.group-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  padding: 0.6rem 0.25rem 0.3rem;
+  border-bottom: 1px solid var(--border);
+  margin: 0.5rem 0;
 }
 
 /* Per-stock card */

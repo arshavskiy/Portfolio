@@ -6,11 +6,20 @@ import Tag from 'primevue/tag'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
+import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 
 const transactions = ref([])
 const loading = ref(false)
 const filterTicker = ref('')
 const filterType = ref(null)
+
+const editTx = ref(null)
+const showEdit = ref(false)
+
+function openEdit(tx) {
+  editTx.value = tx
+  showEdit.value = true
+}
 
 const typeOptions = [
   { label: 'All types', value: null },
@@ -98,7 +107,7 @@ function exportCSV() {
     </div>
 
     <div v-else class="tx-list">
-      <div v-for="tx in filtered" :key="tx._id" class="tx-row">
+      <div v-for="tx in filtered" :key="tx._id" class="tx-row" @click="openEdit(tx)">
         <div class="tx-left">
           <span class="ticker">{{ tx.ticker }}</span>
           <span class="tx-date text-muted">{{ formatDate(tx.date) }}</span>
@@ -112,10 +121,17 @@ function exportCSV() {
             {{ tx.type === 'sell' ? '+' : '-' }}{{ useTickerCurrency(tx.total, tx.ticker) }}
           </span>
         </div>
+        <i class="pi pi-pencil edit-hint text-muted"/>
       </div>
     </div>
 
     <p v-if="filtered.length" class="count text-muted">{{ filtered.length }} transaction{{ filtered.length !== 1 ? 's' : '' }}</p>
+
+    <EditTransactionModal
+        v-model:visible="showEdit"
+        :transaction="editTx"
+        @saved="fetchTransactions"
+    />
   </div>
 </template>
 
@@ -136,12 +152,31 @@ function exportCSV() {
 .empty i { font-size: 3rem; color: var(--text-secondary); }
 
 .tx-list { display: flex; flex-direction: column; }
-.tx-row { display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); gap: 0.5rem; }
+
+.tx-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tx-row:active {
+  background: rgba(255, 255, 255, 0.03);
+}
 .tx-left { flex: 0 0 90px; }
 .ticker { font-weight: 600; display: block; font-size: 0.95rem; }
 .tx-date { font-size: 0.75rem; }
 .tx-mid { flex: 1; font-size: 0.82rem; }
 .tx-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
 .total { font-size: 0.88rem; font-weight: 500; }
+
+.edit-hint {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
 .count { margin-top: 0.75rem; font-size: 0.8rem; text-align: center; }
 </style>

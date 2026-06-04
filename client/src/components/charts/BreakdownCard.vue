@@ -135,7 +135,6 @@ watch(() => props.positions, () => nextTick(draw), {deep: true})
 
 <style scoped>
 .breakdown-card {
-  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0.9rem 1rem;

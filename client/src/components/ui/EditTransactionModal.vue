@@ -1,8 +1,9 @@
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import { useFeeProfileStore } from '@/stores/feeProfiles'
-import { tickerCurrency } from '@/composables/useFormat'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useToast} from 'primevue/usetoast'
+import {useConfirm} from 'primevue/useconfirm'
+import {useFeeProfileStore} from '@/stores/feeProfiles'
+import {tickerCurrency} from '@/composables/useFormat'
 import api from '@/composables/useApi'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
@@ -19,6 +20,7 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'saved'])
 
 const toast = useToast()
+const confirm = useConfirm()
 const feeStore = useFeeProfileStore()
 
 const shares = ref(null)
@@ -77,6 +79,29 @@ async function save() {
   } finally {
     loading.value = false
   }
+}
+
+function confirmDelete() {
+  confirm.require({
+    message: `Delete this ${props.transaction?.type} of ${props.transaction?.shares} ${ticker.value}? The position will be recalculated from remaining transactions.`,
+    header: 'Delete transaction',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    acceptLabel: 'Delete',
+    accept: async () => {
+      loading.value = true
+      try {
+        await api.delete(`/portfolio/transaction/${props.transaction._id}`)
+        toast.add({severity: 'success', summary: 'Transaction deleted', life: 2000})
+        emit('update:visible', false)
+        emit('saved')
+      } catch (err) {
+        toast.add({severity: 'error', summary: err.message, life: 3000})
+      } finally {
+        loading.value = false
+      }
+    },
+  })
 }
 </script>
 
@@ -137,7 +162,11 @@ async function save() {
         <span class="total-amount">{{ currencySymbol }}{{ total.toFixed(2) }}</span>
       </div>
 
-      <Button label="Save changes" :loading="loading" fluid @click="save" />
+      <div class="actions">
+        <Button :disabled="loading" icon="pi pi-trash" label="Delete" outlined severity="danger"
+                @click="confirmDelete"/>
+        <Button :loading="loading" class="save-btn" label="Save changes" outlined @click="save"/>
+      </div>
     </div>
   </Dialog>
 </template>
@@ -151,4 +180,13 @@ async function save() {
 .field label { font-size: 0.82rem; color: var(--text-secondary); }
 .total-row { display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.04); }
 .total-amount { font-weight: 600; }
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-btn {
+  flex: 1;
+}
 </style>
