@@ -114,6 +114,18 @@ async function remove(item) {
 <style scoped>
 .watchlist { padding: 1rem; }
 
+@media (min-width: 768px) {
+  .watchlist {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .watchlist {
+    padding: 2rem;
+  }
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

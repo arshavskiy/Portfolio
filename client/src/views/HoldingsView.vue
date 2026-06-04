@@ -234,6 +234,21 @@ async function onTransactionDone() {
   border-top: 1px solid var(--border);
 }
 
+/* Tile full cards into columns on wider screens (compact stays single-column). */
+@media (min-width: 768px) {
+  .positions-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  /* group headers should span the full grid row */
+  .positions-list > .market-header {
+    grid-column: 1 / -1;
+  }
+}
+
 .toggle-group {
   display: flex;
   gap: 0.25rem;
@@ -264,5 +279,17 @@ async function onTransactionDone() {
 .group-select :deep(.p-select-label) {
   padding: 4px 8px;
   font-size: 0.8rem;
+}
+
+@media (min-width: 768px) {
+  .holdings {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .holdings {
+    padding: 2rem;
+  }
 }
 </style>

@@ -137,6 +137,18 @@ function exportCSV() {
 
 <style scoped>
 .transactions { padding: 1rem; }
+
+@media (min-width: 768px) {
+  .transactions {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .transactions {
+    padding: 2rem;
+  }
+}
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
 
 .page-header h1 {

@@ -18,22 +18,30 @@ function isActive(tab) {
 </script>
 
 <template>
-  <nav class="bottom-nav">
-    <RouterLink
-      v-for="tab in tabs"
-      :key="tab.name"
-      :to="tab.to"
-      class="nav-item"
-      :class="{ active: isActive(tab) }"
-    >
-      <i :class="tab.icon" />
-      <span>{{ tab.label }}</span>
-    </RouterLink>
+  <nav class="app-nav">
+    <div class="nav-brand">
+      <span class="brand-mark">📈</span>
+      <span class="brand-text gradient-title">StockFolio</span>
+    </div>
+    <div class="nav-items">
+      <RouterLink
+          v-for="tab in tabs"
+          :key="tab.name"
+          :class="{ active: isActive(tab) }"
+          :to="tab.to"
+          class="nav-item"
+      >
+        <i :class="tab.icon"/>
+        <span>{{ tab.label }}</span>
+      </RouterLink>
+    </div>
   </nav>
 </template>
 
 <style scoped>
-.bottom-nav {
+/* ── Mobile: fixed bottom bar ── */
+.app-nav {
+  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
@@ -41,9 +49,18 @@ function isActive(tab) {
   padding-bottom: var(--safe-bottom);
   background: var(--bg-secondary);
   border-top: 1px solid var(--border);
+  z-index: 100;
+}
+
+.nav-brand {
+  display: none;
+}
+
+/* hidden on mobile */
+.nav-items {
   display: flex;
   align-items: center;
-  z-index: 100;
+  height: 100%;
 }
 .nav-item {
   flex: 1;
@@ -61,4 +78,79 @@ function isActive(tab) {
 .nav-item.active { color: var(--neon-blue); }
 .nav-item.active i { filter: drop-shadow(0 0 6px var(--neon-blue)); }
 .nav-item.active span { text-shadow: 0 0 8px var(--neon-blue); }
+
+/* ── Desktop: vertical sidebar ── */
+@media (min-width: 1024px) {
+  .app-nav {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    height: 100dvh;
+    width: 220px;
+    flex-shrink: 0;
+    padding-bottom: 0;
+    border-top: none;
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 1.25rem 1.25rem 1rem;
+  }
+
+  .brand-mark {
+    font-size: 1.4rem;
+  }
+
+  .brand-text {
+    font-size: 1.15rem;
+    font-weight: 800;
+  }
+
+  .nav-items {
+    flex-direction: column;
+    align-items: stretch;
+    height: auto;
+    gap: 4px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .nav-item {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .nav-item i {
+    font-size: 18px;
+  }
+
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+  }
+
+  .nav-item.active {
+    background: rgba(0, 207, 255, 0.1);
+    color: var(--neon-blue);
+  }
+
+  .nav-item.active i {
+    filter: none;
+  }
+
+  .nav-item.active span {
+    text-shadow: none;
+  }
+}
 </style>

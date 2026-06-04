@@ -92,3 +92,14 @@ h2.gradient-h2 {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+/* ── Desktop (sidebar layout): no bottom nav to clear ── */
+@media (min-width: 1024px) {
+  .safe-bottom {
+    padding-bottom: 2rem;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+}

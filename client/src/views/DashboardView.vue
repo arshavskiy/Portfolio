@@ -130,6 +130,7 @@ function neonStyle(pnlPercent) {
       <!-- One card per stock (optionally grouped) -->
       <template v-for="section in groupedPositions" :key="section.group ?? '_all'">
         <div v-if="section.group" class="group-header">{{ section.group }}</div>
+        <div class="stock-grid">
         <div
             v-for="pos in section.items"
             :key="`${section.group ?? ''}-${pos.ticker}`"
@@ -168,6 +169,7 @@ function neonStyle(pnlPercent) {
               Today {{ usePercent(pos.changePercent) }}
             </span>
           </div>
+        </div>
         </div>
       </template>
 
@@ -318,13 +320,19 @@ function neonStyle(pnlPercent) {
 }
 
 /* Per-stock card */
+.stock-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
 .stock-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
   min-height: 140px;
   padding: 0.9rem 1rem;
-  margin-bottom: 0.5rem;
   cursor: pointer;
   transition: border-color 0.15s;
 }
@@ -386,4 +394,28 @@ function neonStyle(pnlPercent) {
 .fx-note { font-size: 0.72rem; text-align: right; margin-top: 0.15rem; }
 
 .empty { padding: 2rem 0; font-size: 0.9rem; text-align: center; }
+
+/* ── Responsive: tile stock cards + roomier totals on wide screens ── */
+@media (min-width: 768px) {
+  .dashboard {
+    padding: 1.5rem;
+  }
+
+  .stock-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  .totals-grid {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .dashboard {
+    padding: 2rem;
+  }
+}
 </style>

@@ -113,6 +113,13 @@ function logout() {
 <style scoped>
 .profile { padding: 1rem; }
 
+@media (min-width: 768px) {
+  .profile {
+    padding: 1.5rem;
+    max-width: 640px;
+  }
+}
+
 .page-header {
   margin-bottom: 1rem;
 }
