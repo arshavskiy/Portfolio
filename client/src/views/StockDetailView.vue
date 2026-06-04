@@ -1,10 +1,10 @@
 <script setup>
-import { ref, onMounted, onUnmounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
-import { useTickerCurrency, usePercent, useLargeNumber, gainLossClass } from '@/composables/useFormat'
-import { useWatchlistStore } from '@/stores/watchlist'
-import { useHistoryStore } from '@/stores/history'
+import {onMounted, onUnmounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useToast} from 'primevue/usetoast'
+import {gainLossClass, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useWatchlistStore} from '@/stores/watchlist'
+import {useHistoryStore} from '@/stores/history'
 import api from '@/composables/useApi'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
@@ -89,7 +89,7 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
     <header class="detail-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <div class="header-info">
-        <h1>{{ ticker }}</h1>
+        <h1 class="gradient-title">{{ ticker }}</h1>
         <span class="text-muted">{{ quote?.name }}</span>
       </div>
       <Button
@@ -165,7 +165,11 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
 .stock-detail { padding: 0.5rem 1rem 2rem; }
 .detail-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .header-info { flex: 1; }
-.header-info h1 { font-size: 1.3rem; font-weight: 800; line-height: 1; background: linear-gradient(135deg, #00cfff, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+.header-info h1 {
+  font-size: 1.3rem;
+  line-height: 1;
+}
 .header-info span { font-size: 0.82rem; }
 .quote-summary { margin-bottom: 1rem; }
 .current-price { font-size: 2.2rem; font-weight: 700; }

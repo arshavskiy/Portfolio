@@ -9,6 +9,8 @@ import {useChartRange} from '@/composables/useChartRange'
 import Button from 'primevue/button'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
+import PageSettings from '@/components/ui/PageSettings.vue'
+import SettingsRow from '@/components/ui/SettingsRow.vue'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -19,6 +21,11 @@ const showModal = ref(false)
 const sparklines = ref({})
 const groupByMarket = useStorage('holdings-group-market', false)
 const compactMode = useStorage('holdings-compact', false)
+
+const RANGE_OPTIONS = [
+  {label: '1W', value: '1wk'},
+  {label: '1M', value: '1mo'},
+]
 
 function marketOf(ticker) {
   return ticker.toUpperCase().endsWith('.TA') ? 'TASE' : 'US'
@@ -75,23 +82,37 @@ function confirmDelete(pos) {
     <header class="page-header">
       <h1 class="gradient-title">Holdings</h1>
       <div class="header-actions">
-        <button
-            :class="{ active: compactMode }"
-            class="market-btn"
-            title="Compact view"
-            @click="compactMode = !compactMode"
-        >
-          <i class="pi pi-list"/>
-        </button>
-        <button
-            class="market-btn"
-            :class="{ active: groupByMarket }"
-            title="Group by market"
-            @click="groupByMarket = !groupByMarket"
-        >
-          <i class="pi pi-globe"/>
-        </button>
         <Button icon="pi pi-plus" label="Add" size="small" @click="showModal = true"/>
+        <PageSettings>
+          <SettingsRow icon="pi pi-chart-line" label="Chart range">
+            <div class="toggle-group">
+              <button
+                  v-for="opt in RANGE_OPTIONS"
+                  :key="opt.value"
+                  :class="{ active: range === opt.value }"
+                  class="toggle-btn"
+                  @click="range = opt.value"
+              >{{ opt.label }}
+              </button>
+            </div>
+          </SettingsRow>
+          <SettingsRow icon="pi pi-list" label="Compact view">
+            <button
+                :class="{ active: compactMode }"
+                class="toggle-btn"
+                @click="compactMode = !compactMode"
+            >{{ compactMode ? 'On' : 'Off' }}
+            </button>
+          </SettingsRow>
+          <SettingsRow icon="pi pi-globe" label="Group by market">
+            <button
+                :class="{ active: groupByMarket }"
+                class="toggle-btn"
+                @click="groupByMarket = !groupByMarket"
+            >{{ groupByMarket ? 'On' : 'Off' }}
+            </button>
+          </SettingsRow>
+        </PageSettings>
       </div>
     </header>
 
@@ -109,9 +130,9 @@ function confirmDelete(pos) {
         <PositionCard
           v-for="pos in group.items"
           :key="pos.ticker"
-          :compact="compactMode"
           :pos="pos"
           :sparkline="sparklines[pos.ticker]"
+          :compact="compactMode"
           @delete="confirmDelete"
         />
       </template>
@@ -133,29 +154,12 @@ function confirmDelete(pos) {
 
 .page-header h1 {
   font-size: 1.5rem;
-  font-weight: 700;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.market-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 8px;
-  padding: 5px 9px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.market-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
 }
 
 .market-header {
@@ -178,5 +182,28 @@ function confirmDelete(pos) {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--border);
+}
+
+.toggle-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.toggle-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 </style>

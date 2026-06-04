@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useTickerCurrency, gainLossClass } from '@/composables/useFormat'
+import {computed, onMounted, ref} from 'vue'
+import {useTickerCurrency} from '@/composables/useFormat'
 import api from '@/composables/useApi'
 import Tag from 'primevue/tag'
 import Select from 'primevue/select'
@@ -122,7 +122,10 @@ function exportCSV() {
 <style scoped>
 .transactions { padding: 1rem; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.page-header h1 { font-size: 1.5rem; font-weight: 700; }
+
+.page-header h1 {
+  font-size: 1.5rem;
+}
 
 .filters { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
 .filter-input { flex: 1; }

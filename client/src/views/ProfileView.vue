@@ -1,7 +1,7 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 import Button from 'primevue/button'
 import Avatar from 'primevue/avatar'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
@@ -70,7 +70,10 @@ function logout() {
 <style scoped>
 .profile { padding: 1rem; }
 .page-header { margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.5rem; font-weight: 700; }
+
+.page-header h1 {
+  font-size: 1.5rem;
+}
 .profile-card { display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 1.5rem; }
 .profile-name { font-weight: 600; font-size: 1.1rem; }
 .profile-email { font-size: 0.85rem; }

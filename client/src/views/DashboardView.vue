@@ -8,6 +8,13 @@ import AllocationChart from '@/components/charts/AllocationChart.vue'
 import TopMoversChart from '@/components/charts/TopMoversChart.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
+import PageSettings from '@/components/ui/PageSettings.vue'
+import SettingsRow from '@/components/ui/SettingsRow.vue'
+
+const RANGE_OPTIONS = [
+  {label: '1W', value: '1wk'},
+  {label: '1M', value: '1mo'},
+]
 
 const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
@@ -52,6 +59,20 @@ function neonStyle(pnlPercent) {
   <div class="dashboard">
     <header class="dash-header">
       <h1 class="gradient-title">Portfolio</h1>
+      <PageSettings>
+        <SettingsRow icon="pi pi-chart-line" label="Chart range">
+          <div class="toggle-group">
+            <button
+                v-for="opt in RANGE_OPTIONS"
+                :key="opt.value"
+                :class="{ active: range === opt.value }"
+                class="toggle-btn"
+                @click="range = opt.value"
+            >{{ opt.label }}
+            </button>
+          </div>
+        </SettingsRow>
+      </PageSettings>
     </header>
 
     <div v-if="portfolio.loading" class="cards-grid">
@@ -153,8 +174,40 @@ function neonStyle(pnlPercent) {
 
 <style scoped>
 .dashboard { padding: 1rem; }
-.dash-header { margin-bottom: 1.25rem; }
-.dash-header h1 { font-size: 1.5rem; font-weight: 800; }
+
+.dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.dash-header h1 {
+  font-size: 1.5rem;
+}
+
+.toggle-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.toggle-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 
 /* Per-stock card */
 .stock-card {

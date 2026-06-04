@@ -1,9 +1,9 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useToast } from 'primevue/usetoast'
-import { useTickerCurrency, gainLossClass } from '@/composables/useFormat'
-import { useFeeProfileStore } from '@/stores/feeProfiles'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useToast} from 'primevue/usetoast'
+import {gainLossClass, useTickerCurrency} from '@/composables/useFormat'
+import {useFeeProfileStore} from '@/stores/feeProfiles'
 import api from '@/composables/useApi'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
@@ -191,7 +191,7 @@ const simulation = computed(() => {
     <header class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <div class="header-info">
-        <h1>{{ ticker }}</h1>
+        <h1 class="gradient-title">{{ ticker }}</h1>
         <span class="text-muted">Transaction Lots</span>
       </div>
       <Button icon="pi pi-plus" rounded text @click="showModal = true" />
@@ -394,7 +394,11 @@ const simulation = computed(() => {
 .position-detail { padding: 0.5rem 1rem 2rem; }
 .page-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; }
 .header-info { flex: 1; }
-.header-info h1 { font-size: 1.3rem; font-weight: 700; line-height: 1; }
+
+.header-info h1 {
+  font-size: 1.3rem;
+  line-height: 1;
+}
 .header-info span { font-size: 0.82rem; }
 
 .pnl-card {

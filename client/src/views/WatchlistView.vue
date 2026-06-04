@@ -7,12 +7,19 @@ import {useChartRange} from '@/composables/useChartRange'
 import Button from 'primevue/button'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
+import PageSettings from '@/components/ui/PageSettings.vue'
+import SettingsRow from '@/components/ui/SettingsRow.vue'
 
 const toast = useToast()
 const watchlist = useWatchlistStore()
 const range = useChartRange()
 const showModal = ref(false)
 const groupByMarket = useStorage('watchlist-group-market', false)
+
+const RANGE_OPTIONS = [
+  {label: '1W', value: '1wk'},
+  {label: '1M', value: '1mo'},
+]
 
 function marketOf(ticker) {
   return ticker.toUpperCase().endsWith('.TA') ? 'TASE' : 'US'
@@ -44,15 +51,29 @@ async function remove(item) {
     <header class="page-header">
       <h1 class="gradient-title">Watchlist</h1>
       <div class="header-actions">
-        <button
-            class="market-btn"
-            :class="{ active: groupByMarket }"
-            title="Group by market"
-            @click="groupByMarket = !groupByMarket"
-        >
-          <i class="pi pi-globe"/>
-        </button>
         <Button icon="pi pi-plus" label="Add" size="small" @click="showModal = true"/>
+        <PageSettings>
+          <SettingsRow icon="pi pi-chart-line" label="Chart range">
+            <div class="toggle-group">
+              <button
+                  v-for="opt in RANGE_OPTIONS"
+                  :key="opt.value"
+                  :class="{ active: range === opt.value }"
+                  class="toggle-btn"
+                  @click="range = opt.value"
+              >{{ opt.label }}
+              </button>
+            </div>
+          </SettingsRow>
+          <SettingsRow icon="pi pi-globe" label="Group by market">
+            <button
+                :class="{ active: groupByMarket }"
+                class="toggle-btn"
+                @click="groupByMarket = !groupByMarket"
+            >{{ groupByMarket ? 'On' : 'Off' }}
+            </button>
+          </SettingsRow>
+        </PageSettings>
       </div>
     </header>
 
@@ -102,22 +123,6 @@ async function remove(item) {
   gap: 0.5rem;
 }
 
-.market-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  border-radius: 8px;
-  padding: 5px 9px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.market-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
 .market-header {
   font-size: 0.7rem;
   font-weight: 700;
@@ -161,5 +166,28 @@ async function remove(item) {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--border);
+}
+
+.toggle-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.toggle-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 </style>
