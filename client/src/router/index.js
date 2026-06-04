@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {createRouter, createWebHistory} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 
 const routes = [
   { path: '/login', name: 'Login', component: () => import('@/views/LoginView.vue'), meta: { guest: true } },
@@ -15,6 +15,7 @@ const routes = [
       { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue') },
       { path: 'stock/:ticker', name: 'StockDetail', component: () => import('@/views/StockDetailView.vue') },
       { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue') },
+        {path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue')},
       { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue') },
     ],
   },

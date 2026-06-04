@@ -4,6 +4,7 @@ const FeeProfile = require('../models/FeeProfile')
 const Watchlist = require('../models/Watchlist')
 const { getQuotes, invalidateCache, getIlsToUsd } = require('../services/stockService')
 const { computeTransactionCosts } = require('./feeProfileController')
+const {getPortfolioHistory} = require('../services/historyService')
 
 exports.getPortfolio = async (req, res) => {
   try {
@@ -84,6 +85,16 @@ exports.getPortfolio = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
+}
+
+exports.getHistory = async (req, res) => {
+    try {
+        const range = req.query.range || '1mo'
+        const points = await getPortfolioHistory(req.user._id, range)
+        res.json(points)
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
 }
 
 exports.addTransaction = async (req, res) => {

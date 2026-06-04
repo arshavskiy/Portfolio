@@ -10,6 +10,7 @@ import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
 import StockChart from '@/components/charts/StockChart.vue'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
+import AlertModal from '@/components/ui/AlertModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -23,6 +24,7 @@ const history = ref([])
 const loading = ref(false)
 const chartLoading = ref(false)
 const showTxModal = ref(false)
+const showAlertModal = ref(false)
 
 const ranges = ['1d', '5d', '1mo', '3mo', '6mo', '1y']
 const selectedRange = ref('3mo')
@@ -93,6 +95,12 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
         <span class="text-muted">{{ quote?.name }}</span>
       </div>
       <Button
+          v-tooltip.bottom="'Set price alert'"
+          icon="pi pi-bell" rounded
+          text
+          @click="showAlertModal = true"
+      />
+      <Button
         :icon="isWatched() ? 'pi pi-eye-slash' : 'pi pi-eye'"
         text rounded
         @click="toggleWatchlist"
@@ -158,6 +166,7 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
     </div>
 
     <AddTransactionModal v-model:visible="showTxModal" :default-ticker="ticker" />
+    <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker"/>
   </div>
 </template>
 

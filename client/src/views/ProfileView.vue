@@ -41,9 +41,9 @@ function logout() {
         <span>Fee Profiles</span>
         <i class="pi pi-chevron-right text-muted" />
       </div>
-      <div class="menu-item">
+      <div class="menu-item" @click="router.push('/alerts')">
         <i class="pi pi-bell" />
-        <span>Notifications</span>
+        <span>Price Alerts</span>
         <i class="pi pi-chevron-right text-muted" />
       </div>
       <div class="menu-item">

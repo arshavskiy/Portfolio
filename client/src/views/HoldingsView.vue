@@ -5,6 +5,7 @@ import {useConfirm} from 'primevue/useconfirm'
 import {useStorage} from '@vueuse/core'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
+import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
 import Button from 'primevue/button'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
@@ -16,6 +17,7 @@ const toast = useToast()
 const confirm = useConfirm()
 const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
+const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
 const sparklines = ref({})
@@ -45,6 +47,7 @@ const grouped = computed(() => {
 
 onMounted(async () => {
   try {
+    alerts.fetchAlerts()
     await portfolio.fetchPortfolio()
     await fetchSparklines()
   } catch {}
@@ -65,7 +68,7 @@ watch(range, fetchSparklines)
 
 function confirmDelete(pos) {
   confirm.require({
-    message: `Remove ${pos.ticker} from your portfolio?`,
+    message: `Remove ${pos.ticker} from your portfolio? This deletes the position but keeps its transaction history.`,
     header: 'Confirm',
     icon: 'pi pi-exclamation-triangle',
     acceptClass: 'p-button-danger',
@@ -74,6 +77,20 @@ function confirmDelete(pos) {
       toast.add({ severity: 'success', summary: 'Removed', life: 2000 })
     },
   })
+}
+
+const sellPos = ref(null)
+const showSellModal = ref(false)
+
+function openSell(pos) {
+  sellPos.value = pos
+  showSellModal.value = true
+}
+
+// addTransaction() already refreshes the portfolio store; just resync sparklines
+// since positions may have appeared/disappeared.
+async function onTransactionDone() {
+  await fetchSparklines()
 }
 </script>
 
@@ -134,11 +151,20 @@ function confirmDelete(pos) {
           :sparkline="sparklines[pos.ticker]"
           :compact="compactMode"
           @delete="confirmDelete"
+          @sell="openSell"
         />
       </template>
     </div>
 
-    <AddTransactionModal v-model:visible="showModal" />
+    <AddTransactionModal v-model:visible="showModal" @hide="onTransactionDone"/>
+    <AddTransactionModal
+        v-model:visible="showSellModal"
+        :default-price="sellPos?.currentPrice ?? null"
+        :default-ticker="sellPos?.ticker || ''"
+        :max-shares="sellPos?.shares ?? null"
+        default-type="sell"
+        @hide="onTransactionDone"
+    />
   </div>
 </template>
 

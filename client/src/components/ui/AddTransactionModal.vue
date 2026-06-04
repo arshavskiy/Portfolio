@@ -18,6 +18,9 @@ import AutoComplete from 'primevue/autocomplete'
 const props = defineProps({
   visible: Boolean,
   defaultTicker: { type: String, default: '' },
+  defaultType: {type: String, default: 'buy'},     // 'buy' | 'sell'
+  defaultPrice: {type: Number, default: null},      // prefill price (e.g. current price for a sell)
+  maxShares: {type: Number, default: null},         // cap shares when selling a known position
 })
 const emit = defineEmits(['update:visible', 'hide'])
 
@@ -87,10 +90,10 @@ watch(() => props.visible, (v) => {
   if (v) {
     ticker.value = props.defaultTicker || ''
     shares.value = null
-    price.value = null
+    price.value = props.defaultPrice ?? null
     date.value = new Date()
     notes.value = ''
-    type.value = 'buy'
+    type.value = props.defaultType === 'sell' ? 'sell' : 'buy'
     selectedFeeProfile.value = feeStore.profiles.find((p) => p.isDefault)?._id || null
   }
 })
@@ -182,8 +185,18 @@ async function submit() {
 
       <div class="fields-row">
         <div class="field">
-          <label>Shares</label>
-          <InputNumber v-model="shares" :min="0.001" :max-fraction-digits="4" placeholder="0" fluid />
+          <label>
+            Shares
+            <button
+                v-if="type === 'sell' && maxShares"
+                class="max-link"
+                type="button"
+                @click="shares = maxShares"
+            >Max {{ maxShares }}
+            </button>
+          </label>
+          <InputNumber v-model="shares" :max="type === 'sell' && maxShares ? maxShares : undefined" :max-fraction-digits="4"
+                       :min="0.001" fluid placeholder="0"/>
         </div>
         <div class="field">
           <label>Price per share</label>
@@ -253,7 +266,24 @@ async function submit() {
 .type-select { align-self: center; }
 .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
-.field label { font-size: 0.85rem; color: var(--text-secondary); }
+
+.field label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.max-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
 .total-row { display: flex; flex-direction: column; gap: 4px; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
 .total-line { display: flex; justify-content: space-between; }
 .fee-line { font-size: 0.82rem; }

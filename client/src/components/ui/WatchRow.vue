@@ -1,19 +1,34 @@
 <script setup>
+import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useAlertsStore} from '@/stores/alerts'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
-defineProps({
+const props = defineProps({
   item: {type: Object, required: true},
 })
 const emit = defineEmits(['remove'])
 const router = useRouter()
+const alerts = useAlertsStore()
+
+// Active price alerts on this ticker → drives the bell indicator.
+const activeAlerts = computed(() =>
+    alerts.forTicker(props.item.ticker).filter((a) => a.active).length
+)
 </script>
 
 <template>
   <div class="watch-row" @click="router.push(`/stock/${item.ticker}`)">
     <div class="row-left">
-      <span class="ticker">{{ item.ticker }}</span>
+      <span class="ticker">
+        {{ item.ticker }}
+        <span v-if="activeAlerts" :title="`${activeAlerts} active alert${activeAlerts > 1 ? 's' : ''}`"
+              class="alert-badge">
+          <i class="pi pi-bell"/>
+          <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
+        </span>
+      </span>
       <span class="company text-muted">{{ item.companyName }}</span>
     </div>
 
@@ -65,6 +80,26 @@ const router = useRouter()
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 0.02em;
+}
+
+.alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  color: var(--neon-blue);
+  vertical-align: middle;
+}
+
+.alert-badge i {
+  font-size: 0.7rem;
+  filter: drop-shadow(0 0 4px var(--neon-blue));
+}
+
+.alert-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .company {

@@ -1,16 +1,24 @@
 <script setup>
+import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {gainLossClass, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useAlertsStore} from '@/stores/alerts'
 import Button from 'primevue/button'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
-defineProps({
+const props = defineProps({
   pos: {type: Object, required: true},
   sparkline: {type: Array, default: () => []},
   compact: {type: Boolean, default: false},
 })
-const emit = defineEmits(['delete'])
+const emit = defineEmits(['delete', 'sell'])
 const router = useRouter()
+const alerts = useAlertsStore()
+
+// Active price alerts on this ticker → drives the bell indicator.
+const activeAlerts = computed(() =>
+    alerts.forTicker(props.pos.ticker).filter((a) => a.active).length
+)
 </script>
 
 <template>
@@ -22,7 +30,14 @@ const router = useRouter()
       @click="router.push(`/stock/${pos.ticker}`)"
   >
     <div class="row-left">
-      <span class="ticker">{{ pos.ticker }}</span>
+      <span class="ticker">
+        {{ pos.ticker }}
+        <span v-if="activeAlerts" :title="`${activeAlerts} active alert${activeAlerts > 1 ? 's' : ''}`"
+              class="alert-badge">
+          <i class="pi pi-bell"/>
+          <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
+        </span>
+      </span>
       <span class="company text-muted">{{ pos.companyName }}</span>
     </div>
 
@@ -41,9 +56,14 @@ const router = useRouter()
       </span>
     </div>
 
-    <button class="remove-btn" @click.stop="emit('delete', pos)">
-      <i class="pi pi-times"/>
-    </button>
+    <div class="row-actions">
+      <button class="row-action sell" title="Sell" @click.stop="emit('sell', pos)">
+        <i class="pi pi-arrow-up-right"/>
+      </button>
+      <button class="row-action remove" title="Remove position" @click.stop="emit('delete', pos)">
+        <i class="pi pi-times"/>
+      </button>
+    </div>
   </div>
 
   <!-- ── Full (card) mode ── -->
@@ -54,7 +74,14 @@ const router = useRouter()
   >
     <div class="pos-top" @click="router.push(`/stock/${pos.ticker}`)">
       <div>
-        <span class="ticker">{{ pos.ticker }}</span>
+        <span class="ticker">
+          {{ pos.ticker }}
+          <span v-if="activeAlerts" :title="`${activeAlerts} active alert${activeAlerts > 1 ? 's' : ''}`"
+                class="alert-badge">
+            <i class="pi pi-bell"/>
+            <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
+          </span>
+        </span>
         <span class="company text-muted">{{ pos.companyName }}</span>
       </div>
       <div class="pos-value">
@@ -94,6 +121,15 @@ const router = useRouter()
           @click="router.push(`/position/${encodeURIComponent(pos.ticker)}`)"
       />
       <Button
+          icon="pi pi-arrow-up-right"
+          label="Sell"
+          outlined
+          severity="warn"
+          size="small"
+          @click="emit('sell', pos)"
+      />
+      <Button
+          v-tooltip="'Remove position'"
           icon="pi pi-trash"
           severity="danger"
           size="small"
@@ -243,6 +279,26 @@ const router = useRouter()
   max-width: 90px;
 }
 
+.alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+  color: var(--neon-blue);
+  vertical-align: middle;
+}
+
+.alert-badge i {
+  font-size: 0.7rem;
+  filter: drop-shadow(0 0 4px var(--neon-blue));
+}
+
+.alert-count {
+  font-size: 0.62rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .badge {
   font-size: 0.75rem;
   font-weight: 700;
@@ -262,24 +318,33 @@ const router = useRouter()
   color: #fff;
 }
 
-.remove-btn {
+.row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.row-action {
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 6px;
-  margin-left: 2px;
+  padding: 5px;
   border-radius: 50%;
   line-height: 1;
-  flex-shrink: 0;
   transition: color 0.15s;
 }
 
-.remove-btn:active {
-  color: var(--red);
+.row-action i {
+  font-size: 0.7rem;
 }
 
-.remove-btn i {
-  font-size: 0.7rem;
+.row-action.sell:active {
+  color: #f59e0b;
+}
+
+.row-action.remove:active {
+  color: var(--red);
 }
 </style>

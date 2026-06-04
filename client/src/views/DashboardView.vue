@@ -3,10 +3,12 @@ import {onMounted, ref, watch} from 'vue'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useChartRange} from '@/composables/useChartRange'
+import {useStorage} from '@vueuse/core'
 import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/composables/useFormat'
-import AllocationChart from '@/components/charts/AllocationChart.vue'
-import TopMoversChart from '@/components/charts/TopMoversChart.vue'
+import api from '@/composables/useApi'
+import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
+import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
@@ -16,15 +18,42 @@ const RANGE_OPTIONS = [
   {label: '1M', value: '1mo'},
 ]
 
+const HISTORY_RANGES = [
+  {label: '1W', value: '1wk'},
+  {label: '1M', value: '1mo'},
+  {label: '3M', value: '3mo'},
+  {label: '6M', value: '6mo'},
+  {label: '1Y', value: '1y'},
+  {label: 'All', value: 'all'},
+]
+
 const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
 const range = useChartRange()
 const sparklines = ref({})
 
+const historyRange = useStorage('dashboard-history-range', '1mo')
+const history = ref([])
+const historyLoading = ref(false)
+
+async function fetchHistory() {
+  historyLoading.value = true
+  try {
+    history.value = await api.get(`/portfolio/history?range=${encodeURIComponent(historyRange.value)}`)
+  } catch {
+    history.value = []
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+watch(historyRange, fetchHistory)
+watch(() => portfolio.positions.length, fetchHistory)
+
 onMounted(async () => {
   try {
     await portfolio.fetchPortfolio()
-    await fetchSparklines()
+    await Promise.all([fetchSparklines(), fetchHistory()])
   } catch {}
 })
 
@@ -81,6 +110,24 @@ function neonStyle(pnlPercent) {
 
     <template v-else>
 
+      <!-- Portfolio value over time -->
+      <section v-if="portfolio.positions.length" class="history-card">
+        <div class="history-head">
+          <!--          <h2 class="section-title">Portfolio Value</h2>-->
+          <div class="toggle-group">
+            <button
+                v-for="opt in HISTORY_RANGES"
+                :key="opt.value"
+                :class="{ active: historyRange === opt.value }"
+                class="toggle-btn"
+                @click="historyRange = opt.value"
+            >{{ opt.label }}
+            </button>
+          </div>
+        </div>
+        <PortfolioHistoryChart :data="history" :loading="historyLoading"/>
+      </section>
+
       <!-- One card per stock -->
       <div
         v-for="pos in portfolio.positions"
@@ -121,37 +168,41 @@ function neonStyle(pnlPercent) {
       </div>
 
       <!-- Total card per currency -->
-      <div
-        v-for="t in portfolio.totals"
-        :key="`total-${t.currency}`"
-        class="total-card"
-      >
-        <div class="total-row">
-          <span class="total-label">Total · {{ t.currency }}</span>
-          <div class="total-values">
-            <span class="total-value">{{ useCurrency(t.value, t.currency) }}</span>
-            <span class="total-converted text-muted" v-if="portfolio.combinedUsd?.ilsToUsd">
-              {{ t.currency === 'ILS'
-                ? useCurrency(t.value * portfolio.combinedUsd.ilsToUsd, 'USD')
-                : useCurrency(t.value / portfolio.combinedUsd.ilsToUsd, 'ILS') }}
+      <div class="totals-grid">
+        <div
+            v-for="t in portfolio.totals"
+            :key="`total-${t.currency}`"
+            class="total-card"
+        >
+          <div class="total-row">
+            <span class="total-label">{{ t.currency }}</span>
+            <div class="total-values">
+              <span class="total-value">{{ useCurrency(t.value, t.currency) }}</span>
+              <span v-if="portfolio.combinedUsd?.ilsToUsd" class="total-converted text-muted">
+                {{
+                  t.currency === 'ILS'
+                      ? useCurrency(t.value * portfolio.combinedUsd.ilsToUsd, 'USD')
+                      : useCurrency(t.value / portfolio.combinedUsd.ilsToUsd, 'ILS')
+                }}
+              </span>
+            </div>
+          </div>
+          <div class="total-row">
+            <!--            <span class="text-muted" style="font-size:0.78rem">P&L</span>-->
+            <span :class="gainLossClass(t.pnl)" class="total-pnl">
+              {{ t.pnl >= 0 ? '+' : '' }}{{ useCurrency(t.pnl, t.currency) }}
+              ({{ usePercent(t.pnlPercent) }})
             </span>
           </div>
-        </div>
-        <div class="total-row">
-          <span class="text-muted" style="font-size:0.78rem">P&L</span>
-          <span :class="gainLossClass(t.pnl)" class="total-pnl">
-            {{ t.pnl >= 0 ? '+' : '' }}{{ useCurrency(t.pnl, t.currency) }}
-            ({{ usePercent(t.pnlPercent) }})
-          </span>
-        </div>
-        <div class="total-row">
-          <span class="text-muted" style="font-size:0.78rem">Today</span>
-          <span :class="gainLossClass(t.dayPnl)" class="total-day">
-            {{ t.dayPnl >= 0 ? '+' : '' }}{{ useCurrency(t.dayPnl, t.currency) }}
-          </span>
-        </div>
-        <div class="fx-note text-muted" v-if="portfolio.combinedUsd?.ilsToUsd">
-          ₪1 = ${{ portfolio.combinedUsd.ilsToUsd.toFixed(4) }}
+          <div class="total-row">
+            <span class="text-muted" style="font-size:0.78rem">Today</span>
+            <span :class="gainLossClass(t.dayPnl)" class="total-day">
+              {{ t.dayPnl >= 0 ? '+' : '' }}{{ useCurrency(t.dayPnl, t.currency) }}
+            </span>
+          </div>
+          <div v-if="portfolio.combinedUsd?.ilsToUsd" class="fx-note text-muted">
+            ₪1 = ${{ portfolio.combinedUsd.ilsToUsd.toFixed(4) }}
+          </div>
         </div>
       </div>
 
@@ -159,14 +210,8 @@ function neonStyle(pnlPercent) {
         No holdings yet. Add a transaction to get started.
       </div>
 
-      <!-- Allocation donut -->
-      <AllocationChart :positions="portfolio.positions" :combined-usd="portfolio.combinedUsd" />
-
-      <!-- Top movers -->
-      <section v-if="portfolio.positions.length > 1" class="section">
-        <h2 class="section-title">Today's Movers</h2>
-        <TopMoversChart :positions="portfolio.positions" />
-      </section>
+      <!-- Allocation + movers, unified -->
+      <BreakdownCard :positions="portfolio.positions"/>
 
     </template>
   </div>
@@ -186,9 +231,33 @@ function neonStyle(pnlPercent) {
   font-size: 1.5rem;
 }
 
+.history-card {
+  margin-bottom: 1.75rem;
+}
+
+.history-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0 0.25rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.history-head .section-title {
+  margin: 0;
+}
+
+.history-card .toggle-btn {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+}
+
 .toggle-group {
   display: flex;
   gap: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .toggle-btn {
@@ -233,29 +302,49 @@ function neonStyle(pnlPercent) {
 .pnl-val { font-weight: 500; }
 .day-pnl { font-size: 0.78rem; }
 
+/* Totals grid */
+.totals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin: 0.25rem 0 0.75rem;
+}
+
+.totals-grid > .total-card:only-child {
+  grid-column: 1 / -1;
+}
+
 /* Total card */
 .total-card {
-  background: var(--bg-card);
   border: 1px solid var(--accent);
   border-radius: 14px;
   padding: 0.9rem 1rem;
-  margin-bottom: 0.75rem;
-  margin-top: 0.25rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 .total-row { display: flex; justify-content: space-between; align-items: center; }
-.total-label { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); }
+
+.total-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
 .total-values { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
-.total-value { font-size: 1.3rem; font-weight: 700; }
+
+.total-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
 .total-converted { font-size: 0.78rem; }
-.total-pnl { font-size: 0.88rem; font-weight: 600; }
+
+.total-pnl {
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: right
+}
 .total-day { font-size: 0.85rem; font-weight: 500; }
 .fx-note { font-size: 0.72rem; text-align: right; margin-top: 0.15rem; }
 
 .empty { padding: 2rem 0; font-size: 0.9rem; text-align: center; }
-
-.section { margin-top: 1.5rem; }
-.section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
 </style>

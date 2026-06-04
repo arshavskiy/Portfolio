@@ -3,6 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useStorage} from '@vueuse/core'
 import {useWatchlistStore} from '@/stores/watchlist'
+import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
 import Button from 'primevue/button'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
@@ -12,6 +13,7 @@ import SettingsRow from '@/components/ui/SettingsRow.vue'
 
 const toast = useToast()
 const watchlist = useWatchlistStore()
+const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
 const groupByMarket = useStorage('watchlist-group-market', false)
@@ -37,7 +39,10 @@ const grouped = computed(() => {
       .map(([market, items]) => ({market, items}))
 })
 
-onMounted(() => watchlist.fetchWatchlist(range.value))
+onMounted(() => {
+  alerts.fetchAlerts()
+  watchlist.fetchWatchlist(range.value)
+})
 watch(range, (r) => watchlist.fetchWatchlist(r))
 
 async function remove(item) {

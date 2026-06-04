@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, nextTick } from 'vue'
+import {nextTick, onMounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
@@ -41,19 +41,7 @@ function draw() {
   feMerge.append('feMergeNode').attr('in', 'blur')
   feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
 
-  // Area fill
-  const area = d3.area()
-    .x((_, i) => x(i))
-    .y0(H)
-    .y1(d => y(d.close))
-    .curve(d3.curveMonotoneX)
-
-  svg.append('path')
-    .datum(props.data)
-    .attr('fill', isWin ? 'rgba(0,255,136,0.08)' : 'rgba(255,51,102,0.08)')
-    .attr('d', area)
-
-  // Line with glow
+  // Line with glow (transparent background — no area fill)
   svg.append('path')
     .datum(props.data)
     .attr('fill', 'none')

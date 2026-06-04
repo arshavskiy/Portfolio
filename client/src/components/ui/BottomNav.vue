@@ -1,5 +1,5 @@
 <script setup>
-import { useRoute } from 'vue-router'
+import {useRoute} from 'vue-router'
 
 const route = useRoute()
 
@@ -34,7 +34,6 @@ function isActive(tab) {
 
 <style scoped>
 .bottom-nav {
-  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
