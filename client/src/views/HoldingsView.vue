@@ -1,18 +1,15 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue'
-import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useConfirm} from 'primevue/useconfirm'
 import {useStorage} from '@vueuse/core'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useChartRange} from '@/composables/useChartRange'
-import {gainLossClass, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import Button from 'primevue/button'
-import SparklineChart from '@/components/charts/SparklineChart.vue'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
+import PositionCard from '@/components/ui/PositionCard.vue'
 
-const router = useRouter()
 const toast = useToast()
 const confirm = useConfirm()
 const portfolio = usePortfolioStore()
@@ -21,6 +18,7 @@ const range = useChartRange()
 const showModal = ref(false)
 const sparklines = ref({})
 const groupByMarket = useStorage('holdings-group-market', false)
+const compactMode = useStorage('holdings-compact', false)
 
 function marketOf(ticker) {
   return ticker.toUpperCase().endsWith('.TA') ? 'TASE' : 'US'
@@ -78,8 +76,16 @@ function confirmDelete(pos) {
       <h1 class="gradient-title">Holdings</h1>
       <div class="header-actions">
         <button
-            :class="{ active: groupByMarket }"
+            :class="{ active: compactMode }"
             class="market-btn"
+            title="Compact view"
+            @click="compactMode = !compactMode"
+        >
+          <i class="pi pi-list"/>
+        </button>
+        <button
+            class="market-btn"
+            :class="{ active: groupByMarket }"
             title="Group by market"
             @click="groupByMarket = !groupByMarket"
         >
@@ -97,66 +103,17 @@ function confirmDelete(pos) {
       <Button label="Add Transaction" @click="showModal = true" />
     </div>
 
-    <div v-else class="positions-list">
+    <div v-else :class="compactMode ? 'positions-compact' : 'positions-list'">
       <template v-for="group in grouped" :key="group.market">
         <div v-if="group.market" class="market-header">{{ group.market }}</div>
-      <div
+        <PositionCard
           v-for="pos in group.items"
-        :key="pos.ticker"
-        class="position-card"
-        :class="pos.pnl >= 0 ? 'neon-card-gain' : 'neon-card-loss'"
-      >
-        <div class="pos-top" @click="router.push(`/stock/${pos.ticker}`)">
-          <div>
-            <span class="ticker">{{ pos.ticker }}</span>
-            <span class="company text-muted">{{ pos.companyName }}</span>
-          </div>
-          <div class="pos-value">
-            <span class="value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
-            <span :class="gainLossClass(pos.pnl)" class="pnl">
-              {{ useTickerCurrency(pos.pnl, pos.ticker) }} ({{ usePercent(pos.pnlPercent) }})
-            </span>
-          </div>
-        </div>
-
-        <!-- Sparkline -->
-        <SparklineChart
-          v-if="sparklines[pos.ticker]?.length"
-          :data="sparklines[pos.ticker]"
-          :pnl-percent="pos.pnlPercent"
-          class="pos-spark"
+          :key="pos.ticker"
+          :compact="compactMode"
+          :pos="pos"
+          :sparkline="sparklines[pos.ticker]"
+          @delete="confirmDelete"
         />
-
-        <div class="pos-details">
-          <div class="detail">
-            <span class="text-muted">Shares</span>
-            <span>{{ pos.shares }}</span>
-          </div>
-          <div class="detail">
-            <span class="text-muted">Avg Cost</span>
-            <span>{{ useTickerCurrency(pos.avgCost, pos.ticker) }}</span>
-          </div>
-          <div class="detail">
-            <span class="text-muted">Current</span>
-            <span>{{ useTickerCurrency(pos.currentPrice, pos.ticker) }}</span>
-          </div>
-          <Button
-            icon="pi pi-list"
-            severity="secondary"
-            text
-            size="small"
-            v-tooltip="'View lots'"
-            @click="router.push(`/position/${encodeURIComponent(pos.ticker)}`)"
-          />
-          <Button
-            icon="pi pi-trash"
-            severity="danger"
-            text
-            size="small"
-            @click="confirmDelete(pos)"
-          />
-        </div>
-      </div>
       </template>
     </div>
 
@@ -166,8 +123,18 @@ function confirmDelete(pos) {
 
 <style scoped>
 .holdings { padding: 1rem; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.5rem; font-weight: 700; }
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
 
 .header-actions {
   display: flex;
@@ -185,7 +152,6 @@ function confirmDelete(pos) {
   font-size: 0.85rem;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-
 .market-btn.active {
   background: var(--accent);
   border-color: var(--accent);
@@ -207,16 +173,10 @@ function confirmDelete(pos) {
 .empty i { font-size: 3rem; }
 
 .positions-list { display: flex; flex-direction: column; gap: 0.75rem; }
-.position-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.position-card.neon-card-gain { min-height: 173px; }
-.pos-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; cursor: pointer; }
-.pos-spark { margin: 0 -1px; width: calc(100% + 2px); height: 50px; }
-.ticker { font-weight: 700; font-size: 1.1rem; display: block; }
-.company { font-size: 0.8rem; }
-.pos-value { text-align: right; }
-.value { display: block; font-weight: 600; }
-.pnl { font-size: 0.8rem; }
-.pos-details { display: flex; align-items: center; padding: 0.6rem 1rem; background: rgba(255,255,255,0.03); border-top: 1px solid var(--border); gap: 1rem; }
-.detail { display: flex; flex-direction: column; gap: 2px; font-size: 0.8rem; flex: 1; }
-.detail .text-muted { font-size: 0.72rem; }
+
+.positions-compact {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border);
+}
 </style>
