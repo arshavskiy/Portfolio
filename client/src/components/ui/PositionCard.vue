@@ -39,6 +39,12 @@ const activeAlerts = computed(() =>
         </span>
       </span>
       <span class="company text-muted">{{ pos.companyName }}</span>
+      <div class="group-tags compact-tags" @click.stop="emit('edit-groups', pos)">
+        <span v-for="g in pos.groups || []" :key="g" class="group-tag">{{ g }}</span>
+        <span class="group-tag add-tag">
+          <i class="pi pi-plus"/><span v-if="!pos.groups?.length"> Tag</span>
+        </span>
+      </div>
     </div>
 
     <div class="row-chart">
@@ -244,6 +250,19 @@ const activeAlerts = computed(() =>
   flex-direction: column;
   min-width: 90px;
   flex: 0 0 90px;
+}
+
+.compact-tags {
+  margin-top: 3px;
+}
+
+.compact-tags .group-tag {
+  font-size: 0.55rem;
+  padding: 0 5px;
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .row-chart {

@@ -10,7 +10,6 @@ import api from '@/composables/useApi'
 import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
-import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
@@ -124,23 +123,9 @@ function neonStyle(pnlPercent) {
 
     <template v-else>
 
-      <!-- Portfolio value over time -->
-      <section v-if="portfolio.positions.length" class="history-card">
-        <div class="history-head">
-          <!--          <h2 class="section-title">Portfolio Value</h2>-->
-          <div class="toggle-group">
-            <button
-                v-for="opt in HISTORY_RANGES"
-                :key="opt.value"
-                :class="{ active: historyRange === opt.value }"
-                class="toggle-btn"
-                @click="historyRange = opt.value"
-            >{{ opt.label }}
-            </button>
-          </div>
-        </div>
-        <PortfolioHistoryChart :data="history" :loading="historyLoading"/>
-      </section>
+      <!-- Allocation + movers, unified -->
+      <BreakdownCard :positions="portfolio.positions"/>
+
 
       <!-- One card per stock (optionally grouped) -->
       <template v-for="section in groupedPositions" :key="section.group ?? '_all'">
@@ -174,7 +159,7 @@ function neonStyle(pnlPercent) {
           />
 
           <div class="stock-pnl">
-            <span class="text-muted" style="font-size:0.78rem">P&L</span>
+            <!--            <span class="text-muted" style="font-size:0.78rem">P&L</span>-->
             <span :class="gainLossClass(pos.pnl)" class="pnl-val">
               {{ pos.pnl >= 0 ? '+' : '' }}{{ useTickerCurrency(pos.pnl, pos.ticker) }}
               ({{ usePercent(pos.pnlPercent) }})
@@ -225,12 +210,27 @@ function neonStyle(pnlPercent) {
         </div>
       </div>
 
+      <!-- Portfolio value over time -->
+      <!--      <section v-if="portfolio.positions.length" class="history-card">-->
+      <!--        <div class="history-head">-->
+      <!--          &lt;!&ndash;          <h2 class="section-title">Portfolio Value</h2>&ndash;&gt;-->
+      <!--          <div class="toggle-group">-->
+      <!--            <button-->
+      <!--                v-for="opt in HISTORY_RANGES"-->
+      <!--                :key="opt.value"-->
+      <!--                :class="{ active: historyRange === opt.value }"-->
+      <!--                class="toggle-btn"-->
+      <!--                @click="historyRange = opt.value"-->
+      <!--            >{{ opt.label }}-->
+      <!--            </button>-->
+      <!--          </div>-->
+      <!--        </div>-->
+      <!--        <PortfolioHistoryChart :data="history" :loading="historyLoading"/>-->
+      <!--      </section>-->
+
       <div v-if="!portfolio.positions.length" class="empty text-muted">
         No holdings yet. Add a transaction to get started.
       </div>
-
-      <!-- Allocation + movers, unified -->
-      <BreakdownCard :positions="portfolio.positions"/>
 
     </template>
   </div>

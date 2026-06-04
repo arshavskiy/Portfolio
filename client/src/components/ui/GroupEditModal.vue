@@ -17,37 +17,48 @@ const groupsStore = useGroupsStore()
 
 const groups = ref([])
 const groupSuggestions = ref([])
+const pending = ref('')        // raw text currently typed in the input
 const loading = ref(false)
 
 watch(() => props.visible, (v) => {
   if (v) {
     groups.value = [...(props.position?.groups || [])]
+    pending.value = ''
     groupsStore.fetchGroups()
   }
 })
 
 function searchGroups(event) {
-  const q = (event.query || '').trim().toLowerCase()
+  pending.value = event.query || ''
+  const q = pending.value.trim().toLowerCase()
   const selected = new Set(groups.value.map((g) => g.toLowerCase()))
   groupSuggestions.value = groupsStore.tags.filter(
       (t) => !selected.has(t.toLowerCase()) && t.toLowerCase().includes(q)
   )
 }
 
+// Commit whatever's typed as a new tag (if not already present). Returns true
+// if something was added. Used on Enter and as a flush before saving.
+function commitPending() {
+  const val = pending.value.trim().slice(0, 30)
+  pending.value = ''
+  groupSuggestions.value = []
+  if (!val) return false
+  if (groups.value.some((g) => g.toLowerCase() === val.toLowerCase())) return false
+  groups.value = [...groups.value, val]
+  return true
+}
+
 // PrimeVue multiple AutoComplete doesn't add free text on Enter — create here.
 function addTypedGroup(event) {
-  const input = event.target
-  const val = (input.value || '').trim().slice(0, 30)
-  if (!val) return
-  event.preventDefault()
-  if (!groups.value.some((g) => g.toLowerCase() === val.toLowerCase())) {
-    groups.value = [...groups.value, val]
+  if (pending.value.trim()) {
+    event.preventDefault()
+    commitPending()
   }
-  input.value = ''
-  groupSuggestions.value = []
 }
 
 async function save() {
+  commitPending() // flush any text the user typed but didn't press Enter on
   loading.value = true
   try {
     await groupsStore.updatePositionGroups(props.position._id, groups.value)
@@ -83,6 +94,7 @@ async function save() {
             multiple
             placeholder="Tech, Long-term…"
             @complete="searchGroups"
+            @input="pending = $event.target ? $event.target.value : pending"
             @keydown.enter="addTypedGroup"
         />
         <span class="text-muted hint">Type to create a new group or pick an existing one</span>

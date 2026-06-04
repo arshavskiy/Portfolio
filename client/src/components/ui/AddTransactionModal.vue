@@ -42,6 +42,7 @@ const loading = ref(false)
 const suggestions = ref([])
 const groups = ref([])              // selected group tags (array of strings)
 const groupSuggestions = ref([])    // filtered existing tags for the dropdown
+const pendingGroup = ref('')        // raw text typed but not yet committed
 
 const currentTicker = computed(() => {
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
@@ -118,28 +119,34 @@ async function searchTicker(event) {
 
 // Suggest existing tags that match what's typed and aren't already selected.
 function searchGroups(event) {
-  const q = (event.query || '').trim().toLowerCase()
+  pendingGroup.value = event.query || ''
+  const q = pendingGroup.value.trim().toLowerCase()
   const selected = new Set(groups.value.map((g) => g.toLowerCase()))
   groupSuggestions.value = groupsStore.tags.filter(
       (t) => !selected.has(t.toLowerCase()) && t.toLowerCase().includes(q)
   )
 }
 
-// PrimeVue's multiple AutoComplete only adds *selected* suggestions, not free
-// text. Pressing Enter on unmatched input creates a new tag.
-function addTypedGroup(event) {
-  const input = event.target
-  const val = (input.value || '').trim().slice(0, 30)
-  if (!val) return
-  event.preventDefault()
-  if (!groups.value.some((g) => g.toLowerCase() === val.toLowerCase())) {
-    groups.value = [...groups.value, val]
-  }
-  input.value = ''
+// Commit the currently-typed text as a new tag. Used on Enter + flushed on submit.
+function commitPendingGroup() {
+  const val = pendingGroup.value.trim().slice(0, 30)
+  pendingGroup.value = ''
   groupSuggestions.value = []
+  if (!val) return
+  if (groups.value.some((g) => g.toLowerCase() === val.toLowerCase())) return
+  groups.value = [...groups.value, val]
+}
+
+// PrimeVue's multiple AutoComplete only adds *selected* suggestions, not free text.
+function addTypedGroup(event) {
+  if (pendingGroup.value.trim()) {
+    event.preventDefault()
+    commitPendingGroup()
+  }
 }
 
 async function submit() {
+  if (type.value === 'buy') commitPendingGroup() // flush un-Entered group text
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
   const t = applyTo((raw || '').split(' — ')[0].trim().toUpperCase())
   if (!t || !shares.value || !price.value) {
@@ -250,9 +257,10 @@ async function submit() {
             multiple
             placeholder="Tech, Long-term…"
             @complete="searchGroups"
+            @input="pendingGroup = $event.target ? $event.target.value : pendingGroup"
             @keydown.enter="addTypedGroup"
         />
-        <span class="text-muted hint">Type to create a new group or pick an existing one</span>
+        <span class="text-muted hint">Type a name + Enter to create, or pick an existing one</span>
       </div>
 
       <div class="field">

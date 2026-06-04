@@ -201,7 +201,7 @@ const simulation = computed(() => {
       <!-- Gross P&L card -->
       <div class="pnl-card" :class="gainLossClass(summary.grossPnl)">
         <div class="pnl-header">
-          <span class="pnl-label text-muted">Gross P&L</span>
+          <!--          <span class="pnl-label text-muted">Gross P&L</span>-->
           <span class="pnl-label text-muted">Avg {{ useTickerCurrency(summary.avgCost, ticker) }} → {{ currentPrice != null ? useTickerCurrency(currentPrice, ticker) : '…' }}</span>
         </div>
         <div class="pnl-row">
