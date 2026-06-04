@@ -164,7 +164,7 @@ function logout() {
 /* Stats */
 .stats-card {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 2fr 4fr 1fr;
   gap: 0.5rem;
   padding: 1rem;
   background: var(--bg-card);
@@ -193,7 +193,7 @@ function logout() {
 }
 
 .stat-value {
-  font-size: 1rem;
+  font-size: .7rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;

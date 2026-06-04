@@ -22,11 +22,20 @@ export const useWatchlistStore = defineStore('watchlist', () => {
       await api.post('/watchlist', {ticker, companyName})
       await fetchWatchlist(lastRange)
   }
+    
+    // Bulk-add without re-fetching after each item; caller refreshes once at the end.
+    async function addItemRaw(ticker, companyName) {
+        return api.post('/watchlist', {ticker, companyName})
+    }
+    
+    function refresh() {
+        return fetchWatchlist(lastRange)
+    }
 
   async function removeItem(id) {
     await api.delete(`/watchlist/${id}`)
     items.value = items.value.filter((i) => i._id !== id)
   }
-
-  return { items, loading, fetchWatchlist, addItem, removeItem }
+    
+    return {items, loading, fetchWatchlist, addItem, addItemRaw, refresh, removeItem}
 })

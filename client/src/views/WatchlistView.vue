@@ -9,6 +9,7 @@ import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
+import ImportModal from '@/components/ui/ImportModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
@@ -18,7 +19,12 @@ const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
+const showImportModal = ref(false)
 const groupMode = useStorage('watchlist-group-mode', 'none')
+
+function onImported() {
+  watchlist.fetchWatchlist(range.value)
+}
 
 const RANGE_OPTIONS = [
   {label: '1W', value: '1wk'},
@@ -44,6 +50,13 @@ async function remove(item) {
     <header class="page-header">
       <h1 class="gradient-title">Watchlist</h1>
       <div class="header-actions">
+        <Button
+            v-tooltip.bottom="'Import from file'"
+            icon="pi pi-upload"
+            size="small"
+            text
+            @click="showImportModal = true"
+        />
         <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
           <SettingsRow icon="pi pi-chart-line" label="Chart range">
@@ -94,6 +107,7 @@ async function remove(item) {
     </div>
 
     <AddWatchlistModal v-model:visible="showModal" />
+    <ImportModal v-model:visible="showImportModal" mode="watchlist" @imported="onImported"/>
   </div>
 </template>
 

@@ -13,6 +13,7 @@ import Select from 'primevue/select'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
+import ImportModal from '@/components/ui/ImportModal.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
 
@@ -76,6 +77,13 @@ function openSell(pos) {
   showSellModal.value = true
 }
 
+const showImportModal = ref(false)
+
+async function onImported() {
+  await portfolio.fetchPortfolio()
+  await fetchSparklines()
+}
+
 const groupPos = ref(null)
 const showGroupModal = ref(false)
 
@@ -107,6 +115,13 @@ async function onTransactionDone() {
             size="small"
             text
             @click="compactMode = !compactMode"
+        />
+        <Button
+            v-tooltip.bottom="'Import from file'"
+            icon="pi pi-upload"
+            size="small"
+            text
+            @click="showImportModal = true"
         />
         <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
@@ -173,6 +188,7 @@ async function onTransactionDone() {
         :position="groupPos"
         @saved="onGroupsSaved"
     />
+    <ImportModal v-model:visible="showImportModal" mode="holdings" @imported="onImported"/>
   </div>
 </template>
 
