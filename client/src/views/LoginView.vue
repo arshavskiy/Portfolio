@@ -1,5 +1,5 @@
 <script setup>
-import {ref} from 'vue'
+import {onMounted, onUnmounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useAuthStore} from '@/stores/auth'
@@ -14,6 +14,20 @@ const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+
+// ── Animated phone slideshow ──
+const SLIDE_COUNT = 5
+const slide = ref(0)
+let slideTimer = null
+
+onMounted(() => {
+  // Always cycle the content; CSS disables the slide transition under
+  // prefers-reduced-motion (so it just swaps instead of fully stopping).
+  slideTimer = setInterval(() => {
+    slide.value = (slide.value + 1) % SLIDE_COUNT
+  }, 2600)
+})
+onUnmounted(() => clearInterval(slideTimer))
 
 const features = [
   {
@@ -44,7 +58,7 @@ async function submit() {
     await auth.login(email.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Login failed', detail: err.message, life: 3000 })
+    toast.add({severity: 'error', summary: 'Login failed', detail: err.message, life: 3000})
   } finally {
     loading.value = false
   }
@@ -70,60 +84,141 @@ async function submit() {
           with live P&L, price alerts, and a clean dark interface.
         </p>
 
-        <!-- Stylized phone mockup -->
-        <div aria-hidden="true" class="mockup">
-          <div class="phone">
-            <div class="phone-notch"/>
-            <div class="phone-screen">
-              <div class="mk-header">
-                <span class="mk-title gradient-title">Portfolio</span>
-                <span class="mk-total">$48,210</span>
-              </div>
+        <!-- Animated phone mockup -->
+        <section aria-label="App preview" class="app-preview">
+          <div aria-hidden="true" class="mockup">
+            <div class="phone">
+              <div class="phone-notch"/>
+              <div class="phone-screen">
+                <div class="slides">
 
-              <div class="mk-card mk-gain">
-                <div class="mk-row">
-                  <div>
-                    <div class="mk-ticker">NVDA</div>
-                    <div class="mk-name">NVIDIA Corp</div>
+                  <!-- 0 · Portfolio -->
+                  <div v-show="slide === 0" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Portfolio</span><span class="mk-total">$48,210</span>
+                    </div>
+                    <div class="mk-card mk-gain">
+                      <div class="mk-row">
+                        <div>
+                          <div class="mk-ticker">NVDA</div>
+                          <div class="mk-name">NVIDIA Corp</div>
+                        </div>
+                        <div class="mk-right">
+                          <div class="mk-val">$12,540</div>
+                          <span class="mk-badge up">+4.2%</span></div>
+                      </div>
+                      <svg class="mk-spark" preserveAspectRatio="none" viewBox="0 0 200 40">
+                        <polyline class="spark-up"
+                                  points="0,32 20,28 40,30 60,22 80,24 100,16 120,18 140,10 160,12 180,6 200,4"/>
+                      </svg>
+                    </div>
+                    <div class="mk-card mk-loss">
+                      <div class="mk-row">
+                        <div>
+                          <div class="mk-ticker">BTC-USD</div>
+                          <div class="mk-name">Bitcoin</div>
+                        </div>
+                        <div class="mk-right">
+                          <div class="mk-val">$8,930</div>
+                          <span class="mk-badge down">−2.1%</span></div>
+                      </div>
+                      <svg class="mk-spark" preserveAspectRatio="none" viewBox="0 0 200 40">
+                        <polyline class="spark-down"
+                                  points="0,8 20,10 40,6 60,14 80,12 100,20 120,18 140,26 160,24 180,30 200,34"/>
+                      </svg>
+                    </div>
                   </div>
-                  <div class="mk-right">
-                    <div class="mk-val">$12,540</div>
-                    <span class="mk-badge up">+4.2%</span>
+
+                  <!-- 1 · Global Markets -->
+                  <div v-show="slide === 1" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Markets</span><span class="mk-tabs">US · Crypto</span>
+                    </div>
+                    <div class="mk-grid">
+                      <div class="mk-tile">
+                        <div class="mk-tname">S&amp;P 500</div>
+                        <div class="mk-tprice">7,595</div>
+                        <span class="mk-badge up">+0.6%</span></div>
+                      <div class="mk-tile">
+                        <div class="mk-tname">Nasdaq</div>
+                        <div class="mk-tprice">26,895</div>
+                        <span class="mk-badge up">+0.2%</span></div>
+                      <div class="mk-tile">
+                        <div class="mk-tname">Gold</div>
+                        <div class="mk-tprice">4,506</div>
+                        <span class="mk-badge up">+0.9%</span></div>
+                      <div class="mk-tile">
+                        <div class="mk-tname">BTC</div>
+                        <div class="mk-tprice">63.9k</div>
+                        <span class="mk-badge down">−2.2%</span></div>
+                    </div>
                   </div>
+
+                  <!-- 2 · Price Alerts -->
+                  <div v-show="slide === 2" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Alerts</span></div>
+                    <div class="mk-alert">
+                      <i class="pi pi-bell"/>
+                      <div>
+                        <div class="mk-aticker">AAPL ↑ $200</div>
+                        <div class="mk-name">Notify above target</div>
+                      </div>
+                      <span class="mk-toggle on"/>
+                    </div>
+                    <div class="mk-alert">
+                      <i class="pi pi-bell"/>
+                      <div>
+                        <div class="mk-aticker">TSLA ↓ $180</div>
+                        <div class="mk-name">Notify below target</div>
+                      </div>
+                      <span class="mk-toggle on"/>
+                    </div>
+                    <div class="mk-pushrow"><i class="pi pi-mobile"/> Push notifications on</div>
+                  </div>
+
+                  <!-- 3 · Allocation -->
+                  <div v-show="slide === 3" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Breakdown</span></div>
+                    <div class="mk-alloc">
+                      <svg class="mk-donut" viewBox="0 0 42 42">
+                        <circle class="d-bg" cx="21" cy="21" r="15.9"/>
+                        <circle class="d-a" cx="21" cy="21" r="15.9" stroke-dasharray="42 58" stroke-dashoffset="0"/>
+                        <circle class="d-b" cx="21" cy="21" r="15.9" stroke-dasharray="31 69" stroke-dashoffset="-42"/>
+                        <circle class="d-c" cx="21" cy="21" r="15.9" stroke-dasharray="27 73" stroke-dashoffset="-73"/>
+                      </svg>
+                      <div class="mk-legend">
+                        <div><span class="dot a"/>AAPL <b>42%</b></div>
+                        <div><span class="dot b"/>NVDA <b>31%</b></div>
+                        <div><span class="dot c"/>BTC <b>27%</b></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 4 · Groups -->
+                  <div v-show="slide === 4" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Groups</span></div>
+                    <div class="mk-grouprow"><span class="mk-gtag">Tech</span><span class="mk-gcount">3</span></div>
+                    <div class="mk-card mk-flat">
+                      <div class="mk-ticker">AAPL</div>
+                      <span class="mk-badge up">+1.1%</span></div>
+                    <div class="mk-card mk-flat">
+                      <div class="mk-ticker">NVDA</div>
+                      <span class="mk-badge up">+4.2%</span></div>
+                    <div class="mk-grouprow"><span class="mk-gtag alt">Crypto</span><span class="mk-gcount">1</span>
+                    </div>
+                    <div class="mk-card mk-flat">
+                      <div class="mk-ticker">ETH-USD</div>
+                      <span class="mk-badge down">−1.2%</span></div>
+                  </div>
+
                 </div>
-                <svg class="mk-spark" preserveAspectRatio="none" viewBox="0 0 200 40">
-                  <polyline class="spark-up"
-                            points="0,32 20,28 40,30 60,22 80,24 100,16 120,18 140,10 160,12 180,6 200,4"/>
-                </svg>
-              </div>
 
-              <div class="mk-card mk-loss">
-                <div class="mk-row">
-                  <div>
-                    <div class="mk-ticker">BTC-USD</div>
-                    <div class="mk-name">Bitcoin</div>
-                  </div>
-                  <div class="mk-right">
-                    <div class="mk-val">$8,930</div>
-                    <span class="mk-badge down">−2.1%</span>
-                  </div>
+                <!-- progress dots -->
+                <div class="mk-dots">
+                  <span v-for="n in SLIDE_COUNT" :key="n" class="mk-dot" :class="{ active: slide === n - 1 }"/>
                 </div>
-                <svg class="mk-spark" preserveAspectRatio="none" viewBox="0 0 200 40">
-                  <polyline class="spark-down"
-                            points="0,8 20,10 40,6 60,14 80,12 100,20 120,18 140,26 160,24 180,30 200,34"/>
-                </svg>
-              </div>
-
-              <div class="mk-pills">
-                <span class="mk-pill active">D</span>
-                <span class="mk-pill">W</span>
-                <span class="mk-pill">M</span>
-                <span class="mk-pill">6M</span>
-                <span class="mk-pill">Y</span>
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
         <div class="features">
           <div v-for="f in features" :key="f.title" class="feature">
@@ -225,6 +320,10 @@ async function submit() {
   line-height: 1.5;
   margin-bottom: 1.75rem;
   max-width: 460px;
+}
+
+.app-preview {
+  min-height: 260px;
 }
 
 /* ── Phone mockup ── */
@@ -397,6 +496,264 @@ async function submit() {
   border-color: var(--accent);
 }
 
+/* ── Slideshow ── */
+.slides {
+  position: relative;
+  min-height: 132px;
+}
+
+.slide {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  animation: slideIn 0.45s ease;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    animation: none;
+  }
+}
+
+.mk-tabs {
+  font-size: 0.55rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* Markets grid */
+.mk-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+
+.mk-tile {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mk-tname {
+  font-size: 0.55rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.mk-tprice {
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* Alerts */
+.mk-alert {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 7px 8px;
+}
+
+.mk-alert > i {
+  font-size: 0.7rem;
+  color: var(--neon-blue);
+}
+
+.mk-alert > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.mk-aticker {
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.mk-toggle {
+  width: 18px;
+  height: 11px;
+  border-radius: 6px;
+  background: #333;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mk-toggle.on {
+  background: var(--accent);
+}
+
+.mk-toggle.on::after {
+  content: '';
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.mk-pushrow {
+  font-size: 0.55rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.mk-pushrow i {
+  color: var(--neon-green);
+}
+
+/* Allocation donut */
+.mk-alloc {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 2px;
+}
+
+.mk-donut {
+  width: 76px;
+  height: 76px;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.mk-donut circle {
+  fill: none;
+  stroke-width: 4;
+}
+
+.d-bg {
+  stroke: var(--border);
+}
+
+.d-a {
+  stroke: #3b82f6;
+}
+
+.d-b {
+  stroke: #00ff88;
+}
+
+.d-c {
+  stroke: #f59e0b;
+}
+
+.mk-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.62rem;
+}
+
+.mk-legend > div {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mk-legend b {
+  margin-left: auto;
+}
+
+.mk-legend .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.dot.a {
+  background: #3b82f6;
+}
+
+.dot.b {
+  background: #00ff88;
+}
+
+.dot.c {
+  background: #f59e0b;
+}
+
+/* Groups */
+.mk-grouprow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 1px 2px;
+}
+
+.mk-gtag {
+  font-size: 0.55rem;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  color: #93c5fd;
+}
+
+.mk-gtag.alt {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #fcd34d;
+}
+
+.mk-gcount {
+  font-size: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.mk-flat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 9px;
+  box-shadow: none;
+  border-color: var(--border);
+}
+
+/* progress dots */
+.mk-dots {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.mk-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.3s, width 0.3s;
+}
+
+.mk-dot.active {
+  background: var(--accent);
+  width: 14px;
+  border-radius: 3px;
+}
+
 .features {
   display: flex;
   flex-direction: column;
@@ -436,6 +793,7 @@ async function submit() {
   display: flex;
   justify-content: center;
 }
+
 .auth-card {
   width: 100%;
   max-width: 420px;
@@ -454,11 +812,35 @@ async function submit() {
   font-size: 0.85rem;
   margin: 2px 0 1.5rem;
 }
-.auth-form { display: flex; flex-direction: column; gap: 1rem; }
-.field { display: flex; flex-direction: column; gap: 0.4rem; }
-.field label { font-size: 0.85rem; color: var(--text-secondary); }
-.auth-footer { margin-top: 1.5rem; text-align: center; color: var(--text-secondary); font-size: 0.9rem; }
-.auth-footer a { color: var(--accent); text-decoration: none; }
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.field label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.auth-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
 
 /* ── Desktop: side-by-side split ── */
 @media (min-width: 900px) {
