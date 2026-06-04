@@ -22,11 +22,18 @@ const localDevOrigins = [
   'http://127.0.0.1:3000'
 ]
 
+// Production frontends that are always allowed (no trailing slash — the browser
+// Origin header never includes one).
+const productionOrigins = [
+  'https://stockfolio.handcoded.tech'
+]
+
 const configuredOrigins = [
   ...localDevOrigins,
+  ...productionOrigins,
   ...(process.env.CORS_ORIGINS || process.env.CLIENT_URL || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean)
 ]
 
