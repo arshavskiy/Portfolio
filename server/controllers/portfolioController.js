@@ -6,6 +6,53 @@ const { getQuotes, invalidateCache, getIlsToUsd } = require('../services/stockSe
 const { computeTransactionCosts } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 
+// Recompute a position's shares + avg cost by replaying all of its transactions
+// (avg-cost method). Deletes the position if no shares remain; creates nothing.
+async function recomputePosition(userId, ticker) {
+  const allTx = await Transaction.find({user: userId, ticker}).sort({date: 1})
+  let totalShares = 0
+  let totalCost = 0
+  for (const t of allTx) {
+    if (t.type === 'buy') {
+      totalCost += t.shares * t.price
+      totalShares += t.shares
+    } else {
+      if (totalShares > 0) totalCost -= (totalCost / totalShares) * t.shares
+      totalShares -= t.shares
+    }
+  }
+  totalShares = Math.max(0, totalShares)
+  
+  const position = await Position.findOne({user: userId, ticker})
+  if (!position) return
+  if (totalShares <= 0) {
+    await position.deleteOne()
+  } else {
+    position.shares = totalShares
+    position.avgCost = totalCost / totalShares
+    await position.save()
+  }
+}
+
+// Normalize a list of group tags: trim, drop empties, cap length, dedupe
+// case-insensitively (keeping first-seen casing), limit count.
+function normalizeGroups(groups) {
+  if (!Array.isArray(groups)) return []
+  const seen = new Set()
+  const out = []
+  for (const g of groups) {
+    if (typeof g !== 'string') continue
+    const tag = g.trim().slice(0, 30)
+    if (!tag) continue
+    const key = tag.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(tag)
+    if (out.length >= 10) break
+  }
+  return out
+}
+
 exports.getPortfolio = async (req, res) => {
   try {
     const positions = await Position.find({ user: req.user._id })
@@ -57,6 +104,7 @@ exports.getPortfolio = async (req, res) => {
         changePercent: q.changePercent,
         dayPnl,
         valueUsd: value * fxRate,
+        groups: p.groups || [],
       }
     })
 
@@ -99,9 +147,11 @@ exports.getHistory = async (req, res) => {
 
 exports.addTransaction = async (req, res) => {
   try {
-    const { ticker, type, shares, price, date, notes, feeProfileId } = req.body
+    const {ticker, type, shares, price, date, notes, feeProfileId, groups} = req.body
     if (!ticker || !type || !shares || !price)
       return res.status(400).json({ message: 'ticker, type, shares, price required' })
+    
+    const normalizedGroups = normalizeGroups(groups)
 
     const total = shares * price
 
@@ -137,10 +187,15 @@ exports.addTransaction = async (req, res) => {
         const newShares = position.shares + shares
         position.avgCost = (position.avgCost * position.shares + price * shares) / newShares
         position.shares = newShares
+        // Merge any newly provided tags into the existing position (union).
+        if (normalizedGroups.length) {
+          position.groups = normalizeGroups([...(position.groups || []), ...normalizedGroups])
+        }
         await position.save()
       } else {
         position = await Position.create({
           user: req.user._id, ticker: ticker.toUpperCase(), shares, avgCost: price,
+          groups: normalizedGroups,
         })
       }
       // Auto-add to watchlist if not already there
@@ -218,31 +273,27 @@ exports.updateTransaction = async (req, res) => {
     tx.totalWithFees = tx.type === 'buy' ? total + feeAmount : total - feeAmount
     tx.netProceeds = tx.type === 'sell' ? total - feeAmount - taxAmount : undefined
     await tx.save()
-
-    // Recompute position avg cost from all transactions
-    const allTx = await Transaction.find({ user: req.user._id, ticker: tx.ticker }).sort({ date: 1 })
-    let totalShares = 0
-    let totalCost = 0
-    for (const t of allTx) {
-      if (t.type === 'buy') {
-        totalCost += t.shares * t.price
-        totalShares += t.shares
-      } else {
-        totalCost -= (totalCost / totalShares) * t.shares
-        totalShares -= t.shares
-      }
-    }
-    const position = await Position.findOne({ user: req.user._id, ticker: tx.ticker })
-    if (position) {
-      position.shares = totalShares
-      position.avgCost = totalShares > 0 ? totalCost / totalShares : 0
-      await position.save()
-    }
-
+    
+    await recomputePosition(req.user._id, tx.ticker)
     invalidateCache(tx.ticker)
     res.json({ transaction: tx })
   } catch (err) {
     res.status(500).json({ message: err.message })
+  }
+}
+
+exports.deleteTransaction = async (req, res) => {
+  try {
+    const tx = await Transaction.findOne({_id: req.params.id, user: req.user._id})
+    if (!tx) return res.status(404).json({message: 'Transaction not found'})
+    
+    const ticker = tx.ticker
+    await tx.deleteOne()
+    await recomputePosition(req.user._id, ticker)
+    invalidateCache(ticker)
+    res.json({message: 'Transaction deleted'})
+  } catch (err) {
+    res.status(500).json({message: err.message})
   }
 }
 
@@ -254,5 +305,28 @@ exports.deletePosition = async (req, res) => {
     res.json({ message: 'Position removed' })
   } catch (err) {
     res.status(500).json({ message: err.message })
+  }
+}
+
+// Distinct group tags across the user's positions (for the tag picker).
+exports.getGroups = async (req, res) => {
+  try {
+    const tags = await Position.distinct('groups', {user: req.user._id})
+    res.json(tags.filter(Boolean).sort((a, b) => a.localeCompare(b)))
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
+// Replace a position's group tags.
+exports.updatePositionGroups = async (req, res) => {
+  try {
+    const position = await Position.findOne({_id: req.params.id, user: req.user._id})
+    if (!position) return res.status(404).json({message: 'Position not found'})
+    position.groups = normalizeGroups(req.body.groups)
+    await position.save()
+    res.json({_id: position._id, ticker: position.ticker, groups: position.groups})
+  } catch (err) {
+    res.status(500).json({message: err.message})
   }
 }

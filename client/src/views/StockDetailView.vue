@@ -162,7 +162,7 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
     </div>
 
     <div class="action-bar">
-      <Button label="Buy" severity="success" fluid @click="showTxModal = true" />
+      <Button fluid label="Buy" outlined severity="success" @click="showTxModal = true"/>
     </div>
 
     <AddTransactionModal v-model:visible="showTxModal" :default-ticker="ticker" />

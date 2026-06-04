@@ -11,7 +11,7 @@ const props = defineProps({
   sparkline: {type: Array, default: () => []},
   compact: {type: Boolean, default: false},
 })
-const emit = defineEmits(['delete', 'sell'])
+const emit = defineEmits(['delete', 'sell', 'edit-groups'])
 const router = useRouter()
 const alerts = useAlertsStore()
 
@@ -83,6 +83,12 @@ const activeAlerts = computed(() =>
           </span>
         </span>
         <span class="company text-muted">{{ pos.companyName }}</span>
+        <div class="group-tags" @click.stop="emit('edit-groups', pos)">
+          <span v-for="g in pos.groups || []" :key="g" class="group-tag">{{ g }}</span>
+          <span class="group-tag add-tag">
+            <i class="pi pi-plus"/> {{ pos.groups?.length ? 'Edit' : 'Tag' }}
+          </span>
+        </div>
       </div>
       <div class="pos-value">
         <span class="value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
@@ -277,6 +283,36 @@ const activeAlerts = computed(() =>
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 90px;
+}
+
+.group-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.group-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #93c5fd;
+}
+
+.add-tag {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+}
+
+.add-tag i {
+  font-size: 0.55rem;
 }
 
 .alert-badge {

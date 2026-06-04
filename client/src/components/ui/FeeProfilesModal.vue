@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useToast } from 'primevue/usetoast'
-import { useFeeProfileStore } from '@/stores/feeProfiles'
+import {onMounted, ref} from 'vue'
+import {useToast} from 'primevue/usetoast'
+import {useFeeProfileStore} from '@/stores/feeProfiles'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -124,7 +124,7 @@ function feeLabel(p) {
           <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(p)" />
         </div>
       </div>
-      <Button label="Add Profile" icon="pi pi-plus" fluid class="mt" @click="openNew" />
+      <Button class="mt" fluid icon="pi pi-plus" label="Add Profile" outlined @click="openNew"/>
     </div>
 
     <!-- Edit / Create form -->
@@ -213,7 +213,7 @@ function feeLabel(p) {
         <ToggleSwitch v-model="form.isDefault" />
       </div>
 
-      <Button label="Save" fluid @click="save" />
+      <Button fluid label="Save" outlined @click="save"/>
     </div>
   </Dialog>
 </template>
