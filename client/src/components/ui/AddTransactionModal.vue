@@ -1,5 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue'
+import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
@@ -25,6 +26,7 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:visible', 'hide'])
 
+const router = useRouter()
 const toast = useToast()
 const portfolio = usePortfolioStore()
 const feeStore = useFeeProfileStore()
@@ -149,6 +151,12 @@ function addTypedGroup(event) {
     event.preventDefault()
     commitPendingGroup()
   }
+}
+
+function viewLots() {
+  if (!currentTicker.value) return
+  emit('update:visible', false)
+  router.push(`/position/${encodeURIComponent(currentTicker.value)}`)
 }
 
 async function submit() {
@@ -313,14 +321,24 @@ async function submit() {
         </div>
       </div>
 
-      <Button
-        :label="type === 'buy' ? 'Buy' : 'Sell'"
-        :severity="type === 'buy' ? 'success' : 'danger'"
-        :loading="loading"
-        outlined
-        fluid
-        @click="submit"
-      />
+      <div class="action-row">
+        <Button
+            v-if="type === 'sell' && currentTicker"
+            icon="pi pi-list"
+            label="Lots"
+            outlined
+            severity="secondary"
+            @click="viewLots"
+        />
+        <Button
+            :label="type === 'buy' ? 'Buy' : 'Sell'"
+            :loading="loading"
+            :severity="type === 'buy' ? 'success' : 'danger'"
+            class="submit-btn"
+            outlined
+            @click="submit"
+        />
+      </div>
     </div>
   </Dialog>
 </template>
@@ -328,6 +346,15 @@ async function submit() {
 <style scoped>
 .tx-form { display: flex; flex-direction: column; gap: 1rem; }
 .type-select { align-self: center; }
+
+.action-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-row .submit-btn {
+  flex: 1;
+}
 .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 

@@ -63,6 +63,10 @@ const activeAlerts = computed(() =>
     </div>
 
     <div class="row-actions">
+      <button class="row-action lots" title="View lots"
+              @click.stop="router.push(`/position/${encodeURIComponent(pos.ticker)}`)">
+        <i class="pi pi-list"/>
+      </button>
       <button class="row-action sell" title="Sell" @click.stop="emit('sell', pos)">
         <i class="pi pi-arrow-up-right"/>
       </button>
@@ -374,9 +378,9 @@ const activeAlerts = computed(() =>
 }
 
 .row-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 1px;
   flex-shrink: 0;
 }
 
@@ -393,6 +397,10 @@ const activeAlerts = computed(() =>
 
 .row-action i {
   font-size: 0.7rem;
+}
+
+.row-action.lots:active {
+  color: var(--accent);
 }
 
 .row-action.sell:active {

@@ -19,6 +19,7 @@ const toast = useToast()
 const ticker = decodeURIComponent(route.params.ticker).toUpperCase()
 const transactions = ref([])
 const currentPrice = ref(null)
+const companyName = ref('')
 const loading = ref(false)
 const showModal = ref(false)
 const showSimulator = ref(false)
@@ -59,6 +60,7 @@ async function fetchQuote() {
   try {
     const q = await api.get(`/stocks/quote/${encodeURIComponent(ticker)}`)
     currentPrice.value = q.price
+    if (q.name) companyName.value = q.name
   } catch {}
 }
 
@@ -191,8 +193,8 @@ const simulation = computed(() => {
     <header class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <div class="header-info">
-        <h1 class="gradient-title">{{ ticker }}</h1>
-        <span class="text-muted">Transaction Lots</span>
+        <h1 class="gradient-title">{{ companyName || ticker }}</h1>
+        <span class="text-muted">{{ ticker }} · Transaction Lots</span>
       </div>
       <Button icon="pi pi-plus" rounded text @click="showModal = true" />
     </header>
