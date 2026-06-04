@@ -1,8 +1,13 @@
 import {ref} from 'vue'
 import api from '@/composables/useApi'
 
-const supported = ref('serviceWorker' in navigator && 'PushManager' in window)
-const permission = ref(supported.value ? Notification.permission : 'denied')
+const supported = ref(
+    window.isSecureContext &&
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window
+)
+const permission = ref('Notification' in window ? Notification.permission : 'denied')
 const subscribed = ref(false)
 const busy = ref(false)
 
@@ -38,11 +43,24 @@ async function refreshState() {
 }
 
 async function enablePush() {
-    if (!supported.value) throw new Error('Push not supported on this device')
+    // Secure-context check: push silently fails over plain http:// (e.g. LAN IP).
+    // localhost is exempt; anything else must be https.
+    if (!window.isSecureContext) {
+        throw new Error('Push needs HTTPS. Open the app over https:// (a LAN IP over http won\'t work).')
+    }
+    if (!supported.value) {
+        // iOS only exposes Push when installed to the Home Screen.
+        const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+        if (iOS) throw new Error('On iPhone, install the app to your Home Screen first (Share → Add to Home Screen), then enable push.')
+        throw new Error('Push not supported on this device')
+    }
     busy.value = true
     try {
         permission.value = await Notification.requestPermission()
-        if (permission.value !== 'granted') throw new Error('Notification permission denied')
+        if (permission.value === 'denied') {
+            throw new Error('Notifications are blocked. Allow them for this site in your browser settings, then try again.')
+        }
+        if (permission.value !== 'granted') throw new Error('Notification permission not granted')
         
         const {key} = await api.get('/alerts/vapid-key')
         if (!key) throw new Error('Server is missing VAPID key')
