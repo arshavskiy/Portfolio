@@ -130,47 +130,47 @@ function neonStyle(pnlPercent) {
       <!-- One card per stock (optionally grouped) -->
       <template v-for="section in groupedPositions" :key="section.group ?? '_all'">
         <div v-if="section.group" class="group-header">{{ section.group }}</div>
-        <div class="stock-grid">
-        <div
-            v-for="pos in section.items"
-            :key="`${section.group ?? ''}-${pos.ticker}`"
-            :style="neonStyle(pos.pnlPercent)"
-            class="stock-card"
-            @click="$router.push(`/stock/${pos.ticker}`)"
-        >
-          <div class="stock-top">
-            <div class="stock-left">
-              <span class="ticker">{{ pos.ticker }}</span>
-              <span class="company text-muted">{{ pos.companyName }}</span>
-            </div>
-            <div class="stock-right">
-              <span class="stock-value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
-              <span class="stock-price text-muted">{{ pos.shares }} × {{
-                  useTickerCurrency(pos.currentPrice, pos.ticker)
-                }}</span>
-            </div>
-          </div>
+<!--        <div class="stock-grid">-->
+<!--        <div-->
+<!--            v-for="pos in section.items"-->
+<!--            :key="`${section.group ?? ''}-${pos.ticker}`"-->
+<!--            :style="neonStyle(pos.pnlPercent)"-->
+<!--            class="stock-card"-->
+<!--            @click="$router.push(`/stock/${pos.ticker}`)"-->
+<!--        >-->
+<!--          <div class="stock-top">-->
+<!--            <div class="stock-left">-->
+<!--              <span class="ticker">{{ pos.ticker }}</span>-->
+<!--              <span class="company text-muted">{{ pos.companyName }}</span>-->
+<!--            </div>-->
+<!--            <div class="stock-right">-->
+<!--              <span class="stock-value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>-->
+<!--              <span class="stock-price text-muted">{{ pos.shares }} × {{-->
+<!--                  useTickerCurrency(pos.currentPrice, pos.ticker)-->
+<!--                }}</span>-->
+<!--            </div>-->
+<!--          </div>-->
 
-          <!-- Sparkline -->
-          <SparklineChart
-              v-if="sparklines[pos.ticker]?.length"
-              :data="sparklines[pos.ticker]"
-              :pnl-percent="pos.pnlPercent"
-              class="stock-spark"
-          />
+<!--          &lt;!&ndash; Sparkline &ndash;&gt;-->
+<!--          <SparklineChart-->
+<!--              v-if="sparklines[pos.ticker]?.length"-->
+<!--              :data="sparklines[pos.ticker]"-->
+<!--              :pnl-percent="pos.pnlPercent"-->
+<!--              class="stock-spark"-->
+<!--          />-->
 
-          <div class="stock-pnl">
-            <!--            <span class="text-muted" style="font-size:0.78rem">P&L</span>-->
-            <span :class="gainLossClass(pos.pnl)" class="pnl-val">
-              {{ pos.pnl >= 0 ? '+' : '' }}{{ useTickerCurrency(pos.pnl, pos.ticker) }}
-              ({{ usePercent(pos.pnlPercent) }})
-            </span>
-            <span :class="gainLossClass(pos.changePercent)" class="day-pnl">
-              Today {{ usePercent(pos.changePercent) }}
-            </span>
-          </div>
-        </div>
-        </div>
+<!--          <div class="stock-pnl">-->
+<!--            &lt;!&ndash;            <span class="text-muted" style="font-size:0.78rem">P&L</span>&ndash;&gt;-->
+<!--            <span :class="gainLossClass(pos.pnl)" class="pnl-val">-->
+<!--              {{ pos.pnl >= 0 ? '+' : '' }}{{ useTickerCurrency(pos.pnl, pos.ticker) }}-->
+<!--              ({{ usePercent(pos.pnlPercent) }})-->
+<!--            </span>-->
+<!--            <span :class="gainLossClass(pos.changePercent)" class="day-pnl">-->
+<!--              Today {{ usePercent(pos.changePercent) }}-->
+<!--            </span>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--        </div>-->
       </template>
 
       <!-- Total card per currency -->
@@ -206,9 +206,9 @@ function neonStyle(pnlPercent) {
               {{ t.dayPnl >= 0 ? '+' : '' }}{{ useCurrency(t.dayPnl, t.currency) }}
             </span>
           </div>
-          <div v-if="portfolio.combinedUsd?.ilsToUsd" class="fx-note text-muted">
-            ₪1 = ${{ portfolio.combinedUsd.ilsToUsd.toFixed(4) }}
-          </div>
+<!--          <div v-if="portfolio.combinedUsd?.ilsToUsd" class="fx-note text-muted">-->
+<!--            ₪1 = ${{ portfolio.combinedUsd.ilsToUsd.toFixed(4) }}-->
+<!--          </div>-->
         </div>
       </div>
 
@@ -352,7 +352,7 @@ function neonStyle(pnlPercent) {
 /* Totals grid */
 .totals-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  //grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   margin: 0.25rem 0 0.75rem;
 }

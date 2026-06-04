@@ -5,13 +5,13 @@ export const MARKETS = [
     {label: '🇺🇸 US', value: '', placeholder: 'AAPL, Apple...'},
     {label: '🪙 Crypto', value: '-USD', placeholder: 'BTC, ETH, SOL...'},
     {label: '🇮🇱 Israel', value: '.TA', placeholder: 'TEVA.TA, Teva...'},
-    {label: '🇬🇧 UK', value: '.L', placeholder: 'HSBA.L, HSBC...'},
-    {label: '🇩🇪 Germany', value: '.DE', placeholder: 'SAP.DE, SAP...'},
-    {label: '🇫🇷 France', value: '.PA', placeholder: 'MC.PA, LVMH...'},
-    {label: '🇨🇦 Canada', value: '.TO', placeholder: 'RY.TO, RBC...'},
-    {label: '🇦🇺 Australia', value: '.AX', placeholder: 'BHP.AX, BHP...'},
+    // {label: '🇬🇧 UK', value: '.L', placeholder: 'HSBA.L, HSBC...'},
+    // {label: '🇩🇪 Germany', value: '.DE', placeholder: 'SAP.DE, SAP...'},
+    // {label: '🇫🇷 France', value: '.PA', placeholder: 'MC.PA, LVMH...'},
+    // {label: '🇨🇦 Canada', value: '.TO', placeholder: 'RY.TO, RBC...'},
+    // {label: '🇦🇺 Australia', value: '.AX', placeholder: 'BHP.AX, BHP...'},
     {label: '🇯🇵 Japan', value: '.T', placeholder: '7203.T, Toyota...'},
-    {label: '🇭🇰 Hong Kong', value: '.HK', placeholder: '0700.HK, Tencent...'},
+    // {label: '🇭🇰 Hong Kong', value: '.HK', placeholder: '0700.HK, Tencent...'},
 ]
 
 export function useMarketSuffix(storageKey = 'add-market-suffix') {

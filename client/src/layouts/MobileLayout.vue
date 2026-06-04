@@ -28,11 +28,17 @@ import BottomNav from '@/components/ui/BottomNav.vue'
   overflow-y: auto;
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
+  /* Clear the device status bar / notch in fullscreen PWA mode. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 /* Content stays full-bleed on mobile; centered with a cap on larger screens. */
 .content-inner {
   width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .main-content { padding-top: 0; }
 }
 
 /* ── Desktop: sidebar + content ── */

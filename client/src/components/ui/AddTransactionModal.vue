@@ -45,6 +45,8 @@ const suggestions = ref([])
 const groups = ref([])              // selected group tags (array of strings)
 const groupSuggestions = ref([])    // filtered existing tags for the dropdown
 const pendingGroup = ref('')        // raw text typed but not yet committed
+const marketPrice = ref(null)       // live quote price for the current ticker
+const fetchingPrice = ref(false)
 
 const currentTicker = computed(() => {
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
@@ -110,6 +112,33 @@ watch(() => props.visible, (v) => {
   }
 })
 
+// Fetch the live market price for the current ticker (used as a price fallback,
+// mainly for crypto where users often "buy at market").
+async function fetchMarketPrice() {
+  marketPrice.value = null
+  const t = currentTicker.value
+  if (!t) return
+  fetchingPrice.value = true
+  try {
+    const q = await api.get(`/stocks/quote/${encodeURIComponent(t)}`)
+    marketPrice.value = q?.price ?? null
+  } catch {
+    marketPrice.value = null
+  } finally {
+    fetchingPrice.value = false
+  }
+}
+
+function useMarketPrice() {
+  if (marketPrice.value != null) price.value = marketPrice.value
+}
+
+// When a crypto ticker is chosen, prefetch its market price.
+watch(currentTicker, (t) => {
+  if (t && isCryptoBuy.value) fetchMarketPrice()
+  else marketPrice.value = null
+})
+
 async function searchTicker(event) {
   const raw = event.query?.trim() || ''
   // If the user typed a crypto pair directly (e.g. BTC-USD), search it as-is;
@@ -163,7 +192,16 @@ async function submit() {
   if (type.value === 'buy') commitPendingGroup() // flush un-Entered group text
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
   const t = applyTo((raw || '').split(' — ')[0].trim().toUpperCase())
-  if (!t || !shares.value || !price.value) {
+
+  // Crypto buy with no price → fall back to the live market price.
+  let effectivePrice = price.value
+  if (!effectivePrice && type.value === 'buy' && isCryptoBuy.value) {
+    if (marketPrice.value == null) await fetchMarketPrice()
+    effectivePrice = marketPrice.value
+    if (effectivePrice != null) price.value = effectivePrice
+  }
+
+  if (!t || !shares.value || !effectivePrice) {
     toast.add({ severity: 'warn', summary: 'Fill all fields', life: 2000 })
     return
   }
@@ -173,7 +211,7 @@ async function submit() {
       ticker: t,
       type: type.value,
       shares: shares.value,
-      price: price.value,
+      price: effectivePrice,
       date: date.value,
       notes: notes.value || undefined,
       feeProfileId: selectedFeeProfile.value || undefined,
@@ -253,8 +291,20 @@ async function submit() {
                        :min="0" :step="isCryptoBuy ? 0.0001 : 1" fluid placeholder="0"/>
         </div>
         <div class="field">
-          <label>{{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}</label>
-          <InputNumber v-model="price" mode="currency" :currency="currency" :min="0.001" :max-fraction-digits="4" :placeholder="`${currencySymbol}0.00`" fluid />
+          <label>
+            {{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}
+            <button
+                v-if="isCryptoBuy && type === 'buy' && marketPrice != null"
+                class="max-link"
+                type="button"
+                @click="useMarketPrice"
+            >Market {{ currencySymbol }}{{ marketPrice < 1 ? marketPrice.toFixed(6) : marketPrice.toFixed(2) }}</button>
+          </label>
+          <InputNumber v-model="price" mode="currency" :currency="currency" :min="0" :max-fraction-digits="shareDigits"
+                       :placeholder="isCryptoBuy && type === 'buy' ? 'Market price' : `${currencySymbol}0.00`" fluid />
+          <span v-if="isCryptoBuy && type === 'buy' && !price" class="suffix-hint">
+            Leave empty to buy at the current market price
+          </span>
         </div>
       </div>
 

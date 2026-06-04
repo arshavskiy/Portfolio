@@ -23,9 +23,10 @@ export default defineConfig(({ mode }) => {
         name: 'StockFolio',
         short_name: 'StockFolio',
         description: 'Personal Stocks Portfolio Tracker',
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
-        display: 'standalone',
+        theme_color: '#000000',
+        background_color: '#000000',
+        display: 'fullscreen',
+        display_override: ['fullscreen', 'standalone', 'minimal-ui'],
         orientation: 'portrait',
         start_url: '/',
         icons: [
