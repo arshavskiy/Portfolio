@@ -23,6 +23,9 @@ const memberSince = computed(() => {
 })
 
 onMounted(() => {
+  // Refresh user if the cached copy is missing name/email.
+  if (!auth.user?.name || !auth.user?.email) auth.fetchMe().catch(() => {
+  })
   if (!portfolio.positions.length) portfolio.fetchPortfolio().catch(() => {
   })
 })
@@ -42,14 +45,14 @@ function logout() {
     <!-- Identity card -->
     <div class="profile-card">
       <Avatar
-        :label="auth.user?.name?.charAt(0)?.toUpperCase()"
+          :label="(auth.user?.name || auth.user?.email || '?').charAt(0).toUpperCase()"
         size="xlarge"
         shape="circle"
         class="avatar"
       />
       <div class="profile-info">
-        <p class="profile-name">{{ auth.user?.name }}</p>
-        <p class="profile-email text-muted">{{ auth.user?.email }}</p>
+        <p class="profile-name">{{ auth.user?.name || 'Account' }}</p>
+        <p class="profile-email text-muted">{{ auth.user?.email || '—' }}</p>
         <p v-if="memberSince" class="member-since text-muted">Member since {{ memberSince }}</p>
       </div>
     </div>

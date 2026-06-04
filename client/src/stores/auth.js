@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
 import api from '@/composables/useApi'
 
 export const useAuthStore = defineStore('auth', () => {
@@ -26,6 +26,18 @@ export const useAuthStore = defineStore('auth', () => {
     setAuth(data.token, data.user)
     return data
   }
+    
+    // Refresh the current user from the server (cached localStorage copy may be
+    // missing/stale). Keeps token; updates user.
+    async function fetchMe() {
+        if (!token.value) return null
+        const data = await api.get('/auth/me')
+        if (data?.user) {
+            user.value = data.user
+            localStorage.setItem('user', JSON.stringify(data.user))
+        }
+        return user.value
+    }
 
   function logout() {
     token.value = null
@@ -33,6 +45,6 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
-
-  return { token, user, isAuthenticated, login, register, logout }
+    
+    return {token, user, isAuthenticated, login, register, logout, fetchMe}
 })
