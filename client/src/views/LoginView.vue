@@ -256,6 +256,11 @@ async function submit() {
         </p>
       </div>
     </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+      © {{ new Date().getFullYear() }} StockFolio · handcoded.tech. All rights reserved.
+    </footer>
   </div>
 </template>
 
@@ -870,5 +875,19 @@ async function submit() {
     align-items: center;
     padding: 3rem;
   }
+
+  /* Footer spans full width below the split columns. */
+  .landing { flex-wrap: wrap; }
+  .hero, .auth { flex-basis: 0; }
+  .landing-footer { flex-basis: 100%; border-top: 1px solid var(--border); }
+}
+
+/* ── Footer ── */
+.landing-footer {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  padding: 1.25rem 1rem;
+  padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
 }
 </style>

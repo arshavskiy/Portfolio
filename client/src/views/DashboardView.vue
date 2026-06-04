@@ -359,7 +359,7 @@ function neonStyle(pnlPercent) {
   grid-template-columns: repeat(2, 1fr);
   gap: 0.5rem;
   margin: 0.25rem 0 0.75rem;
-  margin-bottom: 45px;
+  margin-bottom: 75px;
 }
 
 .totals-grid > .total-card:only-child {
