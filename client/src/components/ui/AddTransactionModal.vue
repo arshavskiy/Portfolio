@@ -50,6 +50,9 @@ const currentTicker = computed(() => {
 })
 const currency = computed(() => tickerCurrency(currentTicker.value))
 const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
+// Crypto if the selected market chip is crypto OR the typed ticker already ends in -USD.
+const isCryptoBuy = computed(() => marketSuffix.value === '-USD' || /-USD$/i.test(currentTicker.value))
+const shareDigits = computed(() => isCryptoBuy.value ? 8 : 4)
 
 const feeOptions = computed(() => [
   { label: 'No fee', value: null },
@@ -106,7 +109,10 @@ watch(() => props.visible, (v) => {
 })
 
 async function searchTicker(event) {
-  const q = searchQuery(event.query?.trim() || '')
+  const raw = event.query?.trim() || ''
+  // If the user typed a crypto pair directly (e.g. BTC-USD), search it as-is;
+  // otherwise apply the selected market chip's suffix.
+  const q = /-USD$/i.test(raw) ? raw : searchQuery(raw)
   if (!q) {
     suggestions.value = [];
     return
@@ -186,7 +192,9 @@ async function submit() {
     :draggable="false"
   >
     <div class="tx-form">
-      <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select" />
+      <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select" style="position: absolute;
+    top: 23px;
+    left: 210px;"/>
 
       <!-- Market selector -->
       <div class="field">
@@ -205,7 +213,7 @@ async function submit() {
       </div>
 
       <div class="field">
-        <label>Ticker</label>
+        <label>{{ isCryptoBuy ? 'Coin' : 'Ticker' }}</label>
         <AutoComplete
           v-model="ticker"
           :suggestions="suggestions"
@@ -223,7 +231,7 @@ async function submit() {
       <div class="fields-row">
         <div class="field">
           <label>
-            Shares
+            {{ isCryptoBuy ? 'Amount' : 'Shares' }}
             <button
                 v-if="type === 'sell' && maxShares"
                 class="max-link"
@@ -232,11 +240,12 @@ async function submit() {
             >Max {{ maxShares }}
             </button>
           </label>
-          <InputNumber v-model="shares" :max="type === 'sell' && maxShares ? maxShares : undefined" :max-fraction-digits="4"
-                       :min="0.001" fluid placeholder="0"/>
+          <InputNumber v-model="shares" :max="type === 'sell' && maxShares ? maxShares : undefined"
+                       :max-fraction-digits="shareDigits"
+                       :min="0" :step="isCryptoBuy ? 0.0001 : 1" fluid placeholder="0"/>
         </div>
         <div class="field">
-          <label>Price per share</label>
+          <label>{{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}</label>
           <InputNumber v-model="price" mode="currency" :currency="currency" :min="0.001" :max-fraction-digits="4" :placeholder="`${currencySymbol}0.00`" fluid />
         </div>
       </div>

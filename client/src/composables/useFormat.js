@@ -1,5 +1,12 @@
+// Crypto on Yahoo uses a -USD (or -EUR…) suffix, e.g. BTC-USD.
+export function isCrypto(ticker) {
+    return !!ticker && /-USD$/i.test(ticker)
+}
+
 export function tickerCurrency(ticker) {
-  return ticker && ticker.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD'
+    if (!ticker) return 'USD'
+    if (ticker.toUpperCase().endsWith('.TA')) return 'ILS'
+    return 'USD' // US stocks + crypto are USD-priced
 }
 
 export function useCurrency(val, currency = 'USD') {
@@ -8,6 +15,16 @@ export function useCurrency(val, currency = 'USD') {
 }
 
 export function useTickerCurrency(val, ticker) {
+    if (val == null) return '—'
+    // Crypto: adaptive precision — small coins need more decimals than $0.00.
+    if (isCrypto(ticker)) {
+        const abs = Math.abs(val)
+        const maxFrac = abs >= 1 ? 2 : abs >= 0.01 ? 4 : 8
+        return new Intl.NumberFormat('en-US', {
+            style: 'currency', currency: 'USD',
+            minimumFractionDigits: 2, maximumFractionDigits: maxFrac,
+        }).format(val)
+    }
   return useCurrency(val, tickerCurrency(ticker))
 }
 

@@ -6,7 +6,10 @@
 // for stocks with no tags.
 
 function marketOf(ticker) {
-    return ticker.toUpperCase().endsWith('.TA') ? 'TASE' : 'US'
+    const t = ticker.toUpperCase()
+    if (/-USD$/.test(t)) return 'Crypto'
+    if (t.endsWith('.TA')) return 'TASE'
+    return 'US'
 }
 
 export function groupItems(items, mode) {

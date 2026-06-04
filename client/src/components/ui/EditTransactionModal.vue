@@ -3,7 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useConfirm} from 'primevue/useconfirm'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
-import {tickerCurrency} from '@/composables/useFormat'
+import {isCrypto, tickerCurrency} from '@/composables/useFormat'
 import api from '@/composables/useApi'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
@@ -31,6 +31,7 @@ const selectedFeeProfile = ref(null)
 const loading = ref(false)
 
 const ticker = computed(() => props.transaction?.ticker || '')
+const crypto = computed(() => isCrypto(ticker.value))
 const currency = computed(() => tickerCurrency(ticker.value))
 const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
 
@@ -126,17 +127,17 @@ function confirmDelete() {
     <div class="edit-form">
       <div class="fields-row">
         <div class="field">
-          <label>Shares</label>
-          <InputNumber v-model="shares" :min="0.001" :max-fraction-digits="4" fluid />
+          <label>{{ crypto ? 'Amount' : 'Shares' }}</label>
+          <InputNumber v-model="shares" :max-fraction-digits="crypto ? 8 : 4" :min="0" fluid/>
         </div>
         <div class="field">
-          <label>Price per share</label>
+          <label>{{ crypto ? 'Price per coin' : 'Price per share' }}</label>
           <InputNumber
             v-model="price"
             mode="currency"
             :currency="currency"
-            :min="0.001"
-            :max-fraction-digits="4"
+            :max-fraction-digits="crypto ? 8 : 4"
+            :min="0"
             fluid
           />
         </div>

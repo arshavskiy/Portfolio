@@ -90,9 +90,13 @@ async function getHistory(ticker, range = '3mo') {
 async function searchTicker(query) {
   const results = await yahooFinance.search(query)
   return (results.quotes || [])
-    .filter((q) => q.quoteType === 'EQUITY')
+      .filter((q) => (q.quoteType === 'EQUITY' || q.quoteType === 'CRYPTOCURRENCY') && q.symbol)
     .slice(0, 8)
-    .map((q) => ({ ticker: q.symbol, name: q.shortname || q.longname }))
+      .map((q) => ({
+        ticker: q.symbol,
+        name: q.shortname || q.longname,
+        type: q.quoteType === 'CRYPTOCURRENCY' ? 'crypto' : 'equity',
+      }))
 }
 
 function invalidateCache(ticker) {

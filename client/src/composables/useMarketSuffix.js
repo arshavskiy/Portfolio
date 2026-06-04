@@ -3,6 +3,7 @@ import {useStorage} from '@vueuse/core'
 
 export const MARKETS = [
     {label: '🇺🇸 US', value: '', placeholder: 'AAPL, Apple...'},
+    {label: '🪙 Crypto', value: '-USD', placeholder: 'BTC, ETH, SOL...'},
     {label: '🇮🇱 Israel', value: '.TA', placeholder: 'TEVA.TA, Teva...'},
     {label: '🇬🇧 UK', value: '.L', placeholder: 'HSBA.L, HSBC...'},
     {label: '🇩🇪 Germany', value: '.DE', placeholder: 'SAP.DE, SAP...'},
