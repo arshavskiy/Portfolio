@@ -42,7 +42,7 @@ onMounted(async () => {
 async function fetchSparklines() {
   const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value)]
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value, 40)]
     } catch {
       return null
     }

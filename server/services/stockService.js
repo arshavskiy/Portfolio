@@ -9,6 +9,15 @@ function taFactor(ticker) {
   return ticker.toUpperCase().endsWith('.TA') ? 100 : 1
 }
 
+// Evenly downsample to at most `max` items, always keeping first + last.
+function downsample(arr, max) {
+  if (!Array.isArray(arr) || !max || arr.length <= max || max < 2) return arr
+  const step = (arr.length - 1) / (max - 1)
+  const out = []
+  for (let i = 0; i < max; i++) out.push(arr[Math.round(i * step)])
+  return out
+}
+
 async function getQuote(ticker) {
   const cached = quoteCache.get(ticker)
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
@@ -40,7 +49,7 @@ async function getQuotes(tickers) {
   return Promise.all(tickers.map((t) => getQuote(t).catch(() => null)))
 }
 
-async function getHistory(ticker, range = '3mo') {
+async function getHistory(ticker, range = '3mo', points = null) {
   const fmt = (d) => d.toISOString().split('T')[0]
   const endDate = new Date()
   const startDate = new Date()
@@ -54,7 +63,7 @@ async function getHistory(ticker, range = '3mo') {
     })
     const f = taFactor(ticker)
     const quotes = result?.quotes || []
-    return quotes
+    const rows = quotes
       .filter((r) => r && r.close != null)
       .map((r) => ({
         date: r.date,
@@ -64,27 +73,34 @@ async function getHistory(ticker, range = '3mo') {
         close: r.close / f,
         volume: r.volume,
       }))
+    return downsample(rows, points)
   }
 
   const f = taFactor(ticker)
   const rangeMap = { '5d': 5, '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365 }
   const days = rangeMap[range] || 90
   startDate.setDate(startDate.getDate() - days)
-
-  const result = await yahooFinance.historical(ticker, {
+  
+  // historical() is deprecated/removed by Yahoo and throws on split-adjusted
+  // tickers with null rows (e.g. NVDA). Use chart() — its supported replacement.
+  const result = await yahooFinance.chart(ticker, {
     period1: fmt(startDate),
     period2: fmt(endDate),
     interval: '1d',
   })
-
-  return result.map((row) => ({
-    date: row.date,
-    open: row.open / f,
-    high: row.high / f,
-    low: row.low / f,
-    close: row.close / f,
-    volume: row.volume,
-  }))
+  
+  const quotes = result?.quotes || []
+  const rows = quotes
+      .filter((r) => r && r.close != null)
+      .map((r) => ({
+        date: r.date,
+        open: r.open / f,
+        high: r.high / f,
+        low: r.low / f,
+        close: r.close / f,
+        volume: r.volume,
+      }))
+  return downsample(rows, points)
 }
 
 async function searchTicker(query) {
@@ -144,7 +160,7 @@ async function getMarkets(group = 'US') {
   const symbols = list.map((m) => m.symbol)
   const [quotes, histories] = await Promise.all([
     Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
-    Promise.all(symbols.map((s) => getHistory(s, '5d').catch(() => []))),
+    Promise.all(symbols.map((s) => getHistory(s, '5d', 30).catch(() => []))),
   ])
 
   const data = list.map((m, i) => {
@@ -192,7 +208,7 @@ async function getTrending(group = 'US') {
 
   const [quotes, histories] = await Promise.all([
     Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
-    Promise.all(symbols.map((s) => getHistory(s, '5d').catch(() => []))),
+    Promise.all(symbols.map((s) => getHistory(s, '5d', 30).catch(() => []))),
   ])
 
   const data = symbols.map((s, i) => {

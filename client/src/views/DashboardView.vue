@@ -5,13 +5,12 @@ import {useHistoryStore} from '@/stores/history'
 import {useChartRange} from '@/composables/useChartRange'
 import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
 import {useStorage} from '@vueuse/core'
-import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import api from '@/composables/useApi'
 import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
-import SparklineChart from '@/components/charts/SparklineChart.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
@@ -66,7 +65,7 @@ onMounted(async () => {
 async function fetchSparklines() {
   const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value)]
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value, 40)]
     } catch {
       return null
     }

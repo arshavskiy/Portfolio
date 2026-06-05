@@ -11,7 +11,7 @@ exports.getWatchlist = async (req, res) => {
     const tickers = items.map((i) => i.ticker)
       const [quotes, histories, positions] = await Promise.all([
           getQuotes(tickers),
-          Promise.all(tickers.map((t) => getHistory(t, range).catch(() => []))),
+          Promise.all(tickers.map((t) => getHistory(t, range, 40).catch(() => []))),
           Position.find({user: req.user._id, ticker: {$in: tickers}}, 'ticker groups'),
       ])
     const quoteMap = {}

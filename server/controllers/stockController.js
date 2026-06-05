@@ -31,8 +31,10 @@ exports.getQuote = async (req, res) => {
 
 exports.getHistory = async (req, res) => {
   try {
-    const { range = '3mo' } = req.query
-    const data = await getHistory(req.params.ticker.toUpperCase(), range)
+    const {range = '3mo', points} = req.query
+    const cap = Number(points)
+    const pts = Number.isFinite(cap) && cap >= 2 ? Math.floor(cap) : null
+    const data = await getHistory(req.params.ticker.toUpperCase(), range, pts)
     res.json(data)
   } catch (err) {
     res.status(500).json({ message: err.message })

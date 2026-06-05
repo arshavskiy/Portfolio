@@ -44,7 +44,7 @@ async function loadQuote() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value)
+    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, 150)
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
   } finally {

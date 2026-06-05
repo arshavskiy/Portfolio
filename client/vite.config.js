@@ -39,7 +39,10 @@ export default defineConfig(({ mode }) => {
         globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
       },
         devOptions: {
-          enabled: true,
+          // Service worker disabled in dev — it caches JS bundles and serves
+          // stale code, defeating HMR. The production build keeps the full SW
+          // (push/offline). Set to true only when testing push locally.
+          enabled: false,
           type: 'module',
         },
       }),
