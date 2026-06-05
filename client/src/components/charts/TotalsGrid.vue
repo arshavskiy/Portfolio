@@ -21,18 +21,23 @@ defineProps({
 <style scoped>
 .totals-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
   gap: 0.5rem;
   margin: 0.25rem 0 0.75rem;
+  align-items: stretch;
 }
 
-.totals-grid > :only-child {
+.totals-grid > * {
+  min-width: 0;
+}
+
+.totals-grid > :deep(.total-card:only-child) {
   grid-column: 1 / -1;
 }
 
 @media (min-width: 768px) {
   .totals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
   }
 }
 </style>

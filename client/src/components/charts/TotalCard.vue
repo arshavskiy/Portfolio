@@ -39,24 +39,42 @@ defineProps({
 
 <style scoped>
 .total-card {
+  position: relative;
+  overflow: hidden;
   border: 1px solid var(--accent);
   border-radius: 14px;
   padding: 0.9rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  min-width: 0;
+  height: 100%;
+  background: var(--bg-card);
+}
+
+.total-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 42%);
+  pointer-events: none;
 }
 
 .total-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
 }
 
 .total-label {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
+  flex: 0 0 auto;
 }
 
 .total-values {
@@ -64,26 +82,37 @@ defineProps({
   flex-direction: column;
   align-items: flex-end;
   gap: 1px;
+  min-width: 0;
 }
 
 .total-value {
   font-size: 1.15rem;
   font-weight: 700;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .total-converted {
   font-size: 0.78rem;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .total-pnl {
   font-size: 0.88rem;
   font-weight: 600;
   text-align: right;
+  margin-left: auto;
+  overflow-wrap: anywhere;
 }
 
 .total-day {
   font-size: 0.85rem;
   font-weight: 500;
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .today-label {

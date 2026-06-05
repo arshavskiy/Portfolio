@@ -1,8 +1,11 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
+import {useRouter} from 'vue-router'
 import api from '@/composables/useApi'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
+
+const router = useRouter()
 
 const FALLBACK_TOPICS = [
   {value: 'for-you', label: 'For You'},
@@ -68,8 +71,9 @@ function setTopic(value) {
 }
 
 function openArticle(article) {
-  if (!article.url) return
-  window.open(article.url, '_blank', 'noopener,noreferrer')
+  if (!article.id) return
+  sessionStorage.setItem(`news-article:${article.id}`, JSON.stringify(article))
+  router.push(`/news/article/${article.id}`)
 }
 
 function setupInfiniteScroll() {

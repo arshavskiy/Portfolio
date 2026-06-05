@@ -65,14 +65,15 @@ Both are optional, but production news quality is best when Marketaux is configu
 - `client/src/components/charts/NewsArticleCard.vue`: shared article card.
 - `client/src/components/charts/NewsCard.vue`: dashboard preview.
 - `client/src/views/NewsView.vue`: full feed, topic selection, infinite scroll.
+- `client/src/views/NewsArticleView.vue`: article details page backed by server cache plus session fallback.
 - `client/src/components/ui/BottomNav.vue`: News nav entry.
 - `client/src/views/LoginView.vue`: landing slideshow and feature list.
 
 ## Backend Files
 
 - `server/routes/stocks.js`: registers `/api/stocks/news`.
-- `server/controllers/stockController.js`: handles topic resolution and watchlist symbols.
-- `server/services/stockService.js`: provider calls, normalization, caching, and pagination metadata.
+- `server/controllers/stockController.js`: handles topic resolution, watchlist symbols, and article lookup.
+- `server/services/stockService.js`: provider calls, normalization, article IDs, caching, and pagination metadata.
 
 ## Verification
 

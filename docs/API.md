@@ -194,6 +194,28 @@ The endpoint uses Marketaux first, then Finnhub, then Yahoo Finance search fallb
 
 `hasMore` is `true` for Marketaux pages while articles are returned. Finnhub and Yahoo fallback feeds are first-page only.
 
+### GET /stocks/news/article/:id `🔒`
+Return a single normalized article from the server's short-lived news cache.
+
+The `id` comes from `/stocks/news` article results. If the server cache has expired or the article was never loaded on this server instance, the endpoint returns `404`.
+
+**Response `200`**
+```json
+{
+  "article": {
+    "id": "sha1-url",
+    "title": "Article title",
+    "url": "https://example.com/article",
+    "image": "https://example.com/image.jpg",
+    "source": "publisher.com",
+    "summary": "Short article summary",
+    "symbols": ["AAPL"],
+    "publishedAt": "2026-06-05T08:00:00.000Z",
+    "provider": "marketaux"
+  }
+}
+```
+
 ---
 
 ## Watchlist

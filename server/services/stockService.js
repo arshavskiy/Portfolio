@@ -1,4 +1,5 @@
 const YahooFinance = require('yahoo-finance2').default
+const crypto = require('crypto')
 const yahooFinance = new YahooFinance()
 
 const quoteCache = new Map()
@@ -228,6 +229,7 @@ async function getTrending(group = 'US') {
 }
 
 let newsCache = new Map()
+let articleCache = new Map()
 const NEWS_TTL = 15 * 60 * 1000
 
 const NEWS_TOPICS = {
@@ -243,6 +245,31 @@ const NEWS_TOPICS = {
 
 function getNewsTopic(topic) {
   return NEWS_TOPICS[topic] ? topic : 'markets'
+}
+
+function articleId(url) {
+  return crypto.createHash('sha1').update(url || '').digest('hex')
+}
+
+function withArticleIds(articles, provider) {
+  return articles.map((article) => ({
+    ...article,
+    id: article.id || articleId(article.url),
+    provider,
+  }))
+}
+
+function rememberArticles(articles) {
+  const now = Date.now()
+  articles.forEach((article) => {
+    if (article.id) articleCache.set(article.id, { article, ts: now })
+  })
+}
+
+function getNewsArticle(id) {
+  const cached = articleCache.get(id)
+  if (!cached || Date.now() - cached.ts > NEWS_TTL) return null
+  return cached.article
 }
 
 function normalizeYahooArticle(article) {
@@ -291,8 +318,8 @@ function normalizeMarketauxArticle(article) {
 }
 
 async function getFinnhubNews(limit, topicKey, page = 1) {
-  if (!process.env.FINNHUB_API_KEY) return []
-  if (page > 1) return []
+  if (!process.env.FINNHUB_API_KEY) return { articles: [], provider: null }
+  if (page > 1) return { articles: [], provider: null }
 
   const url = new URL('https://finnhub.io/api/v1/news')
   url.searchParams.set('category', topicKey === 'crypto' ? 'crypto' : 'general')
@@ -306,11 +333,11 @@ async function getFinnhubNews(limit, topicKey, page = 1) {
     .map(normalizeFinnhubArticle)
     .filter((article) => article.title && article.url)
     .slice(0, limit)
-  return { articles, provider: 'finnhub' }
+  return { articles: withArticleIds(articles, 'finnhub'), provider: 'finnhub' }
 }
 
 async function getMarketauxNews(limit, topicKey, page = 1, symbols = []) {
-  if (!process.env.MARKETAUX_API_TOKEN) return []
+  if (!process.env.MARKETAUX_API_TOKEN) return { articles: [], provider: null }
 
   const topic = NEWS_TOPICS[topicKey]
   const url = new URL('https://api.marketaux.com/v1/news/all')
@@ -333,17 +360,17 @@ async function getMarketauxNews(limit, topicKey, page = 1, symbols = []) {
     .map(normalizeMarketauxArticle)
     .filter((article) => article.title && article.url)
     .slice(0, limit)
-  return { articles, provider: 'marketaux' }
+  return { articles: withArticleIds(articles, 'marketaux'), provider: 'marketaux' }
 }
 
 async function getYahooNews(limit, topicKey, page = 1) {
-  if (page > 1) return []
+  if (page > 1) return { articles: [], provider: null }
   const result = await yahooFinance.search(NEWS_TOPICS[topicKey].yahooQuery)
   const articles = (result.news || [])
     .map(normalizeYahooArticle)
     .filter((article) => article.title && article.url)
     .slice(0, limit)
-  return { articles, provider: 'yahoo' }
+  return { articles: withArticleIds(articles, 'yahoo'), provider: 'yahoo' }
 }
 
 async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {}) {
@@ -355,6 +382,7 @@ async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {
   const cached = newsCache.get(cacheKey)
   if (cached?.data.length && Date.now() - cached.ts < NEWS_TTL) {
     const articles = cached.data.slice(0, cappedLimit)
+    rememberArticles(articles)
     return {
       articles,
       page: pageNumber,
@@ -388,6 +416,7 @@ async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {
   }
 
   newsCache.set(cacheKey, { data, provider, ts: Date.now() })
+  rememberArticles(data)
   return {
     articles: data,
     page: pageNumber,
@@ -423,5 +452,6 @@ module.exports = {
   getTrending,
   TRENDING_GROUP_NAMES,
   getMarketNews,
+  getNewsArticle,
   NEWS_TOPICS,
 }

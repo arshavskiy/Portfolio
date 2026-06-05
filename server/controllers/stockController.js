@@ -7,6 +7,7 @@ const {
   getTrending,
   TRENDING_GROUP_NAMES,
   getMarketNews,
+  getNewsArticle,
   NEWS_TOPICS,
 } = require('../services/stockService')
 const Watchlist = require('../models/Watchlist')
@@ -56,6 +57,16 @@ exports.getMarketNews = async (req, res) => {
       provider: Array.isArray(data) ? null : data.provider,
       hasMore: Array.isArray(data) ? false : Boolean(data.hasMore),
     })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.getNewsArticle = async (req, res) => {
+  try {
+    const article = getNewsArticle(req.params.id)
+    if (!article) return res.status(404).json({ message: 'Article not found in news cache' })
+    res.json({ article })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
