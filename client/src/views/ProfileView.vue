@@ -4,7 +4,7 @@ import {useRouter} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
-import {usePwaInstall, useFullscreen} from '@/composables/usePwa'
+import {useFullscreen, usePwaInstall} from '@/composables/usePwa'
 import {useToast} from 'primevue/usetoast'
 import Button from 'primevue/button'
 import Avatar from 'primevue/avatar'
@@ -74,7 +74,6 @@ function logout() {
       <Avatar
           :label="(auth.user?.name || auth.user?.email || '?').charAt(0).toUpperCase()"
         size="xlarge"
-        shape="circle"
         class="avatar"
       />
       <div class="profile-info">
