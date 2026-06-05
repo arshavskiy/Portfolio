@@ -5,6 +5,8 @@ const positionSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     ticker: { type: String, required: true, uppercase: true, trim: true },
     companyName: { type: String },
+      sector: {type: String},
+      industry: {type: String},
     shares: { type: Number, required: true, min: 0 },
     avgCost: { type: Number, required: true, min: 0 },
       groups: {type: [String], default: []},

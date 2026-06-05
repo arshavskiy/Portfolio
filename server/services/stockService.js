@@ -3,6 +3,7 @@ const crypto = require('crypto')
 const yahooFinance = new YahooFinance()
 
 const quoteCache = new Map()
+const profileCache = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 
 // TASE (.TA) prices from Yahoo are in agorot (1/100 shekel) — divide by 100
@@ -17,6 +18,12 @@ function downsample(arr, max) {
   const out = []
   for (let i = 0; i < max; i++) out.push(arr[Math.round(i * step)])
   return out
+}
+
+function cleanProfileValue(value) {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim()
+  return normalized || null
 }
 
 async function getQuote(ticker) {
@@ -113,7 +120,55 @@ async function searchTicker(query) {
         ticker: q.symbol,
         name: q.shortname || q.longname,
         type: q.quoteType === 'CRYPTOCURRENCY' ? 'crypto' : 'equity',
+        sector: cleanProfileValue(q.sectorDisp || q.sector),
+        industry: cleanProfileValue(q.industryDisp || q.industry),
       }))
+}
+
+async function getTickerProfile(ticker, fallbackName = null) {
+  const symbol = ticker.toUpperCase()
+  const cached = profileCache.get(symbol)
+  if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
+  
+  let profile = {
+    companyName: cleanProfileValue(fallbackName),
+    sector: null,
+    industry: null,
+  }
+  
+  try {
+    const summary = await yahooFinance.quoteSummary(symbol, {
+      modules: ['price', 'assetProfile', 'summaryProfile'],
+    })
+    profile = {
+      companyName: cleanProfileValue(
+          summary?.price?.shortName ||
+          summary?.price?.longName ||
+          fallbackName
+      ),
+      sector: cleanProfileValue(
+          summary?.assetProfile?.sectorDisp ||
+          summary?.assetProfile?.sector ||
+          summary?.summaryProfile?.sectorDisp ||
+          summary?.summaryProfile?.sector
+      ),
+      industry: cleanProfileValue(
+          summary?.assetProfile?.industryDisp ||
+          summary?.assetProfile?.industry ||
+          summary?.summaryProfile?.industryDisp ||
+          summary?.summaryProfile?.industry
+      ),
+    }
+  } catch {
+    try {
+      const q = await getQuote(symbol)
+      profile.companyName = cleanProfileValue(q?.name) || cleanProfileValue(fallbackName)
+    } catch {
+    }
+  }
+  
+  profileCache.set(symbol, {data: profile, ts: Date.now()})
+  return profile
 }
 
 function invalidateCache(ticker) {
@@ -445,6 +500,7 @@ module.exports = {
   getQuotes,
   getHistory,
   searchTicker,
+  getTickerProfile,
   invalidateCache,
   getIlsToUsd,
   getMarkets,

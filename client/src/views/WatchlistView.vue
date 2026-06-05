@@ -1,6 +1,5 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue'
-import {useToast} from 'primevue/usetoast'
 import {useStorage} from '@vueuse/core'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
@@ -15,7 +14,6 @@ import RangeBar from '@/components/ui/RangeBar.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
 
-const toast = useToast()
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
 const range = useChartRange()
@@ -35,10 +33,6 @@ onMounted(() => {
 })
 watch(range, (r) => watchlist.fetchWatchlist(r))
 
-async function remove(item) {
-  await watchlist.removeItem(item._id)
-  toast.add({ severity: 'success', summary: 'Removed from watchlist', life: 2000 })
-}
 </script>
 
 <template>
@@ -87,7 +81,6 @@ async function remove(item) {
             v-for="item in section.items"
             :key="`${section.group ?? ''}-${item._id}`"
             :item="item"
-            @remove="remove"
         />
       </template>
     </div>

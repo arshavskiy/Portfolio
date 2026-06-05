@@ -285,7 +285,7 @@ const activeAlerts = computed(() =>
 }
 
 .price {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -293,7 +293,7 @@ const activeAlerts = computed(() =>
 /* Shared */
 .ticker {
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.85rem;
   display: block;
   color: var(--text-primary);
   letter-spacing: 0.02em;
@@ -379,7 +379,6 @@ const activeAlerts = computed(() =>
 
 .row-actions {
   display: grid;
-  grid-template-columns: repeat(2, auto);
   gap: 1px;
   flex-shrink: 0;
 }
@@ -389,7 +388,7 @@ const activeAlerts = computed(() =>
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
-  padding: 5px;
+  padding: 2px;
   border-radius: 50%;
   line-height: 1;
   transition: color 0.15s;

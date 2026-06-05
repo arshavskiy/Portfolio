@@ -10,7 +10,6 @@ import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
-import NewsCard from '@/components/charts/NewsCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
@@ -126,7 +125,7 @@ function neonStyle(pnlPercent) {
     <TrendingCard />
 
     <!-- Market news -->
-    <NewsCard />
+    <!--    <NewsCard />-->
 
     <div v-if="portfolio.loading" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />

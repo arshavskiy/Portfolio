@@ -1,6 +1,6 @@
 const Watchlist = require('../models/Watchlist')
 const Position = require('../models/Position')
-const {getQuotes, getHistory} = require('../services/stockService')
+const {getQuotes, getHistory, getTickerProfile} = require('../services/stockService')
 
 exports.getWatchlist = async (req, res) => {
   try {
@@ -30,6 +30,8 @@ exports.getWatchlist = async (req, res) => {
       _id: item._id,
       ticker: item.ticker,
       companyName: item.companyName,
+        sector: item.sector || null,
+        industry: item.industry || null,
       addedAt: item.addedAt,
       ...(quoteMap[item.ticker] || {}),
         history: historyMap[item.ticker] || [],
@@ -46,12 +48,19 @@ exports.addToWatchlist = async (req, res) => {
   try {
     const { ticker, companyName } = req.body
     if (!ticker) return res.status(400).json({ message: 'Ticker required' })
-
-    const exists = await Watchlist.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
+      const symbol = ticker.toUpperCase()
+      
+      const exists = await Watchlist.findOne({user: req.user._id, ticker: symbol})
     if (exists) return res.status(409).json({ message: 'Already in watchlist' })
+      
+      const profile = await getTickerProfile(symbol, companyName)
 
     const item = await Watchlist.create({
-      user: req.user._id, ticker: ticker.toUpperCase(), companyName,
+        user: req.user._id,
+        ticker: symbol,
+        companyName: profile.companyName || companyName || symbol,
+        sector: profile.sector,
+        industry: profile.industry,
     })
     res.status(201).json(item)
   } catch (err) {
@@ -69,7 +78,15 @@ exports.syncHoldings = async (req, res) => {
             positions.map((p) =>
                 Watchlist.findOneAndUpdate(
                     {user: req.user._id, ticker: p.ticker},
-                    {$setOnInsert: {user: req.user._id, ticker: p.ticker, companyName: p.companyName || p.ticker}},
+                    {
+                        $setOnInsert: {
+                            user: req.user._id,
+                            ticker: p.ticker,
+                            companyName: p.companyName || p.ticker,
+                            sector: p.sector || null,
+                            industry: p.industry || null,
+                        },
+                    },
                     {upsert: true, new: true}
                 )
             )

@@ -58,12 +58,24 @@ async function loadData() {
   loading.value = false
 }
 
+async function ensureWatchlistLoaded() {
+  if (watchlist.items.length || watchlist.loading) return
+  try {
+    await watchlist.fetchWatchlist()
+  } catch {
+  }
+}
+
 function startAutoRefresh() {
   clearInterval(refreshTimer)
   refreshTimer = setInterval(loadQuote, 60000)
 }
 
-onMounted(() => { loadData(); startAutoRefresh() })
+onMounted(() => {
+  ensureWatchlistLoaded()
+  loadData()
+  startAutoRefresh()
+})
 onUnmounted(() => clearInterval(refreshTimer))
 watch(selectedRange, loadHistory)
 watch(() => route.params.ticker, (t) => {
@@ -101,7 +113,10 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
           @click="showAlertModal = true"
       />
       <Button
-        :icon="isWatched() ? 'pi pi-eye-slash' : 'pi pi-eye'"
+          v-tooltip.bottom="isWatched() ? 'Remove from watchlist' : 'Add to watchlist'"
+          :icon="isWatched() ? 'pi pi-times' : 'pi pi-eye'"
+          :outlined="isWatched()"
+          :severity="isWatched() ? 'danger' : undefined"
         text rounded
         @click="toggleWatchlist"
       />

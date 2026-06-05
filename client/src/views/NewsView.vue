@@ -71,9 +71,8 @@ function setTopic(value) {
 }
 
 function openArticle(article) {
-  if (!article.id) return
-  sessionStorage.setItem(`news-article:${article.id}`, JSON.stringify(article))
-  router.push(`/news/article/${article.id}`)
+  if (!article?.url) return
+  window.open(article.url, '_blank', 'noopener,noreferrer')
 }
 
 function setupInfiniteScroll() {

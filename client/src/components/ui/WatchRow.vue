@@ -8,7 +8,6 @@ import SparklineChart from '@/components/charts/SparklineChart.vue'
 const props = defineProps({
   item: {type: Object, required: true},
 })
-const emit = defineEmits(['remove'])
 const router = useRouter()
 const alerts = useAlertsStore()
 
@@ -46,10 +45,6 @@ const activeAlerts = computed(() =>
         {{ usePercent(item.changePercent) }}
       </span>
     </div>
-
-    <button class="remove-btn" @click.stop="emit('remove', item)">
-      <i class="pi pi-times"/>
-    </button>
   </div>
 </template>
 
@@ -76,7 +71,7 @@ const activeAlerts = computed(() =>
 }
 
 .ticker {
-  font-size: 1rem;
+  font-size: 0.85rem;
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: 0.02em;
@@ -127,7 +122,7 @@ const activeAlerts = computed(() =>
 }
 
 .price {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -151,24 +146,4 @@ const activeAlerts = computed(() =>
   color: #fff;
 }
 
-.remove-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 6px;
-  margin-left: 2px;
-  border-radius: 50%;
-  line-height: 1;
-  flex-shrink: 0;
-  transition: color 0.15s;
-}
-
-.remove-btn:active {
-  color: var(--red);
-}
-
-.remove-btn i {
-  font-size: 0.7rem;
-}
 </style>

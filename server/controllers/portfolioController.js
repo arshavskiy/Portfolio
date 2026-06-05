@@ -2,7 +2,7 @@ const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
 const FeeProfile = require('../models/FeeProfile')
 const Watchlist = require('../models/Watchlist')
-const { getQuotes, invalidateCache, getIlsToUsd } = require('../services/stockService')
+const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd} = require('../services/stockService')
 const { computeTransactionCosts } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 
@@ -93,6 +93,8 @@ exports.getPortfolio = async (req, res) => {
         ticker: p.ticker,
         currency,
         companyName: q.name || p.companyName,
+          sector: p.sector || null,
+          industry: p.industry || null,
         shares: p.shares,
         avgCost: p.avgCost,
         currentPrice,
@@ -181,12 +183,17 @@ exports.addTransaction = async (req, res) => {
     })
 
     let position = await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
+      const symbol = ticker.toUpperCase()
+      const profile = type === 'buy' ? await getTickerProfile(symbol) : null
 
     if (type === 'buy') {
       if (position) {
         const newShares = position.shares + shares
         position.avgCost = (position.avgCost * position.shares + price * shares) / newShares
         position.shares = newShares
+          position.companyName = position.companyName || profile?.companyName || symbol
+          position.sector = position.sector || profile?.sector || null
+          position.industry = position.industry || profile?.industry || null
         // Merge any newly provided tags into the existing position (union).
         if (normalizedGroups.length) {
           position.groups = normalizeGroups([...(position.groups || []), ...normalizedGroups])
@@ -194,14 +201,28 @@ exports.addTransaction = async (req, res) => {
         await position.save()
       } else {
         position = await Position.create({
-          user: req.user._id, ticker: ticker.toUpperCase(), shares, avgCost: price,
+            user: req.user._id,
+            ticker: symbol,
+            companyName: profile?.companyName || symbol,
+            sector: profile?.sector,
+            industry: profile?.industry,
+            shares,
+            avgCost: price,
           groups: normalizedGroups,
         })
       }
       // Auto-add to watchlist if not already there
       await Watchlist.findOneAndUpdate(
-        { user: req.user._id, ticker: ticker.toUpperCase() },
-        { $setOnInsert: { user: req.user._id, ticker: ticker.toUpperCase() } },
+          {user: req.user._id, ticker: symbol},
+          {
+              $setOnInsert: {
+                  user: req.user._id,
+                  ticker: symbol,
+                  companyName: profile?.companyName || symbol,
+                  sector: profile?.sector || null,
+                  industry: profile?.industry || null,
+              },
+          },
         { upsert: true, new: true }
       )
     } else if (type === 'sell') {
