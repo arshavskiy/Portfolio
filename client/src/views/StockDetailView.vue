@@ -139,7 +139,7 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
       <SelectButton v-model="chartMode" :options="chartModes" size="small" />
     </div>
 
-    <StockChart :data="history" :loading="chartLoading" :mode="chartMode" />
+    <StockChart :data="history" :loading="chartLoading" :mode="chartMode" :current-price="quote?.price ?? null" />
 
     <div v-if="quote" class="stats-grid">
       <div class="stat">

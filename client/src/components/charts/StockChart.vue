@@ -6,6 +6,7 @@ const props = defineProps({
   data: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   mode: { type: String, default: 'line' }, // 'line' | 'candle'
+  currentPrice: { type: Number, default: null },
 })
 
 const svgRef = ref(null)
@@ -100,6 +101,44 @@ function draw() {
     .call((g) => g.selectAll('.tick line').remove())
     .call((g) => g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', '10'))
 
+  if (Number.isFinite(props.currentPrice)) {
+    const priceY = y(props.currentPrice)
+    if (priceY >= 0 && priceY <= h) {
+      g.append('line')
+        .attr('x1', 0)
+        .attr('x2', w)
+        .attr('y1', priceY)
+        .attr('y2', priceY)
+        .attr('stroke', '#f59e0b')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '6,4')
+
+      const labelWidth = 56
+      const labelHeight = 18
+      const labelX = Math.max(0, w - labelWidth)
+      const labelY = Math.min(Math.max(0, priceY - labelHeight / 2), h - labelHeight)
+
+      g.append('rect')
+        .attr('x', labelX)
+        .attr('y', labelY)
+        .attr('width', labelWidth)
+        .attr('height', labelHeight)
+        .attr('rx', 4)
+        .attr('fill', '#0f172a')
+        .attr('stroke', '#f59e0b')
+        .attr('stroke-width', 1)
+
+      g.append('text')
+        .attr('x', labelX + labelWidth / 2)
+        .attr('y', labelY + 12)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#f8fafc')
+        .attr('font-size', '10')
+        .attr('font-weight', 600)
+        .text(props.currentPrice.toFixed(2))
+    }
+  }
+
   // Crosshair + tooltip
   const bisect = d3.bisector((d) => d.date).left
   const focus = g.append('g').style('display', 'none')
@@ -141,7 +180,7 @@ function draw() {
 }
 
 onMounted(() => nextTick(draw))
-watch(() => [props.data, props.loading, props.mode], () => nextTick(draw))
+watch(() => [props.data, props.loading, props.mode, props.currentPrice], () => nextTick(draw))
 
 const ro = new ResizeObserver(() => nextTick(draw))
 onMounted(() => { if (containerRef.value) ro.observe(containerRef.value) })

@@ -29,6 +29,10 @@ function fmtDate(value) {
     <h2>{{ article.title }}</h2>
     <p v-if="article.summary" class="summary text-muted">{{ article.summary }}</p>
 
+    <div v-if="article.tags?.length" class="tag-row">
+      <span v-for="tag in article.tags" :key="tag" class="topic-pill">{{ tag }}</span>
+    </div>
+
     <div v-if="article.symbols?.length" class="symbol-row">
       <span v-for="symbol in article.symbols" :key="symbol" class="symbol-pill">{{ symbol }}</span>
     </div>
@@ -104,11 +108,27 @@ h2 {
   overflow: hidden;
 }
 
-.symbol-row {
+.tag-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.65rem;
+}
+
+.topic-pill {
+  border: 1px solid rgba(0, 207, 255, 0.35);
+  border-radius: 999px;
+  color: var(--neon-blue);
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.symbol-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
 }
 
 .symbol-pill {

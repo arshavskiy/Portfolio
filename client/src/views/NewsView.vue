@@ -90,6 +90,11 @@ function setupInfiniteScroll() {
 }
 
 watch(topic, () => loadNews({reset: true}))
+watch(() => articles.value.length, async () => {
+  await nextTick()
+  setupInfiniteScroll()
+})
+
 onMounted(async () => {
   await loadNews({reset: true})
   await nextTick()
@@ -144,6 +149,14 @@ onUnmounted(() => observer?.disconnect())
 
     <div ref="sentinelRef" class="scroll-sentinel">
       <span v-if="loadingMore" class="news-loader" aria-label="Loading more articles" />
+      <button
+        v-else-if="hasMore && !loading"
+        class="load-more-btn"
+        type="button"
+        @click="loadNews()"
+      >
+        Load more
+      </button>
     </div>
   </div>
 </template>
@@ -231,6 +244,24 @@ onUnmounted(() => observer?.disconnect())
   align-items: center;
   min-height: 56px;
   padding: 1rem 0;
+}
+
+.load-more-btn {
+  border: 1px solid rgba(0, 207, 255, 0.35);
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text-primary);
+  border-radius: 999px;
+  padding: 0.7rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+}
+
+.load-more-btn:hover {
+  border-color: rgba(0, 207, 255, 0.8);
+  box-shadow: 0 0 14px rgba(0, 207, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .news-loader {

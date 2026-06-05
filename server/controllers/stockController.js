@@ -42,12 +42,27 @@ exports.getMarketNews = async (req, res) => {
       symbols = watchlist.map((item) => item.ticker).filter(Boolean)
       if (!symbols.length) resolvedTopic = 'markets'
     }
+    console.log('[news] request', {
+      topic,
+      resolvedTopic,
+      page: Number(req.query.page) || 1,
+      limit: Number(req.query.limit) || null,
+      symbolCount: symbols.length,
+    })
     const data = await getMarketNews(req.query.limit, resolvedTopic, req.query.page, { symbols })
     const articles = Array.isArray(data) ? data : data.articles || []
     const topics = Object.entries(NEWS_TOPICS).map(([value, config]) => ({
       value,
       label: config.label,
     }))
+    console.log('[news] controller response', {
+      topic,
+      resolvedTopic,
+      page: Array.isArray(data) ? Number(req.query.page) || 1 : data.page,
+      provider: Array.isArray(data) ? null : data.provider,
+      count: articles.length,
+      hasMore: Array.isArray(data) ? false : Boolean(data.hasMore),
+    })
     res.json({
       topic,
       resolvedTopic,

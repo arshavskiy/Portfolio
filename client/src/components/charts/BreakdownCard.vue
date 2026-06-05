@@ -76,7 +76,7 @@ function draw() {
       .on('click', (_, d) => router.push(`/stock/${encodeURIComponent(d.data.ticker)}`))
 
   g.append('text').attr('text-anchor', 'middle').attr('dy', isMixed.value ? '0.35em' : '-0.3em')
-      .attr('fill', '#94a3b8').attr('font-size', '10').text(isMixed.value ? 'Mixed' : 'Total')
+      .attr('fill', '#94a3b8').attr('font-size', '10').text(isMixed.value ? 'Total' : 'Total')
   if (!isMixed.value) {
     g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
         .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '700')

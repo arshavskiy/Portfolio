@@ -3,17 +3,14 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useChartRange} from '@/composables/useChartRange'
-import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
+import {groupItems} from '@/composables/useGrouping'
 import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
-import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
-import PageSettings from '@/components/ui/PageSettings.vue'
-import SettingsRow from '@/components/ui/SettingsRow.vue'
 
 const RANGE_OPTIONS = [
   {label: '1W', value: '1wk'},
@@ -93,33 +90,37 @@ function neonStyle(pnlPercent) {
   <div class="dashboard">
     <header class="dash-header">
       <h1 class="gradient-title">StockFolio</h1>
-      <PageSettings>
-        <SettingsRow icon="pi pi-chart-line" label="Chart range">
-          <div class="toggle-group">
-            <button
-                v-for="opt in RANGE_OPTIONS"
-                :key="opt.value"
-                :class="{ active: range === opt.value }"
-                class="toggle-btn"
-                @click="range = opt.value"
-            >{{ opt.label }}
-            </button>
-          </div>
-        </SettingsRow>
-        <SettingsRow icon="pi pi-objects-column" label="Group by">
-          <Select
-              v-model="groupMode"
-              :options="GROUP_MODES"
-              class="group-select"
-              option-label="label"
-              option-value="value"
-          />
-        </SettingsRow>
-      </PageSettings>
+      <!--      <PageSettings>-->
+      <!--        <SettingsRow icon="pi pi-chart-line" label="Chart range">-->
+      <!--          <div class="toggle-group">-->
+      <!--            <button-->
+      <!--                v-for="opt in RANGE_OPTIONS"-->
+      <!--                :key="opt.value"-->
+      <!--                :class="{ active: range === opt.value }"-->
+      <!--                class="toggle-btn"-->
+      <!--                @click="range = opt.value"-->
+      <!--            >{{ opt.label }}-->
+      <!--            </button>-->
+      <!--          </div>-->
+      <!--        </SettingsRow>-->
+      <!--        <SettingsRow icon="pi pi-objects-column" label="Group by">-->
+      <!--          <Select-->
+      <!--              v-model="groupMode"-->
+      <!--              :options="GROUP_MODES"-->
+      <!--              class="group-select"-->
+      <!--              option-label="label"-->
+      <!--              option-value="value"-->
+      <!--          />-->
+      <!--        </SettingsRow>-->
+      <!--      </PageSettings>-->
     </header>
+
 
     <!-- Global markets overview (always shown) -->
     <MarketsCard />
+
+    <!-- Allocation + movers, unified -->
+    <BreakdownCard :positions="portfolio.positions"/>
 
     <!-- Trending tickers -->
     <TrendingCard />
@@ -132,10 +133,6 @@ function neonStyle(pnlPercent) {
     </div>
 
     <template v-else>
-
-      <!-- Allocation + movers, unified -->
-      <BreakdownCard :positions="portfolio.positions"/>
-
 
       <!-- One card per stock (optionally grouped) -->
       <template v-for="section in groupedPositions" :key="section.group ?? '_all'">

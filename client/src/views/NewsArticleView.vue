@@ -87,6 +87,10 @@ onMounted(loadArticle)
 
       <h1>{{ article.title }}</h1>
 
+      <div v-if="article.tags?.length" class="tag-row">
+        <span v-for="tag in article.tags" :key="tag" class="topic-pill">{{ tag }}</span>
+      </div>
+
       <div v-if="article.symbols?.length" class="symbol-row">
         <span v-for="symbol in article.symbols" :key="symbol" class="symbol-pill">{{ symbol }}</span>
       </div>
@@ -163,11 +167,27 @@ h1 {
   margin-top: 1rem;
 }
 
-.symbol-row {
+.tag-row {
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
   margin-top: 0.85rem;
+}
+
+.topic-pill {
+  border: 1px solid rgba(0, 207, 255, 0.35);
+  border-radius: 999px;
+  color: var(--neon-blue);
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.symbol-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
 }
 
 .symbol-pill {

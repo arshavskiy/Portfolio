@@ -306,12 +306,28 @@ function articleId(url) {
   return crypto.createHash('sha1').update(url || '').digest('hex')
 }
 
+function topicTag(topicKey) {
+  return NEWS_TOPICS[topicKey]?.label || 'Markets'
+}
+
 function withArticleIds(articles, provider) {
   return articles.map((article) => ({
     ...article,
     id: article.id || articleId(article.url),
     provider,
   }))
+}
+
+function withTopicTags(articles, topicKey) {
+  const label = topicTag(topicKey)
+  return articles.map((article) => ({
+    ...article,
+    tags: Array.from(new Set([...(article.tags || []), label])),
+  }))
+}
+
+function logNews(message, meta = {}) {
+  console.log(`[news] ${message}`, meta)
 }
 
 function rememberArticles(articles) {
@@ -337,6 +353,7 @@ function normalizeYahooArticle(article) {
     source: article.publisher,
     summary: article.summary || null,
     symbols: [],
+    tags: [],
     publishedAt: article.providerPublishTime
       ? new Date(article.providerPublishTime * 1000).toISOString()
       : null,
@@ -351,6 +368,7 @@ function normalizeFinnhubArticle(article) {
     source: article.source,
     summary: article.summary || null,
     symbols: [],
+    tags: [],
     publishedAt: article.datetime
       ? new Date(article.datetime * 1000).toISOString()
       : null,
@@ -368,13 +386,13 @@ function normalizeMarketauxArticle(article) {
       .map((entity) => entity.symbol)
       .filter(Boolean)
       .slice(0, 4),
+    tags: [],
     publishedAt: article.published_at || null,
   }
 }
 
-async function getFinnhubNews(limit, topicKey, page = 1) {
+async function getFinnhubNews(limit, topicKey) {
   if (!process.env.FINNHUB_API_KEY) return { articles: [], provider: null }
-  if (page > 1) return { articles: [], provider: null }
 
   const url = new URL('https://finnhub.io/api/v1/news')
   url.searchParams.set('category', topicKey === 'crypto' ? 'crypto' : 'general')
@@ -388,7 +406,7 @@ async function getFinnhubNews(limit, topicKey, page = 1) {
     .map(normalizeFinnhubArticle)
     .filter((article) => article.title && article.url)
     .slice(0, limit)
-  return { articles: withArticleIds(articles, 'finnhub'), provider: 'finnhub' }
+  return { articles: withArticleIds(withTopicTags(articles, topicKey), 'finnhub'), provider: 'finnhub' }
 }
 
 async function getMarketauxNews(limit, topicKey, page = 1, symbols = []) {
@@ -415,17 +433,21 @@ async function getMarketauxNews(limit, topicKey, page = 1, symbols = []) {
     .map(normalizeMarketauxArticle)
     .filter((article) => article.title && article.url)
     .slice(0, limit)
-  return { articles: withArticleIds(articles, 'marketaux'), provider: 'marketaux' }
+  return { articles: withArticleIds(withTopicTags(articles, topicKey), 'marketaux'), provider: 'marketaux' }
 }
 
-async function getYahooNews(limit, topicKey, page = 1) {
-  if (page > 1) return { articles: [], provider: null }
+async function getYahooNews(limit, topicKey) {
   const result = await yahooFinance.search(NEWS_TOPICS[topicKey].yahooQuery)
   const articles = (result.news || [])
     .map(normalizeYahooArticle)
     .filter((article) => article.title && article.url)
     .slice(0, limit)
-  return { articles: withArticleIds(articles, 'yahoo'), provider: 'yahoo' }
+  return { articles: withArticleIds(withTopicTags(articles, topicKey), 'yahoo'), provider: 'yahoo' }
+}
+
+function paginateArticles(articles, pageNumber, pageSize) {
+  const start = (pageNumber - 1) * pageSize
+  return articles.slice(start, start + pageSize)
 }
 
 async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {}) {
@@ -434,15 +456,43 @@ async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {
   const topicKey = getNewsTopic(topic)
   const symbols = Array.isArray(options.symbols) ? options.symbols.filter(Boolean).slice(0, 20) : []
   const cacheKey = `${topicKey}:${symbols.join(',')}:${cappedLimit}:${pageNumber}`
+  const pooledCacheKey = `${topicKey}:${symbols.join(',')}:pooled`
   const cached = newsCache.get(cacheKey)
   if (cached?.data.length && Date.now() - cached.ts < NEWS_TTL) {
     const articles = cached.data.slice(0, cappedLimit)
     rememberArticles(articles)
+    logNews('page cache hit', {
+      topicKey,
+      pageNumber,
+      provider: cached.provider,
+      count: articles.length,
+      hasMore: Boolean(cached.hasMore),
+    })
     return {
       articles,
       page: pageNumber,
       provider: cached.provider,
-      hasMore: cached.provider === 'marketaux' && articles.length > 0,
+      hasMore: Boolean(cached.hasMore),
+    }
+  }
+
+  const pooled = newsCache.get(pooledCacheKey)
+  if (pooled?.data?.length && Date.now() - pooled.ts < NEWS_TTL) {
+    const articles = paginateArticles(pooled.data, pageNumber, cappedLimit)
+    rememberArticles(articles)
+    logNews('pooled cache hit', {
+      topicKey,
+      pageNumber,
+      provider: pooled.provider,
+      count: articles.length,
+      pooledCount: pooled.data.length,
+      hasMore: pageNumber * cappedLimit < pooled.data.length,
+    })
+    return {
+      articles,
+      page: pageNumber,
+      provider: pooled.provider,
+      hasMore: pageNumber * cappedLimit < pooled.data.length,
     }
   }
 
@@ -452,31 +502,70 @@ async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {
     const result = await getMarketauxNews(cappedLimit, topicKey, pageNumber, symbols)
     data = result.articles
     provider = result.provider
+    logNews('provider result', {
+      provider: result.provider,
+      topicKey,
+      pageNumber,
+      count: data.length,
+    })
   } catch {}
 
   if (!data.length) {
     try {
-      const result = await getFinnhubNews(cappedLimit, topicKey, pageNumber)
-      data = result.articles
-      provider = result.provider
+      const pooledLimit = Math.min(24, Math.max(cappedLimit * 4, cappedLimit))
+      const result = await getFinnhubNews(pooledLimit, topicKey)
+      if (result.articles.length) {
+        newsCache.set(pooledCacheKey, { data: result.articles, provider: result.provider, ts: Date.now() })
+        data = paginateArticles(result.articles, pageNumber, cappedLimit)
+        provider = result.provider
+      }
+      logNews('provider result', {
+        provider: result.provider,
+        topicKey,
+        pageNumber,
+        count: data.length,
+        pooledCount: result.articles.length,
+      })
     } catch {}
   }
 
   if (!data.length) {
     try {
-      const result = await getYahooNews(cappedLimit, topicKey, pageNumber)
-      data = result.articles
-      provider = result.provider
+      const pooledLimit = Math.min(24, Math.max(cappedLimit * 4, cappedLimit))
+      const result = await getYahooNews(pooledLimit, topicKey)
+      if (result.articles.length) {
+        newsCache.set(pooledCacheKey, { data: result.articles, provider: result.provider, ts: Date.now() })
+        data = paginateArticles(result.articles, pageNumber, cappedLimit)
+        provider = result.provider
+      }
+      logNews('provider result', {
+        provider: result.provider,
+        topicKey,
+        pageNumber,
+        count: data.length,
+        pooledCount: result.articles.length,
+      })
     } catch {}
   }
 
-  newsCache.set(cacheKey, { data, provider, ts: Date.now() })
+  const hasMore = provider === 'marketaux'
+    ? data.length === cappedLimit
+    : pageNumber * cappedLimit < (newsCache.get(pooledCacheKey)?.data?.length || data.length)
+
+  newsCache.set(cacheKey, { data, provider, hasMore, ts: Date.now() })
   rememberArticles(data)
+  logNews('response built', {
+    topicKey,
+    pageNumber,
+    provider,
+    count: data.length,
+    hasMore,
+  })
   return {
     articles: data,
     page: pageNumber,
     provider,
-    hasMore: provider === 'marketaux' && data.length > 0,
+    hasMore,
   }
 }
 
