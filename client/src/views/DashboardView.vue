@@ -5,12 +5,13 @@ import {useHistoryStore} from '@/stores/history'
 import {useChartRange} from '@/composables/useChartRange'
 import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
 import {useStorage} from '@vueuse/core'
-import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import api from '@/composables/useApi'
 import Select from 'primevue/select'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
+import NewsCard from '@/components/charts/NewsCard.vue'
+import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
@@ -124,6 +125,9 @@ function neonStyle(pnlPercent) {
     <!-- Trending tickers -->
     <TrendingCard />
 
+    <!-- Market news -->
+    <NewsCard />
+
     <div v-if="portfolio.loading" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />
     </div>
@@ -180,44 +184,7 @@ function neonStyle(pnlPercent) {
 <!--        </div>-->
       </template>
 
-      <!-- Total card per currency -->
-      <div class="totals-grid">
-        <div
-            v-for="t in portfolio.totals"
-            :key="`total-${t.currency}`"
-            class="total-card"
-        >
-          <div class="total-row">
-            <span class="total-label">{{ t.currency }}</span>
-            <div class="total-values">
-              <span class="total-value">{{ useCurrency(t.value, t.currency) }}</span>
-              <span v-if="portfolio.combinedUsd?.ilsToUsd" class="total-converted text-muted">
-                {{
-                  t.currency === 'ILS'
-                      ? useCurrency(t.value * portfolio.combinedUsd.ilsToUsd, 'USD')
-                      : useCurrency(t.value / portfolio.combinedUsd.ilsToUsd, 'ILS')
-                }}
-              </span>
-            </div>
-          </div>
-          <div class="total-row">
-            <!--            <span class="text-muted" style="font-size:0.78rem">P&L</span>-->
-            <span :class="gainLossClass(t.pnl)" class="total-pnl">
-              {{ t.pnl >= 0 ? '+' : '' }}{{ useCurrency(t.pnl, t.currency) }}
-              ({{ usePercent(t.pnlPercent) }})
-            </span>
-          </div>
-          <div class="total-row">
-            <span class="text-muted" style="font-size:0.78rem">Today</span>
-            <span :class="gainLossClass(t.dayPnl)" class="total-day">
-              {{ t.dayPnl >= 0 ? '+' : '' }}{{ useCurrency(t.dayPnl, t.currency) }}
-            </span>
-          </div>
-<!--          <div v-if="portfolio.combinedUsd?.ilsToUsd" class="fx-note text-muted">-->
-<!--            ₪1 = ${{ portfolio.combinedUsd.ilsToUsd.toFixed(4) }}-->
-<!--          </div>-->
-        </div>
-      </div>
+      <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />
 
       <!-- Portfolio value over time -->
       <!--      <section v-if="portfolio.positions.length" class="history-card">-->
@@ -356,50 +323,6 @@ function neonStyle(pnlPercent) {
 .pnl-val { font-weight: 500; }
 .day-pnl { font-size: 0.78rem; }
 
-/* Totals grid */
-.totals-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-  margin: 0.25rem 0 0.75rem;
-}
-
-.totals-grid > .total-card:only-child {
-  grid-column: 1 / -1;
-}
-
-/* Total card */
-.total-card {
-  border: 1px solid var(--accent);
-  border-radius: 14px;
-  padding: 0.9rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.total-row { display: flex; justify-content: space-between; align-items: center; }
-
-.total-label {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-.total-values { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
-
-.total-value {
-  font-size: 1.15rem;
-  font-weight: 700;
-}
-.total-converted { font-size: 0.78rem; }
-
-.total-pnl {
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-align: right
-}
-.total-day { font-size: 0.85rem; font-weight: 500; }
-.fx-note { font-size: 0.72rem; text-align: right; margin-top: 0.15rem; }
-
 .empty { padding: 2rem 0; font-size: 0.9rem; text-align: center; }
 
 /* ── Responsive: tile stock cards + roomier totals on wide screens ── */
@@ -415,9 +338,6 @@ function neonStyle(pnlPercent) {
     align-items: start;
   }
 
-  .totals-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  }
 }
 
 @media (min-width: 1280px) {

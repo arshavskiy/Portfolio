@@ -5,6 +5,7 @@ const route = useRoute()
 
 const tabs = [
   { name: 'Dashboard', to: '/', icon: 'pi pi-chart-bar', label: 'Dashboard' },
+  { name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News' },
   { name: 'Holdings', to: '/holdings', icon: 'pi pi-briefcase', label: 'Holdings' },
   { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist' },
   { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History' },

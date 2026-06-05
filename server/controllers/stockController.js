@@ -1,4 +1,15 @@
-const { getQuote, getHistory, searchTicker, getMarkets, MARKET_GROUP_NAMES, getTrending, TRENDING_GROUP_NAMES } = require('../services/stockService')
+const {
+  getQuote,
+  getHistory,
+  searchTicker,
+  getMarkets,
+  MARKET_GROUP_NAMES,
+  getTrending,
+  TRENDING_GROUP_NAMES,
+  getMarketNews,
+  NEWS_TOPICS,
+} = require('../services/stockService')
+const Watchlist = require('../models/Watchlist')
 
 exports.getMarkets = async (req, res) => {
   try {
@@ -15,6 +26,36 @@ exports.getTrending = async (req, res) => {
     const group = req.query.group || 'US'
     const data = await getTrending(group)
     res.json({ group, groups: TRENDING_GROUP_NAMES, items: data })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.getMarketNews = async (req, res) => {
+  try {
+    const topic = NEWS_TOPICS[req.query.topic] ? req.query.topic : 'markets'
+    let symbols = []
+    let resolvedTopic = topic
+    if (topic === 'for-you') {
+      const watchlist = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 }).limit(20)
+      symbols = watchlist.map((item) => item.ticker).filter(Boolean)
+      if (!symbols.length) resolvedTopic = 'markets'
+    }
+    const data = await getMarketNews(req.query.limit, resolvedTopic, req.query.page, { symbols })
+    const articles = Array.isArray(data) ? data : data.articles || []
+    const topics = Object.entries(NEWS_TOPICS).map(([value, config]) => ({
+      value,
+      label: config.label,
+    }))
+    res.json({
+      topic,
+      resolvedTopic,
+      topics,
+      articles,
+      page: Array.isArray(data) ? Number(req.query.page) || 1 : data.page,
+      provider: Array.isArray(data) ? null : data.provider,
+      hasMore: Array.isArray(data) ? false : Boolean(data.hasMore),
+    })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

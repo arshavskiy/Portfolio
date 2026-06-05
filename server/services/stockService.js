@@ -227,6 +227,175 @@ async function getTrending(group = 'US') {
   return data
 }
 
+let newsCache = new Map()
+const NEWS_TTL = 15 * 60 * 1000
+
+const NEWS_TOPICS = {
+  'for-you': { label: 'For You', yahooQuery: 'stock market news' },
+  markets: { label: 'Markets', yahooQuery: 'stock market news' },
+  tech: { label: 'Tech', industries: 'Technology', yahooQuery: 'technology stocks news' },
+  financials: { label: 'Financials', industries: 'Financial', yahooQuery: 'financial stocks bank news' },
+  crypto: { label: 'Crypto', symbols: 'BTC,ETH,SOL', yahooQuery: 'crypto market news' },
+  energy: { label: 'Energy', industries: 'Energy', yahooQuery: 'energy stocks oil news' },
+  israel: { label: 'Israel', countries: 'il', yahooQuery: 'Israel market stocks news' },
+  positive: { label: 'Positive', sentiment_gte: '0', yahooQuery: 'positive stock market news' },
+}
+
+function getNewsTopic(topic) {
+  return NEWS_TOPICS[topic] ? topic : 'markets'
+}
+
+function normalizeYahooArticle(article) {
+  const resolutions = article.thumbnail?.resolutions || []
+  const image = resolutions[resolutions.length - 1]?.url || article.thumbnail?.url || null
+  return {
+    title: article.title,
+    url: article.link,
+    image,
+    source: article.publisher,
+    summary: article.summary || null,
+    symbols: [],
+    publishedAt: article.providerPublishTime
+      ? new Date(article.providerPublishTime * 1000).toISOString()
+      : null,
+  }
+}
+
+function normalizeFinnhubArticle(article) {
+  return {
+    title: article.headline,
+    url: article.url,
+    image: article.image || null,
+    source: article.source,
+    summary: article.summary || null,
+    symbols: [],
+    publishedAt: article.datetime
+      ? new Date(article.datetime * 1000).toISOString()
+      : null,
+  }
+}
+
+function normalizeMarketauxArticle(article) {
+  return {
+    title: article.title,
+    url: article.url,
+    image: article.image_url || null,
+    source: article.source,
+    summary: article.description || article.snippet || null,
+    symbols: (article.entities || [])
+      .map((entity) => entity.symbol)
+      .filter(Boolean)
+      .slice(0, 4),
+    publishedAt: article.published_at || null,
+  }
+}
+
+async function getFinnhubNews(limit, topicKey, page = 1) {
+  if (!process.env.FINNHUB_API_KEY) return []
+  if (page > 1) return []
+
+  const url = new URL('https://finnhub.io/api/v1/news')
+  url.searchParams.set('category', topicKey === 'crypto' ? 'crypto' : 'general')
+  url.searchParams.set('token', process.env.FINNHUB_API_KEY)
+
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Finnhub news request failed (${res.status})`)
+
+  const data = await res.json()
+  const articles = (Array.isArray(data) ? data : [])
+    .map(normalizeFinnhubArticle)
+    .filter((article) => article.title && article.url)
+    .slice(0, limit)
+  return { articles, provider: 'finnhub' }
+}
+
+async function getMarketauxNews(limit, topicKey, page = 1, symbols = []) {
+  if (!process.env.MARKETAUX_API_TOKEN) return []
+
+  const topic = NEWS_TOPICS[topicKey]
+  const url = new URL('https://api.marketaux.com/v1/news/all')
+  url.searchParams.set('api_token', process.env.MARKETAUX_API_TOKEN)
+  url.searchParams.set('language', 'en')
+  url.searchParams.set('filter_entities', 'true')
+  url.searchParams.set('limit', String(limit))
+  url.searchParams.set('page', String(page))
+  if (topic.industries) url.searchParams.set('industries', topic.industries)
+  if (topic.countries) url.searchParams.set('countries', topic.countries)
+  if (symbols.length) url.searchParams.set('symbols', symbols.join(','))
+  else if (topic.symbols) url.searchParams.set('symbols', topic.symbols)
+  if (topic.sentiment_gte) url.searchParams.set('sentiment_gte', topic.sentiment_gte)
+
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Marketaux news request failed (${res.status})`)
+
+  const data = await res.json()
+  const articles = (Array.isArray(data.data) ? data.data : [])
+    .map(normalizeMarketauxArticle)
+    .filter((article) => article.title && article.url)
+    .slice(0, limit)
+  return { articles, provider: 'marketaux' }
+}
+
+async function getYahooNews(limit, topicKey, page = 1) {
+  if (page > 1) return []
+  const result = await yahooFinance.search(NEWS_TOPICS[topicKey].yahooQuery)
+  const articles = (result.news || [])
+    .map(normalizeYahooArticle)
+    .filter((article) => article.title && article.url)
+    .slice(0, limit)
+  return { articles, provider: 'yahoo' }
+}
+
+async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {}) {
+  const cappedLimit = Math.max(1, Math.min(Number(limit) || 4, 24))
+  const pageNumber = Math.max(1, Math.floor(Number(page) || 1))
+  const topicKey = getNewsTopic(topic)
+  const symbols = Array.isArray(options.symbols) ? options.symbols.filter(Boolean).slice(0, 20) : []
+  const cacheKey = `${topicKey}:${symbols.join(',')}:${cappedLimit}:${pageNumber}`
+  const cached = newsCache.get(cacheKey)
+  if (cached?.data.length && Date.now() - cached.ts < NEWS_TTL) {
+    const articles = cached.data.slice(0, cappedLimit)
+    return {
+      articles,
+      page: pageNumber,
+      provider: cached.provider,
+      hasMore: cached.provider === 'marketaux' && articles.length > 0,
+    }
+  }
+
+  let data = []
+  let provider = null
+  try {
+    const result = await getMarketauxNews(cappedLimit, topicKey, pageNumber, symbols)
+    data = result.articles
+    provider = result.provider
+  } catch {}
+
+  if (!data.length) {
+    try {
+      const result = await getFinnhubNews(cappedLimit, topicKey, pageNumber)
+      data = result.articles
+      provider = result.provider
+    } catch {}
+  }
+
+  if (!data.length) {
+    try {
+      const result = await getYahooNews(cappedLimit, topicKey, pageNumber)
+      data = result.articles
+      provider = result.provider
+    } catch {}
+  }
+
+  newsCache.set(cacheKey, { data, provider, ts: Date.now() })
+  return {
+    articles: data,
+    page: pageNumber,
+    provider,
+    hasMore: provider === 'marketaux' && data.length > 0,
+  }
+}
+
 let fxCache = { rate: null, ts: 0 }
 const FX_TTL = 60 * 60 * 1000 // 1 hour
 
@@ -242,4 +411,17 @@ async function getIlsToUsd() {
   }
 }
 
-module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd, getMarkets, MARKET_GROUP_NAMES, getTrending, TRENDING_GROUP_NAMES }
+module.exports = {
+  getQuote,
+  getQuotes,
+  getHistory,
+  searchTicker,
+  invalidateCache,
+  getIlsToUsd,
+  getMarkets,
+  MARKET_GROUP_NAMES,
+  getTrending,
+  TRENDING_GROUP_NAMES,
+  getMarketNews,
+  NEWS_TOPICS,
+}
