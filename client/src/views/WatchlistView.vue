@@ -13,12 +13,15 @@ import WatchRow from '@/components/ui/WatchRow.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
+import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
 const showImportModal = ref(false)
+const showGroupModal = ref(false)
+const groupItem = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'none')
 
 function onImported() {
@@ -32,6 +35,15 @@ onMounted(() => {
   watchlist.fetchWatchlist(range.value)
 })
 watch(range, (r) => watchlist.fetchWatchlist(r))
+
+function openGroups(item) {
+  groupItem.value = item
+  showGroupModal.value = true
+}
+
+function onGroupsSaved() {
+  watchlist.fetchWatchlist(range.value)
+}
 
 </script>
 
@@ -81,12 +93,19 @@ watch(range, (r) => watchlist.fetchWatchlist(r))
             v-for="item in section.items"
             :key="`${section.group ?? ''}-${item._id}`"
             :item="item"
+            @edit-groups="openGroups"
         />
       </template>
     </div>
 
     <AddWatchlistModal v-model:visible="showModal" />
     <ImportModal v-model:visible="showImportModal" mode="watchlist" @imported="onImported"/>
+    <GroupEditModal
+      v-model:visible="showGroupModal"
+      :item="groupItem"
+      mode="watchlist"
+      @saved="onGroupsSaved"
+    />
   </div>
 </template>
 
@@ -128,9 +147,12 @@ watch(range, (r) => watchlist.fetchWatchlist(r))
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: transparent;
+  background: linear-gradient(90deg, var(--neon-blue), #7dd3fc 45%, var(--neon-green));
+  -webkit-background-clip: text;
+  background-clip: text;
   padding: 0.6rem 0.25rem 0.3rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 207, 255, 0.18);
 }
 
 .empty {

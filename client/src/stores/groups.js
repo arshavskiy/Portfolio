@@ -16,6 +16,10 @@ export const useGroupsStore = defineStore('groups', () => {
     async function updatePositionGroups(positionId, groups) {
         return api.put(`/portfolio/position/${positionId}/groups`, {groups})
     }
+
+    async function updateWatchlistGroups(itemId, groups) {
+        return api.put(`/watchlist/${itemId}/groups`, {groups})
+    }
     
-    return {tags, fetchGroups, updatePositionGroups}
+    return {tags, fetchGroups, updatePositionGroups, updateWatchlistGroups}
 })

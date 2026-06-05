@@ -2,6 +2,23 @@ const Watchlist = require('../models/Watchlist')
 const Position = require('../models/Position')
 const {getQuotes, getHistory, getTickerProfile} = require('../services/stockService')
 
+function normalizeGroups(groups) {
+  if (!Array.isArray(groups)) return []
+  const seen = new Set()
+  const out = []
+  for (const g of groups) {
+    if (typeof g !== 'string') continue
+    const tag = g.trim().slice(0, 30)
+    if (!tag) continue
+    const key = tag.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(tag)
+    if (out.length >= 10) break
+  }
+  return out
+}
+
 exports.getWatchlist = async (req, res) => {
   try {
       const range = ['1d', '5d', '1mo', '3mo', '6mo', '1y'].includes(req.query.range) ? req.query.range : '1mo'
@@ -30,12 +47,12 @@ exports.getWatchlist = async (req, res) => {
       _id: item._id,
       ticker: item.ticker,
       companyName: item.companyName,
-        sector: item.sector || null,
-        industry: item.industry || null,
+      sector: item.sector || null,
+      industry: item.industry || null,
       addedAt: item.addedAt,
       ...(quoteMap[item.ticker] || {}),
-        history: historyMap[item.ticker] || [],
-        groups: groupsMap[item.ticker] || [],
+      history: historyMap[item.ticker] || [],
+      groups: normalizeGroups([...(item.groups || []), ...(groupsMap[item.ticker] || [])]),
     }))
 
     res.json(enriched)
@@ -56,11 +73,12 @@ exports.addToWatchlist = async (req, res) => {
       const profile = await getTickerProfile(symbol, companyName)
 
     const item = await Watchlist.create({
-        user: req.user._id,
-        ticker: symbol,
-        companyName: profile.companyName || companyName || symbol,
-        sector: profile.sector,
-        industry: profile.industry,
+      user: req.user._id,
+      ticker: symbol,
+      companyName: profile.companyName || companyName || symbol,
+      sector: profile.sector,
+      industry: profile.industry,
+      groups: [],
     })
     res.status(201).json(item)
   } catch (err) {
@@ -85,6 +103,7 @@ exports.syncHoldings = async (req, res) => {
                             companyName: p.companyName || p.ticker,
                             sector: p.sector || null,
                             industry: p.industry || null,
+                            groups: p.groups || [],
                         },
                     },
                     {upsert: true, new: true}
@@ -104,6 +123,18 @@ exports.removeFromWatchlist = async (req, res) => {
     if (!item) return res.status(404).json({ message: 'Not found' })
     await item.deleteOne()
     res.json({ message: 'Removed from watchlist' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.updateWatchlistGroups = async (req, res) => {
+  try {
+    const item = await Watchlist.findOne({ _id: req.params.id, user: req.user._id })
+    if (!item) return res.status(404).json({ message: 'Watchlist item not found' })
+    item.groups = normalizeGroups(req.body.groups)
+    await item.save()
+    res.json({ _id: item._id, ticker: item.ticker, groups: item.groups })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

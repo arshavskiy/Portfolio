@@ -8,7 +8,8 @@ import AutoComplete from 'primevue/autocomplete'
 
 const props = defineProps({
   visible: Boolean,
-  position: {type: Object, default: null}, // { _id, ticker, groups }
+  item: {type: Object, default: null}, // { _id, ticker, groups }
+  mode: {type: String, default: 'position'}, // 'position' | 'watchlist'
 })
 const emit = defineEmits(['update:visible', 'saved'])
 
@@ -22,7 +23,7 @@ const loading = ref(false)
 
 watch(() => props.visible, (v) => {
   if (v) {
-    groups.value = [...(props.position?.groups || [])]
+    groups.value = [...(props.item?.groups || [])]
     pending.value = ''
     groupsStore.fetchGroups()
   }
@@ -61,10 +62,14 @@ async function save() {
   commitPending() // flush any text the user typed but didn't press Enter on
   loading.value = true
   try {
-    await groupsStore.updatePositionGroups(props.position._id, groups.value)
+    if (props.mode === 'watchlist') {
+      await groupsStore.updateWatchlistGroups(props.item._id, groups.value)
+    } else {
+      await groupsStore.updatePositionGroups(props.item._id, groups.value)
+    }
     toast.add({severity: 'success', summary: 'Groups updated', life: 2000})
     emit('update:visible', false)
-    emit('saved', {ticker: props.position.ticker, groups: groups.value})
+    emit('saved', {ticker: props.item.ticker, groups: groups.value})
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
   } finally {
@@ -76,7 +81,7 @@ async function save() {
 <template>
   <Dialog
       :draggable="false"
-      :header="`Groups · ${position?.ticker}`"
+      :header="`Groups · ${item?.ticker}`"
       :style="{ width: '95vw', maxWidth: '380px' }"
       :visible="visible"
       modal

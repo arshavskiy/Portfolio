@@ -36,7 +36,8 @@ onMounted(async () => {
     alerts.fetchAlerts()
     await portfolio.fetchPortfolio()
     await fetchSparklines()
-  } catch {}
+  } catch {
+  }
 })
 
 async function fetchSparklines() {
@@ -60,7 +61,7 @@ function confirmDelete(pos) {
     acceptClass: 'p-button-danger',
     accept: async () => {
       await portfolio.deletePosition(pos._id)
-      toast.add({ severity: 'success', summary: 'Removed', life: 2000 })
+      toast.add({severity: 'success', summary: 'Removed', life: 2000})
     },
   })
 }
@@ -134,14 +135,14 @@ async function onTransactionDone() {
       </div>
     </header>
 
-    <RangeBar class="page-range" />
+    <RangeBar class="page-range"/>
 
     <div v-if="portfolio.loading" class="loading text-muted">Loading...</div>
 
     <div v-else-if="!portfolio.positions.length" class="empty">
-      <i class="pi pi-briefcase" />
+      <i class="pi pi-briefcase"/>
       <p>No holdings yet</p>
-      <Button label="Add Transaction" @click="showModal = true" />
+      <Button label="Add Transaction" @click="showModal = true"/>
     </div>
 
     <div v-else :class="compactMode ? 'positions-compact' : 'positions-list'">
@@ -150,11 +151,11 @@ async function onTransactionDone() {
         <PositionCard
             v-for="pos in section.items"
             :key="`${section.group ?? ''}-${pos.ticker}`"
-          :pos="pos"
-          :sparkline="sparklines[pos.ticker]"
-          :compact="compactMode"
-          @delete="confirmDelete"
-          @sell="openSell"
+            :pos="pos"
+            :sparkline="sparklines[pos.ticker]"
+            :compact="compactMode"
+            @delete="confirmDelete"
+            @sell="openSell"
             @edit-groups="openGroups"
         />
       </template>
@@ -171,7 +172,7 @@ async function onTransactionDone() {
     />
     <GroupEditModal
         v-model:visible="showGroupModal"
-        :position="groupPos"
+        :item="groupPos"
         @saved="onGroupsSaved"
     />
     <ImportModal v-model:visible="showImportModal" mode="holdings" @imported="onImported"/>
@@ -179,7 +180,9 @@ async function onTransactionDone() {
 </template>
 
 <style scoped>
-.holdings { padding: 1rem; }
+.holdings {
+  padding: 1rem;
+}
 
 .page-header {
   display: flex;
@@ -203,21 +206,39 @@ async function onTransactionDone() {
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: transparent;
+  background: linear-gradient(90deg, var(--neon-blue), #7dd3fc 45%, var(--neon-green));
+  -webkit-background-clip: text;
+  background-clip: text;
   padding: 0.6rem 0.25rem 0.3rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(0, 207, 255, 0.18);
   margin-bottom: 0.5rem;
 }
 
-.empty { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 3rem 1rem; color: var(--text-secondary); }
-.empty i { font-size: 3rem; }
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
 
-.positions-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.empty i {
+  font-size: 3rem;
+}
+
+.positions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
 
 .positions-compact {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--border);
+  margin-right: -15px;
 }
 
 /* Tile full cards into columns on wider screens (compact stays single-column). */
@@ -279,5 +300,7 @@ async function onTransactionDone() {
   }
 }
 
-.page-range { margin-bottom: 1rem; }
+.page-range {
+  margin-bottom: 1rem;
+}
 </style>

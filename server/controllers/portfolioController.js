@@ -332,8 +332,12 @@ exports.deletePosition = async (req, res) => {
 // Distinct group tags across the user's positions (for the tag picker).
 exports.getGroups = async (req, res) => {
   try {
-    const tags = await Position.distinct('groups', {user: req.user._id})
-    res.json(tags.filter(Boolean).sort((a, b) => a.localeCompare(b)))
+    const [positionTags, watchlistTags] = await Promise.all([
+      Position.distinct('groups', {user: req.user._id}),
+      Watchlist.distinct('groups', {user: req.user._id}),
+    ])
+    const tags = [...new Set([...positionTags, ...watchlistTags].filter(Boolean))]
+    res.json(tags.sort((a, b) => a.localeCompare(b)))
   } catch (err) {
     res.status(500).json({message: err.message})
   }

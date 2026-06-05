@@ -8,6 +8,7 @@ import SparklineChart from '@/components/charts/SparklineChart.vue'
 const props = defineProps({
   item: {type: Object, required: true},
 })
+const emit = defineEmits(['edit-groups'])
 const router = useRouter()
 const alerts = useAlertsStore()
 
@@ -29,6 +30,12 @@ const activeAlerts = computed(() =>
         </span>
       </span>
       <span class="company text-muted">{{ item.companyName }}</span>
+      <div class="group-tags compact-tags" @click.stop="emit('edit-groups', item)">
+        <span v-for="g in item.groups || []" :key="g" class="group-tag">{{ g }}</span>
+        <span class="group-tag add-tag">
+          <i class="pi pi-plus"/><span v-if="!item.groups?.length"> Tag</span>
+        </span>
+      </div>
     </div>
 
     <div class="row-chart">
@@ -104,6 +111,45 @@ const activeAlerts = computed(() =>
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 90px;
+}
+
+.group-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.compact-tags .group-tag {
+  font-size: 0.55rem;
+  padding: 0 5px;
+  max-width: 84px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.group-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  color: #93c5fd;
+}
+
+.add-tag {
+  background: transparent;
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+}
+
+.add-tag i {
+  font-size: 0.55rem;
 }
 
 .row-chart {
