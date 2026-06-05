@@ -230,7 +230,7 @@ onUnmounted(() => {
 }
 
 .market-time {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1;
   color: var(--text-primary);

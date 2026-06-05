@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useStorage } from '@vueuse/core'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
@@ -132,9 +132,7 @@ onMounted(load)
 }
 
 .index-tile {
-  /* border: 1px solid var(--border); */
-  /* border-radius: 10px; */
-  padding: 0.6rem 0.7rem;
+  padding: 0.3rem 0.3rem;
   min-height: 108px;
   display: flex;
   flex-direction: column;
