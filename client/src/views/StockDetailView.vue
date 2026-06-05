@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, onUnmounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {gainLossClass, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
@@ -33,6 +33,28 @@ const chartModes = ['line', 'candle']
 
 let refreshTimer = null
 
+const rangeChange = computed(() => {
+  const firstClose = history.value[0]?.close
+  if (firstClose == null) {
+    return {
+      amount: quote.value?.change ?? null,
+      percent: quote.value?.changePercent ?? null,
+    }
+  }
+
+  const latestPrice = quote.value?.price ?? history.value[history.value.length - 1]?.close
+  if (latestPrice == null) {
+    return {
+      amount: quote.value?.change ?? null,
+      percent: quote.value?.changePercent ?? null,
+    }
+  }
+
+  const amount = latestPrice - firstClose
+  const percent = firstClose ? (amount / firstClose) * 100 : null
+  return { amount, percent }
+})
+
 async function loadQuote() {
   try {
     quote.value = await api.get(`/stocks/quote/${encodeURIComponent(ticker.value)}`)
@@ -44,7 +66,7 @@ async function loadQuote() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, 150)
+    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, 50)
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
   } finally {
@@ -123,11 +145,11 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
     </header>
 
     <div v-if="quote" class="quote-summary">
-      <p class="current-price" :class="quote.change >= 0 ? 'neon-green' : 'neon-red'">
+      <p class="current-price" :class="(rangeChange.amount ?? quote.change) >= 0 ? 'neon-green' : 'neon-red'">
         {{ useTickerCurrency(quote.price, ticker) }}
       </p>
-      <p :class="gainLossClass(quote.change)" class="price-change">
-        {{ useTickerCurrency(quote.change, ticker) }} ({{ usePercent(quote.changePercent) }})
+      <p :class="gainLossClass(rangeChange.amount)" class="price-change">
+        {{ useTickerCurrency(rangeChange.amount, ticker) }} ({{ usePercent(rangeChange.percent) }})
       </p>
     </div>
     <div v-else-if="loading" class="quote-summary">

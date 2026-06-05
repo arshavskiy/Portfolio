@@ -4,7 +4,6 @@ import * as d3 from 'd3'
 
 const props = defineProps({
   data: { type: Array, default: () => [] },   // array of { close }
-  pnlPercent: { type: Number, default: 0 },
 })
 
 const svgRef = ref(null)
@@ -18,7 +17,9 @@ function draw() {
   const H = 40
   svg.attr('width', W).attr('height', H)
 
-  const isWin = props.pnlPercent >= 0
+  const firstClose = props.data[0]?.close
+  const lastClose = props.data[props.data.length - 1]?.close
+  const isWin = (lastClose ?? 0) >= (firstClose ?? 0)
   const color = isWin ? '#00ff88' : '#ff3366'
 
   const x = d3.scaleLinear().domain([0, props.data.length - 1]).range([0, W])
@@ -52,7 +53,7 @@ function draw() {
 }
 
 onMounted(() => nextTick(draw))
-watch(() => [props.data, props.pnlPercent], () => nextTick(draw), { deep: true })
+watch(() => props.data, () => nextTick(draw), { deep: true })
 </script>
 
 <template>
