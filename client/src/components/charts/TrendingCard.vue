@@ -1,22 +1,33 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStorage } from '@vueuse/core'
 import api from '@/composables/useApi'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const router = useRouter()
+const groups = ref(['US'])
+const group = useStorage('dashboard-trending-group', 'US')
 const items = ref([])
 const loading = ref(false)
 
 async function load() {
   loading.value = true
   try {
-    items.value = await api.get('/stocks/trending')
+    const data = await api.get(`/stocks/trending?group=${encodeURIComponent(group.value)}`)
+    items.value = data.items || []
+    if (data.groups?.length) groups.value = data.groups
   } catch {
     items.value = []
   } finally {
     loading.value = false
   }
+}
+
+function selectGroup(g) {
+  if (g === group.value) return
+  group.value = g
+  load()
 }
 
 function openItem(it) {
@@ -39,7 +50,18 @@ onMounted(load)
 
 <template>
   <section v-if="loading || items.length" class="trending-card">
-    <h2 class="card-title"><i class="pi pi-bolt" /> Trending</h2>
+    <div class="trending-head">
+      <h2 class="card-title"><i class="pi pi-bolt" /> Trending</h2>
+      <div class="trend-tabs">
+        <button
+          v-for="g in groups"
+          :key="g"
+          class="trend-tab"
+          :class="{ active: group === g }"
+          @click="selectGroup(g)"
+        >{{ g }}</button>
+      </div>
+    </div>
 
     <div v-if="loading && !items.length" class="t-list">
       <div v-for="n in 5" :key="n" class="t-row skeleton" />
@@ -71,18 +93,39 @@ onMounted(load)
   padding: 0.9rem 1rem;
   margin-bottom: 0.75rem;
 }
+.trending-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  gap: 0.5rem;
+}
 .card-title {
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin: 0 0 0.6rem;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.4rem;
 }
 .card-title i { color: var(--accent); font-size: 0.8rem; }
+
+.trend-tabs { display: flex; gap: 2px; }
+.trend-tab {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.trend-tab.active { background: var(--accent); color: #fff; }
 
 .t-list { display: flex; flex-direction: column; }
 .t-row {

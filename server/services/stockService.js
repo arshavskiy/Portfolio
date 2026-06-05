@@ -166,21 +166,29 @@ async function getMarkets(group = 'US') {
 const MARKET_GROUP_NAMES = Object.keys(MARKET_GROUPS)
 
 // ── Trending tickers ──
-let trendingCache = { data: null, ts: 0 }
+const TRENDING_GROUP_NAMES = ['US', 'Crypto']
+// Yahoo doesn't surface "trending" crypto, so use top coins by activity.
+const TRENDING_CRYPTO = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'BNB-USD', 'DOGE-USD', 'ADA-USD', 'AVAX-USD']
+
+let trendingCache = new Map() // group -> { data, ts }
 const TRENDING_TTL = 10 * 60 * 1000
 
-async function getTrending() {
-  if (trendingCache.data && Date.now() - trendingCache.ts < TRENDING_TTL) return trendingCache.data
+async function getTrending(group = 'US') {
+  const cached = trendingCache.get(group)
+  if (cached && Date.now() - cached.ts < TRENDING_TTL) return cached.data
 
   let symbols = []
-  try {
-    const t = await yahooFinance.trendingSymbols('US', { count: 10 })
-    symbols = (t.quotes || []).map((q) => q.symbol).filter(Boolean).slice(0, 8)
-  } catch {
-    symbols = []
+  if (group === 'Crypto') {
+    symbols = TRENDING_CRYPTO
+  } else {
+    try {
+      const t = await yahooFinance.trendingSymbols('US', { count: 12 })
+      symbols = (t.quotes || []).map((q) => q.symbol).filter(Boolean).slice(0, 8)
+    } catch {
+      symbols = []
+    }
+    if (!symbols.length) symbols = ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMZN', 'META']
   }
-  // Fallback if Yahoo returns nothing.
-  if (!symbols.length) symbols = ['AAPL', 'NVDA', 'TSLA', 'MSFT', 'AMZN', 'BTC-USD']
 
   const [quotes, histories] = await Promise.all([
     Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
@@ -199,7 +207,7 @@ async function getTrending() {
     }
   }).filter((d) => d.price != null)
 
-  trendingCache = { data, ts: Date.now() }
+  trendingCache.set(group, { data, ts: Date.now() })
   return data
 }
 
@@ -218,4 +226,4 @@ async function getIlsToUsd() {
   }
 }
 
-module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd, getMarkets, MARKET_GROUP_NAMES, getTrending }
+module.exports = { getQuote, getQuotes, getHistory, searchTicker, invalidateCache, getIlsToUsd, getMarkets, MARKET_GROUP_NAMES, getTrending, TRENDING_GROUP_NAMES }
