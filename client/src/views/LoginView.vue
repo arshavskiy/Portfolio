@@ -16,7 +16,7 @@ const password = ref('')
 const loading = ref(false)
 
 // ── Animated phone slideshow ──
-const SLIDE_COUNT = 5
+const SLIDE_COUNT = 6
 const slide = ref(0)
 let slideTimer = null
 
@@ -44,6 +44,11 @@ const features = [
     icon: 'pi pi-globe',
     title: 'Multi-Market',
     text: 'US, TASE, Europe, Asia and crypto — all in one place, multi-currency.'
+  },
+  {
+    icon: 'pi pi-globe',
+    title: 'For You News',
+    text: 'Personalized market stories from your watchlist, with topic feeds and quick scanning.'
   },
   {
     icon: 'pi pi-upload',
@@ -207,6 +212,29 @@ async function submit() {
                     <div class="mk-card mk-flat">
                       <div class="mk-ticker">ETH-USD</div>
                       <span class="mk-badge down">−1.2%</span></div>
+                  </div>
+
+                  <!-- 5 · News -->
+                  <div v-show="slide === 5" class="slide">
+                    <div class="mk-header">
+                      <span class="mk-title gradient-title">For You</span>
+                      <span class="mk-tabs">AAPL · NVDA</span>
+                    </div>
+                    <div class="mk-topicrow">
+                      <span class="mk-topic active">For You</span>
+                      <span class="mk-topic">Tech</span>
+                      <span class="mk-topic">Markets</span>
+                    </div>
+                    <div class="mk-news-card">
+                      <div class="mk-news-source">CNBC</div>
+                      <div class="mk-news-title">Chip stocks lead watchlist moves</div>
+                      <div class="mk-symbols"><span>NVDA</span><span>AMD</span></div>
+                    </div>
+                    <div class="mk-news-card">
+                      <div class="mk-news-source">Reuters</div>
+                      <div class="mk-news-title">Apple suppliers rise after demand update</div>
+                      <div class="mk-symbols"><span>AAPL</span></div>
+                    </div>
                   </div>
 
                 </div>
@@ -737,6 +765,74 @@ async function submit() {
   padding: 5px 9px;
   box-shadow: none;
   border-color: var(--border);
+}
+
+/* News */
+.mk-topicrow {
+  display: flex;
+  gap: 4px;
+}
+
+.mk-topic {
+  font-size: 0.52rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.mk-topic.active {
+  color: var(--neon-blue);
+  border-color: rgba(0, 207, 255, 0.55);
+  box-shadow: 0 0 8px rgba(0, 207, 255, 0.16);
+}
+
+.mk-news-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 7px 6px 9px;
+  overflow: hidden;
+}
+
+.mk-news-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--neon-blue), #a855f7, var(--neon-red));
+}
+
+.mk-news-source {
+  color: var(--neon-blue);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.mk-news-title {
+  font-size: 0.62rem;
+  font-weight: 800;
+  line-height: 1.22;
+  margin-top: 2px;
+}
+
+.mk-symbols {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.mk-symbols span {
+  color: var(--neon-green);
+  border: 1px solid rgba(0, 255, 136, 0.35);
+  border-radius: 5px;
+  padding: 1px 4px;
+  font-size: 0.48rem;
+  font-weight: 800;
 }
 
 /* progress dots */

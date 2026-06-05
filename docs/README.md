@@ -2,7 +2,7 @@
 
 ## Overview
 
-StockFolio is a personal portfolio tracker for stocks and TASE symbols. The app supports authentication, holdings, transaction lots, watchlists, fee profiles, P&L summaries, charts, and stock quotes/history from Yahoo Finance.
+StockFolio is a personal portfolio tracker for stocks and TASE symbols. The app supports authentication, holdings, transaction lots, watchlists, fee profiles, P&L summaries, charts, personalized market news, and stock quotes/history from Yahoo Finance.
 
 The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 
@@ -27,6 +27,8 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - Transaction lots with buy/sell fees, tax amounts, net proceeds, and running average cost.
 - Fee profiles for broker fees and capital gains tax simulation.
 - Watchlist and stock detail pages with quote/history data.
+- Personalized News page with watchlist-driven For You articles, topic feeds, infinite scroll, and normalized article cards.
+- Financial news provider chain: Marketaux first, Finnhub second, Yahoo Finance search fallback.
 - TASE `.TA` support, including agorot-to-shekel normalization.
 - PWA support through `vite-plugin-pwa`.
 
@@ -66,6 +68,8 @@ Backend variables are documented in `server/.env.example`:
 - `CLIENT_URL`: comma-separated allowed frontend origins.
 - `ALLOW_VERCEL_PREVIEWS`: allow `*.vercel.app` preview origins when not set to `false`.
 - `NODE_ENV`: runtime environment.
+- `MARKETAUX_API_TOKEN`: optional Marketaux token for paged and symbol-filtered financial news.
+- `FINNHUB_API_KEY`: optional Finnhub token for general/crypto market news fallback.
 
 Frontend variables are documented in `client/.env.example`:
 
@@ -91,10 +95,15 @@ Deploy `server/` to Railway. Set `CLIENT_URL` to the Vercel app URL and configur
 - `GET /api/stocks/search`
 - `GET /api/stocks/quote/:ticker`
 - `GET /api/stocks/history/:ticker`
+- `GET /api/stocks/news`
 - `GET|POST|DELETE /api/watchlist`
 - `GET|POST|PUT|DELETE /api/fee-profiles`
 
 Protected routes require an `Authorization: Bearer <token>` header.
+
+## Feature Docs
+
+- [News feature](NEWS.md): provider order, For You personalization, API shape, and frontend/backend files.
 
 ## Verification
 
@@ -105,4 +114,4 @@ cd client && npm run build
 cd server && node --check index.js
 ```
 
-Manually verify login/register, adding transactions, opening holdings lots, watchlist changes, and CORS from the deployed Vercel URL.
+Manually verify login/register, adding transactions, opening holdings lots, watchlist changes, News topic switching/infinite scroll, and CORS from the deployed Vercel URL.

@@ -153,6 +153,47 @@ OHLCV price history.
 ```
 `1d` range returns intraday 5-minute bars.
 
+### GET /stocks/news `🔒`
+Return normalized financial news articles.
+
+The endpoint uses Marketaux first, then Finnhub, then Yahoo Finance search fallback. `topic=for-you` derives Marketaux symbols from the authenticated user's watchlist. If the watchlist is empty, it resolves to `markets`.
+
+**Query params**
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `topic` | `for-you` `markets` `tech` `financials` `crypto` `energy` `israel` `positive` | `markets` |
+| `limit` | `1` to `24` | `4` |
+| `page` | positive integer | `1` |
+
+**Response `200`**
+```json
+{
+  "topic": "for-you",
+  "resolvedTopic": "for-you",
+  "provider": "marketaux",
+  "page": 1,
+  "hasMore": true,
+  "topics": [
+    { "value": "for-you", "label": "For You" },
+    { "value": "markets", "label": "Markets" }
+  ],
+  "articles": [
+    {
+      "title": "Article title",
+      "url": "https://example.com/article",
+      "image": "https://example.com/image.jpg",
+      "source": "publisher.com",
+      "summary": "Short article summary",
+      "symbols": ["AAPL"],
+      "publishedAt": "2026-06-05T08:00:00.000Z"
+    }
+  ]
+}
+```
+
+`hasMore` is `true` for Marketaux pages while articles are returned. Finnhub and Yahoo fallback feeds are first-page only.
+
 ---
 
 ## Watchlist

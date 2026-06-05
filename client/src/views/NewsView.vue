@@ -140,7 +140,7 @@ onUnmounted(() => observer?.disconnect())
     </div>
 
     <div ref="sentinelRef" class="scroll-sentinel">
-      <span v-if="loadingMore" class="text-muted">Loading more...</span>
+      <span v-if="loadingMore" class="news-loader" aria-label="Loading more articles" />
     </div>
   </div>
 </template>
@@ -225,9 +225,26 @@ onUnmounted(() => observer?.disconnect())
 .scroll-sentinel {
   display: flex;
   justify-content: center;
+  align-items: center;
   min-height: 56px;
   padding: 1rem 0;
-  font-size: 0.8rem;
+}
+
+.news-loader {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 207, 255, 0.14);
+  border-top-color: var(--neon-blue);
+  border-right-color: #a855f7;
+  box-shadow: 0 0 12px rgba(0, 207, 255, 0.22), inset 0 0 8px rgba(168, 85, 247, 0.08);
+  animation: newsSpin 0.75s linear infinite;
+}
+
+@keyframes newsSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes shimmer {
