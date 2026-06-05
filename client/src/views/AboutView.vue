@@ -12,11 +12,13 @@ const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
 const qrCanvas = ref(null)
 
 const features = [
-  { icon: 'pi pi-chart-bar', text: 'Live multi-currency portfolio with P&L and value-over-time' },
-  { icon: 'pi pi-globe', text: 'Stocks, crypto, and global markets (US, TASE, Europe, Asia)' },
-  { icon: 'pi pi-bell', text: 'Web-push price alerts' },
-  { icon: 'pi pi-bolt', text: 'Trending tickers & market overview' },
-  { icon: 'pi pi-upload', text: 'Import from Excel / CSV and custom groups' },
+  { icon: 'pi pi-chart-line', text: 'Live portfolio tracking with range-based performance and current-price charts' },
+  { icon: 'pi pi-globe', text: 'Coverage for US stocks, TASE, global markets, and crypto watchlists' },
+  { icon: 'pi pi-briefcase', text: 'Compact holdings and watchlist rows with timeframe start/end price labels' },
+  { icon: 'pi pi-bell', text: 'Price alerts and per-ticker monitoring directly from stock pages' },
+  { icon: 'pi pi-bolt', text: 'Dashboard cards for markets, trending symbols, and live market-hours status' },
+  { icon: 'pi pi-tags', text: 'Sector-first organization with editable groups for holdings and watchlist items' },
+  { icon: 'pi pi-upload', text: 'Import from Excel / CSV and manage positions with buy, sell, and lot details' },
 ]
 
 onMounted(async () => {
@@ -81,6 +83,11 @@ async function copyAddress() {
         <button class="copy-btn" title="Copy" @click="copyAddress">
           <i class="pi pi-copy" />
         </button>
+      </div>
+
+      <div class="contact-block">
+        <div class="text-muted contact-label">Contact</div>
+        <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">pavelspersonalhelper@gmail.com</a>
       </div>
     </div>
 
@@ -151,6 +158,24 @@ async function copyAddress() {
   flex-shrink: 0;
 }
 .copy-btn:active { color: var(--accent); }
+
+.contact-block {
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+}
+
+.contact-label {
+  font-size: 0.78rem;
+  margin-bottom: 0.25rem;
+}
+
+.contact-link {
+  color: var(--accent);
+  font-size: 0.86rem;
+  word-break: break-all;
+  text-decoration: none;
+}
 
 .legal { text-align: center; font-size: 0.72rem; margin-top: 0.5rem; }
 </style>

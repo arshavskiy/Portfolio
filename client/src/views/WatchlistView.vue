@@ -22,7 +22,7 @@ const showModal = ref(false)
 const showImportModal = ref(false)
 const showGroupModal = ref(false)
 const groupItem = ref(null)
-const groupMode = useStorage('watchlist-group-mode', 'none')
+const groupMode = useStorage('watchlist-group-mode', 'sector')
 
 function onImported() {
   watchlist.fetchWatchlist(range.value)

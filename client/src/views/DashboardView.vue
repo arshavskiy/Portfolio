@@ -31,7 +31,7 @@ const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
 const range = useChartRange()
 const sparklines = ref({})
-const groupMode = useStorage('dashboard-group-mode', 'none')
+const groupMode = useStorage('dashboard-group-mode', 'sector')
 
 const groupedPositions = computed(() => groupItems(portfolio.positions, groupMode.value))
 

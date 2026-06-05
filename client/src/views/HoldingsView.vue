@@ -26,7 +26,7 @@ const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
 const sparklines = ref({})
-const groupMode = useStorage('holdings-group-mode', 'none')
+const groupMode = useStorage('holdings-group-mode', 'sector')
 const compactMode = useStorage('holdings-compact', true)
 
 const grouped = computed(() => groupItems(portfolio.positions, groupMode.value))
