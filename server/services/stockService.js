@@ -238,9 +238,10 @@ async function getMarkets(group = 'US') {
 const MARKET_GROUP_NAMES = Object.keys(MARKET_GROUPS)
 
 // ── Trending tickers ──
-const TRENDING_GROUP_NAMES = ['US', 'Crypto']
+const TRENDING_GROUP_NAMES = ['US', 'Israel', 'Crypto']
 // Yahoo doesn't surface "trending" crypto, so use top coins by activity.
 const TRENDING_CRYPTO = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'BNB-USD', 'DOGE-USD', 'ADA-USD', 'AVAX-USD']
+const TRENDING_ISRAEL = ['TEVA.TA', 'NICE.TA', 'POLI.TA', 'LUMI.TA', 'ICL.TA', 'AZRG.TA', 'ENLT.TA', 'PHOE.TA']
 
 let trendingCache = new Map() // group -> { data, ts }
 const TRENDING_TTL = 10 * 60 * 1000
@@ -252,6 +253,8 @@ async function getTrending(group = 'US') {
   let symbols = []
   if (group === 'Crypto') {
     symbols = TRENDING_CRYPTO
+  } else if (group === 'Israel') {
+    symbols = TRENDING_ISRAEL
   } else {
     try {
       const t = await yahooFinance.trendingSymbols('US', { count: 12 })

@@ -26,10 +26,9 @@ exports.getWatchlist = async (req, res) => {
     if (!items.length) return res.json([])
 
     const tickers = items.map((i) => i.ticker)
-      const [quotes, histories, positions] = await Promise.all([
+      const [quotes, histories] = await Promise.all([
           getQuotes(tickers),
           Promise.all(tickers.map((t) => getHistory(t, range, 40).catch(() => []))),
-          Position.find({user: req.user._id, ticker: {$in: tickers}}, 'ticker groups'),
       ])
     const quoteMap = {}
     quotes.forEach((q) => { if (q) quoteMap[q.ticker] = q })
@@ -37,12 +36,6 @@ exports.getWatchlist = async (req, res) => {
       tickers.forEach((t, i) => {
           historyMap[t] = histories[i]
       })
-      // Custom group tags come from the held position (if any).
-      const groupsMap = {}
-      positions.forEach((p) => {
-          groupsMap[p.ticker] = p.groups || []
-      })
-
     const enriched = items.map((item) => ({
       _id: item._id,
       ticker: item.ticker,
@@ -52,7 +45,7 @@ exports.getWatchlist = async (req, res) => {
       addedAt: item.addedAt,
       ...(quoteMap[item.ticker] || {}),
       history: historyMap[item.ticker] || [],
-      groups: normalizeGroups([...(item.groups || []), ...(groupsMap[item.ticker] || [])]),
+      groups: normalizeGroups(item.groups || []),
     }))
 
     res.json(enriched)

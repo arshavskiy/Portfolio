@@ -19,6 +19,9 @@ const alerts = useAlertsStore()
 const activeAlerts = computed(() =>
     alerts.forTicker(props.pos.ticker).filter((a) => a.active).length
 )
+
+const rangeStartPrice = computed(() => props.sparkline?.[0]?.close ?? null)
+const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 1]?.close ?? null)
 </script>
 
 <template>
@@ -51,8 +54,11 @@ const activeAlerts = computed(() =>
       <SparklineChart
           v-if="sparkline?.length"
           :data="sparkline"
-          :pnl-percent="pos.pnlPercent"
       />
+      <div v-if="sparkline?.length" class="chart-range-labels text-muted">
+        <span>{{ useTickerCurrency(rangeStartPrice, pos.ticker) }}</span>
+        <span>{{ useTickerCurrency(rangeEndPrice, pos.ticker) }}</span>
+      </div>
     </div>
 
     <div class="row-right">
@@ -270,9 +276,21 @@ const activeAlerts = computed(() =>
 }
 
 .row-chart {
+  position: relative;
   flex: 1;
   min-width: 0;
   height: 40px;
+}
+
+.chart-range-labels {
+  position: absolute;
+  inset: auto 0 -12px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.58rem;
+  line-height: 1;
+  pointer-events: none;
 }
 
 .row-right {
