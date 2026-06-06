@@ -7,7 +7,6 @@ import {groupItems} from '@/composables/useGrouping'
 import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
-import MarketHoursCard from '@/components/charts/MarketHoursCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
@@ -119,7 +118,7 @@ function neonStyle(pnlPercent) {
 
     <!-- Global markets overview (always shown) -->
     <MarketsCard />
-    <MarketHoursCard />
+    <!--    <MarketHoursCard />-->
 
     <!-- Allocation + movers, unified -->
     <BreakdownCard :positions="portfolio.positions"/>

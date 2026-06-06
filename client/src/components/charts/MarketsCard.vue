@@ -1,47 +1,9 @@
-<template>
-  <section class="markets-card">
-    <div class="markets-head">
-      <!--      <h2 class="card-title">Global Markets</h2>-->
-      <div class="market-tabs">
-        <button
-            v-for="g in groups"
-            :key="g"
-            :class="{ active: group === g }"
-            class="market-tab"
-            @click="selectGroup(g)"
-        >{{ g }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="loading && !indices.length" class="markets-grid">
-      <div v-for="n in 6" :key="n" class="index-tile skeleton"/>
-    </div>
-
-    <div v-else class="markets-grid">
-      <div v-for="idx in indices" :key="idx.symbol" class="index-tile" @click="openIndex(idx)">
-        <div class="idx-name">{{ idx.name }}</div>
-        <div class="idx-spark">
-          <SparklineChart
-              v-if="idx.history?.length"
-              :data="idx.history"
-              :pnl-percent="idx.changePercent || 0"
-          />
-        </div>
-        <div class="idx-price">{{ fmt(idx.price) }}</div>
-        <div :class="(idx.changePercent ?? 0) >= 0 ? 'up' : 'down'" class="idx-change">
-          {{ idx.change >= 0 ? '+' : '' }}{{ fmt(idx.changePercent) }}
-        </div>
-      </div>
-    </div>
-  </section>
-</template>
-
 <script setup>
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
+import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const router = useRouter()
@@ -49,6 +11,8 @@ const groups = ref(['US'])
 const group = useStorage('dashboard-markets-group', 'US')
 const indices = ref([])
 const loading = ref(false)
+const now = ref(new Date())
+let timer = null
 
 async function load() {
   loading.value = true
@@ -75,21 +39,81 @@ function openIndex(idx) {
 
 function fmt(n) {
   if (n == null) return '—'
-  return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  return n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})
 }
+
 function pct(n) {
   if (n == null) return ''
   return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 }
 
-onMounted(load)
+const activeMarketMeta = computed(() => {
+  const market = MARKET_HOURS_BY_GROUP[group.value]
+  return market ? getMarketHoursState(market, now.value) : null
+})
+
+onMounted(() => {
+  load()
+  timer = setInterval(() => {
+    now.value = new Date()
+  }, 60000)
+})
+
+onUnmounted(() => {
+  if (timer) clearInterval(timer)
+})
 </script>
+
+<template>
+  <section class="markets-card">
+    <div class="markets-head">
+      <div class="markets-topline">
+        <div class="market-tabs">
+          <button
+              v-for="g in groups"
+              :key="g"
+              :class="{ active: group === g }"
+              class="market-tab"
+              @click="selectGroup(g)"
+          >{{ g }}
+          </button>
+        </div>
+        <div v-if="activeMarketMeta" class="market-meta">
+          <span :class="activeMarketMeta.isOpen ? 'meta-open' : 'meta-closed'" class="meta-status">
+            {{ activeMarketMeta.isOpen ? 'Open' : 'Closed' }}
+          </span>
+          <span class="text-muted">{{ activeMarketMeta.nextLabel }}</span>
+          <span class="session">{{ activeMarketMeta.sessionLabel }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="loading && !indices.length" class="markets-grid">
+      <div v-for="n in 6" :key="n" class="index-tile skeleton"/>
+    </div>
+
+    <div v-else class="markets-grid">
+      <div v-for="idx in indices" :key="idx.symbol" class="index-tile" @click="openIndex(idx)">
+        <div class="idx-name">{{ idx.name }}</div>
+        <div class="idx-spark">
+          <SparklineChart
+              v-if="idx.history?.length"
+              :data="idx.history"
+              :pnl-percent="idx.changePercent || 0"
+          />
+        </div>
+        <div class="idx-price">{{ fmt(idx.price) }}</div>
+        <div :class="(idx.changePercent ?? 0) >= 0 ? 'up' : 'down'" class="idx-change">
+          {{ idx.change >= 0 ? '+' : '' }}{{ fmt(idx.changePercent) }}
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
 
 <style scoped>
 .markets-card {
   background: var(--bg-card);
-  //border: 1px solid var(--border);
-  //border-radius: 14px;
   padding: 0.9rem 1rem;
   padding-left: 0;
   margin-bottom: 0.75rem;
@@ -111,6 +135,15 @@ onMounted(load)
   color: var(--text-secondary);
   margin: 0;
 }
+
+.markets-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  flex-wrap: wrap;
+}
 .market-tabs { display: flex; gap: 2px; }
 .market-tab {
   background: none;
@@ -125,9 +158,49 @@ onMounted(load)
 }
 .market-tab.active { background: var(--accent); color: #fff; }
 
+.market-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+}
+
+.meta-status {
+  font-weight: 700;
+}
+
+.meta-open {
+  color: var(--neon-green);
+}
+
+.meta-closed {
+  color: var(--neon-red);
+}
+
+.session {
+  color: #93c5fd;
+}
+
 .markets-grid {
   display: flex;
   overflow-x: scroll;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+  padding-bottom: 10px;
+}
+
+.markets-grid::-webkit-scrollbar {
+  height: 3px;
+}
+
+.markets-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.markets-grid::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
 }
 
 .index-tile {
