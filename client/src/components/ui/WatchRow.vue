@@ -19,6 +19,14 @@ const activeAlerts = computed(() =>
 
 const rangeStartPrice = computed(() => props.item.history?.[0]?.close ?? null)
 const rangeEndPrice = computed(() => props.item.history?.[props.item.history.length - 1]?.close ?? null)
+const rangeChangePercent = computed(() => {
+  const start = rangeStartPrice.value
+  const end = rangeEndPrice.value
+  if (start != null && end != null && start !== 0) {
+    return ((end - start) / start) * 100
+  }
+  return props.item.changePercent ?? null
+})
 </script>
 
 <template>
@@ -54,8 +62,8 @@ const rangeEndPrice = computed(() => props.item.history?.[props.item.history.len
 
     <div class="row-right">
       <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
-      <span :class="item.changePercent >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
-        {{ usePercent(item.changePercent) }}
+      <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
+        {{ usePercent(rangeChangePercent) }}
       </span>
     </div>
   </div>
