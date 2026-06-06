@@ -11,6 +11,7 @@ import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
 import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
+import WatchlistGainersLosersCard from '@/components/charts/WatchlistGainersLosersCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 
@@ -127,6 +128,7 @@ function neonStyle(pnlPercent) {
     <!--    <MarketHoursCard />-->
 
     <WatchlistMoversCard :items="watchlist.items" :loading="watchlist.loading"/>
+    <WatchlistGainersLosersCard :items="watchlist.items" :loading="watchlist.loading"/>
 
     <!-- Allocation + movers, unified -->
     <BreakdownCard :positions="portfolio.positions"/>
