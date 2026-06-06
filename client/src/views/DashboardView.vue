@@ -126,12 +126,13 @@ function neonStyle(pnlPercent) {
     <MarketsCard />
     <!--    <MarketHoursCard />-->
 
+    <WatchlistMoversCard :items="watchlist.items" :loading="watchlist.loading"/>
+
     <!-- Allocation + movers, unified -->
     <BreakdownCard :positions="portfolio.positions"/>
 
     <!-- Trending tickers -->
     <TrendingCard />
-    <WatchlistMoversCard :items="watchlist.items" :loading="watchlist.loading"/>
 
     <!-- Market news -->
     <!--    <NewsCard />-->
