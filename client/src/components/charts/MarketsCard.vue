@@ -1,7 +1,7 @@
 <template>
   <section class="markets-card">
     <div class="markets-head">
-      <h2 class="card-title">Global Markets</h2>
+      <!--      <h2 class="card-title">Global Markets</h2>-->
       <div class="market-tabs">
         <button
             v-for="g in groups"
@@ -88,11 +88,11 @@ onMounted(load)
 <style scoped>
 .markets-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  //border: 1px solid var(--border);
+  //border-radius: 14px;
   padding: 0.9rem 1rem;
+  padding-left: 0;
   margin-bottom: 0.75rem;
-  overflow-x: scroll;
 
 }
 .markets-head {
@@ -127,11 +127,12 @@ onMounted(load)
 
 .markets-grid {
   display: flex;
+  overflow-x: scroll;
 }
 
 .index-tile {
   padding: 0.3rem 0.3rem;
-  min-height: 108px;
+  min-width: 90px;
   display: flex;
   flex-direction: column;
   gap: 2px;

@@ -73,6 +73,32 @@ function formatClock(date, timezone) {
   }).format(date)
 }
 
+function formatDuration(totalMinutes) {
+  if (!Number.isFinite(totalMinutes) || totalMinutes < 0) return ''
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+  if (hours <= 0) return `${minutes}m`
+  if (minutes === 0) return `${hours}h`
+  return `${hours}h ${minutes}m`
+}
+
+function nextSessionOpen(market, weekday, currentMinutes, sessions) {
+  for (let dayOffset = 0; dayOffset < 8; dayOffset++) {
+    const day = (weekday + dayOffset) % 7
+    if (!market.days.includes(day)) continue
+
+    for (const session of sessions) {
+      if (dayOffset === 0 && session.startMinutes <= currentMinutes) continue
+      return {
+        inMinutes: (dayOffset * 1440) + (session.startMinutes - currentMinutes),
+        start: session.start,
+      }
+    }
+  }
+
+  return null
+}
+
 function marketState(market, date) {
   const parts = timeParts(date, market.timezone)
   const currentMinutes = (parts.hour * 60) + parts.minute
@@ -87,12 +113,13 @@ function marketState(market, date) {
     ? sessions.find((session) => currentMinutes >= session.startMinutes && currentMinutes < session.endMinutes)
     : null
 
-  let nextLabel = 'Closed today'
+  const nextOpen = nextSessionOpen(market, parts.weekday, currentMinutes, sessions)
+
+  let nextLabel = 'Closed'
   if (activeSession) {
     nextLabel = `Closes ${activeSession.end}`
-  } else if (isTradingDay) {
-    const upcomingSession = sessions.find((session) => currentMinutes < session.startMinutes)
-    if (upcomingSession) nextLabel = `Opens ${upcomingSession.start}`
+  } else if (nextOpen) {
+    nextLabel = `Opens in ${formatDuration(nextOpen.inMinutes)}`
   }
 
   const sessionLabel = sessions.map((session) => `${session.start}-${session.end}`).join(' , ')
