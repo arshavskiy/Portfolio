@@ -1,33 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import {computed, onMounted, watch} from 'vue'
+import {storeToRefs} from 'pinia'
 import { useRouter } from 'vue-router'
 import { useStorage } from '@vueuse/core'
-import api from '@/composables/useApi'
+import {useMarketDataStore} from '@/stores/marketData'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const router = useRouter()
-const groups = ref(['US'])
+const marketData = useMarketDataStore()
+const {trendingGroups, trendingByGroup, trendingLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-trending-group', 'US')
-const items = ref([])
-const loading = ref(false)
-
-async function load() {
-  loading.value = true
-  try {
-    const data = await api.get(`/stocks/trending?group=${encodeURIComponent(group.value)}`)
-    items.value = data.items || []
-    if (data.groups?.length) groups.value = data.groups
-  } catch {
-    items.value = []
-  } finally {
-    loading.value = false
-  }
-}
+const groups = computed(() => trendingGroups.value)
+const items = computed(() => trendingByGroup.value[group.value] || [])
+const loading = computed(() => Boolean(trendingLoadingByGroup.value[group.value]))
 
 function selectGroup(g) {
   if (g === group.value) return
   group.value = g
-  load()
 }
 
 function openItem(it) {
@@ -45,7 +34,13 @@ function pct(n) {
   return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 }
 
-onMounted(load)
+onMounted(() => {
+  marketData.fetchTrending(group.value).catch(() => {})
+})
+
+watch(group, (nextGroup) => {
+  marketData.fetchTrending(nextGroup).catch(() => {})
+})
 </script>
 
 <template>

@@ -1,7 +1,6 @@
-const configuredBase = import.meta.env.VITE_API_URL?.replace(/\/+$/, '')
-const BASE = configuredBase
-  ? (configuredBase.endsWith('/api') ? configuredBase : `${configuredBase}/api`)
-  : '/api'
+import {resolveClientApiBase} from '@/config/api'
+
+const BASE = resolveClientApiBase(import.meta.env.VITE_API_URL)
 
 function getToken() {
   return localStorage.getItem('token')

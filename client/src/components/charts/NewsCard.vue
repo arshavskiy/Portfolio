@@ -1,31 +1,22 @@
 <script setup>
-import {onMounted, ref} from 'vue'
+import {computed, onMounted} from 'vue'
 import {useRouter} from 'vue-router'
-import api from '@/composables/useApi'
+import {useNewsStore} from '@/stores/news'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 
 const router = useRouter()
-const articles = ref([])
-const loading = ref(false)
-
-async function loadNews() {
-  loading.value = true
-  try {
-    const data = await api.get('/stocks/news?topic=for-you&limit=4')
-    articles.value = data.articles || []
-  } catch {
-    articles.value = []
-  } finally {
-    loading.value = false
-  }
-}
+const news = useNewsStore()
+const articles = computed(() => news.getPreview('for-you'))
+const loading = computed(() => news.isLoading('for-you') && !articles.value.length)
 
 function openArticle(article) {
   if (!article?.url) return
   window.open(article.url, '_blank', 'noopener,noreferrer')
 }
 
-onMounted(loadNews)
+onMounted(() => {
+  news.fetchPreview('for-you', 4).catch(() => {})
+})
 </script>
 
 <template>

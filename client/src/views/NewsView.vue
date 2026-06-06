@@ -2,66 +2,37 @@
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
 import {useRouter} from 'vue-router'
-import api from '@/composables/useApi'
+import {storeToRefs} from 'pinia'
+import {DEFAULT_NEWS_TOPICS, useNewsStore} from '@/stores/news'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 
 const router = useRouter()
-
-const FALLBACK_TOPICS = [
-  {value: 'for-you', label: 'For You'},
-  {value: 'markets', label: 'Markets'},
-  {value: 'tech', label: 'Tech'},
-  {value: 'financials', label: 'Financials'},
-  {value: 'crypto', label: 'Crypto'},
-  {value: 'energy', label: 'Energy'},
-  {value: 'israel', label: 'Israel'},
-  {value: 'positive', label: 'Positive'},
-]
+const news = useNewsStore()
+const {topics} = storeToRefs(news)
 
 const topic = useStorage('news-topic', 'for-you')
-const topics = ref(FALLBACK_TOPICS)
-const articles = ref([])
-const loading = ref(false)
-const loadingMore = ref(false)
-const hasMore = ref(true)
 const error = ref('')
-const page = ref(1)
 const sentinelRef = ref(null)
 let observer = null
 
 const PAGE_SIZE = 3
 
+if (!topics.value.length) {
+  topics.value = DEFAULT_NEWS_TOPICS
+}
+
+const articles = computed(() => news.getFeed(topic.value))
+const loading = computed(() => news.isLoading(topic.value) && !articles.value.length)
+const loadingMore = computed(() => news.isLoadingMore(topic.value))
+const hasMore = computed(() => news.hasMore(topic.value))
 const activeTopic = computed(() => topics.value.find((item) => item.value === topic.value))
 
 async function loadNews({reset = false} = {}) {
-  if (loading.value || loadingMore.value) return
-  if (!reset && !hasMore.value) return
-
-  if (reset) {
-    page.value = 1
-    hasMore.value = true
-    articles.value = []
-    loading.value = true
-  } else {
-    loadingMore.value = true
-  }
-
   error.value = ''
   try {
-    const data = await api.get(
-      `/stocks/news?topic=${encodeURIComponent(topic.value)}&limit=${PAGE_SIZE}&page=${page.value}`
-    )
-    const nextArticles = data.articles || []
-    articles.value = reset ? nextArticles : [...articles.value, ...nextArticles]
-    hasMore.value = Boolean(data.hasMore)
-    if (nextArticles.length) page.value += 1
-    if (data.topics?.length) topics.value = data.topics
+    await news.fetchFeed(topic.value, {reset, limit: PAGE_SIZE})
   } catch (err) {
-    if (reset) articles.value = []
     error.value = err.message || 'Unable to load news'
-  } finally {
-    loading.value = false
-    loadingMore.value = false
   }
 }
 

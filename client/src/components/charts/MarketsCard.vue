@@ -1,36 +1,26 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
+import {storeToRefs} from 'pinia'
 import {useRouter} from 'vue-router'
 import {useStorage} from '@vueuse/core'
-import api from '@/composables/useApi'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
+import {useMarketDataStore} from '@/stores/marketData'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const router = useRouter()
-const groups = ref(['US'])
+const marketData = useMarketDataStore()
+const {marketGroups, marketsByGroup, marketLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-markets-group', 'US')
-const indices = ref([])
-const loading = ref(false)
 const now = ref(new Date())
 let timer = null
 
-async function load() {
-  loading.value = true
-  try {
-    const data = await api.get(`/stocks/markets?group=${encodeURIComponent(group.value)}`)
-    indices.value = data.indices || []
-    if (data.groups?.length) groups.value = data.groups
-  } catch {
-    indices.value = []
-  } finally {
-    loading.value = false
-  }
-}
+const groups = computed(() => marketGroups.value)
+const indices = computed(() => marketsByGroup.value[group.value] || [])
+const loading = computed(() => Boolean(marketLoadingByGroup.value[group.value]))
 
 function selectGroup(g) {
   if (g === group.value) return
   group.value = g
-  load()
 }
 
 function openIndex(idx) {
@@ -53,10 +43,14 @@ const activeMarketMeta = computed(() => {
 })
 
 onMounted(() => {
-  load()
+  marketData.fetchMarkets(group.value).catch(() => {})
   timer = setInterval(() => {
     now.value = new Date()
   }, 60000)
+})
+
+watch(group, (nextGroup) => {
+  marketData.fetchMarkets(nextGroup).catch(() => {})
 })
 
 onUnmounted(() => {

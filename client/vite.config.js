@@ -2,10 +2,11 @@ import {defineConfig, loadEnv} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import {VitePWA} from 'vite-plugin-pwa'
 import {fileURLToPath, URL} from 'node:url'
+import {resolveApiProxyTarget} from './src/config/api.js'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const apiProxyTarget = env.VITE_API_PROXY_TARGET || 'http://localhost:3000'
+  const apiProxyTarget = resolveApiProxyTarget(env.VITE_API_PROXY_TARGET)
 
   return {
     resolve: {
