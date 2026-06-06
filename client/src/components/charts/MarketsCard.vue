@@ -1,3 +1,42 @@
+<template>
+  <section class="markets-card">
+    <div class="markets-head">
+      <h2 class="card-title">Global Markets</h2>
+      <div class="market-tabs">
+        <button
+            v-for="g in groups"
+            :key="g"
+            :class="{ active: group === g }"
+            class="market-tab"
+            @click="selectGroup(g)"
+        >{{ g }}
+        </button>
+      </div>
+    </div>
+
+    <div v-if="loading && !indices.length" class="markets-grid">
+      <div v-for="n in 6" :key="n" class="index-tile skeleton"/>
+    </div>
+
+    <div v-else class="markets-grid">
+      <div v-for="idx in indices" :key="idx.symbol" class="index-tile" @click="openIndex(idx)">
+        <div class="idx-name">{{ idx.name }}</div>
+        <div class="idx-spark">
+          <SparklineChart
+              v-if="idx.history?.length"
+              :data="idx.history"
+              :pnl-percent="idx.changePercent || 0"
+          />
+        </div>
+        <div class="idx-price">{{ fmt(idx.price) }}</div>
+        <div :class="(idx.changePercent ?? 0) >= 0 ? 'up' : 'down'" class="idx-change">
+          {{ idx.change >= 0 ? '+' : '' }}{{ fmt(idx.changePercent) }}
+        </div>
+      </div>
+    </div>
+  </section>
+</template>
+
 <script setup>
 import {onMounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
@@ -46,44 +85,6 @@ function pct(n) {
 onMounted(load)
 </script>
 
-<template>
-  <section class="markets-card">
-    <div class="markets-head">
-      <h2 class="card-title">Global Markets</h2>
-      <div class="market-tabs">
-        <button
-          v-for="g in groups"
-          :key="g"
-          class="market-tab"
-          :class="{ active: group === g }"
-          @click="selectGroup(g)"
-        >{{ g }}</button>
-      </div>
-    </div>
-
-    <div v-if="loading && !indices.length" class="markets-grid">
-      <div v-for="n in 6" :key="n" class="index-tile skeleton" />
-    </div>
-
-    <div v-else class="markets-grid">
-      <div v-for="idx in indices" :key="idx.symbol" class="index-tile" @click="openIndex(idx)">
-        <div class="idx-name">{{ idx.name }}</div>
-        <div class="idx-price">{{ fmt(idx.price) }}</div>
-        <div class="idx-spark">
-          <SparklineChart
-            v-if="idx.history?.length"
-            :data="idx.history"
-            :pnl-percent="idx.changePercent || 0"
-          />
-        </div>
-        <div class="idx-change" :class="(idx.changePercent ?? 0) >= 0 ? 'up' : 'down'">
-          {{ idx.change >= 0 ? '+' : '' }}{{ fmt(idx.change) }} ({{ pct(idx.changePercent) }})
-        </div>
-      </div>
-    </div>
-  </section>
-</template>
-
 <style scoped>
 .markets-card {
   background: var(--bg-card);
@@ -91,6 +92,8 @@ onMounted(load)
   border-radius: 14px;
   padding: 0.9rem 1rem;
   margin-bottom: 0.75rem;
+  overflow-x: scroll;
+
 }
 .markets-head {
   display: flex;
@@ -123,12 +126,7 @@ onMounted(load)
 .market-tab.active { background: var(--accent); color: #fff; }
 
 .markets-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* gap: 0.5rem; */
-}
-@media (min-width: 640px) {
-  .markets-grid { grid-template-columns: repeat(4, 1fr); }
+  display: flex;
 }
 
 .index-tile {
@@ -144,7 +142,10 @@ onMounted(load)
 .index-tile:hover { background: rgba(255, 255, 255, 0.03); }
 .index-tile:active { background: rgba(255, 255, 255, 0.06); }
 .idx-name { font-size: 0.78rem; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.idx-price { font-size: 0.95rem; font-weight: 600; }
+
+.idx-price {
+  font-size: 0.85rem;
+}
 .idx-spark { height: 40px; margin: 1px 0; overflow: hidden; }
 .idx-change { font-size: 0.72rem; font-weight: 600; }
 .idx-change.up { color: var(--neon-green); }

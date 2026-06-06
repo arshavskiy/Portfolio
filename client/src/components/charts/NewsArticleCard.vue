@@ -29,9 +29,9 @@ function fmtDate(value) {
     <h2>{{ article.title }}</h2>
     <p v-if="article.summary" class="summary text-muted">{{ article.summary }}</p>
 
-    <div v-if="article.tags?.length" class="tag-row">
-      <span v-for="tag in article.tags" :key="tag" class="topic-pill">{{ tag }}</span>
-    </div>
+    <!--    <div v-if="article.tags?.length" class="tag-row">-->
+    <!--      <span v-for="tag in article.tags" :key="tag" class="topic-pill">{{ tag }}</span>-->
+    <!--    </div>-->
 
     <div v-if="article.symbols?.length" class="symbol-row">
       <span v-for="symbol in article.symbols" :key="symbol" class="symbol-pill">{{ symbol }}</span>
@@ -42,7 +42,7 @@ function fmtDate(value) {
 <style scoped>
 .article-card {
   position: relative;
-  min-height: 180px;
+  min-height: 150px;
   overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
