@@ -9,9 +9,50 @@ const props = defineProps({
   currentPrice: { type: Number, default: null },
 })
 
+const emit = defineEmits(['selection-change'])
+
 const svgRef = ref(null)
 const tooltipRef = ref(null)
 const containerRef = ref(null)
+const selectedPoints = ref([])
+
+function normalizePoint(d) {
+  if (!d) return null
+  return {
+    date: new Date(d.date).toISOString(),
+    close: d.close ?? null,
+    open: d.open ?? null,
+    high: d.high ?? null,
+    low: d.low ?? null,
+  }
+}
+
+function setSelectedPoints(points) {
+  selectedPoints.value = points
+  emit('selection-change', points.map(normalizePoint).filter(Boolean))
+}
+
+function selectPoint(point) {
+  if (!point) return
+
+  const existingIndex = selectedPoints.value.findIndex(
+    (item) => new Date(item.date).getTime() === new Date(point.date).getTime()
+  )
+
+  if (existingIndex !== -1) {
+    const next = [...selectedPoints.value]
+    next.splice(existingIndex, 1)
+    setSelectedPoints(next)
+    return
+  }
+
+  if (selectedPoints.value.length >= 2) {
+    setSelectedPoints([point])
+    return
+  }
+
+  setSelectedPoints([...selectedPoints.value, point].sort((a, b) => new Date(a.date) - new Date(b.date)))
+}
 
 function draw() {
   if (!svgRef.value || !props.data.length) return
@@ -146,6 +187,57 @@ function draw() {
     .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3,3').attr('stroke-width', 1)
   focus.append('circle').attr('r', 4).attr('fill', color).attr('stroke', '#0f172a').attr('stroke-width', 2)
 
+  const selectionLayer = g.append('g')
+  const renderSelections = () => {
+    selectionLayer.selectAll('*').remove()
+
+    selectedPoints.value.forEach((point, index) => {
+      const cx = x(new Date(point.date))
+      const cy = y(point.close)
+      const stroke = index === 0 ? '#e2e8f0' : '#cbd5e1'
+      const label = point.close?.toFixed(2) || '—'
+      const labelWidth = Math.max(52, label.length * 7 + 16)
+      const labelX = Math.min(Math.max(cx - labelWidth / 2, 0), w - labelWidth)
+      const labelY = Math.min(cy + 10, h - 22)
+
+      selectionLayer.append('line')
+        .attr('x1', cx)
+        .attr('x2', cx)
+        .attr('y1', 0)
+        .attr('y2', h)
+        .attr('stroke', stroke)
+        .attr('stroke-width', 1.5)
+
+      selectionLayer.append('circle')
+        .attr('cx', cx)
+        .attr('cy', cy)
+        .attr('r', 5.5)
+        .attr('fill', stroke)
+        .attr('stroke', '#0f172a')
+        .attr('stroke-width', 2)
+
+      selectionLayer.append('rect')
+        .attr('x', labelX)
+        .attr('y', labelY)
+        .attr('width', labelWidth)
+        .attr('height', 18)
+        .attr('rx', 9)
+        .attr('fill', '#e5e7eb')
+        .attr('opacity', 0.96)
+
+      selectionLayer.append('text')
+        .attr('x', labelX + labelWidth / 2)
+        .attr('y', labelY + 12)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#0f172a')
+        .attr('font-size', '10')
+        .attr('font-weight', 700)
+        .text(label)
+    })
+  }
+
+  renderSelections()
+
   const tooltip = d3.select(tooltipRef.value)
 
   svg.append('rect')
@@ -176,11 +268,25 @@ function draw() {
         .style('top', `${y(d.close) + margin.top - 10}px`)
         .html(`<div class="tt-date">${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>${ohlc}`)
     })
+    .on('click', (event) => {
+      const [mx] = d3.pointer(event)
+      const date = x.invert(mx - margin.left)
+      const i = bisect(parsed, date, 1)
+      const d0 = parsed[i - 1]; const d1 = parsed[i]
+      if (!d0 && !d1) return
+      const d = d1 && date - d0?.date > d1?.date - date ? d1 : d0
+      if (!d) return
+      selectPoint(d)
+      renderSelections()
+    })
     .on('mouseleave touchend', () => { focus.style('display', 'none'); tooltip.style('display', 'none') })
 }
 
 onMounted(() => nextTick(draw))
 watch(() => [props.data, props.loading, props.mode, props.currentPrice], () => nextTick(draw))
+watch(() => props.data, () => {
+  setSelectedPoints([])
+}, { deep: true })
 
 const ro = new ResizeObserver(() => nextTick(draw))
 onMounted(() => { if (containerRef.value) ro.observe(containerRef.value) })

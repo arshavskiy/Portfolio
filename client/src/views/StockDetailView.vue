@@ -25,6 +25,7 @@ const loading = ref(false)
 const chartLoading = ref(false)
 const showTxModal = ref(false)
 const showAlertModal = ref(false)
+const selectedChartPoints = ref([])
 
 const ranges = ['1d', '5d', '1mo', '3mo', '6mo', '1y']
 const selectedRange = ref('3mo')
@@ -53,6 +54,31 @@ const rangeChange = computed(() => {
   const amount = latestPrice - firstClose
   const percent = firstClose ? (amount / firstClose) * 100 : null
   return { amount, percent }
+})
+
+const selectedDelta = computed(() => {
+  if (selectedChartPoints.value.length !== 2) return null
+
+  const [start, end] = selectedChartPoints.value
+  const startPrice = start?.close
+  const endPrice = end?.close
+  if (startPrice == null || endPrice == null) return null
+
+  const amount = endPrice - startPrice
+  const percent = startPrice ? (amount / startPrice) * 100 : null
+  const startDate = new Date(start.date)
+  const endDate = new Date(end.date)
+  const hours = Math.abs(endDate - startDate) / 36e5
+
+  return {
+    amount,
+    percent,
+    startPrice,
+    endPrice,
+    startLabel: startDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
+    endLabel: endDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
+    spanLabel: hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
+  }
 })
 
 async function loadQuote() {
@@ -118,6 +144,10 @@ async function toggleWatchlist() {
 }
 
 const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
+
+function handleChartSelection(points) {
+  selectedChartPoints.value = points
+}
 </script>
 
 <template>
@@ -161,7 +191,28 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
       <SelectButton v-model="chartMode" :options="chartModes" size="small" />
     </div>
 
-    <StockChart :data="history" :loading="chartLoading" :mode="chartMode" :current-price="quote?.price ?? null" />
+    <div class="chart-measure">
+      <div class="text-muted measure-hint">
+        Tap two points on the chart to measure delta.
+      </div>
+      <div v-if="selectedDelta" class="measure-summary">
+        <span :class="gainLossClass(selectedDelta.amount)">
+          {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
+        </span>
+        <span class="text-muted">
+          {{ useTickerCurrency(selectedDelta.startPrice, ticker) }} to {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
+        </span>
+        <span class="text-muted">{{ selectedDelta.startLabel }} to {{ selectedDelta.endLabel }} · {{ selectedDelta.spanLabel }}</span>
+      </div>
+    </div>
+
+    <StockChart
+      :data="history"
+      :loading="chartLoading"
+      :mode="chartMode"
+      :current-price="quote?.price ?? null"
+      @selection-change="handleChartSelection"
+    />
 
     <div v-if="quote" class="stats-grid">
       <div class="stat">
@@ -224,6 +275,9 @@ const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
 .price-change { font-size: 1rem; }
 .price-skeleton { height: 2.5rem; width: 160px; background: var(--bg-card); border-radius: 6px; animation: shimmer 1.5s infinite; background: linear-gradient(90deg, var(--border) 25%, #475569 50%, var(--border) 75%); background-size: 200% 100%; }
 .chart-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+.chart-measure { margin-bottom: 0.75rem; }
+.measure-hint { font-size: 0.78rem; margin-bottom: 0.3rem; }
+.measure-summary { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.84rem; }
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 1rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .stat { padding: 0.75rem 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
 .stat:nth-last-child(-n+2) { border-bottom: none; }
