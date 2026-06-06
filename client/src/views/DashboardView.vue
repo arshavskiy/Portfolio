@@ -14,6 +14,7 @@ import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
 import WatchlistGainersLosersCard from '@/components/charts/WatchlistGainersLosersCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
+import NewsCard from "../components/charts/NewsCard.vue";
 
 const RANGE_OPTIONS = [
   {label: '1W', value: '1wk'},
@@ -134,10 +135,10 @@ function neonStyle(pnlPercent) {
     <BreakdownCard :positions="portfolio.positions"/>
 
     <!-- Trending tickers -->
-    <TrendingCard />
+    <!--    <TrendingCard />-->
 
     <!-- Market news -->
-    <!--    <NewsCard />-->
+    <NewsCard/>
 
     <div v-if="portfolio.loading" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />
