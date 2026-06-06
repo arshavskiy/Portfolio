@@ -50,7 +50,7 @@ function openStock(item) {
 <template>
   <section v-if="loading || movers.length" class="movers-card">
     <div class="movers-head">
-      <h2 class="card-title">Watchlist Top Movers</h2>
+      <h2 class="card-title">Top Movers</h2>
       <span class="text-muted head-note">From your watchlist</span>
     </div>
 
