@@ -2,6 +2,7 @@
 import {computed, onMounted, ref, watch} from 'vue'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
+import {useWatchlistStore} from '@/stores/watchlist'
 import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
 import {useStorage} from '@vueuse/core'
@@ -9,6 +10,7 @@ import api from '@/composables/useApi'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
+import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 
@@ -28,6 +30,7 @@ const HISTORY_RANGES = [
 
 const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
+const watchlist = useWatchlistStore()
 const range = useChartRange()
 const sparklines = ref({})
 const groupMode = useStorage('dashboard-group-mode', 'sector')
@@ -54,7 +57,10 @@ watch(() => portfolio.positions.length, fetchHistory)
 
 onMounted(async () => {
   try {
-    await portfolio.fetchPortfolio()
+    await Promise.all([
+      portfolio.fetchPortfolio(),
+      watchlist.fetchWatchlist(range.value),
+    ])
     await Promise.all([fetchSparklines(), fetchHistory()])
   } catch {}
 })
@@ -125,6 +131,7 @@ function neonStyle(pnlPercent) {
 
     <!-- Trending tickers -->
     <TrendingCard />
+    <WatchlistMoversCard :items="watchlist.items" :loading="watchlist.loading"/>
 
     <!-- Market news -->
     <!--    <NewsCard />-->
