@@ -7,17 +7,24 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 
+const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const router = useRouter()
 const toast = useToast()
 const auth = useAuthStore()
 
+const mode = ref('login')
+const name = ref('')
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
 const pageTitle = 'StockFolio Login | Track Stocks, Crypto, and Global Markets'
 const pageDescription = 'Sign in to StockFolio to track your portfolio, monitor live market moves, manage price alerts, and follow stocks, crypto, and global markets in one place.'
 const pageUrl = '/login'
-const submitEnabled = computed(() => email.value.trim() && password.value)
+const passwordValid = computed(() => PASSWORD_RULE.test(password.value))
+const loginEnabled = computed(() => email.value.trim() && password.value)
+const registerEnabled = computed(() =>
+  name.value.trim() && email.value.trim() && password.value && passwordValid.value
+)
 
 const previousHead = {
   title: '',
@@ -139,6 +146,34 @@ async function submit() {
   } finally {
     loading.value = false
   }
+}
+
+async function register() {
+  if (!passwordValid.value) {
+    toast.add({
+      severity: 'warn',
+      summary: 'Weak password',
+      detail: 'Password must be at least 8 characters and include a number and a special character',
+      life: 3000,
+    })
+    return
+  }
+
+  loading.value = true
+  try {
+    await auth.register(name.value, email.value, password.value)
+    router.push('/')
+  } catch (err) {
+    toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
+  } finally {
+    loading.value = false
+  }
+}
+
+function switchMode(nextMode) {
+  mode.value = nextMode
+  password.value = ''
+  loading.value = false
 }
 </script>
 
@@ -334,7 +369,7 @@ async function submit() {
 
       <!-- Login -->
       <section class="auth" aria-labelledby="login-form-title">
-        <div class="auth-card">
+        <div v-if="mode === 'login'" class="auth-card">
           <h2 id="login-form-title" class="auth-heading">Welcome back</h2>
           <p class="auth-subheading text-muted">Sign in to your portfolio</p>
 
@@ -348,7 +383,7 @@ async function submit() {
               <Password inputId="login-password" v-model="password" :feedback="false" autocomplete="current-password" fluid placeholder="Password" required toggleMask/>
             </div>
             <Button
-              :disabled="!submitEnabled || loading"
+              :disabled="!loginEnabled || loading"
               :loading="loading"
               class="login-button"
               fluid
@@ -361,7 +396,54 @@ async function submit() {
 
           <p class="auth-footer">
             No account?
-            <RouterLink to="/register">Create one — it's free</RouterLink>
+            <button class="auth-link" type="button" @click="switchMode('register')">Create one — it's free</button>
+          </p>
+        </div>
+
+        <div v-else class="register-card">
+          <h2 class="auth-heading">Create your account</h2>
+          <p class="auth-subheading text-muted">Start tracking your portfolio</p>
+
+          <form class="auth-form" @submit.prevent="register">
+            <div class="field">
+              <label for="inline-register-name">Name</label>
+              <InputText id="inline-register-name" v-model="name" autocomplete="name" fluid placeholder="Your name" required />
+            </div>
+            <div class="field">
+              <label for="inline-register-email">Email</label>
+              <InputText id="inline-register-email" v-model="email" autocomplete="email" fluid placeholder="you@example.com" required type="email" />
+            </div>
+            <div class="field">
+              <label for="inline-register-password">Password</label>
+              <Password
+                inputId="inline-register-password"
+                v-model="password"
+                :feedback="false"
+                autocomplete="new-password"
+                fluid
+                placeholder="8+ chars, number, special char"
+                required
+                toggleMask
+              />
+              <small class="password-hint" :class="{ invalid: password && !passwordValid }">
+                Use at least 8 characters, one number, and one special character.
+              </small>
+            </div>
+            <Button
+              :disabled="!registerEnabled || loading"
+              :loading="loading"
+              class="register-button"
+              fluid
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              label="Create StockFolio Account"
+              type="submit"
+            />
+          </form>
+
+          <p class="auth-footer">
+            Already have an account?
+            <button class="auth-link" type="button" @click="switchMode('login')">Sign in</button>
           </p>
         </div>
       </section>
@@ -994,6 +1076,15 @@ async function submit() {
   padding: 1.75rem;
 }
 
+.register-card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+}
+
 .auth-heading {
   font-size: 1.25rem;
   font-weight: 700;
@@ -1038,6 +1129,35 @@ async function submit() {
   box-shadow: none;
 }
 
+:deep(.register-button) {
+  margin-top: 0.25rem;
+  min-height: 3.25rem;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  box-shadow: 0 18px 36px rgba(34, 197, 94, 0.22);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+:deep(.register-button .p-button-label),
+:deep(.register-button .p-button-icon) {
+  color: #fff;
+}
+
+:deep(.register-button:not(.p-disabled):hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 42px rgba(34, 197, 94, 0.28);
+  filter: saturate(1.08);
+}
+
+:deep(.register-button.p-disabled) {
+  opacity: 0.65;
+  box-shadow: none;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -1047,6 +1167,15 @@ async function submit() {
 .field label {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.password-hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.password-hint.invalid {
+  color: var(--neon-red);
 }
 
 .auth-footer {
@@ -1061,6 +1190,19 @@ async function submit() {
   text-decoration: underline;
   text-underline-offset: 0.18em;
   text-decoration-thickness: 0.08em;
+}
+
+.auth-link {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.08em;
+  cursor: pointer;
+  font: inherit;
 }
 
 /* ── Desktop: side-by-side split ── */

@@ -134,8 +134,9 @@ function neonStyle(pnlPercent) {
     <!-- Allocation + movers, unified -->
     <BreakdownCard :positions="portfolio.positions"/>
 
-    <!-- Trending tickers -->
-    <!--    <TrendingCard />-->
+    <template v-if="!portfolio.loading && !portfolio.positions.length">
+      <TrendingCard />
+    </template>
 
     <!-- Market news -->
 <!--    <NewsCard/>-->
@@ -213,7 +214,7 @@ function neonStyle(pnlPercent) {
       <!--      </section>-->
 
       <div v-if="!portfolio.positions.length" class="empty text-muted">
-        No holdings yet. Add a transaction to get started.
+        No holdings yet. Add a transaction to get started, or explore what’s trending.
       </div>
 
     </template>

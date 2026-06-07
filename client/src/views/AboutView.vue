@@ -87,7 +87,8 @@ async function copyAddress() {
 
       <div class="contact-block">
         <div class="text-muted contact-label">Contact</div>
-        <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">pavelspersonalhelper@gmail.com</a>
+        <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
+        <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
       </div>
     </div>
 
@@ -163,6 +164,9 @@ async function copyAddress() {
   margin-top: 1rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
 }
 
 .contact-label {
@@ -174,7 +178,9 @@ async function copyAddress() {
   color: var(--accent);
   font-size: 0.86rem;
   word-break: break-all;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.08em;
 }
 
 .legal { text-align: center; font-size: 0.72rem; margin-top: 0.5rem; }
