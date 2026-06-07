@@ -192,7 +192,7 @@ function neonStyle(pnlPercent) {
 <!--        </div>-->
       </template>
 
-      <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />
+<!--      <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />-->
 
       <!-- Portfolio value over time -->
       <!--      <section v-if="portfolio.positions.length" class="history-card">-->

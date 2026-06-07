@@ -17,6 +17,7 @@ import ImportModal from '@/components/ui/ImportModal.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import PageSettings from '@/components/ui/PageSettings.vue'
 import SettingsRow from '@/components/ui/SettingsRow.vue'
+import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -134,6 +135,9 @@ async function onTransactionDone() {
         </PageSettings>
       </div>
     </header>
+
+    <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />
+
 
     <RangeBar class="page-range"/>
 
