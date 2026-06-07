@@ -4,6 +4,7 @@ import {useAuthStore} from '@/stores/auth'
 const routes = [
   { path: '/login', name: 'Login', component: () => import('@/views/LoginView.vue'), meta: { guest: true } },
   { path: '/register', name: 'Register', component: () => import('@/views/RegisterView.vue'), meta: { guest: true } },
+  {path: '/about', name: 'About', component: () => import('@/views/AboutView.vue')},
   {
     path: '/',
     component: () => import('@/layouts/MobileLayout.vue'),
@@ -18,9 +19,6 @@ const routes = [
       { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue'), meta: { requiresAuth: true } },
       { path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
-      // About is public (reachable from the landing footer) but still renders
-      // inside the layout, so logged-in users get the sidebar/nav.
-      { path: 'about', name: 'About', component: () => import('@/views/AboutView.vue') },
     ],
   },
   { path: '/:pathMatch(.*)*', redirect: '/' },

@@ -1,11 +1,20 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
+const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true, minlength: 6 },
+      password: {
+          type: String,
+          required: true,
+          minlength: 8,
+          validate: {
+              validator: (value) => PASSWORD_RULE.test(value),
+              message: 'Password must be at least 8 characters and include a number and a special character',
+          },
+      },
   },
   { timestamps: true }
 )

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken')
 const User = require('../models/User')
+const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
 function signToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })
@@ -10,6 +11,9 @@ exports.register = async (req, res) => {
     const { name, email, password } = req.body
     if (!name || !email || !password)
       return res.status(400).json({ message: 'All fields required' })
+      if (!PASSWORD_RULE.test(password)) {
+          return res.status(400).json({message: 'Password must be at least 8 characters and include a number and a special character'})
+      }
 
     const exists = await User.findOne({ email })
     if (exists) return res.status(409).json({ message: 'Email already registered' })
