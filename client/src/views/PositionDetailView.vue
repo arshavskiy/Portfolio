@@ -13,6 +13,7 @@ import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
+import AlertModal from '@/components/ui/AlertModal.vue'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import StockChart from '@/components/charts/StockChart.vue'
 
@@ -28,6 +29,7 @@ const currentPrice = ref(null)
 const companyName = ref('')
 const loading = ref(false)
 const showModal = ref(false)
+const showAlertModal = ref(false)
 const showSimulator = ref(false)
 const editingTx = ref(null)
 const simPrice = ref(null)
@@ -194,7 +196,7 @@ const marketMeta = computed(() => {
 })
 const shekelValue = computed(() => {
   if (quote.value?.price == null) return null
-  if (marketGroup.value === 'Israel') return quote.value.price
+  if (marketGroup.value === 'Israel') return null
   if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
   return quote.value.price / ilsToUsd.value
 })
@@ -242,11 +244,9 @@ const extendedHours = computed(() => {
 
   return {
     ...source,
-    shekelPrice: marketGroup.value === 'Israel'
-      ? source.price
-      : Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0
-        ? source.price / ilsToUsd.value
-        : null,
+    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel'
+      ? source.price / ilsToUsd.value
+      : null,
     timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),
   }
 })
@@ -328,7 +328,16 @@ function handleChartSelection(points) {
         <h1 class="gradient-title">{{ companyName || ticker }}</h1>
         <span class="text-muted">{{ ticker }} · Transaction Lots</span>
       </div>
-      <Button icon="pi pi-plus" rounded text @click="showModal = true" />
+      <div class="header-actions">
+        <Button icon="pi pi-plus" rounded text @click="showModal = true" />
+        <Button
+          v-tooltip.bottom="'Set price alert'"
+          icon="pi pi-bell"
+          text
+          rounded
+          @click="showAlertModal = true"
+        />
+      </div>
     </header>
 
     <template v-if="summary">
@@ -580,6 +589,8 @@ function handleChartSelection(points) {
       @hide="fetchLots"
     />
 
+    <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker" />
+
     <EditTransactionModal
       :visible="!!editingTx"
       :transaction="editingTx"
@@ -593,6 +604,7 @@ function handleChartSelection(points) {
 .position-detail { padding: 0.5rem 1rem 2rem; }
 .page-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; }
 .header-info { flex: 1; }
+.header-actions { display: flex; align-items: center; gap: 0.125rem; }
 
 .header-info h1 {
   font-size: 1.3rem;
@@ -625,6 +637,7 @@ function handleChartSelection(points) {
   display: flex;
   justify-content: space-between;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .price-change {

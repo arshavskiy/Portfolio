@@ -80,7 +80,7 @@ const rangeChange = computed(() => {
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const shekelValue = computed(() => {
   if (quote.value?.price == null) return null
-  if (marketGroup.value === 'Israel') return quote.value.price
+  if (marketGroup.value === 'Israel') return null
   if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
   return quote.value.price / ilsToUsd.value
 })
@@ -131,11 +131,9 @@ const extendedHours = computed(() => {
 
   return {
     ...source,
-    shekelPrice: marketGroup.value === 'Israel'
-      ? source.price
-      : Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0
-        ? source.price / ilsToUsd.value
-        : null,
+    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel'
+      ? source.price / ilsToUsd.value
+      : null,
     timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),
   }
 })
@@ -297,40 +295,40 @@ function handleChartSelection(points) {
             text
             @click="showTxModal = true"
         />
-        <Button
-            v-if="heldPosition"
-            v-tooltip.bottom="'View lots'"
-            icon="pi pi-list"
-            rounded
-            text
-            @click="openLots"
-        />
-        <Button
-            v-if="heldPosition"
-            v-tooltip.bottom="'Sell'"
-            icon="pi pi-arrow-up-right"
-            rounded
-            text
-            severity="warn"
-            @click="openSell"
-        />
+<!--        <Button-->
+<!--            v-if="heldPosition"-->
+<!--            v-tooltip.bottom="'View lots'"-->
+<!--            icon="pi pi-list"-->
+<!--            rounded-->
+<!--            text-->
+<!--            @click="openLots"-->
+<!--        />-->
+<!--        <Button-->
+<!--            v-if="heldPosition"-->
+<!--            v-tooltip.bottom="'Sell'"-->
+<!--            icon="pi pi-arrow-up-right"-->
+<!--            rounded-->
+<!--            text-->
+<!--            severity="warn"-->
+<!--            @click="openSell"-->
+<!--        />-->
 
-        <Button
-            v-tooltip.bottom="'Set price alert'"
-            icon="pi pi-bell"
-            rounded
-            text
-            @click="showAlertModal = true"
-        />
-        <!--        <Button-->
-        <!--            v-tooltip.bottom="isWatched() ? 'Remove from watchlist' : 'Add to watchlist'"-->
-        <!--            :icon="isWatched() ? 'pi pi-trash' : 'pi pi-eye'"-->
-        <!--            :outlined="isWatched()"-->
-        <!--            :severity="isWatched() ? 'danger' : undefined"-->
-        <!--            text-->
-        <!--            rounded-->
-        <!--            @click="toggleWatchlist"-->
-        <!--        />-->
+<!--        <Button-->
+<!--            v-tooltip.bottom="'Set price alert'"-->
+<!--            icon="pi pi-bell"-->
+<!--            rounded-->
+<!--            text-->
+<!--            @click="showAlertModal = true"-->
+<!--        />-->
+                <Button
+                    v-tooltip.bottom="isWatched() ? 'Remove from watchlist' : 'Add to watchlist'"
+                    :icon="isWatched() ? 'pi pi-trash' : 'pi pi-eye'"
+                    :outlined="isWatched()"
+                    :severity="isWatched() ? 'danger' : undefined"
+                    text
+                    rounded
+                    @click="toggleWatchlist"
+                />
       </div>
     </header>
 
@@ -510,6 +508,7 @@ function handleChartSelection(points) {
   display: flex;
   justify-content: space-between;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .neon-green {
