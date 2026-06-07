@@ -170,6 +170,23 @@ function buildSessionSegments(points, ticker) {
   return segments
 }
 
+function buildIntradayTickValues(x, sessionSegments) {
+  const sessionTicks = sessionSegments
+    .filter((segment) => segment.type === 'market' && segment.points.length)
+    .flatMap((segment) => [
+      segment.points[0].date,
+      segment.points[segment.points.length - 1].date,
+    ])
+
+  const values = sessionTicks.length ? sessionTicks : x.ticks(2)
+
+  return values
+    .map((value) => new Date(value))
+    .filter((value) => !Number.isNaN(value.getTime()))
+    .sort((a, b) => a - b)
+    .filter((value, index, arr) => index === 0 || value.getTime() !== arr[index - 1].getTime())
+}
+
 function setSelectedPoints(points) {
   selectedPoints.value = points
   emit('selection-change', points.map(normalizePoint).filter(Boolean))
@@ -244,6 +261,13 @@ function draw() {
   const isUp = last >= first
   const color = isUp ? '#22c55e' : '#ef4444'
   const sessionSegments = intraday ? buildSessionSegments(parsed, props.ticker) : []
+  const marketBoundaryTicks = sessionSegments
+    .filter((segment) => segment.type === 'market' && segment.points.length)
+    .flatMap((segment) => [
+      segment.points[0].date.getTime(),
+      segment.points[segment.points.length - 1].date.getTime(),
+    ])
+  const xTickValues = intraday ? buildIntradayTickValues(x, sessionSegments) : null
 
   // Grid
   g.append('g')
@@ -286,12 +310,6 @@ function draw() {
       .attr('fill', (d) => d.close >= d.open ? '#22c55e' : '#ef4444')
 
   } else {
-    // Area fill
-    g.append('path')
-      .datum(parsed)
-      .attr('fill', isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)')
-      .attr('d', d3.area().x((d) => x(d.date)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
-
     if (intraday && sessionSegments.length) {
       sessionSegments.forEach((segment) => {
         const segmentColor = segment.type === 'pre'
@@ -302,20 +320,23 @@ function draw() {
 
         g.append('path')
           .datum(segment.points)
-          .attr('fill', 'none')
-          .attr('stroke', segmentColor)
-          .attr('stroke-width', 1.8)
-          .attr('d', d3.line().x((d) => x(d.date)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
+          .attr('fill', d3.color(segmentColor).copy({ opacity: 0.16 }))
+          .attr('d', d3.area().x((d) => x(d.date)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
       })
     } else {
-      // Line
       g.append('path')
         .datum(parsed)
-        .attr('fill', 'none')
-        .attr('stroke', color)
-        .attr('stroke-width', 1.5)
-        .attr('d', d3.line().x((d) => x(d.date)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
+        .attr('fill', isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)')
+        .attr('d', d3.area().x((d) => x(d.date)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
     }
+
+    // Line
+    g.append('path')
+      .datum(parsed)
+      .attr('fill', 'none')
+      .attr('stroke', color)
+      .attr('stroke-width', 1.5)
+      .attr('d', d3.line().x((d) => x(d.date)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
   }
 
   if (showVolume) {
@@ -335,10 +356,18 @@ function draw() {
 
   // X axis
   g.append('g').attr('transform', `translate(0,${showVolume ? volumeBottom : h})`)
-    .call(d3.axisBottom(x).ticks(intraday ? 8 : 5).tickFormat((d) => formatTickDate(d, intraday)))
+    .call(
+      d3.axisBottom(x)
+        .tickValues(xTickValues)
+        .ticks(intraday ? 8 : 5)
+        .tickFormat((d) => formatTickDate(d, intraday))
+    )
     .call((g) => g.select('.domain').remove())
     .call((g) => g.selectAll('.tick line').remove())
-    .call((g) => g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', '10'))
+    .call((g) => g.selectAll('text')
+      .attr('fill', (d) => marketBoundaryTicks.includes(new Date(d).getTime()) ? '#e2e8f0' : '#94a3b8')
+      .attr('font-size', (d) => marketBoundaryTicks.includes(new Date(d).getTime()) ? '11' : '10')
+      .attr('font-weight', (d) => marketBoundaryTicks.includes(new Date(d).getTime()) ? 700 : 400))
 
   // Y axis
   g.append('g')

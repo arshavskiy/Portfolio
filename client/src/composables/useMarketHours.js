@@ -120,7 +120,7 @@ function addDaysInTimezone(date, timezone, dayOffset) {
     return {year: parts.year, month: parts.month, day: parts.day}
 }
 
-function formatLocalSessionLabel(market, date, sessions) {
+function localSessionTimes(market, date, sessions) {
     const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
     const parts = timeParts(date, market.timezone)
 
@@ -135,8 +135,17 @@ function formatLocalSessionLabel(market, date, sessions) {
         const [endHour, endMinute] = session.end.split(':').map(Number)
         const startDate = zonedDateTimeToDate({...baseDay, hour: startHour, minute: startMinute}, market.timezone)
         const endDate = zonedDateTimeToDate({...baseDay, hour: endHour % 24, minute: endMinute}, market.timezone)
-        return `${formatClock(startDate, localTimezone)}-${formatClock(endDate, localTimezone)}`
-    }).join(' , ')
+        return {
+            start: formatClock(startDate, localTimezone),
+            end: formatClock(endDate, localTimezone),
+        }
+    })
+}
+
+function formatLocalSessionLabel(market, date, sessions) {
+    return localSessionTimes(market, date, sessions)
+        .map((session) => `<strong>${session.start}</strong>-<strong>${session.end}</strong>`)
+        .join(' , ')
 }
 
 function formatDuration(totalMinutes) {
@@ -198,6 +207,7 @@ export function getMarketHoursState(market, date = new Date()) {
         localTime: formatClock(date, market.timezone),
         isOpen: Boolean(activeSession),
         nextLabel,
+        closeLabel: localSessionTimes(market, date, sessions).slice(-1)[0]?.end || null,
         sessionLabel: `${formatLocalSessionLabel(market, date, sessions)} local`,
     }
 }

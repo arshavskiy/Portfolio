@@ -358,7 +358,12 @@ const MARKET_GROUPS = {
     { symbol: '^TA90.TA', name: 'TA-90' },
     { symbol: 'POLI.TA', name: 'Bank Hapoalim' },
     { symbol: 'LUMI.TA', name: 'Bank Leumi' },
+    { symbol: 'DSCT.TA', name: 'Discount Bank' },
     { symbol: 'TEVA.TA', name: 'Teva' },
+    { symbol: 'TSEM.TA', name: 'Tower' },
+    { symbol: 'ESLT.TA', name: 'Elbit Systems' },
+    { symbol: 'NVMI.TA', name: 'Nova' },
+    { symbol: 'ENLT.TA', name: 'Enlight' },
   ],
   Europe: [
     { symbol: '^FTSE', name: 'FTSE 100' },
@@ -412,10 +417,11 @@ async function getMarkets(group = 'US') {
 const MARKET_GROUP_NAMES = Object.keys(MARKET_GROUPS)
 
 // ── Trending tickers ──
-const TRENDING_GROUP_NAMES = ['US', 'Israel', 'Crypto']
+const TRENDING_GROUP_NAMES = ['US', 'Israel', 'Israel Tech', 'Crypto']
 // Yahoo doesn't surface "trending" crypto, so use top coins by activity.
 const TRENDING_CRYPTO = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'XRP-USD', 'BNB-USD', 'DOGE-USD', 'ADA-USD', 'AVAX-USD']
-const TRENDING_ISRAEL = ['TEVA.TA', 'NICE.TA', 'POLI.TA', 'LUMI.TA', 'ICL.TA', 'AZRG.TA', 'ENLT.TA', 'PHOE.TA']
+const TRENDING_ISRAEL = ['LUMI.TA', 'POLI.TA', 'DSCT.TA', 'TEVA.TA', 'TSEM.TA', 'ESLT.TA', 'NVMI.TA', 'ENLT.TA']
+const TRENDING_ISRAEL_TECH = ['CHKP', 'WIX', 'MNDY', 'NICE', 'TSEM', 'NVMI', 'CAMT', 'MBLY']
 
 let trendingCache = new Map() // group -> { data, ts }
 const TRENDING_TTL = 10 * 60 * 1000
@@ -429,6 +435,8 @@ async function getTrending(group = 'US') {
     symbols = TRENDING_CRYPTO
   } else if (group === 'Israel') {
     symbols = TRENDING_ISRAEL
+  } else if (group === 'Israel Tech') {
+    symbols = TRENDING_ISRAEL_TECH
   } else {
     try {
       const t = await yahooFinance.trendingSymbols('US', { count: 12 })

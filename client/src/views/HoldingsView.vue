@@ -211,7 +211,6 @@ async function onTransactionDone() {
   display: flex;
   flex-direction: column;
   border-top: 1px solid var(--border);
-  margin-right: -15px;
 }
 
 /* Tile full cards into columns on wider screens (compact stays single-column). */

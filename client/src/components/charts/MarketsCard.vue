@@ -101,7 +101,7 @@ onUnmounted(() => {
             {{ activeMarketMeta.isOpen ? 'Open' : 'Closed' }}
           </span>
           <span class="text-muted">{{ activeMarketMeta.nextLabel }}</span>
-          <span class="session">{{ activeMarketMeta.sessionLabel }}</span>
+          <span class="session" v-html="activeMarketMeta.sessionLabel" />
         </div>
       </div>
     </div>

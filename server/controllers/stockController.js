@@ -9,6 +9,7 @@ const {
   getMarketNews,
   getNewsArticle,
   NEWS_TOPICS,
+  getIlsToUsd,
 } = require('../services/stockService')
 const Watchlist = require('../models/Watchlist')
 
@@ -103,6 +104,15 @@ exports.getHistory = async (req, res) => {
     const pts = Number.isFinite(cap) && cap >= 2 ? Math.floor(cap) : null
     const data = await getHistory(req.params.ticker.toUpperCase(), range, pts)
     res.json(data)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.getIlsFx = async (req, res) => {
+  try {
+    const ilsToUsd = await getIlsToUsd()
+    res.json({ ilsToUsd })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

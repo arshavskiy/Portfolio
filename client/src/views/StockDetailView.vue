@@ -3,11 +3,12 @@ import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useConfirm} from 'primevue/useconfirm'
-import {gainLossClass, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useHistoryStore} from '@/stores/history'
 import {usePortfolioStore} from '@/stores/portfolio'
 import api from '@/composables/useApi'
+import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
 import StockChart from '@/components/charts/StockChart.vue'
@@ -31,6 +32,8 @@ const showTxModal = ref(false)
 const showSellModal = ref(false)
 const showAlertModal = ref(false)
 const selectedChartPoints = ref([])
+const ilsToUsd = ref(null)
+const now = ref(new Date())
 
 const ranges = ['1d', '5d', '1mo', '3mo', '6mo', '1y']
 const selectedRange = ref('3mo')
@@ -39,6 +42,18 @@ const chartModes = ['line', 'candle']
 
 let refreshTimer = null
 const heldPosition = computed(() => portfolio.positions.find((pos) => pos.ticker === ticker.value) || null)
+
+const marketGroup = computed(() => {
+  const symbol = ticker.value?.toUpperCase() || ''
+  if (symbol.endsWith('.TA')) return 'Israel'
+  if (/-USD$/.test(symbol)) return 'Crypto'
+  return 'US'
+})
+
+const marketMeta = computed(() => {
+  const market = MARKET_HOURS_BY_GROUP[marketGroup.value]
+  return market ? getMarketHoursState(market, now.value) : null
+})
 
 const rangeChange = computed(() => {
   const firstClose = history.value[0]?.close
@@ -63,6 +78,19 @@ const rangeChange = computed(() => {
 })
 
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
+const shekelValue = computed(() => {
+  if (quote.value?.price == null) return null
+  if (marketGroup.value === 'Israel') return quote.value.price
+  if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
+  return quote.value.price / ilsToUsd.value
+})
+
+const afterHoursText = computed(() => {
+  const meta = marketMeta.value
+  if (!meta?.closeLabel) return ''
+  if (meta.key === 'crypto') return 'Trades 24/7'
+  return `${meta.isOpen ? 'Closes' : 'After hours'}: ${meta.closeLabel}`
+})
 
 const selectedDelta = computed(() => {
   if (selectedChartPoints.value.length !== 2) return null
@@ -97,6 +125,14 @@ async function loadQuote() {
   }
 }
 
+async function loadFx() {
+  try {
+    const data = await api.get('/stocks/fx/ils-to-usd')
+    ilsToUsd.value = data?.ilsToUsd ?? null
+  } catch {
+  }
+}
+
 async function loadHistory() {
   chartLoading.value = true
   try {
@@ -111,7 +147,7 @@ async function loadHistory() {
 
 async function loadData() {
   loading.value = true
-  await Promise.all([loadQuote(), loadHistory()])
+  await Promise.all([loadQuote(), loadHistory(), loadFx()])
   loading.value = false
 }
 
@@ -133,7 +169,10 @@ async function ensurePortfolioLoaded() {
 
 function startAutoRefresh() {
   clearInterval(refreshTimer)
-  refreshTimer = setInterval(loadQuote, 60000)
+  refreshTimer = setInterval(() => {
+    now.value = new Date()
+    loadQuote()
+  }, 60000)
 }
 
 onMounted(() => {
@@ -248,12 +287,20 @@ function handleChartSelection(points) {
     </header>
 
     <div v-if="quote" class="quote-summary">
-      <p class="current-price" :class="(rangeChange.amount ?? quote.change) >= 0 ? 'neon-green' : 'neon-red'">
-        {{ useTickerCurrency(quote.price, ticker) }}
-      </p>
-      <p :class="gainLossClass(rangeChange.amount)" class="price-change">
-        {{ useTickerCurrency(rangeChange.amount, ticker) }} ({{ usePercent(rangeChange.percent) }})
-      </p>
+      <div class="price-row">
+        <div class="price-main">
+          <p class="current-price" :class="(rangeChange.amount ?? quote.change) >= 0 ? 'neon-green' : 'neon-red'">
+            {{ useTickerCurrency(quote.price, ticker) }}
+          </p>
+          <p :class="gainLossClass(rangeChange.amount)" class="price-change">
+            {{ useTickerCurrency(rangeChange.amount, ticker) }} ({{ usePercent(rangeChange.percent) }})
+          </p>
+          <p v-if="afterHoursText" class="hours-line text-muted">{{ afterHoursText }}</p>
+        </div>
+        <div v-if="shekelValue != null" class="price-ils text-muted">
+          {{ useCurrency(shekelValue, 'ILS') }}
+        </div>
+      </div>
     </div>
     <div v-else-if="loading" class="quote-summary">
       <div class="price-skeleton" />
@@ -350,10 +397,14 @@ function handleChartSelection(points) {
 }
 .header-info span { font-size: 0.82rem; }
 .quote-summary { margin-bottom: 1rem; }
+.price-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.price-main { min-width: 0; }
 .current-price { font-size: 2.2rem; font-weight: 700; }
 .neon-green { color: var(--neon-green); text-shadow: 0 0 20px rgba(0,255,136,0.6); }
 .neon-red { color: var(--neon-red); text-shadow: 0 0 20px rgba(255,51,102,0.6); }
 .price-change { font-size: 1rem; }
+.price-ils { font-size: 1rem; font-weight: 600; white-space: nowrap; padding-top: 0.35rem; }
+.hours-line { font-size: 0.82rem; margin-top: 0.35rem; }
 .price-skeleton { height: 2.5rem; width: 160px; background: var(--bg-card); border-radius: 6px; animation: shimmer 1.5s infinite; background: linear-gradient(90deg, var(--border) 25%, #475569 50%, var(--border) 75%); background-size: 200% 100%; }
 .chart-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
 .chart-measure { margin-bottom: 0.75rem; }
@@ -371,6 +422,15 @@ function handleChartSelection(points) {
 
   .header-actions {
     max-width: 11rem;
+  }
+
+  .price-row {
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .price-ils {
+    padding-top: 0;
   }
 }
 </style>

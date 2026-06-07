@@ -40,7 +40,7 @@ onUnmounted(() => {
         <div class="market-time">{{ market.localTime }}</div>
         <div class="market-meta">
           <span class="text-muted">{{ market.nextLabel }}</span>
-          <span class="session">{{ market.sessionLabel }}</span>
+          <span class="session" v-html="market.sessionLabel" />
         </div>
       </article>
     </div>
