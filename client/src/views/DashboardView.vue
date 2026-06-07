@@ -135,7 +135,7 @@ function neonStyle(pnlPercent) {
     <BreakdownCard :positions="portfolio.positions"/>
 
     <!-- Trending tickers -->
-    <TrendingCard />
+    <!--    <TrendingCard />-->
 
     <!-- Market news -->
 <!--    <NewsCard/>-->
