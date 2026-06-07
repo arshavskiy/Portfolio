@@ -199,6 +199,15 @@ async function getQuote(ticker) {
     week52High: result.fiftyTwoWeekHigh / f,
     week52Low: result.fiftyTwoWeekLow / f,
     pe: result.trailingPE,
+    marketState: result.marketState || null,
+    postMarketPrice: result.postMarketPrice != null ? result.postMarketPrice / f : null,
+    postMarketChange: result.postMarketChange != null ? result.postMarketChange / f : null,
+    postMarketChangePercent: result.postMarketChangePercent ?? null,
+    postMarketTime: result.postMarketTime ?? null,
+    preMarketPrice: result.preMarketPrice != null ? result.preMarketPrice / f : null,
+    preMarketChange: result.preMarketChange != null ? result.preMarketChange / f : null,
+    preMarketChangePercent: result.preMarketChangePercent ?? null,
+    preMarketTime: result.preMarketTime ?? null,
   }
 
   quoteCache.set(ticker, { data, ts: Date.now() })

@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useAuthStore} from '@/stores/auth'
@@ -14,6 +14,43 @@ const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const pageTitle = 'StockFolio Login | Track Stocks, Crypto, and Global Markets'
+const pageDescription = 'Sign in to StockFolio to track your portfolio, monitor live market moves, manage price alerts, and follow stocks, crypto, and global markets in one place.'
+const pageUrl = '/login'
+const submitEnabled = computed(() => email.value.trim() && password.value)
+
+const previousHead = {
+  title: '',
+  description: '',
+  robots: '',
+  ogTitle: '',
+  ogDescription: '',
+  ogUrl: '',
+  twitterTitle: '',
+  twitterDescription: '',
+  canonicalHref: '',
+}
+
+function ensureMeta(selector, attrs) {
+  let node = document.head.querySelector(selector)
+  if (!node) {
+    node = document.createElement('meta')
+    document.head.appendChild(node)
+  }
+
+  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value))
+  return node
+}
+
+function ensureCanonical() {
+  let node = document.head.querySelector('link[rel="canonical"]')
+  if (!node) {
+    node = document.createElement('link')
+    node.setAttribute('rel', 'canonical')
+    document.head.appendChild(node)
+  }
+  return node
+}
 
 // ── Animated phone slideshow ──
 const SLIDE_COUNT = 6
@@ -21,13 +58,48 @@ const slide = ref(0)
 let slideTimer = null
 
 onMounted(() => {
+  previousHead.title = document.title
+  previousHead.description = document.head.querySelector('meta[name="description"]')?.getAttribute('content') || ''
+  previousHead.robots = document.head.querySelector('meta[name="robots"]')?.getAttribute('content') || ''
+  previousHead.ogTitle = document.head.querySelector('meta[property="og:title"]')?.getAttribute('content') || ''
+  previousHead.ogDescription = document.head.querySelector('meta[property="og:description"]')?.getAttribute('content') || ''
+  previousHead.ogUrl = document.head.querySelector('meta[property="og:url"]')?.getAttribute('content') || ''
+  previousHead.twitterTitle = document.head.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || ''
+  previousHead.twitterDescription = document.head.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || ''
+  previousHead.canonicalHref = document.head.querySelector('link[rel="canonical"]')?.getAttribute('href') || ''
+
+  const canonicalUrl = new URL(pageUrl, window.location.origin).toString()
+  document.title = pageTitle
+  ensureMeta('meta[name="description"]', { name: 'description', content: pageDescription })
+  ensureMeta('meta[name="robots"]', { name: 'robots', content: 'index,follow' })
+  ensureMeta('meta[property="og:title"]', { property: 'og:title', content: pageTitle })
+  ensureMeta('meta[property="og:description"]', { property: 'og:description', content: pageDescription })
+  ensureMeta('meta[property="og:type"]', { property: 'og:type', content: 'website' })
+  ensureMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
+  ensureMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary_large_image' })
+  ensureMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: pageTitle })
+  ensureMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: pageDescription })
+  ensureCanonical().setAttribute('href', canonicalUrl)
+
   // Always cycle the content; CSS disables the slide transition under
   // prefers-reduced-motion (so it just swaps instead of fully stopping).
   slideTimer = setInterval(() => {
     slide.value = (slide.value + 1) % SLIDE_COUNT
   }, 2600)
 })
-onUnmounted(() => clearInterval(slideTimer))
+onUnmounted(() => {
+  clearInterval(slideTimer)
+
+  document.title = previousHead.title || 'StockFolio'
+  ensureMeta('meta[name="description"]', { name: 'description', content: previousHead.description || 'Track stocks, crypto, holdings, and market moves with StockFolio.' })
+  ensureMeta('meta[name="robots"]', { name: 'robots', content: previousHead.robots || 'index,follow' })
+  ensureMeta('meta[property="og:title"]', { property: 'og:title', content: previousHead.ogTitle || document.title })
+  ensureMeta('meta[property="og:description"]', { property: 'og:description', content: previousHead.ogDescription || previousHead.description || '' })
+  ensureMeta('meta[property="og:url"]', { property: 'og:url', content: previousHead.ogUrl || window.location.origin })
+  ensureMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: previousHead.twitterTitle || document.title })
+  ensureMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: previousHead.twitterDescription || previousHead.description || '' })
+  ensureCanonical().setAttribute('href', previousHead.canonicalHref || window.location.origin)
+})
 
 const features = [
   {
@@ -72,30 +144,30 @@ async function submit() {
 
 <template>
   <div class="landing">
-    <!-- Hero / marketing -->
-    <section class="hero">
-      <div class="hero-inner">
-        <div class="brand">
-          <span class="brand-mark">📈</span>
-          <span class="brand-name gradient-title">StockFolio</span>
-        </div>
+    <main class="landing-main">
+      <!-- Hero / marketing -->
+      <section class="hero" aria-labelledby="login-hero-title">
+        <div class="hero-inner">
+          <div class="brand">
+            <span class="brand-mark">📈</span>
+            <span class="brand-name gradient-title">StockFolio</span>
+          </div>
 
-        <h1 class="hero-title">
-          Your whole portfolio,<br/>
-          <span class="gradient-title">beautifully in focus.</span>
-        </h1>
-        <p class="hero-sub">
-          A fast, mobile-first tracker for stocks, crypto, and global markets —
-          with live P&L, price alerts, and a clean dark interface.
-        </p>
+          <h1 id="login-hero-title" class="hero-title">
+            Your whole portfolio,<br/>
+            <span class="gradient-title">beautifully in focus.</span>
+          </h1>
+          <p class="hero-sub">
+            A fast, mobile-first tracker for stocks, crypto, and global markets —
+            with live P&L, price alerts, and a clean dark interface.
+          </p>
 
-        <!-- Animated phone mockup -->
-        <section aria-label="App preview" class="app-preview">
-          <div aria-hidden="true" class="mockup">
-            <div class="phone">
-              <div class="phone-notch"/>
-              <div class="phone-screen">
-                <div class="slides">
+          <div class="app-preview" aria-label="App preview">
+            <div aria-hidden="true" class="mockup">
+              <div class="phone">
+                <div class="phone-notch"/>
+                <div class="phone-screen">
+                  <div class="slides">
 
                   <!-- 0 · Portfolio -->
                   <div v-show="slide === 0" class="slide">
@@ -239,51 +311,61 @@ async function submit() {
 
                 </div>
 
-                <!-- progress dots -->
-                <div class="mk-dots">
-                  <span v-for="n in SLIDE_COUNT" :key="n" class="mk-dot" :class="{ active: slide === n - 1 }"/>
+                  <!-- progress dots -->
+                  <div class="mk-dots">
+                    <span v-for="n in SLIDE_COUNT" :key="n" class="mk-dot" :class="{ active: slide === n - 1 }"/>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </section>
 
-        <div class="features">
-          <div v-for="f in features" :key="f.title" class="feature">
-            <i :class="f.icon" class="feature-icon"/>
-            <div>
-              <div class="feature-title">{{ f.title }}</div>
-              <div class="feature-text text-muted">{{ f.text }}</div>
+          <div class="features" aria-label="Product features">
+            <div v-for="f in features" :key="f.title" class="feature">
+              <i :class="f.icon" class="feature-icon" aria-hidden="true"/>
+              <div>
+                <div class="feature-title">{{ f.title }}</div>
+                <div class="feature-text text-muted">{{ f.text }}</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Login -->
-    <section class="auth">
-      <div class="auth-card">
-        <h2 class="auth-heading">Welcome back</h2>
-        <p class="auth-subheading text-muted">Sign in to your portfolio</p>
+      <!-- Login -->
+      <section class="auth" aria-labelledby="login-form-title">
+        <div class="auth-card">
+          <h2 id="login-form-title" class="auth-heading">Welcome back</h2>
+          <p class="auth-subheading text-muted">Sign in to your portfolio</p>
 
-        <form class="auth-form" @submit.prevent="submit">
-          <div class="field">
-            <label>Email</label>
-            <InputText v-model="email" fluid placeholder="you@example.com" required type="email"/>
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <Password v-model="password" :feedback="false" fluid placeholder="Password" required toggleMask/>
-          </div>
-          <Button :loading="loading" fluid label="Sign In" type="submit"/>
-        </form>
+          <form class="auth-form" @submit.prevent="submit">
+            <div class="field">
+              <label for="login-email">Email</label>
+              <InputText id="login-email" v-model="email" autocomplete="email" fluid placeholder="you@example.com" required type="email"/>
+            </div>
+            <div class="field">
+              <label for="login-password">Password</label>
+              <Password inputId="login-password" v-model="password" :feedback="false" autocomplete="current-password" fluid placeholder="Password" required toggleMask/>
+            </div>
+            <Button
+              :disabled="!submitEnabled || loading"
+              :loading="loading"
+              class="login-button"
+              fluid
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              label="Sign In to StockFolio"
+              type="submit"
+            />
+          </form>
 
-        <p class="auth-footer">
-          No account?
-          <RouterLink to="/register">Create one — it's free</RouterLink>
-        </p>
-      </div>
-    </section>
+          <p class="auth-footer">
+            No account?
+            <RouterLink to="/register">Create one — it's free</RouterLink>
+          </p>
+        </div>
+      </section>
+    </main>
 
     <!-- Footer -->
     <footer class="landing-footer">
@@ -300,6 +382,12 @@ async function submit() {
   background: var(--bg-primary);
   display: flex;
   flex-direction: column;
+}
+
+.landing-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }
 
 /* ── Hero ── */
@@ -922,6 +1010,34 @@ async function submit() {
   gap: 1rem;
 }
 
+:deep(.login-button) {
+  margin-top: 0.25rem;
+  min-height: 3.25rem;
+  border: 0;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  box-shadow: 0 18px 36px rgba(34, 197, 94, 0.22);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+:deep(.login-button .p-button-label),
+:deep(.login-button .p-button-icon) {
+  color: #fff;
+}
+
+:deep(.login-button:not(.p-disabled):hover) {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 42px rgba(34, 197, 94, 0.28);
+  filter: saturate(1.08);
+}
+
+:deep(.login-button.p-disabled) {
+  opacity: 0.65;
+  box-shadow: none;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -942,12 +1058,18 @@ async function submit() {
 
 .auth-footer a {
   color: var(--accent);
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.08em;
 }
 
 /* ── Desktop: side-by-side split ── */
 @media (min-width: 900px) {
   .landing {
+    align-items: stretch;
+  }
+
+  .landing-main {
     flex-direction: row;
     align-items: stretch;
   }
@@ -975,7 +1097,7 @@ async function submit() {
   }
 
   /* Footer spans full width below the split columns. */
-  .landing { flex-wrap: wrap; }
+  .landing-main { flex-wrap: wrap; }
   .hero, .auth { flex-basis: 0; }
   .landing-footer { flex-basis: 100%; border-top: 1px solid var(--border); }
 }
@@ -988,6 +1110,11 @@ async function submit() {
   padding: 1.25rem 1rem;
   padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
 }
-.footer-link { color: var(--accent); text-decoration: none; }
+.footer-link {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 0.08em;
+}
 .footer-sep { margin: 0 0.4rem; }
 </style>

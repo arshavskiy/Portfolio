@@ -14,7 +14,6 @@ const props = defineProps({
 const emit = defineEmits(['selection-change'])
 
 const svgRef = ref(null)
-const tooltipRef = ref(null)
 const containerRef = ref(null)
 const selectedPoints = ref([])
 
@@ -33,20 +32,6 @@ function formatTickDate(date, intraday = false) {
   return intraday
     ? d3.timeFormat('%H:%M')(date)
     : d3.timeFormat('%b %d')(date)
-}
-
-function formatTooltipDate(date, intraday = false) {
-  return intraday
-    ? new Date(date).toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    })
-    : new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    })
 }
 
 const INTRADAY_MARKETS = {
@@ -429,10 +414,6 @@ function draw() {
       const cx = x(new Date(point.date))
       const cy = y(point.close)
       const stroke = index === 0 ? '#e2e8f0' : '#cbd5e1'
-      const label = point.close?.toFixed(2) || '—'
-      const labelWidth = Math.max(52, label.length * 7 + 16)
-      const labelX = Math.min(Math.max(cx - labelWidth / 2, 0), w - labelWidth)
-      const labelY = Math.min(cy + 10, h - 22)
 
       selectionLayer.append('line')
         .attr('x1', cx)
@@ -449,30 +430,10 @@ function draw() {
         .attr('fill', stroke)
         .attr('stroke', '#0f172a')
         .attr('stroke-width', 2)
-
-      selectionLayer.append('rect')
-        .attr('x', labelX)
-        .attr('y', labelY)
-        .attr('width', labelWidth)
-        .attr('height', 18)
-        .attr('rx', 9)
-        .attr('fill', '#e5e7eb')
-        .attr('opacity', 0.96)
-
-      selectionLayer.append('text')
-        .attr('x', labelX + labelWidth / 2)
-        .attr('y', labelY + 12)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#0f172a')
-        .attr('font-size', '10')
-        .attr('font-weight', 700)
-        .text(label)
     })
   }
 
   renderSelections()
-
-  const tooltip = d3.select(tooltipRef.value)
 
   svg.append('rect')
     .attr('width', W).attr('height', H).attr('fill', 'none').attr('pointer-events', 'all')
@@ -488,22 +449,6 @@ function draw() {
       focus.style('display', null)
       focus.select('circle').attr('cx', x(d.date)).attr('cy', y(d.close))
       focus.select('line').attr('x1', x(d.date)).attr('x2', x(d.date))
-
-      const ohlc = props.mode === 'candle'
-        ? `<div class="tt-row"><span>O</span><span>${d.open?.toFixed(2)}</span></div>
-           <div class="tt-row"><span>H</span><span>${d.high?.toFixed(2)}</span></div>
-           <div class="tt-row"><span>L</span><span>${d.low?.toFixed(2)}</span></div>
-           <div class="tt-row"><span>C</span><span>${d.close?.toFixed(2)}</span></div>`
-        : `<div class="tt-price">${d.close?.toFixed(2)}</div>`
-      const volumeRow = showVolume
-        ? `<div class="tt-row"><span>Vol</span><span>${d3.format('.3s')(d.volume || 0)}</span></div>`
-        : ''
-
-      tooltip
-        .style('display', 'block')
-        .style('left', `${Math.min(x(d.date) + margin.left + 10, W - 130)}px`)
-        .style('top', `${y(d.close) + margin.top - 10}px`)
-        .html(`<div class="tt-date">${formatTooltipDate(d.date, intraday)}</div>${ohlc}${volumeRow}`)
     })
     .on('click', (event) => {
       const [mx] = d3.pointer(event)
@@ -516,7 +461,7 @@ function draw() {
       selectPoint(d)
       renderSelections()
     })
-    .on('mouseleave touchend', () => { focus.style('display', 'none'); tooltip.style('display', 'none') })
+    .on('mouseleave touchend', () => { focus.style('display', 'none') })
 }
 
 onMounted(() => nextTick(draw))
@@ -536,7 +481,6 @@ onUnmounted(() => ro.disconnect())
     <div v-else-if="!data.length" class="chart-empty text-muted">No data</div>
     <template v-else>
       <svg ref="svgRef" />
-      <div ref="tooltipRef" class="chart-tooltip" style="display:none;" />
     </template>
   </div>
 </template>
@@ -545,22 +489,4 @@ onUnmounted(() => ro.disconnect())
 .chart-container { position: relative; width: 100%; min-height: 240px; }
 .chart-loading, .chart-empty { display: flex; align-items: center; justify-content: center; height: 240px; color: var(--text-secondary); font-size: 1.5rem; }
 svg { display: block; width: 100%; }
-</style>
-
-<style>
-.chart-tooltip {
-  position: absolute;
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 6px 10px;
-  pointer-events: none;
-  z-index: 10;
-  font-size: 12px;
-  min-width: 90px;
-}
-.tt-date { color: #94a3b8; margin-bottom: 4px; font-size: 11px; }
-.tt-price { color: #f1f5f9; font-weight: 600; font-size: 14px; }
-.tt-row { display: flex; justify-content: space-between; gap: 12px; color: #f1f5f9; font-size: 12px; }
-.tt-row span:first-child { color: #94a3b8; }
 </style>
