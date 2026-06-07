@@ -4,7 +4,16 @@ const yahooFinance = new YahooFinance()
 
 const quoteCache = new Map()
 const profileCache = new Map()
+const historyCache = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+const HISTORY_CACHE_TTLS = {
+  '1d': 5 * 60 * 1000,
+  '5d': 15 * 60 * 1000,
+  '1mo': 30 * 60 * 1000,
+  '3mo': 60 * 60 * 1000,
+  '6mo': 60 * 60 * 1000,
+  '1y': 60 * 60 * 1000,
+}
 
 // TASE (.TA) prices from Yahoo are in agorot (1/100 shekel) — divide by 100
 function taFactor(ticker) {
@@ -24,6 +33,14 @@ function cleanProfileValue(value) {
   if (typeof value !== 'string') return null
   const normalized = value.trim()
   return normalized || null
+}
+
+function historyCacheKey(ticker, range = '3mo', points = null) {
+  return `${ticker.toUpperCase()}:${range}:${points || 'all'}`
+}
+
+function historyCacheTtl(range) {
+  return HISTORY_CACHE_TTLS[range] || HISTORY_CACHE_TTLS['3mo']
 }
 
 const INTRADAY_MARKETS = {
@@ -171,6 +188,7 @@ async function getQuote(ticker) {
     ticker: result.symbol,
     name: result.shortName,
     price: result.regularMarketPrice / f,
+    previousClose: (result.regularMarketPreviousClose ?? result.previousClose) / f,
     change: result.regularMarketChange / f,
     changePercent: result.regularMarketChangePercent,
     volume: result.regularMarketVolume,
@@ -192,6 +210,10 @@ async function getQuotes(tickers) {
 }
 
 async function getHistory(ticker, range = '3mo', points = null) {
+  const key = historyCacheKey(ticker, range, points)
+  const cached = historyCache.get(key)
+  if (cached && Date.now() - cached.ts < historyCacheTtl(range)) return cached.data
+
   const fmt = (d) => d.toISOString().split('T')[0]
   const endDate = new Date()
   const startDate = new Date()
@@ -203,6 +225,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
       period1: fmt(startDate),
       period2: fmt(new Date(endDate.getTime() + 86400000)),
       interval: '5m',
+      includePrePost: true,
     })
     const f = taFactor(ticker)
     const quotes = result?.quotes || []
@@ -216,7 +239,9 @@ async function getHistory(ticker, range = '3mo', points = null) {
         close: r.close / f,
         volume: r.volume,
       }))
-    return downsample(selectIntradayRows(rows, ticker), points)
+    const data = downsample(selectIntradayRows(rows, ticker), points)
+    historyCache.set(key, { data, ts: Date.now() })
+    return data
   }
 
   const f = taFactor(ticker)
@@ -243,7 +268,9 @@ async function getHistory(ticker, range = '3mo', points = null) {
         close: r.close / f,
         volume: r.volume,
       }))
-  return downsample(rows, points)
+  const data = downsample(rows, points)
+  historyCache.set(key, { data, ts: Date.now() })
+  return data
 }
 
 async function searchTicker(query) {
@@ -307,7 +334,12 @@ async function getTickerProfile(ticker, fallbackName = null) {
 }
 
 function invalidateCache(ticker) {
-  quoteCache.delete(ticker.toUpperCase())
+  const symbol = ticker.toUpperCase()
+  quoteCache.delete(symbol)
+  profileCache.delete(symbol)
+  for (const key of historyCache.keys()) {
+    if (key.startsWith(`${symbol}:`)) historyCache.delete(key)
+  }
 }
 
 // ── Global market indices ──

@@ -223,7 +223,7 @@ exports.addTransaction = async (req, res) => {
                   industry: profile?.industry || null,
               },
           },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       )
     } else if (type === 'sell') {
       if (!position || position.shares < shares)

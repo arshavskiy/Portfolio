@@ -2,9 +2,11 @@
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
+import {useConfirm} from 'primevue/useconfirm'
 import {gainLossClass, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useHistoryStore} from '@/stores/history'
+import {usePortfolioStore} from '@/stores/portfolio'
 import api from '@/composables/useApi'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
@@ -15,8 +17,10 @@ import AlertModal from '@/components/ui/AlertModal.vue'
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const confirm = useConfirm()
 const watchlist = useWatchlistStore()
 const historyStore = useHistoryStore()
+const portfolio = usePortfolioStore()
 
 const ticker = ref(route.params.ticker?.toUpperCase())
 const quote = ref(null)
@@ -24,6 +28,7 @@ const history = ref([])
 const loading = ref(false)
 const chartLoading = ref(false)
 const showTxModal = ref(false)
+const showSellModal = ref(false)
 const showAlertModal = ref(false)
 const selectedChartPoints = ref([])
 
@@ -33,6 +38,7 @@ const chartMode = ref('line')
 const chartModes = ['line', 'candle']
 
 let refreshTimer = null
+const heldPosition = computed(() => portfolio.positions.find((pos) => pos.ticker === ticker.value) || null)
 
 const rangeChange = computed(() => {
   const firstClose = history.value[0]?.close
@@ -55,6 +61,8 @@ const rangeChange = computed(() => {
   const percent = firstClose ? (amount / firstClose) * 100 : null
   return { amount, percent }
 })
+
+const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 
 const selectedDelta = computed(() => {
   if (selectedChartPoints.value.length !== 2) return null
@@ -92,7 +100,8 @@ async function loadQuote() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, 50)
+    const points = selectedRange.value === '1d' ? 160 : 50
+    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
   } finally {
@@ -114,6 +123,14 @@ async function ensureWatchlistLoaded() {
   }
 }
 
+async function ensurePortfolioLoaded() {
+  if (portfolio.positions.length || portfolio.loading) return
+  try {
+    await portfolio.fetchPortfolio()
+  } catch {
+  }
+}
+
 function startAutoRefresh() {
   clearInterval(refreshTimer)
   refreshTimer = setInterval(loadQuote, 60000)
@@ -121,6 +138,7 @@ function startAutoRefresh() {
 
 onMounted(() => {
   ensureWatchlistLoaded()
+  ensurePortfolioLoaded()
   loadData()
   startAutoRefresh()
 })
@@ -128,6 +146,7 @@ onUnmounted(() => clearInterval(refreshTimer))
 watch(selectedRange, loadHistory)
 watch(() => route.params.ticker, (t) => {
   ticker.value = t?.toUpperCase()
+  ensurePortfolioLoaded()
   loadData()
   startAutoRefresh()
 })
@@ -145,6 +164,31 @@ async function toggleWatchlist() {
 
 const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
 
+function openLots() {
+  if (!heldPosition.value) return
+  router.push(`/position/${encodeURIComponent(ticker.value)}`)
+}
+
+function openSell() {
+  if (!heldPosition.value) return
+  showSellModal.value = true
+}
+
+function confirmDelete() {
+  if (!heldPosition.value) return
+  confirm.require({
+    message: `Remove ${ticker.value} from your portfolio? This deletes the position but keeps its transaction history.`,
+    header: 'Confirm',
+    icon: 'pi pi-exclamation-triangle',
+    acceptClass: 'p-button-danger',
+    accept: async () => {
+      await portfolio.deletePosition(heldPosition.value._id)
+      toast.add({severity: 'success', summary: 'Removed', life: 2000})
+      router.push('/holdings')
+    },
+  })
+}
+
 function handleChartSelection(points) {
   selectedChartPoints.value = points
 }
@@ -158,20 +202,49 @@ function handleChartSelection(points) {
         <h1 class="gradient-title">{{ ticker }}</h1>
         <span class="text-muted">{{ quote?.name }}</span>
       </div>
-      <Button
-          v-tooltip.bottom="'Set price alert'"
-          icon="pi pi-bell" rounded
-          text
-          @click="showAlertModal = true"
-      />
-      <Button
-          v-tooltip.bottom="isWatched() ? 'Remove from watchlist' : 'Add to watchlist'"
-          :icon="isWatched() ? 'pi pi-times' : 'pi pi-eye'"
-          :outlined="isWatched()"
-          :severity="isWatched() ? 'danger' : undefined"
-        text rounded
-        @click="toggleWatchlist"
-      />
+      <div class="header-actions">
+        <Button
+            v-tooltip.bottom="'Buy'"
+            icon="pi pi-plus-circle"
+            rounded
+            text
+            @click="showTxModal = true"
+        />
+        <Button
+            v-if="heldPosition"
+            v-tooltip.bottom="'View lots'"
+            icon="pi pi-list"
+            rounded
+            text
+            @click="openLots"
+        />
+        <Button
+            v-if="heldPosition"
+            v-tooltip.bottom="'Sell'"
+            icon="pi pi-arrow-up-right"
+            rounded
+            text
+            severity="warn"
+            @click="openSell"
+        />
+
+        <Button
+            v-tooltip.bottom="'Set price alert'"
+            icon="pi pi-bell"
+            rounded
+            text
+            @click="showAlertModal = true"
+        />
+<!--        <Button-->
+<!--            v-tooltip.bottom="isWatched() ? 'Remove from watchlist' : 'Add to watchlist'"-->
+<!--            :icon="isWatched() ? 'pi pi-trash' : 'pi pi-eye'"-->
+<!--            :outlined="isWatched()"-->
+<!--            :severity="isWatched() ? 'danger' : undefined"-->
+<!--            text-->
+<!--            rounded-->
+<!--            @click="toggleWatchlist"-->
+<!--        />-->
+      </div>
     </header>
 
     <div v-if="quote" class="quote-summary">
@@ -207,10 +280,13 @@ function handleChartSelection(points) {
     </div>
 
     <StockChart
+      :key="`${ticker}-${selectedRange}-${chartMode}`"
       :data="history"
       :loading="chartLoading"
       :mode="chartMode"
-      :current-price="quote?.price ?? null"
+      :range="selectedRange"
+      :ticker="ticker"
+      :current-price="previousCloseLine"
       @selection-change="handleChartSelection"
     />
 
@@ -249,11 +325,15 @@ function handleChartSelection(points) {
       </div>
     </div>
 
-    <div class="action-bar">
-      <Button fluid label="Buy" outlined severity="success" @click="showTxModal = true"/>
-    </div>
-
     <AddTransactionModal v-model:visible="showTxModal" :default-ticker="ticker" />
+    <AddTransactionModal
+        v-model:visible="showSellModal"
+        :default-price="heldPosition?.currentPrice ?? quote?.price ?? null"
+        :default-ticker="ticker"
+        :max-shares="heldPosition?.shares ?? null"
+        default-type="sell"
+        @hide="ensurePortfolioLoaded"
+    />
     <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker"/>
   </div>
 </template>
@@ -262,6 +342,7 @@ function handleChartSelection(points) {
 .stock-detail { padding: 0.5rem 1rem 2rem; }
 .detail-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
 .header-info { flex: 1; }
+.header-actions { display: flex; align-items: center; justify-content: flex-end; gap: 0.125rem; flex-wrap: wrap; }
 
 .header-info h1 {
   font-size: 1.3rem;
@@ -281,6 +362,15 @@ function handleChartSelection(points) {
 .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-top: 1rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .stat { padding: 0.75rem 1rem; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); font-size: 0.88rem; }
 .stat:nth-last-child(-n+2) { border-bottom: none; }
-.action-bar { margin-top: 1.5rem; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+@media (max-width: 480px) {
+  .detail-header {
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    max-width: 11rem;
+  }
+}
 </style>

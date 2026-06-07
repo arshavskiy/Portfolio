@@ -15,7 +15,7 @@ exports.subscribe = async (req, res) => {
         const sub = await PushSubscription.findOneAndUpdate(
             {user: req.user._id, endpoint},
             {user: req.user._id, endpoint, keys},
-            {upsert: true, new: true}
+            {upsert: true, returnDocument: 'after'}
         )
         res.status(201).json({_id: sub._id})
     } catch (err) {

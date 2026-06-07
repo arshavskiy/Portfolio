@@ -138,7 +138,7 @@ function neonStyle(pnlPercent) {
     <!--    <TrendingCard />-->
 
     <!-- Market news -->
-    <NewsCard/>
+<!--    <NewsCard/>-->
 
     <div v-if="portfolio.loading" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />

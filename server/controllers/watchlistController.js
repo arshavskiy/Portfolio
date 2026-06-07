@@ -99,7 +99,7 @@ exports.syncHoldings = async (req, res) => {
                             groups: p.groups || [],
                         },
                     },
-                    {upsert: true, new: true}
+                    {upsert: true, returnDocument: 'after'}
                 )
             )
         )

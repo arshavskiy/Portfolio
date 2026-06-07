@@ -3,7 +3,6 @@ import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {gainLossClass, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
-import Button from 'primevue/button'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const props = defineProps({
@@ -68,18 +67,6 @@ const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 
       </span>
     </div>
 
-    <div class="row-actions">
-      <button class="row-action lots" title="View lots"
-              @click.stop="router.push(`/position/${encodeURIComponent(pos.ticker)}`)">
-        <i class="pi pi-list"/>
-      </button>
-      <button class="row-action sell" title="Sell" @click.stop="emit('sell', pos)">
-        <i class="pi pi-arrow-up-right"/>
-      </button>
-      <button class="row-action remove" title="Remove position" @click.stop="emit('delete', pos)">
-        <i class="pi pi-times"/>
-      </button>
-    </div>
   </div>
 
   <!-- ── Full (card) mode ── -->
@@ -134,30 +121,6 @@ const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 
         <span class="text-muted">Current</span>
         <span>{{ useTickerCurrency(pos.currentPrice, pos.ticker) }}</span>
       </div>
-      <Button
-          v-tooltip="'View lots'"
-          icon="pi pi-list"
-          severity="secondary"
-          size="small"
-          text
-          @click="router.push(`/position/${encodeURIComponent(pos.ticker)}`)"
-      />
-<!--      <Button-->
-<!--          icon="pi pi-arrow-up-right"-->
-<!--          label="Sell"-->
-<!--          outlined-->
-<!--          severity="warn"-->
-<!--          size="small"-->
-<!--          @click="emit('sell', pos)"-->
-<!--      />-->
-      <Button
-          v-tooltip="'Remove position'"
-          icon="pi pi-trash"
-          severity="danger"
-          size="small"
-          text
-          @click="emit('delete', pos)"
-      />
     </div>
   </div>
 </template>
@@ -395,36 +358,4 @@ const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 
   color: #fff;
 }
 
-.row-actions {
-  display: grid;
-  gap: 1px;
-  flex-shrink: 0;
-}
-
-.row-action {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 2px;
-  border-radius: 50%;
-  line-height: 1;
-  transition: color 0.15s;
-}
-
-.row-action i {
-  font-size: 0.7rem;
-}
-
-.row-action.lots:active {
-  color: var(--accent);
-}
-
-.row-action.sell:active {
-  color: #f59e0b;
-}
-
-.row-action.remove:active {
-  color: var(--red);
-}
 </style>
