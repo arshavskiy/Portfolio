@@ -414,6 +414,12 @@ function draw() {
       const cx = x(new Date(point.date))
       const cy = y(point.close)
       const stroke = index === 0 ? '#e2e8f0' : '#cbd5e1'
+      const label = point.close?.toFixed(2) || '—'
+      const labelWidth = Math.max(42, label.length * 6 + 10)
+      const labelHeight = 15
+      const desiredLabelX = index === 0 ? cx - labelWidth - 8 : cx + 8
+      const labelX = Math.min(Math.max(desiredLabelX, 0), w - labelWidth)
+      const labelY = Math.min(Math.max(cy - labelHeight - 8, 4), h - labelHeight - 4)
 
       selectionLayer.append('line')
         .attr('x1', cx)
@@ -430,6 +436,24 @@ function draw() {
         .attr('fill', stroke)
         .attr('stroke', '#0f172a')
         .attr('stroke-width', 2)
+
+      selectionLayer.append('rect')
+        .attr('x', labelX)
+        .attr('y', labelY)
+        .attr('width', labelWidth)
+        .attr('height', labelHeight)
+        .attr('rx', 7)
+        .attr('fill', '#e5e7eb')
+        .attr('opacity', 0.94)
+
+      selectionLayer.append('text')
+        .attr('x', labelX + labelWidth / 2)
+        .attr('y', labelY + 10)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#0f172a')
+        .attr('font-size', '9')
+        .attr('font-weight', 700)
+        .text(label)
     })
   }
 
