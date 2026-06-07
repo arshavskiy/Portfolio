@@ -269,6 +269,7 @@ onUnmounted(() => {
 .index-tile {
   padding: 0.3rem 0.3rem;
   min-width: 90px;
+  min-height: 98px;
   display: flex;
   flex-direction: column;
   gap: 2px;

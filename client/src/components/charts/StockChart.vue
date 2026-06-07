@@ -207,7 +207,7 @@ function draw() {
 
   const W = containerRef.value.clientWidth
   const H = 240
-  const margin = { top: 10, right: 12, bottom: 30, left: 60 }
+  const margin = { top: 10, right: 12, bottom: 30, left: 12 }
   const w = W - margin.left - margin.right
   const baseH = H - margin.top - margin.bottom
 
@@ -356,7 +356,7 @@ function draw() {
 
   // Y axis
   g.append('g')
-    .call(d3.axisLeft(y).ticks(4).tickFormat((d) => `$${d3.format(',.0f')(d)}`))
+    .call(d3.axisLeft(y).ticks(4).tickFormat(''))
     .call((g) => g.select('.domain').remove())
     .call((g) => g.selectAll('.tick line').remove())
     .call((g) => g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', '10'))
@@ -375,7 +375,7 @@ function draw() {
 
       const labelWidth = 56
       const labelHeight = 18
-      const labelX = Math.max(0, w - labelWidth)
+      const labelX = w - labelWidth
       const labelY = Math.min(Math.max(0, priceY - labelHeight / 2), h - labelHeight)
 
       g.append('rect')
@@ -398,6 +398,40 @@ function draw() {
         .text(props.currentPrice.toFixed(2))
     }
   }
+
+  const edgeLabels = [
+    { key: 'start', value: parsed[0]?.close, yPos: 4 },
+    { key: 'end', value: parsed[parsed.length - 1]?.close, yPos: h - 19 },
+  ]
+
+  edgeLabels.forEach(({ value, yPos }) => {
+    if (!Number.isFinite(value)) return
+
+    const valueLabel = value.toFixed(2)
+    const labelWidth = Math.max(56, valueLabel.length * 7 + 14)
+    const labelHeight = 15
+    const labelX = w - labelWidth
+
+    g.append('rect')
+      .attr('x', labelX)
+      .attr('y', yPos)
+      .attr('width', labelWidth)
+      .attr('height', labelHeight)
+      .attr('rx', 7)
+      .attr('fill', '#0f172a')
+      .attr('stroke', '#475569')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.96)
+
+    g.append('text')
+      .attr('x', labelX + labelWidth / 2)
+      .attr('y', yPos + 10)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#f8fafc')
+      .attr('font-size', '9')
+      .attr('font-weight', 700)
+      .text(valueLabel)
+  })
 
   // Crosshair + tooltip
   const bisect = d3.bisector((d) => d.date).left
@@ -455,6 +489,7 @@ function draw() {
         .attr('font-weight', 700)
         .text(label)
     })
+
   }
 
   renderSelections()

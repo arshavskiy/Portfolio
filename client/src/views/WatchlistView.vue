@@ -59,7 +59,7 @@ function onGroupsSaved() {
             text
             @click="showImportModal = true"
         />
-        <Button icon="pi pi-plus" label="Add" outlined size="small" @click="showModal = true"/>
+        <Button label="Add" outlined size="small" @click="showModal = true"/>
         <PageSettings>
           <SettingsRow icon="pi pi-objects-column" label="Group by">
             <Select

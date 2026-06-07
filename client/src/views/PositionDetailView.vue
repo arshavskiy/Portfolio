@@ -2,22 +2,28 @@
 import {computed, onMounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
-import {gainLossClass, useTickerCurrency} from '@/composables/useFormat'
+import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
+import {useHistoryStore} from '@/stores/history'
 import api from '@/composables/useApi'
+import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
+import SelectButton from 'primevue/selectbutton'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
+import StockChart from '@/components/charts/StockChart.vue'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
+const historyStore = useHistoryStore()
 
 const ticker = decodeURIComponent(route.params.ticker).toUpperCase()
 const transactions = ref([])
+const quote = ref(null)
 const currentPrice = ref(null)
 const companyName = ref('')
 const loading = ref(false)
@@ -27,10 +33,18 @@ const editingTx = ref(null)
 const simPrice = ref(null)
 const simFeeProfileId = ref(null)
 const feeStore = useFeeProfileStore()
+const history = ref([])
+const chartLoading = ref(false)
+const selectedChartPoints = ref([])
+const ilsToUsd = ref(null)
+const now = ref(new Date())
+const ranges = ['1d', '5d', '1mo', '3mo', '6mo', '1y']
+const selectedRange = ref('3mo')
+const chartMode = ref('line')
+const chartModes = ['line', 'candle']
 
 onMounted(async () => {
-  await fetchLots()
-  await fetchQuote()
+  await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx()])
   feeStore.fetchProfiles()
 })
 
@@ -43,6 +57,7 @@ watch(() => feeStore.profiles, (profiles) => {
     if (def) simFeeProfileId.value = def._id
   }
 }, { immediate: true })
+watch(selectedRange, loadHistory)
 
 async function fetchLots() {
   loading.value = true
@@ -59,9 +74,30 @@ async function fetchLots() {
 async function fetchQuote() {
   try {
     const q = await api.get(`/stocks/quote/${encodeURIComponent(ticker)}`)
+    quote.value = q
     currentPrice.value = q.price
     if (q.name) companyName.value = q.name
   } catch {}
+}
+
+async function loadFx() {
+  try {
+    const data = await api.get('/stocks/fx/ils-to-usd')
+    ilsToUsd.value = data?.ilsToUsd ?? null
+  } catch {}
+}
+
+async function loadHistory() {
+  chartLoading.value = true
+  try {
+    const points = selectedRange.value === '1d' ? 160 : 50
+    history.value = await historyStore.fetchHistory(ticker, selectedRange.value, points)
+  } catch (err) {
+    toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
+    history.value = []
+  } finally {
+    chartLoading.value = false
+  }
 }
 
 // Running weighted average per lot
@@ -147,6 +183,73 @@ function fmt(val) {
 
 const tickerCurr = computed(() => ticker.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
+const marketGroup = computed(() => {
+  if (ticker.endsWith('.TA')) return 'Israel'
+  if (/-USD$/.test(ticker)) return 'Crypto'
+  return 'US'
+})
+const marketMeta = computed(() => {
+  const market = MARKET_HOURS_BY_GROUP[marketGroup.value]
+  return market ? getMarketHoursState(market, now.value) : null
+})
+const shekelValue = computed(() => {
+  if (quote.value?.price == null) return null
+  if (marketGroup.value === 'Israel') return quote.value.price
+  if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
+  return quote.value.price / ilsToUsd.value
+})
+const sessionMetaText = computed(() => {
+  const meta = marketMeta.value
+  if (!meta?.closeLabel) return ''
+  if (meta.key === 'crypto') return 'Trades 24/7'
+  return `${meta.isOpen ? 'Closes' : 'After hours'}: ${meta.closeLabel}`
+})
+
+function formatExtendedHoursTime(value, timezone) {
+  if (!value) return ''
+  const date = typeof value === 'number' ? new Date(value * 1000) : new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone || undefined,
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+  }).format(date)
+}
+
+const extendedHours = computed(() => {
+  if (!quote.value || marketGroup.value === 'Crypto') return null
+
+  const source = quote.value.postMarketPrice != null
+    ? {
+      label: 'After hours',
+      price: quote.value.postMarketPrice,
+      change: quote.value.postMarketChange,
+      changePercent: quote.value.postMarketChangePercent,
+      time: quote.value.postMarketTime,
+    }
+    : quote.value.preMarketPrice != null
+      ? {
+        label: 'Pre-market',
+        price: quote.value.preMarketPrice,
+        change: quote.value.preMarketChange,
+        changePercent: quote.value.preMarketChangePercent,
+        time: quote.value.preMarketTime,
+      }
+      : null
+
+  if (!source || source.price == null) return null
+
+  return {
+    ...source,
+    shekelPrice: marketGroup.value === 'Israel'
+      ? source.price
+      : Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0
+        ? source.price / ilsToUsd.value
+        : null,
+    timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),
+  }
+})
 
 const simulation = computed(() => {
   if (!simPrice.value || !summary.value) return null
@@ -186,6 +289,35 @@ const simulation = computed(() => {
     profileName: profile?.name || null,
   }
 })
+
+const selectedDelta = computed(() => {
+  if (selectedChartPoints.value.length !== 2) return null
+
+  const [start, end] = selectedChartPoints.value
+  const startPrice = start?.close
+  const endPrice = end?.close
+  if (startPrice == null || endPrice == null) return null
+
+  const amount = endPrice - startPrice
+  const percent = startPrice ? (amount / startPrice) * 100 : null
+  const startDate = new Date(start.date)
+  const endDate = new Date(end.date)
+  const hours = Math.abs(endDate - startDate) / 36e5
+
+  return {
+    amount,
+    percent,
+    startPrice,
+    endPrice,
+    startLabel: startDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
+    endLabel: endDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
+    spanLabel: hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
+  }
+})
+
+function handleChartSelection(points) {
+  selectedChartPoints.value = points
+}
 </script>
 
 <template>
@@ -200,6 +332,38 @@ const simulation = computed(() => {
     </header>
 
     <template v-if="summary">
+      <div v-if="quote" class="quote-summary">
+        <div class="price-row">
+          <div class="price-main">
+            <div class="current-price">
+              {{ useTickerCurrency(quote.price, ticker) }}
+              <span v-if="shekelValue != null">
+                 {{ useCurrency(shekelValue, 'ILS') }}
+              </span>
+            </div>
+            <p :class="gainLossClass(quote.change)" class="price-change">
+              {{ useTickerCurrency(quote.change, ticker) }} ({{ usePercent(quote.changePercent) }})
+            </p>
+            <div v-if="extendedHours" class="extended-row">
+              <span class="extended-price">
+                {{ useTickerCurrency(extendedHours.price, ticker) }}
+                <span v-if="extendedHours.shekelPrice != null" class="extended-ils">
+                  {{ useCurrency(extendedHours.shekelPrice, 'ILS') }}
+                </span>
+              </span>
+              <span class="extended-change" :class="gainLossClass(extendedHours.change)">
+                {{ useTickerCurrency(extendedHours.change, ticker) }} ({{ usePercent(extendedHours.changePercent) }})
+              </span>
+            </div>
+            <p v-if="extendedHours" class="hours-line text-muted">
+              {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
+            </p>
+            <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
+          </div>
+
+        </div>
+      </div>
+
       <!-- Gross P&L card -->
       <div class="pnl-card" :class="gainLossClass(summary.grossPnl)">
         <div class="pnl-header">
@@ -267,6 +431,39 @@ const simulation = computed(() => {
         </div>
       </div>
     </template>
+
+    <div class="chart-controls">
+      <SelectButton v-model="selectedRange" :options="ranges" size="small" />
+      <SelectButton v-model="chartMode" :options="chartModes" size="small" />
+    </div>
+
+    <div class="chart-measure">
+      <div class="text-muted measure-hint">
+        Tap two points on the chart to measure delta.
+      </div>
+      <div v-if="selectedDelta" class="measure-summary">
+        <span :class="gainLossClass(selectedDelta.amount)">
+          {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
+        </span>
+        <span class="text-muted">
+          {{ useTickerCurrency(selectedDelta.startPrice, ticker) }} to {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
+        </span>
+        <span class="text-muted">
+          {{ selectedDelta.startLabel }} to {{ selectedDelta.endLabel }} · {{ selectedDelta.spanLabel }}
+        </span>
+      </div>
+    </div>
+
+    <StockChart
+      :key="`${ticker}-${selectedRange}-${chartMode}`"
+      :data="history"
+      :loading="chartLoading"
+      :mode="chartMode"
+      :range="selectedRange"
+      :ticker="ticker"
+      :current-price="currentPrice"
+      @selection-change="handleChartSelection"
+    />
 
     <!-- Sell Simulator -->
     <div class="sim-wrap">
@@ -403,6 +600,74 @@ const simulation = computed(() => {
 }
 .header-info span { font-size: 0.82rem; }
 
+.quote-summary {
+  margin-bottom: 1rem;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.price-main {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.current-price {
+  font-size: 2.2rem;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.price-change {
+  font-size: 1rem;
+}
+
+.price-ils {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  padding-top: 0.35rem;
+}
+
+.extended-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.extended-price {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.extended-ils {
+  margin-left: 0.45rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.extended-change {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.hours-line {
+  font-size: 0.82rem;
+}
+
 .pnl-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -438,6 +703,29 @@ const simulation = computed(() => {
 }
 .stat-item:nth-last-child(-n+2) { border-bottom: none; }
 .stat-item .text-muted { font-size: 0.78rem; }
+
+.chart-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+
+.chart-measure {
+  margin-bottom: 0.75rem;
+}
+
+.measure-hint {
+  font-size: 0.78rem;
+  margin-bottom: 0.3rem;
+}
+
+.measure-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.84rem;
+}
 
 .sim-wrap { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .sim-toggle { width: 100%; display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; background: var(--bg-card); border: none; color: var(--text-primary); font-size: 0.9rem; font-weight: 600; cursor: pointer; }

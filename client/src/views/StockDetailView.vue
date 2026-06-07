@@ -560,7 +560,6 @@ function handleChartSelection(points) {
 
 .hours-line {
   font-size: 0.82rem;
-  margin-top: 0.35rem;
 }
 
 .price-skeleton {

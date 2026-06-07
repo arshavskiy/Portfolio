@@ -21,6 +21,17 @@ const activeAlerts = computed(() =>
 
 const rangeStartPrice = computed(() => props.sparkline?.[0]?.close ?? null)
 const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 1]?.close ?? null)
+const compactRangeValue = computed(() => {
+  const end = rangeEndPrice.value
+  if (end != null) return end * (props.pos.shares || 0)
+  return props.pos.value
+})
+const compactRangePercent = computed(() => {
+  const start = rangeStartPrice.value
+  const end = rangeEndPrice.value
+  if (start == null || end == null || start === 0) return props.pos.pnlPercent
+  return ((end - start) / start) * 100
+})
 </script>
 
 <template>
@@ -29,7 +40,7 @@ const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 
       v-if="compact"
       :class="pos.pnl >= 0 ? 'neon-row-gain' : 'neon-row-loss'"
       class="compact-row"
-      @click="router.push(`/stock/${pos.ticker}`)"
+      @click="router.push(`/position/${pos.ticker}`)"
   >
     <div class="row-left">
       <span class="ticker">
@@ -61,9 +72,9 @@ const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 
     </div>
 
     <div class="row-right">
-      <span class="price">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
-      <span :class="pos.pnlPercent >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
-        {{ usePercent(pos.pnlPercent) }}
+      <span class="price">{{ useTickerCurrency(compactRangeValue, pos.ticker) }}</span>
+      <span :class="compactRangePercent >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
+        {{ usePercent(compactRangePercent) }}
       </span>
     </div>
 
@@ -75,7 +86,7 @@ const rangeEndPrice = computed(() => props.sparkline?.[props.sparkline.length - 
       :class="pos.pnl >= 0 ? 'neon-card-gain' : 'neon-card-loss'"
       class="position-card"
   >
-    <div class="pos-top" @click="router.push(`/stock/${pos.ticker}`)">
+    <div class="pos-top" @click="router.push(`/position/${pos.ticker}`)">
       <div>
         <span class="ticker">
           {{ pos.ticker }}
