@@ -337,7 +337,7 @@ function handleChartSelection(points) {
     <div v-if="quote" class="quote-summary">
       <div class="price-row">
         <div class="price-main">
-          <div class="current-price" :class="(rangeChange.amount ?? quote.change) >= 0 ? 'neon-green' : 'neon-red'">
+          <div class="current-price">
             {{ useTickerCurrency(quote.price, ticker) }}
             <span v-if="shekelValue != null">
                {{ useCurrency(shekelValue, 'ILS') }}
