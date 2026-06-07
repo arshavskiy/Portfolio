@@ -15,6 +15,17 @@ const {initPush} = require('./services/pushService')
 
 const app = express()
 
+function resolveTrustProxy(value) {
+  if (value == null || value === '') return process.env.NODE_ENV === 'production' ? 1 : false
+  const normalized = String(value).trim().toLowerCase()
+  if (normalized === 'true') return true
+  if (normalized === 'false') return false
+  if (/^\d+$/.test(normalized)) return Number(normalized)
+  return value
+}
+
+app.set('trust proxy', resolveTrustProxy(process.env.TRUST_PROXY))
+
 const localDevOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
