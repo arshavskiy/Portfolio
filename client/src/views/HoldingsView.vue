@@ -7,16 +7,14 @@ import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
-import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
+import {groupItems} from '@/composables/useGrouping'
 import Button from 'primevue/button'
-import Select from 'primevue/select'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
-import PageSettings from '@/components/ui/PageSettings.vue'
-import SettingsRow from '@/components/ui/SettingsRow.vue'
+import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 
 const toast = useToast()
@@ -101,17 +99,6 @@ async function onTransactionDone() {
             @click="showImportModal = true"
         />
         <Button label="Add" outlined size="small" @click="showModal = true"/>
-        <PageSettings>
-          <SettingsRow icon="pi pi-objects-column" label="Group by">
-            <Select
-                v-model="groupMode"
-                :options="GROUP_MODES"
-                class="group-select"
-                option-label="label"
-                option-value="value"
-            />
-          </SettingsRow>
-        </PageSettings>
       </div>
     </header>
 
@@ -119,6 +106,7 @@ async function onTransactionDone() {
 
 
     <RangeBar class="page-range"/>
+    <GroupModeBar v-model="groupMode" class="page-group-mode" />
 
     <div v-if="portfolio.loading" class="loading text-muted">Loading...</div>
 
@@ -251,15 +239,6 @@ async function onTransactionDone() {
   color: #fff;
 }
 
-.group-select {
-  min-width: 110px;
-}
-
-.group-select :deep(.p-select-label) {
-  padding: 4px 8px;
-  font-size: 0.8rem;
-}
-
 @media (min-width: 768px) {
   .holdings {
     padding: 1.5rem;
@@ -273,6 +252,10 @@ async function onTransactionDone() {
 }
 
 .page-range {
+  margin-bottom: 1rem;
+}
+
+.page-group-mode {
   margin-bottom: 1rem;
 }
 </style>

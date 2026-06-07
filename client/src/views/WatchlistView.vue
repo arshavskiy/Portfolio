@@ -4,15 +4,13 @@ import {useStorage} from '@vueuse/core'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
-import {GROUP_MODES, groupItems} from '@/composables/useGrouping'
+import {groupItems} from '@/composables/useGrouping'
 import Button from 'primevue/button'
-import Select from 'primevue/select'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
-import PageSettings from '@/components/ui/PageSettings.vue'
-import SettingsRow from '@/components/ui/SettingsRow.vue'
+import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 
 const watchlist = useWatchlistStore()
@@ -60,21 +58,11 @@ function onGroupsSaved() {
             @click="showImportModal = true"
         />
         <Button label="Add" outlined size="small" @click="showModal = true"/>
-        <PageSettings>
-          <SettingsRow icon="pi pi-objects-column" label="Group by">
-            <Select
-                v-model="groupMode"
-                :options="GROUP_MODES"
-                class="group-select"
-                option-label="label"
-                option-value="value"
-            />
-          </SettingsRow>
-        </PageSettings>
       </div>
     </header>
 
     <RangeBar class="page-range" />
+    <GroupModeBar v-model="groupMode" class="page-group-mode" />
 
     <div v-if="watchlist.loading" class="skeleton-list">
       <div v-for="n in 5" :key="n" class="skeleton-row"/>
@@ -213,12 +201,7 @@ function onGroupsSaved() {
   color: #fff;
 }
 
-.group-select {
-  min-width: 110px;
-}
-
-.group-select :deep(.p-select-label) {
-  padding: 4px 8px;
-  font-size: 0.8rem;
+.page-group-mode {
+  margin-bottom: 1rem;
 }
 </style>
