@@ -199,6 +199,35 @@ function selectPoint(point) {
   setSelectedPoints([...selectedPoints.value, point].sort((a, b) => new Date(a.date) - new Date(b.date)))
 }
 
+function layoutRightSideBadges(badges, h) {
+  if (!badges.length) return []
+
+  const minGap = 4
+  const sorted = badges
+    .map((badge) => ({
+      ...badge,
+      y: Math.min(Math.max(0, badge.y), h - badge.height),
+    }))
+    .sort((a, b) => a.y - b.y)
+
+  for (let i = 1; i < sorted.length; i += 1) {
+    const prev = sorted[i - 1]
+    const current = sorted[i]
+    const minY = prev.y + prev.height + minGap
+    if (current.y < minY) current.y = minY
+  }
+
+  for (let i = sorted.length - 2; i >= 0; i -= 1) {
+    const next = sorted[i + 1]
+    const current = sorted[i]
+    const maxY = next.y - current.height - minGap
+    if (current.y > maxY) current.y = maxY
+    current.y = Math.max(0, current.y)
+  }
+
+  return sorted
+}
+
 function draw() {
   if (!svgRef.value || !props.data.length) return
 
@@ -361,6 +390,8 @@ function draw() {
     .call((g) => g.selectAll('.tick line').remove())
     .call((g) => g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', '10'))
 
+  const rightSideBadges = []
+
   if (Number.isFinite(props.currentPrice)) {
     const priceY = y(props.currentPrice)
     if (priceY >= 0 && priceY <= h) {
@@ -375,27 +406,20 @@ function draw() {
 
       const labelWidth = 56
       const labelHeight = 18
-      const labelX = w - labelWidth
-      const labelY = Math.min(Math.max(0, priceY - labelHeight / 2), h - labelHeight)
-
-      g.append('rect')
-        .attr('x', labelX)
-        .attr('y', labelY)
-        .attr('width', labelWidth)
-        .attr('height', labelHeight)
-        .attr('rx', 4)
-        .attr('fill', '#0f172a')
-        .attr('stroke', '#f59e0b')
-        .attr('stroke-width', 1)
-
-      g.append('text')
-        .attr('x', labelX + labelWidth / 2)
-        .attr('y', labelY + 12)
-        .attr('text-anchor', 'middle')
-        .attr('fill', '#f8fafc')
-        .attr('font-size', '10')
-        .attr('font-weight', 600)
-        .text(props.currentPrice.toFixed(2))
+      rightSideBadges.push({
+        key: 'current-price',
+        text: props.currentPrice.toFixed(2),
+        width: labelWidth,
+        height: labelHeight,
+        y: priceY - labelHeight / 2,
+        fill: '#0f172a',
+        stroke: '#f59e0b',
+        strokeWidth: 1,
+        textFill: '#f8fafc',
+        fontSize: '10',
+        fontWeight: 600,
+        rx: 4,
+      })
     }
   }
 
@@ -408,29 +432,45 @@ function draw() {
     if (!Number.isFinite(value)) return
 
     const valueLabel = value.toFixed(2)
-    const labelWidth = Math.max(56, valueLabel.length * 7 + 14)
-    const labelHeight = 15
-    const labelX = w - labelWidth
+    rightSideBadges.push({
+      key: `edge-${yPos}`,
+      text: valueLabel,
+      width: Math.max(56, valueLabel.length * 7 + 14),
+      height: 15,
+      y: yPos,
+      fill: '#0f172a',
+      stroke: '#475569',
+      strokeWidth: 1,
+      textFill: '#f8fafc',
+      fontSize: '9',
+      fontWeight: 700,
+      rx: 7,
+      opacity: 0.96,
+    })
+  })
+
+  layoutRightSideBadges(rightSideBadges, h).forEach((badge) => {
+    const labelX = w - badge.width
 
     g.append('rect')
       .attr('x', labelX)
-      .attr('y', yPos)
-      .attr('width', labelWidth)
-      .attr('height', labelHeight)
-      .attr('rx', 7)
-      .attr('fill', '#0f172a')
-      .attr('stroke', '#475569')
-      .attr('stroke-width', 1)
-      .attr('opacity', 0.96)
+      .attr('y', badge.y)
+      .attr('width', badge.width)
+      .attr('height', badge.height)
+      .attr('rx', badge.rx)
+      .attr('fill', badge.fill)
+      .attr('stroke', badge.stroke)
+      .attr('stroke-width', badge.strokeWidth)
+      .attr('opacity', badge.opacity ?? 1)
 
     g.append('text')
-      .attr('x', labelX + labelWidth / 2)
-      .attr('y', yPos + 10)
+      .attr('x', labelX + badge.width / 2)
+      .attr('y', badge.y + (badge.height === 18 ? 12 : 10))
       .attr('text-anchor', 'middle')
-      .attr('fill', '#f8fafc')
-      .attr('font-size', '9')
-      .attr('font-weight', 700)
-      .text(valueLabel)
+      .attr('fill', badge.textFill)
+      .attr('font-size', badge.fontSize)
+      .attr('font-weight', badge.fontWeight)
+      .text(badge.text)
   })
 
   // Crosshair + tooltip
