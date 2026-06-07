@@ -12,8 +12,15 @@ export const MARKET_HOURS_BY_GROUP = {
         name: 'TASE',
         city: 'Tel Aviv',
         timezone: 'Asia/Jerusalem',
-        days: [0, 1, 2, 3, 4],
-        sessions: [{start: '09:59', end: '17:25'}],
+        days: [1, 2, 3, 4, 5],
+        sessionsByDay: {
+            1: [{start: '10:00', end: '17:35'}],
+            2: [{start: '10:00', end: '17:35'}],
+            3: [{start: '10:00', end: '17:35'}],
+            4: [{start: '10:00', end: '17:35'}],
+            5: [{start: '10:00', end: '13:50'}],
+        },
+        sessions: [{start: '10:00', end: '17:35'}],
     },
     Europe: {
         key: 'europe',
@@ -79,6 +86,59 @@ function formatClock(date, timezone) {
     }).format(date)
 }
 
+function dateParts(date, timezone) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+    }).formatToParts(date)
+
+    const map = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+    return {
+        year: Number(map.year),
+        month: Number(map.month),
+        day: Number(map.day),
+        hour: Number(map.hour),
+        minute: Number(map.minute),
+    }
+}
+
+function zonedDateTimeToDate({year, month, day, hour, minute}, timezone) {
+    const guess = new Date(Date.UTC(year, month - 1, day, hour, minute))
+    const actual = dateParts(guess, timezone)
+    const desiredUtc = Date.UTC(year, month - 1, day, hour, minute)
+    const actualUtc = Date.UTC(actual.year, actual.month - 1, actual.day, actual.hour, actual.minute)
+    return new Date(guess.getTime() + (desiredUtc - actualUtc))
+}
+
+function addDaysInTimezone(date, timezone, dayOffset) {
+    const parts = dateParts(new Date(date.getTime() + dayOffset * 86400000), timezone)
+    return {year: parts.year, month: parts.month, day: parts.day}
+}
+
+function formatLocalSessionLabel(market, date, sessions) {
+    const localTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const parts = timeParts(date, market.timezone)
+
+    let referenceOffset = 0
+    while (referenceOffset < 8 && !market.days.includes((parts.weekday + referenceOffset) % 7)) {
+        referenceOffset += 1
+    }
+
+    const baseDay = addDaysInTimezone(date, market.timezone, referenceOffset)
+    return sessions.map((session) => {
+        const [startHour, startMinute] = session.start.split(':').map(Number)
+        const [endHour, endMinute] = session.end.split(':').map(Number)
+        const startDate = zonedDateTimeToDate({...baseDay, hour: startHour, minute: startMinute}, market.timezone)
+        const endDate = zonedDateTimeToDate({...baseDay, hour: endHour % 24, minute: endMinute}, market.timezone)
+        return `${formatClock(startDate, localTimezone)}-${formatClock(endDate, localTimezone)}`
+    }).join(' , ')
+}
+
 function formatDuration(totalMinutes) {
     if (!Number.isFinite(totalMinutes) || totalMinutes < 0) return ''
     const hours = Math.floor(totalMinutes / 60)
@@ -92,8 +152,14 @@ function nextSessionOpen(market, weekday, currentMinutes, sessions) {
     for (let dayOffset = 0; dayOffset < 8; dayOffset++) {
         const day = (weekday + dayOffset) % 7
         if (!market.days.includes(day)) continue
-        
-        for (const session of sessions) {
+
+        const daySessions = (market.sessionsByDay?.[day] || market.sessions || []).map((session) => ({
+            ...session,
+            startMinutes: toMinutes(session.start),
+            endMinutes: toMinutes(session.end),
+        }))
+
+        for (const session of daySessions) {
             if (dayOffset === 0 && session.startMinutes <= currentMinutes) continue
             return {
                 inMinutes: (dayOffset * 1440) + (session.startMinutes - currentMinutes),
@@ -109,7 +175,8 @@ export function getMarketHoursState(market, date = new Date()) {
     
     const parts = timeParts(date, market.timezone)
     const currentMinutes = (parts.hour * 60) + parts.minute
-    const sessions = market.sessions.map((session) => ({
+    const baseSessions = market.sessionsByDay?.[parts.weekday] || market.sessions || []
+    const sessions = baseSessions.map((session) => ({
         ...session,
         startMinutes: toMinutes(session.start),
         endMinutes: toMinutes(session.end),
@@ -131,6 +198,6 @@ export function getMarketHoursState(market, date = new Date()) {
         localTime: formatClock(date, market.timezone),
         isOpen: Boolean(activeSession),
         nextLabel,
-        sessionLabel: sessions.map((session) => `${session.start}-${session.end}`).join(' , '),
+        sessionLabel: `${formatLocalSessionLabel(market, date, sessions)} local`,
     }
 }

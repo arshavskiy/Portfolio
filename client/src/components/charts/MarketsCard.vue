@@ -12,15 +12,20 @@ const marketData = useMarketDataStore()
 const {marketGroups, marketsByGroup, marketLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-markets-group', 'US')
 const now = ref(new Date())
+const moreOpen = ref(false)
 let timer = null
 
 const groups = computed(() => marketGroups.value)
 const indices = computed(() => marketsByGroup.value[group.value] || [])
 const loading = computed(() => Boolean(marketLoadingByGroup.value[group.value]))
+const primaryGroups = computed(() => ['US', 'Israel'].filter((name) => groups.value.includes(name)))
+const extraGroups = computed(() => groups.value.filter((name) => !primaryGroups.value.includes(name)))
+const isExtraGroupActive = computed(() => extraGroups.value.includes(group.value))
 
 function selectGroup(g) {
   if (g === group.value) return
   group.value = g
+  moreOpen.value = false
 }
 
 function openIndex(idx) {
@@ -51,6 +56,7 @@ onMounted(() => {
 
 watch(group, (nextGroup) => {
   marketData.fetchMarkets(nextGroup).catch(() => {})
+  if (!extraGroups.value.includes(nextGroup)) moreOpen.value = false
 })
 
 onUnmounted(() => {
@@ -64,13 +70,31 @@ onUnmounted(() => {
       <div class="markets-topline">
         <div class="market-tabs">
           <button
-              v-for="g in groups"
+              v-for="g in primaryGroups"
               :key="g"
               :class="{ active: group === g }"
               class="market-tab"
               @click="selectGroup(g)"
           >{{ g }}
           </button>
+          <div v-if="extraGroups.length" class="market-more">
+            <button
+              :class="{ active: moreOpen || isExtraGroupActive }"
+              class="market-tab market-tab-plus"
+              type="button"
+              @click="moreOpen = !moreOpen"
+            >+</button>
+            <div v-if="moreOpen" class="market-more-menu">
+              <button
+                v-for="g in extraGroups"
+                :key="g"
+                :class="{ active: group === g }"
+                class="market-more-item"
+                type="button"
+                @click="selectGroup(g)"
+              >{{ g }}</button>
+            </div>
+          </div>
         </div>
         <div v-if="activeMarketMeta" class="market-meta">
           <span :class="activeMarketMeta.isOpen ? 'meta-open' : 'meta-closed'" class="meta-status">
@@ -138,7 +162,7 @@ onUnmounted(() => {
   width: 100%;
   flex-wrap: wrap;
 }
-.market-tabs { display: flex; gap: 2px; }
+.market-tabs { display: flex; gap: 2px; position: relative; }
 .market-tab {
   background: none;
   border: none;
@@ -151,6 +175,51 @@ onUnmounted(() => {
   transition: background 0.15s, color 0.15s;
 }
 .market-tab.active { background: var(--accent); color: #fff; }
+
+.market-more {
+  position: relative;
+}
+
+.market-tab-plus {
+  min-width: 28px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.market-more-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 92px;
+  padding: 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 6;
+}
+
+.market-more-item {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.market-more-item.active,
+.market-more-item:hover {
+  background: rgba(59, 130, 246, 0.18);
+  color: #f8fafc;
+}
 
 .market-meta {
   display: flex;

@@ -26,6 +26,140 @@ function cleanProfileValue(value) {
   return normalized || null
 }
 
+const INTRADAY_MARKETS = {
+  us: {
+    timezone: 'America/New_York',
+    days: [1, 2, 3, 4, 5],
+    sessionsByDay: {
+      1: [{ start: '09:30', end: '16:00' }],
+      2: [{ start: '09:30', end: '16:00' }],
+      3: [{ start: '09:30', end: '16:00' }],
+      4: [{ start: '09:30', end: '16:00' }],
+      5: [{ start: '09:30', end: '16:00' }],
+    },
+  },
+  israel: {
+    timezone: 'Asia/Jerusalem',
+    days: [1, 2, 3, 4, 5],
+    sessionsByDay: {
+      1: [{ start: '10:00', end: '17:35' }],
+      2: [{ start: '10:00', end: '17:35' }],
+      3: [{ start: '10:00', end: '17:35' }],
+      4: [{ start: '10:00', end: '17:35' }],
+      5: [{ start: '10:00', end: '13:50' }],
+    },
+  },
+  crypto: {
+    timezone: 'UTC',
+    days: [0, 1, 2, 3, 4, 5, 6],
+    sessionsByDay: {
+      0: [{ start: '00:00', end: '24:00' }],
+      1: [{ start: '00:00', end: '24:00' }],
+      2: [{ start: '00:00', end: '24:00' }],
+      3: [{ start: '00:00', end: '24:00' }],
+      4: [{ start: '00:00', end: '24:00' }],
+      5: [{ start: '00:00', end: '24:00' }],
+      6: [{ start: '00:00', end: '24:00' }],
+    },
+  },
+}
+
+function inferIntradayMarket(ticker) {
+  const symbol = ticker.toUpperCase()
+  if (/-USD$/.test(symbol)) return INTRADAY_MARKETS.crypto
+  if (/\.TA$/.test(symbol)) return INTRADAY_MARKETS.israel
+  return INTRADAY_MARKETS.us
+}
+
+function getTimeParts(date, timezone) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: timezone,
+    weekday: 'short',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date)
+
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]))
+  const weekdayMap = {Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6}
+  return {
+    weekday: weekdayMap[map.weekday],
+    year: Number(map.year),
+    month: Number(map.month),
+    day: Number(map.day),
+    hour: Number(map.hour),
+    minute: Number(map.minute),
+  }
+}
+
+function intradayDateKey(date, timezone) {
+  const parts = getTimeParts(date, timezone)
+  return `${parts.year}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`
+}
+
+function sessionMinutes(value) {
+  const [hour, minute] = value.split(':').map(Number)
+  return (hour * 60) + minute
+}
+
+function getMarketStateForDate(market, date) {
+  const parts = getTimeParts(date, market.timezone)
+  const currentMinutes = (parts.hour * 60) + parts.minute
+  const sessions = (market.sessionsByDay[parts.weekday] || []).map((session) => ({
+    ...session,
+    startMinutes: sessionMinutes(session.start),
+    endMinutes: sessionMinutes(session.end),
+  }))
+  const activeSession = sessions.find((session) => currentMinutes >= session.startMinutes && currentMinutes < session.endMinutes)
+  const lastSession = sessions[sessions.length - 1] || null
+  return {
+    ...parts,
+    currentMinutes,
+    sessions,
+    isTradingDay: market.days.includes(parts.weekday),
+    activeSession,
+    afterClose: Boolean(lastSession) && currentMinutes >= lastSession.endMinutes,
+  }
+}
+
+function selectIntradayRows(rows, ticker, now = new Date()) {
+  if (!rows.length) return rows
+
+  const market = inferIntradayMarket(ticker)
+  const state = getMarketStateForDate(market, now)
+  const todayKey = intradayDateKey(now, market.timezone)
+  const grouped = new Map()
+
+  rows.forEach((row) => {
+    const key = intradayDateKey(row.date, market.timezone)
+    if (!grouped.has(key)) grouped.set(key, [])
+    grouped.get(key).push(row)
+  })
+
+  const sortedKeys = [...grouped.keys()].sort()
+  if (!sortedKeys.length) return rows
+
+  if (market === INTRADAY_MARKETS.crypto) {
+    return grouped.get(sortedKeys[sortedKeys.length - 1]) || rows
+  }
+
+  if (state.activeSession && grouped.has(todayKey)) {
+    return grouped.get(todayKey)
+  }
+
+  if (state.isTradingDay && state.afterClose && grouped.has(todayKey)) {
+    return grouped.get(todayKey)
+  }
+
+  const priorKey = [...sortedKeys].reverse().find((key) => key < todayKey)
+  if (priorKey) return grouped.get(priorKey)
+
+  return grouped.get(sortedKeys[sortedKeys.length - 1]) || rows
+}
+
 async function getQuote(ticker) {
   const cached = quoteCache.get(ticker)
   if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
@@ -64,6 +198,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
 
   // 1d uses chart() with 5m intervals for intraday
   if (range === '1d') {
+    startDate.setDate(startDate.getDate() - 7)
     const result = await yahooFinance.chart(ticker, {
       period1: fmt(startDate),
       period2: fmt(new Date(endDate.getTime() + 86400000)),
@@ -81,7 +216,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
         close: r.close / f,
         volume: r.volume,
       }))
-    return downsample(rows, points)
+    return downsample(selectIntradayRows(rows, ticker), points)
   }
 
   const f = taFactor(ticker)
@@ -185,6 +320,14 @@ const MARKET_GROUPS = {
     { symbol: '^VIX', name: 'VIX' },
     { symbol: 'GC=F', name: 'Gold' },
   ],
+  Israel: [
+    { symbol: '^TA125.TA', name: 'TA-125' },
+    { symbol: '^TA35.TA', name: 'TA-35' },
+    { symbol: '^TA90.TA', name: 'TA-90' },
+    { symbol: 'POLI.TA', name: 'Bank Hapoalim' },
+    { symbol: 'LUMI.TA', name: 'Bank Leumi' },
+    { symbol: 'TEVA.TA', name: 'Teva' },
+  ],
   Europe: [
     { symbol: '^FTSE', name: 'FTSE 100' },
     { symbol: '^GDAXI', name: 'DAX' },
@@ -195,7 +338,6 @@ const MARKET_GROUPS = {
     { symbol: '^N225', name: 'Nikkei 225' },
     { symbol: '^HSI', name: 'Hang Seng' },
     { symbol: '000001.SS', name: 'Shanghai' },
-    { symbol: '^TA125.TA', name: 'TA-125' },
   ],
   Crypto: [
     { symbol: 'BTC-USD', name: 'Bitcoin' },

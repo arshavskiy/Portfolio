@@ -34,6 +34,14 @@ function openStock(item) {
 function openWatchlist() {
   router.push('/watchlist')
 }
+
+function rangeStartPrice(item) {
+  return item.history?.[0]?.close ?? null
+}
+
+function rangeEndPrice(item) {
+  return item.history?.[item.history.length - 1]?.close ?? null
+}
 </script>
 
 <template>
@@ -81,6 +89,10 @@ function openWatchlist() {
         <div class="row-chart">
           <SparklineChart v-if="item.history?.length" :data="item.history"/>
           <div class="chart-baseline"/>
+          <div v-if="item.history?.length" class="chart-range-labels text-muted">
+            <span>{{ useTickerCurrency(rangeStartPrice(item), item.ticker) }}</span>
+            <span>{{ useTickerCurrency(rangeEndPrice(item), item.ticker) }}</span>
+          </div>
         </div>
 
         <div class="row-right">
@@ -206,6 +218,17 @@ function openWatchlist() {
   pointer-events: none;
 }
 
+.chart-range-labels {
+  position: absolute;
+  inset: auto 0 -12px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.58rem;
+  line-height: 1;
+  pointer-events: none;
+}
+
 .row-right {
   display: flex;
   flex-direction: column;
@@ -243,7 +266,7 @@ function openWatchlist() {
 .movers-foot {
   display: flex;
   justify-content: flex-end;
-  padding-top: 0.65rem;
+  padding-top: 1rem;
 }
 
 .view-more {
