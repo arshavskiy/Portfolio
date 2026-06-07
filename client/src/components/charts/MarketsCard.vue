@@ -21,6 +21,15 @@ const loading = computed(() => Boolean(marketLoadingByGroup.value[group.value]))
 const primaryGroups = computed(() => ['US', 'Israel'].filter((name) => groups.value.includes(name)))
 const extraGroups = computed(() => groups.value.filter((name) => !primaryGroups.value.includes(name)))
 const isExtraGroupActive = computed(() => extraGroups.value.includes(group.value))
+const primaryMarketMetas = computed(() =>
+  primaryGroups.value
+    .map((name) => {
+      const market = MARKET_HOURS_BY_GROUP[name]
+      const meta = market ? getMarketHoursState(market, now.value) : null
+      return meta ? {group: name, ...meta} : null
+    })
+    .filter(Boolean)
+)
 
 function selectGroup(g) {
   if (g === group.value) return
@@ -41,11 +50,6 @@ function pct(n) {
   if (n == null) return ''
   return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 }
-
-const activeMarketMeta = computed(() => {
-  const market = MARKET_HOURS_BY_GROUP[group.value]
-  return market ? getMarketHoursState(market, now.value) : null
-})
 
 onMounted(() => {
   marketData.fetchMarkets(group.value).catch(() => {})
@@ -96,12 +100,15 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <div v-if="activeMarketMeta" class="market-meta">
-          <span :class="activeMarketMeta.isOpen ? 'meta-open' : 'meta-closed'" class="meta-status">
-            {{ activeMarketMeta.isOpen ? 'Open' : 'Closed' }}
-          </span>
-          <span class="text-muted">{{ activeMarketMeta.nextLabel }}</span>
-          <span class="session" v-html="activeMarketMeta.sessionLabel" />
+        <div v-if="primaryMarketMetas.length" class="market-meta-list">
+          <div v-for="meta in primaryMarketMetas" :key="meta.group" class="market-meta">
+            <span class="meta-group">{{ meta.group }}</span>
+            <span :class="meta.isOpen ? 'meta-open' : 'meta-closed'" class="meta-status">
+              {{ meta.isOpen ? 'Open' : 'Closed' }}
+            </span>
+            <span class="text-muted">{{ meta.nextLabel }}</span>
+            <span class="session text-muted" v-html="meta.sessionLabel" />
+          </div>
         </div>
       </div>
     </div>
@@ -221,12 +228,26 @@ onUnmounted(() => {
   color: #f8fafc;
 }
 
-.market-meta {
+.market-meta-list {
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: min(100%, 340px);
+}
+
+.market-meta {
+  display: grid;
+  grid-template-columns: 44px 52px minmax(96px, 1fr) minmax(120px, auto);
+  align-items: baseline;
+  column-gap: 0.45rem;
   font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.meta-group {
+  font-weight: 700;
+  color: #e2e8f0;
 }
 
 .meta-status {
@@ -242,7 +263,7 @@ onUnmounted(() => {
 }
 
 .session {
-  color: #93c5fd;
+  text-align: right;
 }
 
 .markets-grid {
