@@ -52,15 +52,23 @@ const currentTicker = computed(() => {
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
   return (raw || '').split(' — ')[0].trim().toUpperCase()
 })
-const currency = computed(() => tickerCurrency(currentTicker.value))
-const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
+const txCurrency = computed(() => {
+  if (currentTicker.value) return tickerCurrency(currentTicker.value)
+  return marketSuffix.value === '.TA' ? 'ILS' : 'USD'
+})
+const currency = computed(() => txCurrency.value)
+const currencySymbol = computed(() => txCurrency.value === 'ILS' ? '₪' : '$')
 // Crypto if the selected market chip is crypto OR the typed ticker already ends in -USD.
 const isCryptoBuy = computed(() => marketSuffix.value === '-USD' || /-USD$/i.test(currentTicker.value))
 const shareDigits = computed(() => isCryptoBuy.value ? 8 : 4)
 
+const matchingProfiles = computed(() => {
+  return feeStore.profiles.filter((p) => (p.currency || 'USD') === txCurrency.value)
+})
+
 const feeOptions = computed(() => [
   { label: 'No fee', value: null },
-  ...feeStore.profiles.map((p) => {
+  ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
     const feeStr = fee?.value ? (fee.type === 'percent' ? `${fee.value}%` : `${p.currency} ${fee.value}`) : '0%'
     const taxStr = p.capitalGainsTax ? ` · Tax ${p.capitalGainsTax}%` : ''
@@ -107,10 +115,19 @@ watch(() => props.visible, (v) => {
     notes.value = ''
     groups.value = []
     type.value = props.defaultType === 'sell' ? 'sell' : 'buy'
-    selectedFeeProfile.value = feeStore.profiles.find((p) => p.isDefault)?._id || null
+    const initialCurrency = props.defaultTicker
+      ? tickerCurrency(props.defaultTicker)
+      : (marketSuffix.value === '.TA' ? 'ILS' : 'USD')
+    selectedFeeProfile.value = feeStore.profiles.find((p) => p.isDefault && (p.currency || 'USD') === initialCurrency)?._id || null
     groupsStore.fetchGroups()
   }
 })
+
+watch([txCurrency, () => feeStore.profiles], ([nextCurrency, profiles]) => {
+  if (!profiles.some((p) => p._id === selectedFeeProfile.value && (p.currency || 'USD') === nextCurrency)) {
+    selectedFeeProfile.value = profiles.find((p) => p.isDefault && (p.currency || 'USD') === nextCurrency)?._id || null
+  }
+}, { immediate: true })
 
 // Fetch the live market price for the current ticker (used as a price fallback,
 // mainly for crypto where users often "buy at market").

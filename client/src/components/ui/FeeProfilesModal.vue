@@ -89,8 +89,12 @@ async function remove(p) {
 }
 
 function feeLabel(p) {
-  const buy = p.buyFee?.value ? `Buy ${p.buyFee.type === 'percent' ? p.buyFee.value + '%' : p.buyFee.value}` : null
-  const sell = p.sellFee?.value ? `Sell ${p.sellFee.type === 'percent' ? p.sellFee.value + '%' : p.sellFee.value}` : null
+  const buy = p.buyFee?.value
+    ? `Buy ${p.buyFee.type === 'percent' ? `${p.buyFee.value}%` : `${p.currency || 'USD'} ${p.buyFee.value}`}`
+    : null
+  const sell = p.sellFee?.value
+    ? `Sell ${p.sellFee.type === 'percent' ? `${p.sellFee.value}%` : `${p.currency || 'USD'} ${p.sellFee.value}`}`
+    : null
   const tax = p.capitalGainsTax ? `Tax ${p.capitalGainsTax}%` : null
   return [buy, sell, tax].filter(Boolean).join(' · ') || 'No fees'
 }
@@ -119,9 +123,14 @@ function feeLabel(p) {
               <span v-if="p.isDefault" class="default-badge">Default</span>
             </span>
             <span class="profile-detail text-muted">{{ feeLabel(p) }}</span>
-            <span v-if="p.country" class="profile-country text-muted">{{ p.country }}</span>
+            <span class="profile-country text-muted">
+              {{ p.country || '—' }} · {{ p.currency || 'USD' }}
+            </span>
           </div>
-          <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(p)" />
+          <div class="profile-actions">
+            <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(p)" />
+            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(p)" />
+          </div>
         </div>
       </div>
       <Button class="mt" fluid icon="pi pi-plus" label="Add Profile" outlined @click="openNew"/>
@@ -222,6 +231,7 @@ function feeLabel(p) {
 .profile-list { display: flex; flex-direction: column; margin-bottom: 1rem; }
 .profile-row { display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
 .profile-info { flex: 1; display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+.profile-actions { display: flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem; }
 .profile-name { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
 .default-badge { font-size: 0.68rem; background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 6px; }
 .profile-detail { font-size: 0.78rem; }

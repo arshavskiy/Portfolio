@@ -52,13 +52,6 @@ onMounted(async () => {
 
 // Pre-fill sim price with current price once loaded
 watch(currentPrice, (p) => { if (p && !simPrice.value) simPrice.value = p })
-// Pre-select default fee profile
-watch(() => feeStore.profiles, (profiles) => {
-  if (!simFeeProfileId.value) {
-    const def = profiles.find(p => p.isDefault)
-    if (def) simFeeProfileId.value = def._id
-  }
-}, { immediate: true })
 watch(selectedRange, loadHistory)
 
 async function fetchLots() {
@@ -185,6 +178,9 @@ function fmt(val) {
 
 const tickerCurr = computed(() => ticker.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
+const matchingFeeProfiles = computed(() =>
+  feeStore.profiles.filter((p) => (p.currency || 'USD') === tickerCurr.value)
+)
 const marketGroup = computed(() => {
   if (ticker.endsWith('.TA')) return 'Israel'
   if (/-USD$/.test(ticker)) return 'Crypto'
@@ -289,6 +285,12 @@ const simulation = computed(() => {
     profileName: profile?.name || null,
   }
 })
+
+watch([tickerCurr, () => feeStore.profiles], ([txCurrency, profiles]) => {
+  if (!simFeeProfileId.value || !profiles.some((p) => p._id === simFeeProfileId.value && (p.currency || 'USD') === txCurrency)) {
+    simFeeProfileId.value = profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency)?._id || null
+  }
+}, { immediate: true })
 
 const selectedDelta = computed(() => {
   if (selectedChartPoints.value.length !== 2) return null
@@ -499,7 +501,7 @@ function handleChartSelection(points) {
             <label>Fee profile</label>
             <Select
               v-model="simFeeProfileId"
-              :options="[{ label: 'No fee profile', value: null }, ...feeStore.profiles.map(p => ({ label: p.name, value: p._id }))]"
+              :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
               option-label="label"
               option-value="value"
               fluid

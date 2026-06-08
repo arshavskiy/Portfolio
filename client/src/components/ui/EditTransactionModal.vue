@@ -34,10 +34,17 @@ const ticker = computed(() => props.transaction?.ticker || '')
 const crypto = computed(() => isCrypto(ticker.value))
 const currency = computed(() => tickerCurrency(ticker.value))
 const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
+const matchingProfiles = computed(() => {
+  const txCurrency = currency.value
+  return feeStore.profiles.filter((p) => {
+    if ((p.currency || 'USD') === txCurrency) return true
+    return p._id === (props.transaction?.feeProfile?._id || props.transaction?.feeProfile)
+  })
+})
 
 const feeOptions = computed(() => [
   { label: 'No fee', value: null },
-  ...feeStore.profiles.map((p) => {
+  ...matchingProfiles.value.map((p) => {
     const fee = props.transaction?.type === 'buy' ? p.buyFee : p.sellFee
     const feeStr = fee?.value ? (fee.type === 'percent' ? `${fee.value}%` : `${p.currency} ${fee.value}`) : '0%'
     const taxStr = p.capitalGainsTax ? ` · Tax ${p.capitalGainsTax}%` : ''
