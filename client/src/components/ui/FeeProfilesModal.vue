@@ -230,7 +230,7 @@ function feeLabel(p) {
         <p class="fee-section-title">Capital Gains Tax</p>
         <div class="field">
           <label>Tax rate % <span class="text-muted">(applied to profit on sell)</span></label>
-          <InputNumber v-model="form.capitalGainsTax" :min="0" :max="100" :min-fraction-digits="3" :max-fraction-digits="3"
+          <InputNumber v-model="form.capitalGainsTax" :min="0" :max="100" :max-fraction-digits="3"
             suffix="%" placeholder="e.g. 25 for Israel" fluid />
         </div>
       </div>

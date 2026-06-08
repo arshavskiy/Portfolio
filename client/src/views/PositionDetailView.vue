@@ -176,6 +176,12 @@ function fmt(val) {
   return val >= 0 ? '+' : ''
 }
 
+function formatTaxPercent(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '0%'
+  return `${num.toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
+}
+
 const tickerCurr = computed(() => ticker.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
 const matchingFeeProfiles = computed(() =>
@@ -412,7 +418,7 @@ function handleChartSelection(points) {
             <span class="loss">-{{ useTickerCurrency(summary.totalTax, ticker) }}</span>
           </div>
           <div v-if="summary.estimatedTax > 0" class="fee-row est-row">
-            <span class="text-muted">Est. tax if sold now ({{ summary.taxRate }}%)</span>
+            <span class="text-muted">Est. tax if sold now ({{ formatTaxPercent(summary.taxRate) }})</span>
             <span class="loss">-{{ useTickerCurrency(summary.estimatedTax, ticker) }}</span>
           </div>
         </div>
@@ -518,7 +524,7 @@ function handleChartSelection(points) {
             <span class="loss">-{{ currSymbol }}{{ simulation.sellFee.toFixed(2) }}</span>
           </div>
           <div v-if="simulation.tax > 0" class="sim-row">
-            <span class="text-muted">Capital gains tax ({{ simulation.taxRate }}%)</span>
+            <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
             <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
           </div>
           <div class="sim-row sim-divider">
@@ -567,7 +573,7 @@ function handleChartSelection(points) {
           </div>
           <!-- Tax -->
           <div v-if="lot.taxAmount" class="lot-extra loss">
-            <i class="pi pi-building-columns" /> Tax ({{ lot.feeProfile?.capitalGainsTax }}%): {{ useTickerCurrency(lot.taxAmount, ticker) }}
+            <i class="pi pi-building-columns" /> Tax ({{ formatTaxPercent(lot.feeProfile?.capitalGainsTax) }}): {{ useTickerCurrency(lot.taxAmount, ticker) }}
           </div>
           <!-- Net proceeds -->
           <div v-if="lot.type === 'sell'" class="lot-extra gain">

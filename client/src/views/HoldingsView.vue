@@ -30,6 +30,17 @@ const compactMode = useStorage('holdings-compact', true)
 
 const grouped = computed(() => groupItems(portfolio.positions, groupMode.value))
 
+function sparklinePoints(rangeValue) {
+  const map = {
+    '1d': 60,
+    '5d': 80,
+    '1mo': 40,
+    '6mo': 72,
+    '1y': 96,
+  }
+  return map[rangeValue] || 40
+}
+
 onMounted(async () => {
   try {
     alerts.fetchAlerts()
@@ -40,9 +51,10 @@ onMounted(async () => {
 })
 
 async function fetchSparklines() {
+  const points = sparklinePoints(range.value)
   const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value, 40)]
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value, points)]
     } catch {
       return null
     }

@@ -254,7 +254,32 @@ async function getHistory(ticker, range = '3mo', points = null) {
   }
 
   const f = taFactor(ticker)
-  const rangeMap = { '5d': 5, '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365 }
+  if (range === '5d') {
+    startDate.setDate(startDate.getDate() - 10)
+    const result = await yahooFinance.chart(ticker, {
+      period1: fmt(startDate),
+      period2: fmt(new Date(endDate.getTime() + 86400000)),
+      interval: '1h',
+      includePrePost: false,
+    })
+    const f = taFactor(ticker)
+    const quotes = result?.quotes || []
+    const rows = quotes
+      .filter((r) => r && r.close != null)
+      .map((r) => ({
+        date: r.date,
+        open: r.open / f,
+        high: r.high / f,
+        low: r.low / f,
+        close: r.close / f,
+        volume: r.volume,
+      }))
+    const data = downsample(rows, points)
+    historyCache.set(key, { data, ts: Date.now() })
+    return data
+  }
+
+  const rangeMap = { '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365 }
   const days = rangeMap[range] || 90
   startDate.setDate(startDate.getDate() - days)
   

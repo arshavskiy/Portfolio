@@ -72,12 +72,18 @@ function formatFeePercent(value) {
   return `${(num * 100).toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
 }
 
+function formatTaxPercent(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '0%'
+  return `${num.toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
+}
+
 const feeOptions = computed(() => [
   { label: 'No fee', value: null },
   ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
     const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${p.currency} ${fee.value}`) : '0%'
-    const taxStr = p.capitalGainsTax ? ` · Tax ${p.capitalGainsTax}%` : ''
+    const taxStr = p.capitalGainsTax ? ` · Tax ${formatTaxPercent(p.capitalGainsTax)}` : ''
     return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id, profile: p }
   }),
 ])
@@ -378,7 +384,7 @@ async function submit() {
           <span class="loss">{{ type === 'buy' ? '+' : '-' }}{{ currencySymbol }}{{ feeAmount.toFixed(2) }}</span>
         </div>
         <div v-if="type === 'sell' && selectedProfile?.capitalGainsTax" class="total-line fee-line">
-          <span class="text-muted">Capital gains tax ({{ selectedProfile.capitalGainsTax }}%)</span>
+          <span class="text-muted">Capital gains tax ({{ formatTaxPercent(selectedProfile.capitalGainsTax) }})</span>
           <span class="loss">calculated on profit at sell</span>
         </div>
         <div class="total-line total-final">
