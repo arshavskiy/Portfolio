@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
@@ -16,6 +16,12 @@ const emit = defineEmits(['selection-change'])
 const svgRef = ref(null)
 const containerRef = ref(null)
 const selectedPoints = ref([])
+const hasSelections = computed(() => selectedPoints.value.length > 0)
+const draggingSelection = ref(false)
+const suppressClickUntil = ref(0)
+const dragPreview = ref(null)
+const dragStartPoints = ref([])
+const dragPreviewPill = ref(null)
 
 function normalizePoint(d) {
   if (!d) return null
@@ -177,6 +183,14 @@ function setSelectedPoints(points) {
   emit('selection-change', points.map(normalizePoint).filter(Boolean))
 }
 
+function clearSelectedPoints() {
+  dragPreview.value = null
+  dragStartPoints.value = []
+  dragPreviewPill.value = null
+  setSelectedPoints([])
+  nextTick(draw)
+}
+
 function selectPoint(point) {
   if (!point) return
 
@@ -226,6 +240,31 @@ function layoutRightSideBadges(badges, h) {
   }
 
   return sorted
+}
+
+function pickNearestPoint(mx, parsed, x, bisect, marginLeft) {
+  const date = x.invert(mx - marginLeft)
+  const i = bisect(parsed, date, 1)
+  const d0 = parsed[i - 1]
+  const d1 = parsed[i]
+  if (!d0 && !d1) return null
+  return d1 && date - d0?.date > d1?.date - date ? d1 : d0
+}
+
+function eventClientX(eventLike) {
+  if (!eventLike) return null
+  if (Number.isFinite(eventLike.clientX)) return eventLike.clientX
+  if (eventLike.touches?.length && Number.isFinite(eventLike.touches[0]?.clientX)) return eventLike.touches[0].clientX
+  if (eventLike.changedTouches?.length && Number.isFinite(eventLike.changedTouches[0]?.clientX)) return eventLike.changedTouches[0].clientX
+  return null
+}
+
+function localPointerX(eventLike, element) {
+  const clientX = eventClientX(eventLike)
+  const bounds = element?.getBoundingClientRect?.()
+  if (clientX == null || !bounds) return null
+  const x = clientX - bounds.left
+  return Number.isFinite(x) ? x : null
 }
 
 function draw() {
@@ -480,12 +519,50 @@ function draw() {
       .text(badge.text)
   })
 
-  // Crosshair + tooltip
+  // Crosshair + selection
   const bisect = d3.bisector((d) => d.date).left
+  const interactionRect = svg.append('rect')
+    .attr('width', W).attr('height', H).attr('fill', 'none').attr('pointer-events', 'all')
+    .on('mousemove touchmove', (event) => {
+      if (draggingSelection.value) return
+      const mx = localPointerX(event, svgRef.value)
+      if (!Number.isFinite(mx)) return
+      const d = pickNearestPoint(mx, parsed, x, bisect, margin.left)
+      if (!d) return
+
+      showFocusAt(d)
+    })
+    .on('click', (event) => {
+      if (draggingSelection.value || Date.now() < suppressClickUntil.value) return
+      const mx = localPointerX(event, svgRef.value)
+      if (!Number.isFinite(mx)) return
+      const d = pickNearestPoint(mx, parsed, x, bisect, margin.left)
+      if (!d) return
+      selectPoint(d)
+      renderSelections()
+    })
+    .on('mouseleave touchend', () => {
+      focus.style('display', 'none')
+      if (!draggingSelection.value) dragPreviewPill.value = null
+    })
+
   const focus = g.append('g').style('display', 'none')
   focus.append('line').attr('y1', 0).attr('y2', showVolume ? volumeBottom : h)
     .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3,3').attr('stroke-width', 1)
   focus.append('circle').attr('r', 4).attr('fill', color).attr('stroke', '#0f172a').attr('stroke-width', 2)
+  function showFocusAt(point, showValue = false) {
+    const cx = x(point.date)
+    const cy = y(point.close)
+    focus.raise()
+    focus.style('display', null)
+    focus.select('circle').attr('cx', cx).attr('cy', cy)
+    focus.select('line').attr('x1', cx).attr('x2', cx)
+    dragPreviewPill.value = showValue ? {
+      left: margin.left + cx,
+      top: margin.top + Math.max(2, cy - 22),
+      text: point.close?.toFixed(2) || '—',
+    } : null
+  }
 
   const selectionLayer = g.append('g')
   const renderSelections = () => {
@@ -511,12 +588,50 @@ function draw() {
         .attr('stroke-width', 1.5)
 
       selectionLayer.append('circle')
+        .attr('class', 'selection-handle')
         .attr('cx', cx)
         .attr('cy', cy)
         .attr('r', 5.5)
         .attr('fill', stroke)
         .attr('stroke', '#0f172a')
         .attr('stroke-width', 2)
+        .style('cursor', 'ew-resize')
+        .call(
+          d3.drag()
+            .on('start', () => {
+              draggingSelection.value = true
+              dragStartPoints.value = [...selectedPoints.value]
+              dragPreview.value = { index, point }
+              showFocusAt(point, true)
+            })
+            .on('drag', (event) => {
+              const source = event?.sourceEvent ?? event
+              const localX = localPointerX(source, svgRef.value) ?? event?.x
+              const draggedPoint = Number.isFinite(localX)
+                ? pickNearestPoint(localX, parsed, x, bisect, margin.left)
+                : null
+              if (!draggedPoint) return
+
+              dragPreview.value = { index, point: draggedPoint }
+              showFocusAt(draggedPoint, true)
+            })
+            .on('end', () => {
+              if (dragPreview.value?.point) {
+                const next = dragStartPoints.value.length
+                  ? [...dragStartPoints.value]
+                  : [...selectedPoints.value]
+                next[index] = dragPreview.value.point
+                setSelectedPoints(next.sort((a, b) => new Date(a.date) - new Date(b.date)))
+                nextTick(draw)
+              }
+              dragPreview.value = null
+              dragStartPoints.value = []
+              dragPreviewPill.value = null
+              suppressClickUntil.value = Date.now() + 250
+              draggingSelection.value = false
+              focus.style('display', 'none')
+            })
+        )
 
       selectionLayer.append('rect')
         .attr('x', labelX)
@@ -540,39 +655,14 @@ function draw() {
   }
 
   renderSelections()
-
-  svg.append('rect')
-    .attr('width', W).attr('height', H).attr('fill', 'none').attr('pointer-events', 'all')
-    .on('mousemove touchmove', (event) => {
-      const [mx] = d3.pointer(event)
-      const date = x.invert(mx - margin.left)
-      const i = bisect(parsed, date, 1)
-      const d0 = parsed[i - 1]; const d1 = parsed[i]
-      if (!d0 && !d1) return
-      const d = d1 && date - d0?.date > d1?.date - date ? d1 : d0
-      if (!d) return
-
-      focus.style('display', null)
-      focus.select('circle').attr('cx', x(d.date)).attr('cy', y(d.close))
-      focus.select('line').attr('x1', x(d.date)).attr('x2', x(d.date))
-    })
-    .on('click', (event) => {
-      const [mx] = d3.pointer(event)
-      const date = x.invert(mx - margin.left)
-      const i = bisect(parsed, date, 1)
-      const d0 = parsed[i - 1]; const d1 = parsed[i]
-      if (!d0 && !d1) return
-      const d = d1 && date - d0?.date > d1?.date - date ? d1 : d0
-      if (!d) return
-      selectPoint(d)
-      renderSelections()
-    })
-    .on('mouseleave touchend', () => { focus.style('display', 'none') })
 }
 
 onMounted(() => nextTick(draw))
 watch(() => [props.data, props.loading, props.mode, props.range, props.currentPrice], () => nextTick(draw))
 watch(() => props.data, () => {
+  dragPreview.value = null
+  dragStartPoints.value = []
+  dragPreviewPill.value = null
   setSelectedPoints([])
 }, { deep: true })
 
@@ -583,6 +673,17 @@ onUnmounted(() => ro.disconnect())
 
 <template>
   <div ref="containerRef" class="chart-container">
+    <button
+      v-if="hasSelections"
+      class="clear-selection"
+      type="button"
+      @click="clearSelectedPoints"
+    >Clear</button>
+    <div
+      v-if="dragPreviewPill"
+      class="drag-preview-pill"
+      :style="{ left: `${dragPreviewPill.left}px`, top: `${dragPreviewPill.top}px` }"
+    >{{ dragPreviewPill.text }}</div>
     <div v-if="loading" class="chart-loading"><i class="pi pi-spin pi-spinner" /></div>
     <div v-else-if="!data.length" class="chart-empty text-muted">No data</div>
     <template v-else>
@@ -595,4 +696,39 @@ onUnmounted(() => ro.disconnect())
 .chart-container { position: relative; width: 100%; min-height: 240px; }
 .chart-loading, .chart-empty { display: flex; align-items: center; justify-content: center; height: 240px; color: var(--text-secondary); font-size: 1.5rem; }
 svg { display: block; width: 100%; }
+.clear-selection {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  z-index: 2;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.92);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.clear-selection:hover {
+  color: var(--text-primary);
+  border-color: #475569;
+}
+.drag-preview-pill {
+  position: absolute;
+  z-index: 3;
+  transform: translateX(-50%);
+  min-width: 52px;
+  height: 16px;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: #0f172a;
+  border: 1px solid #94a3b8;
+  color: #f8fafc;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+}
 </style>
