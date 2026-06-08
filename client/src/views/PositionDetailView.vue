@@ -181,6 +181,13 @@ const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
 const matchingFeeProfiles = computed(() =>
   feeStore.profiles.filter((p) => (p.currency || 'USD') === tickerCurr.value)
 )
+
+function calcFee(rule, total) {
+  if (!rule || !rule.value) return 0
+  let fee = rule.type === 'percent' ? total * rule.value : rule.value
+  if (rule.minFee && fee < rule.minFee) fee = rule.minFee
+  return Math.round(fee * 100) / 100
+}
 const marketGroup = computed(() => {
   if (ticker.endsWith('.TA')) return 'Israel'
   if (/-USD$/.test(ticker)) return 'Crypto'
@@ -255,15 +262,7 @@ const simulation = computed(() => {
 
   // Get sell fee from selected profile
   const profile = feeStore.profiles.find(p => p._id === simFeeProfileId.value)
-  let sellFee = 0
-  if (profile?.sellFee?.value) {
-    sellFee = profile.sellFee.type === 'percent'
-      ? (grossProceeds * profile.sellFee.value) / 100
-      : profile.sellFee.value
-    if (profile.sellFee.minFee && sellFee < profile.sellFee.minFee)
-      sellFee = profile.sellFee.minFee
-    sellFee = Math.round(sellFee * 100) / 100
-  }
+  const sellFee = calcFee(profile?.sellFee, grossProceeds)
 
   // Capital gains tax on profit only
   const taxRate = profile?.capitalGainsTax || 0

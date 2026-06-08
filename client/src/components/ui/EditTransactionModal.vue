@@ -42,11 +42,17 @@ const matchingProfiles = computed(() => {
   })
 })
 
+function formatFeePercent(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '0%'
+  return `${(num * 100).toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
+}
+
 const feeOptions = computed(() => [
   { label: 'No fee', value: null },
   ...matchingProfiles.value.map((p) => {
     const fee = props.transaction?.type === 'buy' ? p.buyFee : p.sellFee
-    const feeStr = fee?.value ? (fee.type === 'percent' ? `${fee.value}%` : `${p.currency} ${fee.value}`) : '0%'
+    const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${p.currency} ${fee.value}`) : '0%'
     const taxStr = p.capitalGainsTax ? ` · Tax ${p.capitalGainsTax}%` : ''
     return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id }
   }),

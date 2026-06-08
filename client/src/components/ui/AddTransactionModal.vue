@@ -66,11 +66,17 @@ const matchingProfiles = computed(() => {
   return feeStore.profiles.filter((p) => (p.currency || 'USD') === txCurrency.value)
 })
 
+function formatFeePercent(value) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '0%'
+  return `${(num * 100).toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
+}
+
 const feeOptions = computed(() => [
   { label: 'No fee', value: null },
   ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
-    const feeStr = fee?.value ? (fee.type === 'percent' ? `${fee.value}%` : `${p.currency} ${fee.value}`) : '0%'
+    const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${p.currency} ${fee.value}`) : '0%'
     const taxStr = p.capitalGainsTax ? ` · Tax ${p.capitalGainsTax}%` : ''
     return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id, profile: p }
   }),
@@ -78,7 +84,7 @@ const feeOptions = computed(() => [
 
 function calcFee(rule, total) {
   if (!rule || !rule.value) return 0
-  let fee = rule.type === 'percent' ? (total * rule.value) / 100 : rule.value
+  let fee = rule.type === 'percent' ? total * rule.value : rule.value
   if (rule.minFee && fee < rule.minFee) fee = rule.minFee
   return Math.round(fee * 100) / 100
 }
@@ -129,8 +135,7 @@ watch([txCurrency, () => feeStore.profiles], ([nextCurrency, profiles]) => {
   }
 }, { immediate: true })
 
-// Fetch the live market price for the current ticker (used as a price fallback,
-// mainly for crypto where users often "buy at market").
+// Fetch the live market price for the current ticker for quick-fill actions.
 async function fetchMarketPrice() {
   marketPrice.value = null
   const t = currentTicker.value
@@ -150,9 +155,10 @@ function useMarketPrice() {
   if (marketPrice.value != null) price.value = marketPrice.value
 }
 
-// When a crypto ticker is chosen, prefetch its market price.
+// Prefetch the live quote for the current ticker so buy/sell can offer a
+// market-price quick action.
 watch(currentTicker, (t) => {
-  if (t && isCryptoBuy.value) fetchMarketPrice()
+  if (t) fetchMarketPrice()
   else marketPrice.value = null
 })
 
@@ -292,7 +298,7 @@ async function submit() {
       <div class="fields-row">
         <div class="field">
           <label>
-            {{ isCryptoBuy ? 'Amount' : 'Shares' }}
+            <span>{{ isCryptoBuy ? 'Amount' : 'Shares' }}</span>
             <button
                 v-if="type === 'sell' && maxShares"
                 class="max-link"
@@ -307,9 +313,9 @@ async function submit() {
         </div>
         <div class="field">
           <label>
-            {{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}
+            <span>{{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}</span>
             <button
-                v-if="isCryptoBuy && type === 'buy' && marketPrice != null"
+                v-if="marketPrice != null && (type === 'sell' || (isCryptoBuy && type === 'buy'))"
                 class="max-link"
                 type="button"
                 @click="useMarketPrice"
@@ -362,10 +368,10 @@ async function submit() {
         <InputText v-model="notes" placeholder="e.g. dividend reinvestment" fluid />
       </div>
 
-      <div class="total-row" v-if="shares && price">
+      <div class="total-row">
         <div class="total-line">
           <span class="text-muted">Subtotal</span>
-          <span>{{ currencySymbol }}{{ (shares * price).toFixed(2) }}</span>
+          <span>{{ currencySymbol }}{{ ((shares || 0) * (price || 0)).toFixed(2) }}</span>
         </div>
         <div v-if="feeAmount > 0" class="total-line fee-line">
           <span class="text-muted">{{ type === 'buy' ? 'Buy' : 'Sell' }} fee</span>
@@ -379,8 +385,8 @@ async function submit() {
           <span>{{ type === 'buy' ? 'Total cost' : 'Net proceeds' }}</span>
           <span class="total-amount">
             {{ currencySymbol }}{{ type === 'buy'
-              ? ((shares * price) + feeAmount).toFixed(2)
-              : ((shares * price) - feeAmount).toFixed(2) }}
+              ? ((((shares || 0) * (price || 0)) + feeAmount).toFixed(2))
+              : ((((shares || 0) * (price || 0)) - feeAmount).toFixed(2)) }}
             <span v-if="type === 'sell' && selectedProfile?.capitalGainsTax" class="text-muted" style="font-size:0.75rem"> (before tax)</span>
           </span>
         </div>
@@ -427,8 +433,15 @@ async function submit() {
   font-size: 0.85rem;
   color: var(--text-secondary);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 0.5rem;
+}
+
+.field label > span:first-child {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.15;
 }
 
 .max-link {
@@ -439,6 +452,9 @@ async function submit() {
   font-weight: 600;
   cursor: pointer;
   padding: 0;
+  line-height: 1.1;
+  text-align: right;
+  flex-shrink: 0;
 }
 
 .hint {

@@ -54,7 +54,7 @@ exports.deleteProfile = async (req, res) => {
 
 function calcFee(rule, total) {
   if (!rule || !rule.value) return 0
-  let fee = rule.type === 'percent' ? (total * rule.value) / 100 : rule.value
+  let fee = rule.type === 'percent' ? total * rule.value : rule.value
   if (rule.minFee && fee < rule.minFee) fee = rule.minFee
   return Math.round(fee * 100) / 100
 }

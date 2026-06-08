@@ -61,6 +61,22 @@ function onCountryChange(val) {
   if (c) form.value.capitalGainsTax = c.tax
 }
 
+function formatPercentValue(value, digits = 3) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '0'
+  return trimTrailingZeros(num.toFixed(digits))
+}
+
+function trimTrailingZeros(text) {
+  return text.replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '').replace(/\.$/u, '')
+}
+
+function formatFeePercent(value, digits = 3) {
+  const num = Number(value)
+  if (!Number.isFinite(num)) return '0%'
+  return `${trimTrailingZeros((num * 100).toFixed(digits))}%`
+}
+
 async function save() {
   if (!form.value.name) {
     toast.add({ severity: 'warn', summary: 'Name required', life: 2000 }); return
@@ -90,12 +106,12 @@ async function remove(p) {
 
 function feeLabel(p) {
   const buy = p.buyFee?.value
-    ? `Buy ${p.buyFee.type === 'percent' ? `${p.buyFee.value}%` : `${p.currency || 'USD'} ${p.buyFee.value}`}`
+    ? `Buy ${p.buyFee.type === 'percent' ? formatFeePercent(p.buyFee.value) : `${p.currency || 'USD'} ${p.buyFee.value}`}`
     : null
   const sell = p.sellFee?.value
-    ? `Sell ${p.sellFee.type === 'percent' ? `${p.sellFee.value}%` : `${p.currency || 'USD'} ${p.sellFee.value}`}`
+    ? `Sell ${p.sellFee.type === 'percent' ? formatFeePercent(p.sellFee.value) : `${p.currency || 'USD'} ${p.sellFee.value}`}`
     : null
-  const tax = p.capitalGainsTax ? `Tax ${p.capitalGainsTax}%` : null
+  const tax = p.capitalGainsTax ? `Tax ${formatPercentValue(p.capitalGainsTax)}%` : null
   return [buy, sell, tax].filter(Boolean).join(' · ') || 'No fees'
 }
 </script>
@@ -177,8 +193,9 @@ function feeLabel(p) {
           </div>
           <div class="field">
             <label>{{ form.buyFee.type === 'percent' ? 'Fee %' : 'Flat amount' }}</label>
-            <InputNumber v-model="form.buyFee.value" :min="0" :max-fraction-digits="4"
+            <InputNumber v-model="form.buyFee.value" :min="0" :max-fraction-digits="form.buyFee.type === 'percent' ? 3 : 4"
               :suffix="form.buyFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
+            <small v-if="form.buyFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%</small>
           </div>
         </div>
         <div class="field">
@@ -197,8 +214,9 @@ function feeLabel(p) {
           </div>
           <div class="field">
             <label>{{ form.sellFee.type === 'percent' ? 'Fee %' : 'Flat amount' }}</label>
-            <InputNumber v-model="form.sellFee.value" :min="0" :max-fraction-digits="4"
+            <InputNumber v-model="form.sellFee.value" :min="0" :max-fraction-digits="form.sellFee.type === 'percent' ? 3 : 4"
               :suffix="form.sellFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
+            <small v-if="form.sellFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%</small>
           </div>
         </div>
         <div class="field">
@@ -212,7 +230,7 @@ function feeLabel(p) {
         <p class="fee-section-title">Capital Gains Tax</p>
         <div class="field">
           <label>Tax rate % <span class="text-muted">(applied to profit on sell)</span></label>
-          <InputNumber v-model="form.capitalGainsTax" :min="0" :max="100" :max-fraction-digits="3"
+          <InputNumber v-model="form.capitalGainsTax" :min="0" :max="100" :min-fraction-digits="3" :max-fraction-digits="3"
             suffix="%" placeholder="e.g. 25 for Israel" fluid />
         </div>
       </div>
@@ -245,6 +263,7 @@ function feeLabel(p) {
 .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 .field label { font-size: 0.82rem; color: var(--text-secondary); }
+.field-hint { font-size: 0.72rem; }
 .fee-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .fee-section-title { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
 .field-row-inline { display: flex; justify-content: space-between; align-items: center; }
