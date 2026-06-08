@@ -99,8 +99,6 @@ function onGroupsSaved() {
 
 <style scoped>
 .watchlist { padding: 1rem; }
-.page-range { margin-bottom: 1rem; }
-
 @media (min-width: 768px) {
   .watchlist {
     padding: 1.5rem;

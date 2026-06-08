@@ -263,10 +263,6 @@ async function onTransactionDone() {
   }
 }
 
-.page-range {
-  margin-bottom: 1rem;
-}
-
 .page-group-mode {
   margin-bottom: 1rem;
 }

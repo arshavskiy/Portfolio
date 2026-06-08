@@ -423,28 +423,35 @@ function draw() {
     }
   }
 
-  const edgeLabels = [
-    { key: 'start', value: parsed[0]?.close, yPos: 4 },
-    { key: 'end', value: parsed[parsed.length - 1]?.close, yPos: h - 19 },
-  ]
+  const closePoints = parsed.filter((d) => Number.isFinite(d.close))
+  const maxPoint = closePoints.length
+    ? closePoints.reduce((best, point) => (point.close > best.close ? point : best), closePoints[0])
+    : null
+  const minPoint = closePoints.length
+    ? closePoints.reduce((best, point) => (point.close < best.close ? point : best), closePoints[0])
+    : null
 
-  edgeLabels.forEach(({ value, yPos }) => {
+  ;[
+    { key: 'max', point: maxPoint },
+    { key: 'min', point: minPoint },
+  ].forEach(({ key, point }) => {
+    const value = point?.close
     if (!Number.isFinite(value)) return
 
     const valueLabel = value.toFixed(2)
     rightSideBadges.push({
-      key: `edge-${yPos}`,
+      key: `edge-${key}`,
       text: valueLabel,
-      width: Math.max(56, valueLabel.length * 7 + 14),
-      height: 15,
-      y: yPos,
+      width: Math.max(50, valueLabel.length * 6.4 + 10),
+      height: 13,
+      y: y(value) - 7.5,
       fill: '#0f172a',
       stroke: '#475569',
       strokeWidth: 1,
       textFill: '#f8fafc',
-      fontSize: '9',
+      fontSize: '8.5',
       fontWeight: 700,
-      rx: 7,
+      rx: 6,
       opacity: 0.96,
     })
   })
@@ -465,7 +472,7 @@ function draw() {
 
     g.append('text')
       .attr('x', labelX + badge.width / 2)
-      .attr('y', badge.y + (badge.height === 18 ? 12 : 10))
+      .attr('y', badge.y + (badge.height >= 18 ? 12 : 9))
       .attr('text-anchor', 'middle')
       .attr('fill', badge.textFill)
       .attr('font-size', badge.fontSize)

@@ -12,6 +12,7 @@ import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarke
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
 import StockChart from '@/components/charts/StockChart.vue'
+import RangeBar from '@/components/ui/RangeBar.vue'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AlertModal from '@/components/ui/AlertModal.vue'
 
@@ -35,8 +36,7 @@ const selectedChartPoints = ref([])
 const ilsToUsd = ref(null)
 const now = ref(new Date())
 
-const ranges = ['1d', '5d', '1mo', '3mo', '6mo', '1y']
-const selectedRange = ref('3mo')
+const selectedRange = ref('1d')
 const chartMode = ref('line')
 const chartModes = ['line', 'candle']
 
@@ -368,7 +368,7 @@ function handleChartSelection(points) {
     </div>
 
     <div class="chart-controls">
-      <SelectButton v-model="selectedRange" :options="ranges" size="small"/>
+      <RangeBar v-model="selectedRange" class="page-range" />
       <SelectButton v-model="chartMode" :options="chartModes" size="small"/>
     </div>
 
@@ -572,9 +572,6 @@ function handleChartSelection(points) {
 }
 
 .chart-controls {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
   margin-bottom: 0.75rem;
 }
 

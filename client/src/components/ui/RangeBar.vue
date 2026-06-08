@@ -1,7 +1,28 @@
 <script setup>
+import {computed} from 'vue'
 import { useChartRange } from '@/composables/useChartRange'
 
-const range = useChartRange()
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: undefined,
+  },
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const sharedRange = useChartRange()
+
+const range = computed({
+  get: () => props.modelValue ?? sharedRange.value,
+  set: (value) => {
+    if (props.modelValue !== undefined) {
+      emit('update:modelValue', value)
+      return
+    }
+    sharedRange.value = value
+  },
+})
 
 const OPTIONS = [
   { label: 'D', value: '1d', title: 'Day' },
@@ -34,6 +55,11 @@ const OPTIONS = [
   border-radius: 8px;
   padding: 2px;
 }
+
+.range-bar.page-range {
+  margin-bottom: 1rem;
+}
+
 .range-btn {
   flex: 1;
   background: none;
