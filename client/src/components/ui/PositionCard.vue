@@ -38,7 +38,7 @@ const compactRangePercent = computed(() => {
   <!-- ── Compact (row) mode ── -->
   <div
       v-if="compact"
-      :class="pos.pnl >= 0 ? 'neon-row-gain' : 'neon-row-loss'"
+      :class="compactRangePercent >= 0 ? 'neon-row-gain' : 'neon-row-loss'"
       class="compact-row"
       @click="router.push(`/position/${pos.ticker}`)"
   >
