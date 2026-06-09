@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
@@ -21,18 +21,27 @@ const showImportModal = ref(false)
 const showGroupModal = ref(false)
 const groupItem = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'sector')
+const now = ref(new Date())
+let marketTimer = null
 
 function onImported() {
   watchlist.fetchWatchlist(range.value)
 }
 
-const grouped = computed(() => groupItems(watchlist.items, groupMode.value))
+const grouped = computed(() => groupItems(watchlist.items, groupMode.value, now.value))
 
 onMounted(() => {
   alerts.fetchAlerts()
   watchlist.fetchWatchlist(range.value)
+  marketTimer = setInterval(() => {
+    now.value = new Date()
+  }, 60000)
 })
 watch(range, (r) => watchlist.fetchWatchlist(r))
+
+onUnmounted(() => {
+  if (marketTimer) clearInterval(marketTimer)
+})
 
 function openGroups(item) {
   groupItem.value = item

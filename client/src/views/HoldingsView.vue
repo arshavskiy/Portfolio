@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useConfirm} from 'primevue/useconfirm'
 import {useStorage} from '@vueuse/core'
@@ -27,8 +27,10 @@ const showModal = ref(false)
 const sparklines = ref({})
 const groupMode = useStorage('holdings-group-mode', 'sector')
 const compactMode = useStorage('holdings-compact', true)
+const now = ref(new Date())
+let marketTimer = null
 
-const grouped = computed(() => groupItems(portfolio.positions, groupMode.value))
+const grouped = computed(() => groupItems(portfolio.positions, groupMode.value, now.value))
 
 function sparklinePoints(rangeValue) {
   const map = {
@@ -48,6 +50,9 @@ onMounted(async () => {
     await fetchSparklines()
   } catch {
   }
+  marketTimer = setInterval(() => {
+    now.value = new Date()
+  }, 60000)
 })
 
 async function fetchSparklines() {
@@ -88,6 +93,10 @@ async function onGroupsSaved() {
 async function onTransactionDone() {
   await fetchSparklines()
 }
+
+onUnmounted(() => {
+  if (marketTimer) clearInterval(marketTimer)
+})
 </script>
 
 <template>

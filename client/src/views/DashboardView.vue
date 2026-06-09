@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useWatchlistStore} from '@/stores/watchlist'
@@ -36,8 +36,10 @@ const watchlist = useWatchlistStore()
 const range = useChartRange()
 const sparklines = ref({})
 const groupMode = useStorage('dashboard-group-mode', 'sector')
+const now = ref(new Date())
+let marketTimer = null
 
-const groupedPositions = computed(() => groupItems(portfolio.positions, groupMode.value))
+const groupedPositions = computed(() => groupItems(portfolio.positions, groupMode.value, now.value))
 
 const historyRange = useStorage('dashboard-history-range', '1mo')
 const history = ref([])
@@ -65,6 +67,9 @@ onMounted(async () => {
     ])
     await Promise.all([fetchSparklines(), fetchHistory()])
   } catch {}
+  marketTimer = setInterval(() => {
+    now.value = new Date()
+  }, 60000)
 })
 
 async function fetchSparklines() {
@@ -92,6 +97,10 @@ function neonStyle(pnlPercent) {
     boxShadow: `0 0 ${spread}px ${color}, inset 0 0 ${spread * 0.5}px ${isWin ? 'rgba(0,255,136,0.05)' : 'rgba(255,51,102,0.05)'}`,
   }
 }
+
+onUnmounted(() => {
+  if (marketTimer) clearInterval(marketTimer)
+})
 </script>
 
 <template>
