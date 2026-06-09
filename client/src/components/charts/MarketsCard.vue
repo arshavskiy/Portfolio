@@ -18,7 +18,7 @@ let timer = null
 const groups = computed(() => marketGroups.value)
 const indices = computed(() => marketsByGroup.value[group.value] || [])
 const loading = computed(() => Boolean(marketLoadingByGroup.value[group.value]))
-const primaryGroups = computed(() => ['US', 'Israel'].filter((name) => groups.value.includes(name)))
+const primaryGroups = computed(() => ['Israel', 'US'].filter((name) => groups.value.includes(name)))
 const extraGroups = computed(() => groups.value.filter((name) => !primaryGroups.value.includes(name)))
 const isExtraGroupActive = computed(() => extraGroups.value.includes(group.value))
 const primaryMarketMetas = computed(() =>
@@ -101,13 +101,14 @@ onUnmounted(() => {
           </div>
         </div>
         <div v-if="primaryMarketMetas.length" class="market-meta-list">
-          <div v-for="meta in primaryMarketMetas" :key="meta.group" class="market-meta">
+          <div v-for="meta in primaryMarketMetas" :key="meta.group" :class="{ 'market-meta-break': meta.group === 'US' }" class="market-meta">
             <span class="meta-group">{{ meta.group }}</span>
             <span :class="meta.isOpen ? 'meta-open' : 'meta-closed'" class="meta-status">
               {{ meta.isOpen ? 'Open' : 'Closed' }}
             </span>
-            <span class="text-muted">{{ meta.nextLabel }}</span>
+            <span class="text-muted">{{ meta.nextLabel }}
             <span class="session text-muted" v-html="meta.sessionLabel" />
+            </span>
           </div>
         </div>
       </div>
@@ -243,6 +244,16 @@ onUnmounted(() => {
   column-gap: 0.45rem;
   font-size: 0.68rem;
   white-space: nowrap;
+}
+
+.market-meta-break {
+  grid-template-columns: 44px 52px minmax(96px, 1fr);
+}
+
+.market-meta-break .session {
+  grid-column: 1 / -1;
+  text-align: left;
+  margin-top: 0.1rem;
 }
 
 .meta-group {

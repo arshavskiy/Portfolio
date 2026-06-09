@@ -6,6 +6,10 @@ export const MARKET_HOURS_BY_GROUP = {
         timezone: 'America/New_York',
         days: [1, 2, 3, 4, 5],
         sessions: [{start: '09:30', end: '16:00'}],
+        extendedSessions: [
+            {label: 'Pre', start: '04:00', end: '09:30'},
+            {label: 'Post', start: '16:00', end: '20:00'},
+        ],
     },
     Israel: {
         key: 'israel',
@@ -81,8 +85,9 @@ function toMinutes(value) {
 function formatClock(date, timezone) {
     return new Intl.DateTimeFormat('en-US', {
         timeZone: timezone,
-        hour: 'numeric',
+        hour: '2-digit',
         minute: '2-digit',
+        hour12: false,
     }).format(date)
 }
 
@@ -143,18 +148,101 @@ function localSessionTimes(market, date, sessions) {
 }
 
 function formatLocalSessionLabel(market, date, sessions) {
-    return localSessionTimes(market, date, sessions)
+    const regularLabel = localSessionTimes(market, date, sessions)
         .map((session) => `<strong>${session.start}</strong>-<strong>${session.end}</strong>`)
         .join(' , ')
+
+    if (!market.extendedSessions?.length) return regularLabel
+
+    const extendedState = getExtendedSessionState(market, date, sessions)
+    const extendedLabel = extendedState?.label
+        ? formatExtendedSessionLabel(market, date, extendedState)
+        : ''
+
+    if (!extendedLabel) return regularLabel
+
+    return `${regularLabel} (${extendedLabel})`
+}
+
+function formatExtendedSessionLabel(market, date, extendedState) {
+    const session = market.extendedSessions.find((item) => item.label === extendedState.label)
+    if (!session) return ''
+
+    if (extendedState.label === 'Post') {
+        if (extendedState.isActive) return `post <strong>${formatDuration(extendedState.remainingMinutes)}</strong> left`
+        if (extendedState.untilEndMinutes != null) return `post until <strong>${formatDuration(extendedState.untilEndMinutes)}</strong>`
+    }
+
+    const [localSession] = localSessionTimes(market, date, [session])
+    if (!localSession) return ''
+
+    return `${extendedState.label.toLowerCase()} <strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
 }
 
 function formatDuration(totalMinutes) {
     if (!Number.isFinite(totalMinutes) || totalMinutes < 0) return ''
-    const hours = Math.floor(totalMinutes / 60)
+    const days = Math.floor(totalMinutes / 1440)
+    const hours = Math.floor((totalMinutes % 1440) / 60)
     const minutes = totalMinutes % 60
+    if (days > 0) {
+        if (hours === 0) return `${days}d`
+        return `${days}d ${hours}h`
+    }
     if (hours <= 0) return `${minutes}m`
     if (minutes === 0) return `${hours}h`
     return `${hours}h ${minutes}m`
+}
+
+function getExtendedSessionState(market, date, sessions) {
+    if (!market.extendedSessions?.length || !sessions.length) return null
+
+    const parts = timeParts(date, market.timezone)
+    const isTradingDay = market.days.includes(parts.weekday)
+    if (!isTradingDay) return null
+
+    const currentMinutes = (parts.hour * 60) + parts.minute
+    const regularStart = sessions[0]?.startMinutes
+    const regularEnd = sessions[sessions.length - 1]?.endMinutes
+    const extendedSessions = market.extendedSessions.map((session) => ({
+        ...session,
+        startMinutes: toMinutes(session.start),
+        endMinutes: toMinutes(session.end),
+    }))
+    const preSession = extendedSessions.find((session) => session.label === 'Pre')
+    const postSession = extendedSessions.find((session) => session.label === 'Post')
+
+    const activeExtended = extendedSessions.find((session) => currentMinutes >= session.startMinutes && currentMinutes < session.endMinutes)
+    if (activeExtended?.label === 'Pre') {
+        return {
+            label: 'Pre',
+            isActive: true,
+            remainingMinutes: activeExtended.endMinutes - currentMinutes,
+        }
+    }
+
+    if (activeExtended?.label === 'Post') {
+        return {
+            label: 'Post',
+            isActive: true,
+            remainingMinutes: activeExtended.endMinutes - currentMinutes,
+        }
+    }
+
+    if (preSession && currentMinutes < preSession.startMinutes) {
+        return {
+            label: 'Pre',
+            untilStartMinutes: preSession.startMinutes - currentMinutes,
+        }
+    }
+
+    if (currentMinutes < regularEnd) {
+        return {
+            label: 'Post',
+            untilEndMinutes: postSession ? postSession.endMinutes - currentMinutes : regularEnd - currentMinutes,
+        }
+    }
+
+    return null
 }
 
 function nextSessionOpen(market, weekday, currentMinutes, sessions) {
@@ -197,9 +285,15 @@ export function getMarketHoursState(market, date = new Date()) {
         : null
     
     const nextOpen = nextSessionOpen(market, parts.weekday, currentMinutes, sessions)
+    const extendedState = getExtendedSessionState(market, date, sessions)
     
     let nextLabel = 'Closed'
-    if (activeSession) nextLabel = `Closes ${activeSession.end}`
+    if (extendedState?.label === 'Pre') {
+        nextLabel = extendedState.isActive
+            ? `Pre until ${formatDuration(extendedState.remainingMinutes)}`
+            : `Pre in ${formatDuration(extendedState.untilStartMinutes)}`
+    } else if (activeSession) nextLabel = `Regular until ${formatDuration(activeSession.endMinutes - currentMinutes)}`
+    else if (extendedState?.label === 'Post' && extendedState.isActive) nextLabel = `Post until ${formatDuration(extendedState.remainingMinutes)}`
     else if (nextOpen) nextLabel = `Opens in ${formatDuration(nextOpen.inMinutes)}`
     
     return {
@@ -208,6 +302,6 @@ export function getMarketHoursState(market, date = new Date()) {
         isOpen: Boolean(activeSession),
         nextLabel,
         closeLabel: localSessionTimes(market, date, sessions).slice(-1)[0]?.end || null,
-        sessionLabel: `${formatLocalSessionLabel(market, date, sessions)} local`,
+        sessionLabel: formatLocalSessionLabel(market, date, sessions),
     }
 }
