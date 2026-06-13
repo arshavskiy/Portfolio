@@ -51,6 +51,11 @@ function pct(n) {
   return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 }
 
+function statusClass(meta) {
+  if (meta.statusTone === 'phase') return 'meta-phase'
+  return meta.statusTone === 'open' ? 'meta-open' : 'meta-closed'
+}
+
 onMounted(() => {
   marketData.fetchMarkets(group.value).catch(() => {})
   timer = setInterval(() => {
@@ -103,8 +108,8 @@ onUnmounted(() => {
         <div v-if="primaryMarketMetas.length" class="market-meta-list">
           <div v-for="meta in primaryMarketMetas" :key="meta.group" :class="{ 'market-meta-break': meta.group === 'US' }" class="market-meta">
             <span class="meta-group">{{ meta.group }}</span>
-            <span :class="meta.isOpen ? 'meta-open' : 'meta-closed'" class="meta-status">
-              {{ meta.isOpen ? 'Open' : 'Closed' }}
+            <span :class="statusClass(meta)" class="meta-status">
+              {{ meta.statusLabel }}
             </span>
             <span class="text-muted">{{ meta.nextLabel }}
             <span class="session text-muted" v-html="meta.sessionLabel" />
@@ -271,6 +276,10 @@ onUnmounted(() => {
 
 .meta-closed {
   color: var(--neon-red);
+}
+
+.meta-phase {
+  color: #93c5fd;
 }
 
 .session {

@@ -168,15 +168,18 @@ function formatExtendedSessionLabel(market, date, extendedState) {
     const session = market.extendedSessions.find((item) => item.label === extendedState.label)
     if (!session) return ''
 
-    if (extendedState.label === 'Post') {
-        if (extendedState.isActive) return `post <strong>${formatDuration(extendedState.remainingMinutes)}</strong> left`
-        if (extendedState.untilEndMinutes != null) return `post until <strong>${formatDuration(extendedState.untilEndMinutes)}</strong>`
-    }
-
     const [localSession] = localSessionTimes(market, date, [session])
     if (!localSession) return ''
 
-    return `${extendedState.label.toLowerCase()} <strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
+    if (extendedState.label === 'Pre') {
+        return `Pre-Market <strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
+    }
+
+    if (extendedState.label === 'Post') {
+        return `After-Hours <strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
+    }
+
+    return `<strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
 }
 
 function formatDuration(totalMinutes) {
@@ -267,6 +270,27 @@ function nextSessionOpen(market, weekday, currentMinutes, sessions) {
     return null
 }
 
+function nextExtendedSessionStart(market, weekday, currentMinutes, label) {
+    if (!market.extendedSessions?.length) return null
+
+    for (let dayOffset = 0; dayOffset < 8; dayOffset++) {
+        const day = (weekday + dayOffset) % 7
+        if (!market.days.includes(day)) continue
+
+        const session = market.extendedSessions.find((item) => item.label === label)
+        if (!session) return null
+
+        const startMinutes = toMinutes(session.start)
+        if (dayOffset === 0 && startMinutes <= currentMinutes) continue
+
+        return {
+            inMinutes: (dayOffset * 1440) + (startMinutes - currentMinutes),
+        }
+    }
+
+    return null
+}
+
 export function getMarketHoursState(market, date = new Date()) {
     if (!market) return null
     
@@ -285,21 +309,49 @@ export function getMarketHoursState(market, date = new Date()) {
         : null
     
     const nextOpen = nextSessionOpen(market, parts.weekday, currentMinutes, sessions)
+    const nextPreMarket = nextExtendedSessionStart(market, parts.weekday, currentMinutes, 'Pre')
     const extendedState = getExtendedSessionState(market, date, sessions)
     
     let nextLabel = 'Closed'
-    if (extendedState?.label === 'Pre') {
-        nextLabel = extendedState.isActive
-            ? `Pre until ${formatDuration(extendedState.remainingMinutes)}`
-            : `Pre in ${formatDuration(extendedState.untilStartMinutes)}`
-    } else if (activeSession) nextLabel = `Regular until ${formatDuration(activeSession.endMinutes - currentMinutes)}`
-    else if (extendedState?.label === 'Post' && extendedState.isActive) nextLabel = `Post until ${formatDuration(extendedState.remainingMinutes)}`
-    else if (nextOpen) nextLabel = `Opens in ${formatDuration(nextOpen.inMinutes)}`
+    let statusLabel = activeSession ? 'Open' : 'Closed'
+    let statusTone = activeSession ? 'open' : 'closed'
+
+    if (market.key === 'us') {
+        if (extendedState?.label === 'Pre') {
+            nextLabel = extendedState.isActive
+                ? `Trading Hours in ${formatDuration(extendedState.remainingMinutes)}`
+                : `Pre-Market in ${formatDuration(extendedState.untilStartMinutes)}`
+            statusLabel = extendedState.isActive ? 'Pre-Market Trading' : 'Before Trade'
+            statusTone = extendedState.isActive ? 'phase' : 'closed'
+        } else if (activeSession) {
+            nextLabel = `After-Hours in ${formatDuration(activeSession.endMinutes - currentMinutes)}`
+            statusLabel = 'Trading Hours'
+            statusTone = 'open'
+        } else if (extendedState?.label === 'Post' && extendedState.isActive) {
+            nextLabel = `Closed in ${formatDuration(extendedState.remainingMinutes)}`
+            statusLabel = 'After-Hours Trading'
+            statusTone = 'phase'
+        } else {
+            nextLabel = nextPreMarket ? `Pre-Market in ${formatDuration(nextPreMarket.inMinutes)}` : 'After Trade'
+            statusLabel = 'After Trade'
+            statusTone = 'closed'
+        }
+    } else {
+        if (extendedState?.label === 'Pre') {
+            nextLabel = extendedState.isActive
+                ? `Pre until ${formatDuration(extendedState.remainingMinutes)}`
+                : `Pre in ${formatDuration(extendedState.untilStartMinutes)}`
+        } else if (activeSession) nextLabel = `Regular until ${formatDuration(activeSession.endMinutes - currentMinutes)}`
+        else if (extendedState?.label === 'Post' && extendedState.isActive) nextLabel = `Post until ${formatDuration(extendedState.remainingMinutes)}`
+        else if (nextOpen) nextLabel = `Opens in ${formatDuration(nextOpen.inMinutes)}`
+    }
     
     return {
         ...market,
         localTime: formatClock(date, market.timezone),
         isOpen: Boolean(activeSession),
+        statusLabel,
+        statusTone,
         nextLabel,
         closeLabel: localSessionTimes(market, date, sessions).slice(-1)[0]?.end || null,
         sessionLabel: formatLocalSessionLabel(market, date, sessions),

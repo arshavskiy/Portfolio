@@ -46,7 +46,10 @@ async function fetchRequest(method, path, body) {
 
   if (!res.ok) {
     const message = typeof data === 'string' ? data : data?.message
-    throw new Error(message || `Request failed (${res.status})`)
+    const error = new Error(message || `Request failed (${res.status})`)
+    error.status = res.status
+    error.responseData = data
+    throw error
   }
 
   return data

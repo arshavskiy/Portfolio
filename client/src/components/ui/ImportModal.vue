@@ -44,7 +44,6 @@ const fields = computed(() =>
         ]
         : [
           {key: 'ticker', label: 'Ticker', required: true},
-          {key: 'companyName', label: 'Company', required: false},
         ]
 )
 
@@ -113,11 +112,19 @@ async function runImport() {
           groups: r.groups?.length ? r.groups : undefined,
         })
       } else {
-        await watchlist.addItemRaw(r.ticker, r.companyName)
+        await watchlist.addItemRaw(r.ticker)
       }
       ok++
-    } catch {
+    } catch (err) {
       failed++
+      if (err?.status >= 300) {
+        toast.add({
+          severity: 'error',
+          summary: `Import failed for ${r.ticker}`,
+          detail: err.message || `Request failed (${err.status})`,
+          life: 4000,
+        })
+      }
     }
     progress.value = Math.round(((ok + failed) / rows.length) * 100)
   }
@@ -209,7 +216,6 @@ function close() {
               <span v-if="isHoldings" class="p-detail text-muted">
                 {{ r.shares ?? '?' }} × {{ r.price ?? '?' }}
               </span>
-              <span v-else class="p-detail text-muted">{{ r.companyName || '' }}</span>
               <span v-if="r.groups?.length" class="p-groups text-muted">{{ r.groups.join(', ') }}</span>
               <i v-if="r.valid" class="pi pi-check ok"/>
               <i v-else :title="r.error" class="pi pi-times bad"/>

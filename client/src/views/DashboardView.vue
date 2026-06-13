@@ -1,12 +1,8 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
-import {usePortfolioStore} from '@/stores/portfolio'
-import {useHistoryStore} from '@/stores/history'
-import {useWatchlistStore} from '@/stores/watchlist'
+import {onMounted, onUnmounted} from 'vue'
+import {storeToRefs} from 'pinia'
+import {useDashboardStore} from '@/stores/dashboard'
 import {useChartRange} from '@/composables/useChartRange'
-import {groupItems} from '@/composables/useGrouping'
-import {useStorage} from '@vueuse/core'
-import api from '@/composables/useApi'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
@@ -16,75 +12,26 @@ import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import NewsCard from "../components/charts/NewsCard.vue";
 
-const RANGE_OPTIONS = [
-  {label: '1W', value: '1wk'},
-  {label: '1M', value: '1mo'},
-]
-
-const HISTORY_RANGES = [
-  {label: '1W', value: '1wk'},
-  {label: '1M', value: '1mo'},
-  {label: '3M', value: '3mo'},
-  {label: '6M', value: '6mo'},
-  {label: '1Y', value: '1y'},
-  {label: 'All', value: 'all'},
-]
-
-const portfolio = usePortfolioStore()
-const historyStore = useHistoryStore()
-const watchlist = useWatchlistStore()
+const dashboard = useDashboardStore()
 const range = useChartRange()
-const sparklines = ref({})
-const groupMode = useStorage('dashboard-group-mode', 'sector')
-const now = ref(new Date())
-let marketTimer = null
-
-const groupedPositions = computed(() => groupItems(portfolio.positions, groupMode.value, now.value))
-
-const historyRange = useStorage('dashboard-history-range', '1mo')
-const history = ref([])
-const historyLoading = ref(false)
-
-async function fetchHistory() {
-  historyLoading.value = true
-  try {
-    history.value = await api.get(`/portfolio/history?range=${encodeURIComponent(historyRange.value)}`)
-  } catch {
-    history.value = []
-  } finally {
-    historyLoading.value = false
-  }
-}
-
-watch(historyRange, fetchHistory)
-watch(() => portfolio.positions.length, fetchHistory)
+const {
+  groupedPositions,
+  portfolioPositions,
+  portfolioLoading,
+  watchlistMoversItems,
+  watchlistMoversLoading,
+  watchlistGainersLosersItems,
+  watchlistGainersLosersLoading,
+  showTrending,
+  showSkeleton,
+  showEmpty,
+} = storeToRefs(dashboard)
 
 onMounted(async () => {
   try {
-    await Promise.all([
-      portfolio.fetchPortfolio(),
-      watchlist.fetchWatchlist(range.value),
-    ])
-    await Promise.all([fetchSparklines(), fetchHistory()])
+    await dashboard.initialize(range)
   } catch {}
-  marketTimer = setInterval(() => {
-    now.value = new Date()
-  }, 60000)
 })
-
-async function fetchSparklines() {
-  const entries = await Promise.all(portfolio.positions.map(async (pos) => {
-    try {
-      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value, 40)]
-    } catch {
-      return null
-    }
-  }))
-  sparklines.value = Object.fromEntries(entries.filter(Boolean))
-}
-
-watch(() => portfolio.positions, fetchSparklines, { deep: true })
-watch(range, fetchSparklines)
 
 function neonStyle(pnlPercent) {
   if (pnlPercent == null) return {}
@@ -99,7 +46,7 @@ function neonStyle(pnlPercent) {
 }
 
 onUnmounted(() => {
-  if (marketTimer) clearInterval(marketTimer)
+  dashboard.stopClock()
 })
 </script>
 
@@ -137,28 +84,28 @@ onUnmounted(() => {
     <MarketsCard />
     <!--    <MarketHoursCard />-->
 
-    <WatchlistMoversCard :items="watchlist.items" :loading="watchlist.loading"/>
-    <WatchlistGainersLosersCard :items="watchlist.items" :loading="watchlist.loading"/>
+    <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
+    <WatchlistGainersLosersCard :items="watchlistGainersLosersItems" :loading="watchlistGainersLosersLoading"/>
 
     <!-- Allocation + movers, unified -->
-    <BreakdownCard :positions="portfolio.positions"/>
+    <BreakdownCard :positions="portfolioPositions"/>
 
-    <template v-if="!portfolio.loading && !portfolio.positions.length">
+    <template v-if="showTrending">
       <TrendingCard />
     </template>
 
     <!-- Market news -->
 <!--    <NewsCard/>-->
 
-    <div v-if="portfolio.loading" class="cards-grid">
+    <div v-if="showSkeleton" class="cards-grid">
       <SkeletonCard v-for="n in 3" :key="n" />
     </div>
 
-    <template v-else>
+<!--    <template v-else>-->
 
       <!-- One card per stock (optionally grouped) -->
-      <template v-for="section in groupedPositions" :key="section.group ?? '_all'">
-        <div v-if="section.group" class="group-header">{{ section.group }}</div>
+<!--      <template v-for="section in groupedPositions" :key="section.group ?? '_all'">-->
+<!--        <div v-if="section.group" class="group-header">{{ section.group }}</div>-->
 <!--        <div class="stock-grid">-->
 <!--        <div-->
 <!--            v-for="pos in section.items"-->
@@ -200,7 +147,7 @@ onUnmounted(() => {
 <!--          </div>-->
 <!--        </div>-->
 <!--        </div>-->
-      </template>
+<!--      </template>-->
 
 <!--      <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />-->
 
@@ -222,11 +169,11 @@ onUnmounted(() => {
       <!--        <PortfolioHistoryChart :data="history" :loading="historyLoading"/>-->
       <!--      </section>-->
 
-      <div v-if="!portfolio.positions.length" class="empty text-muted">
+      <div v-if="showEmpty" class="empty text-muted">
         No holdings yet. Add a transaction to get started, or explore what’s trending.
       </div>
 
-    </template>
+<!--    </template>-->
   </div>
 </template>
 
