@@ -244,7 +244,7 @@ onUnmounted(() => {
 
 .market-meta {
   display: grid;
-  grid-template-columns: 44px 52px minmax(96px, 1fr) minmax(120px, auto);
+  grid-template-columns: 38px 64px minmax(96px, 1fr) minmax(120px, auto);
   align-items: baseline;
   column-gap: 0.45rem;
   font-size: 0.68rem;
@@ -252,7 +252,7 @@ onUnmounted(() => {
 }
 
 .market-meta-break {
-  grid-template-columns: 44px 52px minmax(96px, 1fr);
+  grid-template-columns: 38px 64px minmax(96px, 1fr);
 }
 
 .market-meta-break .session {
