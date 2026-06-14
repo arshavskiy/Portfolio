@@ -333,7 +333,7 @@ export function getMarketHoursState(market, date = new Date()) {
             statusTone = 'phase'
         } else {
             nextLabel = nextPreMarket ? `Pre-Market in ${formatDuration(nextPreMarket.inMinutes)}` : 'After Trade'
-            statusLabel = 'After Trade'
+            statusLabel = 'Closed'
             statusTone = 'closed'
         }
     } else {

@@ -35,6 +35,6 @@ test('US market during after-hours shows close countdown', () => {
 test('US market after after-hours points to the next pre-market stage', () => {
   const state = getMarketHoursState(usMarket, new Date('2026-06-13T01:00:00Z'))
 
-  assert.equal(state.statusLabel, 'After Trade')
+  assert.equal(state.statusLabel, 'Closed')
   assert.equal(state.nextLabel, 'Pre-Market in 2d 7h')
 })

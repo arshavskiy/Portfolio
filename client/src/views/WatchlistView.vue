@@ -1,6 +1,7 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
+import {onBeforeRouteLeave, useRouter} from 'vue-router'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
@@ -15,6 +16,7 @@ import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
+const router = useRouter()
 const range = useChartRange()
 const showModal = ref(false)
 const showImportModal = ref(false)
@@ -23,6 +25,9 @@ const groupItem = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'sector')
 const now = ref(new Date())
 let marketTimer = null
+const WATCHLIST_SCROLL_KEY = 'watchlist-scroll-top'
+const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
+const WATCHLIST_RETURN_KEY = 'watchlist-return-from-stock'
 
 function onImported() {
   watchlist.fetchWatchlist(range.value)
@@ -30,17 +35,76 @@ function onImported() {
 
 const grouped = computed(() => groupItems(watchlist.items, groupMode.value, now.value))
 
+function scrollContainer() {
+  return document.querySelector('.main-content') || document.scrollingElement || document.documentElement
+}
+
+function saveScrollPosition() {
+  sessionStorage.setItem(WATCHLIST_SCROLL_KEY, String(scrollContainer().scrollTop || 0))
+}
+
+function scrollToTop(top) {
+  scrollContainer().scrollTo({top, behavior: 'auto'})
+}
+
+async function waitForLayout() {
+  await nextTick()
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+}
+
+async function restoreScrollPosition() {
+  const shouldRestoreTicker = sessionStorage.getItem(WATCHLIST_RETURN_KEY) === '1'
+  const ticker = sessionStorage.getItem(WATCHLIST_TICKER_KEY)
+  const saved = sessionStorage.getItem(WATCHLIST_SCROLL_KEY)
+  if ((!shouldRestoreTicker || ticker == null) && saved == null) return
+  await waitForLayout()
+
+  if (shouldRestoreTicker && ticker) {
+    const row = [...document.querySelectorAll('[data-watchlist-ticker]')]
+      .find((el) => el.dataset.watchlistTicker === ticker)
+    if (row) {
+      const container = scrollContainer()
+      const containerRect = container.getBoundingClientRect()
+      const top = Math.max(row.getBoundingClientRect().top - containerRect.top + container.scrollTop - 120, 0)
+      scrollToTop(top)
+      return
+    }
+  }
+
+  scrollToTop(Number(saved) || 0)
+}
+
+function openStock(item) {
+  saveScrollPosition()
+  sessionStorage.setItem(WATCHLIST_TICKER_KEY, item.ticker)
+  sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')
+  router.push(`/stock/${encodeURIComponent(item.ticker)}`)
+}
+
 onMounted(() => {
   alerts.fetchAlerts()
-  watchlist.fetchWatchlist(range.value)
+  watchlist.fetchWatchlist(range.value).finally(() => {
+    restoreScrollPosition().catch(() => {})
+  })
   marketTimer = setInterval(() => {
     now.value = new Date()
   }, 60000)
 })
 watch(range, (r) => watchlist.fetchWatchlist(r))
+watch(() => watchlist.loading, (loading) => {
+  if (!loading && watchlist.items.length) restoreScrollPosition().catch(() => {})
+})
 
 onUnmounted(() => {
   if (marketTimer) clearInterval(marketTimer)
+})
+
+onBeforeRouteLeave((to) => {
+  saveScrollPosition()
+  if (to.name !== 'StockDetail') {
+    sessionStorage.removeItem(WATCHLIST_RETURN_KEY)
+  }
 })
 
 function openGroups(item) {
@@ -89,8 +153,10 @@ function onGroupsSaved() {
         <WatchRow
             v-for="item in section.items"
             :key="`${section.group ?? ''}-${item._id}`"
+            :data-watchlist-ticker="item.ticker"
             :item="item"
             @edit-groups="openGroups"
+            @open-stock="openStock"
         />
       </template>
     </div>

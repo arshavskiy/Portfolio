@@ -1,6 +1,5 @@
 <script setup>
 import {computed} from 'vue'
-import {useRouter} from 'vue-router'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
@@ -8,8 +7,7 @@ import SparklineChart from '@/components/charts/SparklineChart.vue'
 const props = defineProps({
   item: {type: Object, required: true},
 })
-const emit = defineEmits(['edit-groups'])
-const router = useRouter()
+const emit = defineEmits(['edit-groups', 'open-stock'])
 const alerts = useAlertsStore()
 
 // Active price alerts on this ticker → drives the bell indicator.
@@ -30,7 +28,7 @@ const rangeChangePercent = computed(() => {
 </script>
 
 <template>
-  <div class="watch-row" @click="router.push(`/stock/${item.ticker}`)">
+  <div class="watch-row" @click="emit('open-stock', item)">
     <div class="row-left">
       <span class="ticker">
         {{ item.ticker }}
