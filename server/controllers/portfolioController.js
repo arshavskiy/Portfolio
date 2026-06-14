@@ -104,6 +104,8 @@ exports.getPortfolio = async (req, res) => {
         pnlPercent,
         change: q.change,
         changePercent: q.changePercent,
+        postMarketChangePercent: q.postMarketChangePercent,
+        preMarketChangePercent: q.preMarketChangePercent,
         dayPnl,
         valueUsd: value * fxRate,
         groups: p.groups || [],

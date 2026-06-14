@@ -32,6 +32,9 @@ const compactRangePercent = computed(() => {
   if (start == null || end == null || start === 0) return props.pos.pnlPercent
   return ((end - start) / start) * 100
 })
+const extendedChangePercent = computed(() =>
+  props.pos.postMarketChangePercent ?? props.pos.preMarketChangePercent ?? null
+)
 </script>
 
 <template>
@@ -76,6 +79,16 @@ const compactRangePercent = computed(() => {
       <span :class="compactRangePercent >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(compactRangePercent) }}
       </span>
+      <span
+          v-if="extendedChangePercent != null"
+          :class="extendedChangePercent >= 0 ? 'extended-gain' : 'extended-loss'"
+          class="extended-change"
+      >
+        <span class="extended-icon">
+          <i class="pi pi-sun"/>
+        </span>
+        {{ usePercent(extendedChangePercent) }}
+      </span>
     </div>
 
   </div>
@@ -108,6 +121,16 @@ const compactRangePercent = computed(() => {
         <span class="value">{{ useTickerCurrency(pos.value, pos.ticker) }}</span>
         <span :class="gainLossClass(pos.pnl)" class="pnl">
           {{ useTickerCurrency(pos.pnl, pos.ticker) }} ({{ usePercent(pos.pnlPercent) }})
+        </span>
+        <span
+            v-if="extendedChangePercent != null"
+            :class="extendedChangePercent >= 0 ? 'extended-gain' : 'extended-loss'"
+            class="extended-change card-extended-change"
+        >
+          <span class="extended-icon">
+            <i class="pi pi-sun"/>
+          </span>
+          {{ usePercent(extendedChangePercent) }}
         </span>
       </div>
     </div>
@@ -180,6 +203,7 @@ const compactRangePercent = computed(() => {
 }
 
 .pnl {
+  display: block;
   font-size: 0.8rem;
 }
 
@@ -209,24 +233,29 @@ const compactRangePercent = computed(() => {
   display: flex;
   align-items: center;
   padding: 0.75rem 0.25rem;
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--border);
+  border-radius: 14px;
   gap: 0.5rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
 .compact-row:active {
   background: rgba(255, 255, 255, 0.03);
+  transform: scale(0.99);
 }
 
 .neon-row-gain {
-  border-left: 3px solid rgba(0, 195, 106, 0.7);
+  border-left: 3px solid rgba(0, 195, 106, 0.8);
   padding-left: 0.5rem;
+  box-shadow: 0 0 14px rgba(0, 195, 106, 0.12), inset 0 0 10px rgba(0, 195, 106, 0.035);
 }
 
 .neon-row-loss {
-  border-left: 3px solid rgba(224, 45, 74, 0.7);
+  border-left: 3px solid rgba(224, 45, 74, 0.8);
   padding-left: 0.5rem;
+  box-shadow: 0 0 14px rgba(224, 45, 74, 0.12), inset 0 0 10px rgba(224, 45, 74, 0.035);
 }
 
 .row-left {
@@ -367,6 +396,44 @@ const compactRangePercent = computed(() => {
 .badge-loss {
   background: #e02d4a;
   color: #fff;
+}
+
+.extended-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.card-extended-change {
+  margin-top: 5px;
+}
+
+.extended-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.28);
+  color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.28);
+}
+
+.extended-icon i {
+  font-size: 0.65rem;
+}
+
+.extended-gain {
+  color: #00c36a;
+}
+
+.extended-loss {
+  color: #e02d4a;
 }
 
 </style>

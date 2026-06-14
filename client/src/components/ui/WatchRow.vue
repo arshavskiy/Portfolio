@@ -25,6 +25,10 @@ const rangeChangePercent = computed(() => {
   }
   return props.item.changePercent ?? null
 })
+
+const extendedChangePercent = computed(() =>
+  props.item.postMarketChangePercent ?? props.item.preMarketChangePercent ?? null
+)
 </script>
 
 <template>
@@ -62,6 +66,16 @@ const rangeChangePercent = computed(() => {
       <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
       <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
+      </span>
+      <span
+          v-if="extendedChangePercent != null"
+          :class="extendedChangePercent >= 0 ? 'extended-gain' : 'extended-loss'"
+          class="extended-change"
+      >
+        <span class="extended-icon">
+          <i class="pi pi-sun"/>
+        </span>
+        {{ usePercent(extendedChangePercent) }}
       </span>
     </div>
   </div>
@@ -213,6 +227,40 @@ const rangeChangePercent = computed(() => {
 .badge-loss {
   background: #e02d4a;
   color: #fff;
+}
+
+.extended-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.extended-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(168, 85, 247, 0.28);
+  color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.28);
+}
+
+.extended-icon i {
+  font-size: 0.65rem;
+}
+
+.extended-gain {
+  color: #00c36a;
+}
+
+.extended-loss {
+  color: #e02d4a;
 }
 
 </style>

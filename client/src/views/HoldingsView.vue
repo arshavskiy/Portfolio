@@ -219,7 +219,7 @@ onUnmounted(() => {
 .positions-compact {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border);
+  gap: 0.65rem;
 }
 
 /* Tile full cards into columns on wider screens (compact stays single-column). */
