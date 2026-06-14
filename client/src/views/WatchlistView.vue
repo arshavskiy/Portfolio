@@ -62,7 +62,7 @@ async function restoreScrollPosition() {
 
   if (shouldRestoreTicker && ticker) {
     const row = [...document.querySelectorAll('[data-watchlist-ticker]')]
-      .find((el) => el.dataset.watchlistTicker === ticker)
+        .find((el) => el.dataset.watchlistTicker === ticker)
     if (row) {
       const container = scrollContainer()
       const containerRect = container.getBoundingClientRect()
@@ -85,7 +85,8 @@ function openStock(item) {
 onMounted(() => {
   alerts.fetchAlerts()
   watchlist.fetchWatchlist(range.value).finally(() => {
-    restoreScrollPosition().catch(() => {})
+    restoreScrollPosition().catch(() => {
+    })
   })
   marketTimer = setInterval(() => {
     now.value = new Date()
@@ -93,7 +94,8 @@ onMounted(() => {
 })
 watch(range, (r) => watchlist.fetchWatchlist(r))
 watch(() => watchlist.loading, (loading) => {
-  if (!loading && watchlist.items.length) restoreScrollPosition().catch(() => {})
+  if (!loading && watchlist.items.length) restoreScrollPosition().catch(() => {
+  })
 })
 
 onUnmounted(() => {
@@ -120,31 +122,38 @@ function onGroupsSaved() {
 
 <template>
   <div class="watchlist safe-bottom">
-    <header class="page-header">
-      <h1 class="gradient-title">Watchlist</h1>
-      <div class="header-actions">
-        <Button
-            v-tooltip.bottom="'Import from file'"
-            icon="pi pi-upload"
-            size="small"
-            text
-            @click="showImportModal = true"
-        />
-        <Button label="Add" outlined size="small" @click="showModal = true"/>
+    <header>
+      <div  class="page-header">
+        <h1 class="gradient-title">Watchlist</h1>
+        <div class="header-actions">
+          <Button
+              v-tooltip.bottom="'Import from file'"
+              icon="pi pi-upload"
+              size="small"
+              text
+              @click="showImportModal = true"
+          />
+          <Button label="Add" outlined size="small" @click="showModal = true"/>
+        </div>
       </div>
+
+
+
+      <div>
+        <RangeBar class="page-range"/>
+        <GroupModeBar v-model="groupMode" class="page-group-mode"/>
+      </div>
+
+
     </header>
-
-    <RangeBar class="page-range" />
-    <GroupModeBar v-model="groupMode" class="page-group-mode" />
-
     <div v-if="watchlist.loading" class="skeleton-list">
       <div v-for="n in 5" :key="n" class="skeleton-row"/>
     </div>
 
     <div v-else-if="!watchlist.items.length" class="empty">
-      <i class="pi pi-eye" />
+      <i class="pi pi-eye"/>
       <p>Your watchlist is empty</p>
-      <Button label="Add Stock" @click="showModal = true" />
+      <Button label="Add Stock" @click="showModal = true"/>
     </div>
 
     <div v-else class="watch-list">
@@ -161,19 +170,22 @@ function onGroupsSaved() {
       </template>
     </div>
 
-    <AddWatchlistModal v-model:visible="showModal" />
+    <AddWatchlistModal v-model:visible="showModal"/>
     <ImportModal v-model:visible="showImportModal" mode="watchlist" @imported="onImported"/>
     <GroupEditModal
-      v-model:visible="showGroupModal"
-      :item="groupItem"
-      mode="watchlist"
-      @saved="onGroupsSaved"
+        v-model:visible="showGroupModal"
+        :item="groupItem"
+        mode="watchlist"
+        @saved="onGroupsSaved"
     />
   </div>
 </template>
 
 <style scoped>
-.watchlist { padding: 1rem; }
+.watchlist {
+  padding: 1rem;
+}
+
 @media (min-width: 768px) {
   .watchlist {
     padding: 1.5rem;
@@ -224,13 +236,17 @@ function onGroupsSaved() {
   padding: 4rem 1rem;
   color: var(--text-secondary);
 }
-.empty i { font-size: 3rem; }
+
+.empty i {
+  font-size: 3rem;
+}
 
 .skeleton-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
+
 .skeleton-row {
   height: 60px;
   background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%);

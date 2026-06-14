@@ -22,29 +22,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
   let marketTimer = null
   let initialized = false
 
-  function dailyChangePercentOf(item) {
-    return typeof item?.changePercent === 'number' ? item.changePercent : null
-  }
-
   const portfolioPositions = computed(() => portfolio.positions)
   const portfolioTotals = computed(() => portfolio.totals)
   const portfolioCombinedUsd = computed(() => portfolio.combinedUsd)
   const portfolioLoading = computed(() => portfolio.loading)
   const watchlistItems = computed(() => watchlist.items)
   const watchlistLoading = computed(() => watchlist.loading)
-  const watchlistMoversItems = computed(() => {
-    const source = watchlist.items
-      .filter((item) => item?.ticker && dailyChangePercentOf(item) != null)
-      .sort((a, b) => dailyChangePercentOf(b) - dailyChangePercentOf(a))
-
-    const gainers = source.filter((item) => dailyChangePercentOf(item) >= 0).slice(0, 4)
-    const loser = [...source].reverse().find((item) => dailyChangePercentOf(item) < 0)
-    const merged = loser ? [...gainers, loser] : gainers
-
-    return merged
-      .filter((item, index, arr) => arr.findIndex((entry) => entry.ticker === item.ticker) === index)
-      .slice(0, 5)
-  })
+  const watchlistMoversItems = computed(() => watchlist.items)
   const watchlistMoversLoading = computed(() => watchlist.loading)
   const watchlistGainersLosersItems = computed(() => watchlist.items)
   const watchlistGainersLosersLoading = computed(() => watchlist.loading)

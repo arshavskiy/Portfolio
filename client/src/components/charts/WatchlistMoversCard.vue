@@ -9,24 +9,29 @@ const props = defineProps({
 
 const router = useRouter()
 
-const movers = computed(() => {
-  const source = props.items
-      .filter((item) => item?.ticker && item.changePercent != null)
-      .sort((a, b) => b.changePercent - a.changePercent)
+const gainers = computed(() =>
+  props.items
+    .filter((item) => item?.ticker && item.changePercent != null && item.changePercent >= 0)
+    .sort((a, b) => b.changePercent - a.changePercent)
+    .slice(0, 5)
+)
 
-  const gainers = source.filter((item) => item.changePercent >= 0).slice(0, 4)
-  const loser = [...source].reverse().find((item) => item.changePercent < 0)
-  const merged = loser ? [...gainers, loser] : gainers
+const losers = computed(() =>
+  props.items
+    .filter((item) => item?.ticker && item.changePercent != null && item.changePercent < 0)
+    .sort((a, b) => a.changePercent - b.changePercent)
+    .slice(0, 5)
+)
 
-  return merged
-      .filter((item, index, arr) => arr.findIndex((entry) => entry.ticker === item.ticker) === index)
-      .slice(0, 5)
-})
-
-const maxAbs = computed(() => Math.max(...movers.value.map((item) => Math.abs(item.changePercent)), 1))
+const hasMovers = computed(() => gainers.value.length || losers.value.length)
+const maxAbs = computed(() => Math.max(
+  ...gainers.value.map((item) => Math.abs(item.changePercent)),
+  ...losers.value.map((item) => Math.abs(item.changePercent)),
+  1
+))
 
 function barStyle(item) {
-  const height = `${Math.max(18, (Math.abs(item.changePercent) / maxAbs.value) * 92)}px`
+  const height = `${Math.max(16, (Math.abs(item.changePercent) / maxAbs.value) * 86)}px`
   return {
     height,
     background: item.changePercent >= 0
@@ -48,35 +53,50 @@ function openStock(item) {
 </script>
 
 <template>
-  <section v-if="loading || movers.length" class="movers-card">
+  <section v-if="loading || hasMovers" class="movers-card">
     <div class="movers-head">
       <h2 class="card-title">Top Movers</h2>
       <span class="text-muted head-note">From your watchlist</span>
     </div>
 
-    <div v-if="loading && !movers.length" class="movers-grid">
-      <div v-for="n in 5" :key="n" class="mover-col skeleton"/>
+    <div v-if="loading && !hasMovers" class="movers-chart skeleton-chart">
+      <div v-for="n in 10" :key="n" class="mover-col skeleton"/>
     </div>
 
-    <div v-else class="movers-grid">
+    <div v-else class="movers-chart">
+      <div class="movers-row gainers-row">
+        <button
+            v-for="item in gainers"
+            :key="item.ticker"
+            class="mover-col"
+            type="button"
+            @click="openStock(item)"
+        >
+          <span class="pct-label pct-up">{{ pct(item.changePercent) }}</span>
+          <div class="bar-wrap up">
+            <div :style="barStyle(item)" class="bar"/>
+          </div>
+          <span class="ticker">{{ item.ticker }}</span>
+        </button>
+      </div>
+
       <div class="zero-line"/>
-      <button
-          v-for="item in movers"
-          :key="item.ticker"
-          class="mover-col"
-          type="button"
-          @click="openStock(item)"
-      >
-        <span :class="item.changePercent >= 0 ? 'pct-up' : 'pct-down'" class="pct-label">
-          {{ pct(item.changePercent) }}
-        </span>
 
-        <div :class="item.changePercent >= 0 ? 'bar-wrap up' : 'bar-wrap down'" class="bar-wrap">
-          <div :style="barStyle(item)" class="bar"/>
-        </div>
-
-        <span class="ticker">{{ item.ticker }}</span>
-      </button>
+      <div class="movers-row losers-row">
+        <button
+            v-for="item in losers"
+            :key="item.ticker"
+            class="mover-col"
+            type="button"
+            @click="openStock(item)"
+        >
+          <span class="ticker">{{ item.ticker }}</span>
+          <div class="bar-wrap down">
+            <div :style="barStyle(item)" class="bar"/>
+          </div>
+          <span class="pct-label pct-down">{{ pct(item.changePercent) }}</span>
+        </button>
+      </div>
     </div>
   </section>
 </template>
@@ -115,20 +135,31 @@ function openStock(item) {
   font-size: 0.72rem;
 }
 
-.movers-grid {
+.movers-chart {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 260px;
+}
+
+.movers-row {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.65rem;
-  min-height: 140px;
-  align-items: stretch;
+  min-height: 118px;
+}
+
+.gainers-row {
+  align-items: end;
+}
+
+.losers-row {
+  align-items: start;
 }
 
 .zero-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
+  width: 100%;
   height: 1px;
   background: rgba(148, 163, 184, 0.24);
   pointer-events: none;
@@ -140,8 +171,8 @@ function openStock(item) {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.55rem;
+  justify-content: flex-end;
+  gap: 0.4rem;
   padding: 0;
   border: none;
   background: none;
@@ -167,7 +198,7 @@ function openStock(item) {
 .bar-wrap {
   position: relative;
   width: 100%;
-  flex: 1;
+  min-height: 82px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -194,11 +225,17 @@ function openStock(item) {
 }
 
 .skeleton {
-  min-height: 220px;
+  min-height: 118px;
   border-radius: 12px;
   background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
+}
+
+.skeleton-chart {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.65rem;
 }
 
 @keyframes shimmer {

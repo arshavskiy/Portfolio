@@ -85,7 +85,6 @@ const rangeChangePercent = computed(() => {
 .row-left {
   display: flex;
   flex-direction: column;
-  min-width: 90px;
   flex: 0 0 90px;
 }
 
@@ -122,7 +121,7 @@ const rangeChangePercent = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 90px;
+  /* max-width: 90px; */
 }
 
 .group-tags {

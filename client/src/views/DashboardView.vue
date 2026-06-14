@@ -85,7 +85,7 @@ onUnmounted(() => {
     <!--    <MarketHoursCard />-->
 
     <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
-    <WatchlistGainersLosersCard :items="watchlistGainersLosersItems" :loading="watchlistGainersLosersLoading"/>
+<!--    <WatchlistGainersLosersCard :items="watchlistGainersLosersItems" :loading="watchlistGainersLosersLoading"/>-->
 
     <!-- Allocation + movers, unified -->
     <BreakdownCard :positions="portfolioPositions"/>
