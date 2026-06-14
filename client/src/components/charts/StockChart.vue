@@ -564,7 +564,44 @@ function draw() {
     } : null
   }
 
-  const selectionLayer = g.append('g')
+  const selectionLayer = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+  function selectionDrag(index, point) {
+    return d3.drag()
+      .on('start', () => {
+        draggingSelection.value = true
+        dragStartPoints.value = [...selectedPoints.value]
+        dragPreview.value = { index, point }
+        showFocusAt(point, true)
+      })
+      .on('drag', (event) => {
+        const source = event?.sourceEvent ?? event
+        const localX = localPointerX(source, svgRef.value) ?? event?.x
+        const draggedPoint = Number.isFinite(localX)
+          ? pickNearestPoint(localX, parsed, x, bisect, margin.left)
+          : null
+        if (!draggedPoint) return
+
+        dragPreview.value = { index, point: draggedPoint }
+        showFocusAt(draggedPoint, true)
+      })
+      .on('end', () => {
+        if (dragPreview.value?.point) {
+          const next = dragStartPoints.value.length
+            ? [...dragStartPoints.value]
+            : [...selectedPoints.value]
+          next[index] = dragPreview.value.point
+          setSelectedPoints(next.sort((a, b) => new Date(a.date) - new Date(b.date)))
+          nextTick(draw)
+        }
+        dragPreview.value = null
+        dragStartPoints.value = []
+        dragPreviewPill.value = null
+        suppressClickUntil.value = Date.now() + 250
+        draggingSelection.value = false
+        focus.style('display', 'none')
+      })
+  }
+
   const renderSelections = () => {
     selectionLayer.selectAll('*').remove()
 
@@ -579,6 +616,18 @@ function draw() {
       const labelX = Math.min(Math.max(desiredLabelX, 0), w - labelWidth)
       const labelY = Math.min(Math.max(cy - labelHeight - 8, 4), h - labelHeight - 4)
 
+      const dragBehavior = selectionDrag(index, point)
+
+      selectionLayer.append('rect')
+        .attr('class', 'selection-hit-area')
+        .attr('x', Math.max(0, cx - 12))
+        .attr('y', 0)
+        .attr('width', Math.min(24, w - Math.max(0, cx - 12)))
+        .attr('height', showVolume ? volumeBottom : h)
+        .attr('fill', 'transparent')
+        .style('cursor', 'ew-resize')
+        .call(dragBehavior)
+
       selectionLayer.append('line')
         .attr('x1', cx)
         .attr('x2', cx)
@@ -586,6 +635,8 @@ function draw() {
         .attr('y2', showVolume ? volumeBottom : h)
         .attr('stroke', stroke)
         .attr('stroke-width', 1.5)
+        .style('cursor', 'ew-resize')
+        .call(dragBehavior)
 
       selectionLayer.append('circle')
         .attr('class', 'selection-handle')
@@ -596,42 +647,7 @@ function draw() {
         .attr('stroke', '#0f172a')
         .attr('stroke-width', 2)
         .style('cursor', 'ew-resize')
-        .call(
-          d3.drag()
-            .on('start', () => {
-              draggingSelection.value = true
-              dragStartPoints.value = [...selectedPoints.value]
-              dragPreview.value = { index, point }
-              showFocusAt(point, true)
-            })
-            .on('drag', (event) => {
-              const source = event?.sourceEvent ?? event
-              const localX = localPointerX(source, svgRef.value) ?? event?.x
-              const draggedPoint = Number.isFinite(localX)
-                ? pickNearestPoint(localX, parsed, x, bisect, margin.left)
-                : null
-              if (!draggedPoint) return
-
-              dragPreview.value = { index, point: draggedPoint }
-              showFocusAt(draggedPoint, true)
-            })
-            .on('end', () => {
-              if (dragPreview.value?.point) {
-                const next = dragStartPoints.value.length
-                  ? [...dragStartPoints.value]
-                  : [...selectedPoints.value]
-                next[index] = dragPreview.value.point
-                setSelectedPoints(next.sort((a, b) => new Date(a.date) - new Date(b.date)))
-                nextTick(draw)
-              }
-              dragPreview.value = null
-              dragStartPoints.value = []
-              dragPreviewPill.value = null
-              suppressClickUntil.value = Date.now() + 250
-              draggingSelection.value = false
-              focus.style('display', 'none')
-            })
-        )
+        .call(dragBehavior)
 
       selectionLayer.append('rect')
         .attr('x', labelX)
@@ -641,6 +657,8 @@ function draw() {
         .attr('rx', 7)
         .attr('fill', '#e5e7eb')
         .attr('opacity', 0.94)
+        .style('cursor', 'ew-resize')
+        .call(dragBehavior)
 
       selectionLayer.append('text')
         .attr('x', labelX + labelWidth / 2)
@@ -649,7 +667,10 @@ function draw() {
         .attr('fill', '#0f172a')
         .attr('font-size', '9')
         .attr('font-weight', 700)
+        .style('cursor', 'ew-resize')
+        .style('user-select', 'none')
         .text(label)
+        .call(dragBehavior)
     })
 
   }
