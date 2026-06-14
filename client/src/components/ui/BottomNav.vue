@@ -50,8 +50,8 @@ function isActive(tab) {
   right: 0;
   height: calc(var(--nav-height) + var(--safe-bottom));
   padding-bottom: var(--safe-bottom);
-  background: var(--bg-secondary);
-  border-top: 1px solid var(--border);
+  /* background: var(--bg-secondary); */
+  /* border-top: 1px solid var(--border); */
   z-index: 100;
 }
 
