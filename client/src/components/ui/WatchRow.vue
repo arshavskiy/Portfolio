@@ -26,9 +26,22 @@ const rangeChangePercent = computed(() => {
   return props.item.changePercent ?? null
 })
 
-const extendedChangePercent = computed(() =>
-  props.item.postMarketChangePercent ?? props.item.preMarketChangePercent ?? null
-)
+function calculateExtendedChangePercent(price, change) {
+  if (price == null || change == null) return null
+  const previous = price - change
+  if (!Number.isFinite(previous) || previous === 0) return null
+  return (change / previous) * 100
+}
+
+const extendedChangePercent = computed(() => {
+  if (props.item.postMarketChangePercent != null) return props.item.postMarketChangePercent
+  if (props.item.preMarketChangePercent != null) return props.item.preMarketChangePercent
+
+  return calculateExtendedChangePercent(
+    props.item.postMarketPrice ?? props.item.preMarketPrice,
+    props.item.postMarketChange ?? props.item.preMarketChange
+  )
+})
 </script>
 
 <template>
