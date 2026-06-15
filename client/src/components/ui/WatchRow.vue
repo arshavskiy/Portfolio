@@ -135,7 +135,7 @@ const extendedChangePercent = computed(() =>
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  /* max-width: 90px; */
+  max-width: 130px;
 }
 
 .group-tags {
