@@ -176,7 +176,7 @@ function formatExtendedSessionLabel(market, date, extendedState) {
     }
 
     if (extendedState.label === 'Post') {
-        return `After-Hours <strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
+        return ` <strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
     }
 
     return `<strong>${localSession.start}</strong>-<strong>${localSession.end}</strong>`
@@ -319,13 +319,13 @@ export function getMarketHoursState(market, date = new Date()) {
     if (market.key === 'us') {
         if (extendedState?.label === 'Pre') {
             nextLabel = extendedState.isActive
-                ? `Trading Hours in ${formatDuration(extendedState.remainingMinutes)}`
+                ? `Open in ${formatDuration(extendedState.remainingMinutes)}`
                 : `Pre-Market in ${formatDuration(extendedState.untilStartMinutes)}`
             statusLabel = extendedState.isActive ? 'Pre-Market Trading' : 'Before Trade'
             statusTone = extendedState.isActive ? 'phase' : 'closed'
         } else if (activeSession) {
             nextLabel = `After-Hours in ${formatDuration(activeSession.endMinutes - currentMinutes)}`
-            statusLabel = 'Trading Hours'
+            statusLabel = 'Open'
             statusTone = 'open'
         } else if (extendedState?.label === 'Post' && extendedState.isActive) {
             nextLabel = `Closed in ${formatDuration(extendedState.remainingMinutes)}`

@@ -9,35 +9,56 @@ const props = defineProps({
 
 const router = useRouter()
 
+function moverChangePercent(item) {
+  const start = item?.history?.[0]?.close ?? null
+  const end = item?.price ?? item?.history?.[item.history.length - 1]?.close ?? null
+  if (start != null && end != null && start !== 0) {
+    return ((end - start) / start) * 100
+  }
+  return item?.changePercent ?? null
+}
+
 const gainers = computed(() =>
   props.items
-    .filter((item) => item?.ticker && item.changePercent != null && item.changePercent >= 0)
-    .sort((a, b) => b.changePercent - a.changePercent)
+    .filter((item) => item?.ticker && moverChangePercent(item) != null && moverChangePercent(item) >= 0)
+    .sort((a, b) => moverChangePercent(b) - moverChangePercent(a))
     .slice(0, 5)
 )
 
 const losers = computed(() =>
   props.items
-    .filter((item) => item?.ticker && item.changePercent != null && item.changePercent < 0)
-    .sort((a, b) => a.changePercent - b.changePercent)
+    .filter((item) => item?.ticker && moverChangePercent(item) != null && moverChangePercent(item) < 0)
+    .sort((a, b) => moverChangePercent(a) - moverChangePercent(b))
     .slice(0, 5)
 )
 
 const hasMovers = computed(() => gainers.value.length || losers.value.length)
-const maxAbs = computed(() => Math.max(
-  ...gainers.value.map((item) => Math.abs(item.changePercent)),
-  ...losers.value.map((item) => Math.abs(item.changePercent)),
+const moverPairs = computed(() =>
+  Array.from({length: 5}, (_, index) => ({
+    gainer: gainers.value[index] || null,
+    loser: losers.value[index] || null,
+  }))
+)
+const maxGain = computed(() => Math.max(
+  ...gainers.value.map((item) => Math.abs(moverChangePercent(item))),
+  1
+))
+
+const maxLoss = computed(() => Math.max(
+  ...losers.value.map((item) => Math.abs(moverChangePercent(item))),
   1
 ))
 
 function barStyle(item) {
-  const height = `${Math.max(16, (Math.abs(item.changePercent) / maxAbs.value) * 86)}px`
+  const changePercent = moverChangePercent(item)
+  const scale = changePercent >= 0 ? maxGain.value : maxLoss.value
+  const height = `${Math.max(16, (Math.abs(changePercent) / scale) * 86)}px`
   return {
     height,
-    background: item.changePercent >= 0
+    background: changePercent >= 0
         ? 'linear-gradient(180deg, rgba(52, 211, 153, 0.95), rgba(16, 185, 129, 0.75))'
         : 'linear-gradient(180deg, rgba(248, 113, 113, 0.95), rgba(239, 68, 68, 0.78))',
-    boxShadow: item.changePercent >= 0
+    boxShadow: changePercent >= 0
         ? '0 0 16px rgba(16, 185, 129, 0.28)'
         : '0 0 16px rgba(239, 68, 68, 0.25)',
   }
@@ -64,38 +85,37 @@ function openStock(item) {
     </div>
 
     <div v-else class="movers-chart">
-      <div class="movers-row gainers-row">
-        <button
-            v-for="item in gainers"
-            :key="item.ticker"
-            class="mover-col"
-            type="button"
-            @click="openStock(item)"
-        >
-          <span class="pct-label pct-up">{{ pct(item.changePercent) }}</span>
-          <div class="bar-wrap up">
-            <div :style="barStyle(item)" class="bar"/>
-          </div>
-          <span class="ticker">{{ item.ticker }}</span>
-        </button>
-      </div>
-
       <div class="zero-line"/>
+      <div class="movers-pairs">
+        <div v-for="(pair, index) in moverPairs" :key="index" class="mover-pair">
+          <button
+              v-if="pair.gainer"
+              class="mover-half mover-up"
+              type="button"
+              @click="openStock(pair.gainer)"
+          >
+            <span class="mover-label label-up">
+              <span class="ticker">{{ pair.gainer.ticker }}</span>
+              <span class="pct-label pct-up">{{ pct(moverChangePercent(pair.gainer)) }}</span>
+            </span>
+            <div :style="barStyle(pair.gainer)" class="bar"/>
+          </button>
+          <div v-else class="mover-half mover-up empty-half"/>
 
-      <div class="movers-row losers-row">
-        <button
-            v-for="item in losers"
-            :key="item.ticker"
-            class="mover-col"
-            type="button"
-            @click="openStock(item)"
-        >
-          <span class="ticker">{{ item.ticker }}</span>
-          <div class="bar-wrap down">
-            <div :style="barStyle(item)" class="bar"/>
-          </div>
-          <span class="pct-label pct-down">{{ pct(item.changePercent) }}</span>
-        </button>
+          <button
+              v-if="pair.loser"
+              class="mover-half mover-down"
+              type="button"
+              @click="openStock(pair.loser)"
+          >
+            <div :style="barStyle(pair.loser)" class="bar"/>
+            <span class="mover-label label-down">
+              <span class="ticker">{{ pair.loser.ticker }}</span>
+              <span class="pct-label pct-down">{{ pct(moverChangePercent(pair.loser)) }}</span>
+            </span>
+          </button>
+          <div v-else class="mover-half mover-down empty-half"/>
+        </div>
       </div>
     </div>
   </section>
@@ -137,37 +157,38 @@ function openStock(item) {
 
 .movers-chart {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
   min-height: 260px;
 }
 
-.movers-row {
+.movers-pairs {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.65rem;
-  min-height: 118px;
-}
-
-.gainers-row {
-  align-items: end;
-}
-
-.losers-row {
-  align-items: start;
+  min-height: 260px;
 }
 
 .zero-line {
-  width: 100%;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
   height: 1px;
   background: rgba(148, 163, 184, 0.24);
   pointer-events: none;
 }
 
-.mover-col {
+.mover-pair {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.mover-half {
+  width: 100%;
+  min-height: 130px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -180,8 +201,37 @@ function openStock(item) {
   cursor: pointer;
 }
 
+.mover-up {
+  justify-content: flex-end;
+  padding-bottom: 0;
+}
+
+.mover-down {
+  justify-content: flex-start;
+  padding-top: 0;
+}
+
+.empty-half {
+  cursor: default;
+}
+
+.mover-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-height: 35px;
+}
+
+.label-up {
+  margin-bottom: 0.15rem;
+}
+
+.label-down {
+  margin-top: 0.15rem;
+}
+
 .pct-label {
-  min-height: 18px;
   font-size: 0.82rem;
   font-weight: 700;
   text-shadow: 0 0 10px rgba(15, 23, 42, 0.6);
@@ -195,26 +245,13 @@ function openStock(item) {
   color: #f87171;
 }
 
-.bar-wrap {
-  position: relative;
-  width: 100%;
-  min-height: 82px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.bar-wrap.up {
-  align-items: flex-end;
-}
-
-.bar-wrap.down {
-  align-items: flex-start;
-}
-
 .bar {
   width: min(18px, 100%);
-  border-radius: 4px;
+  border-radius: 4px 4px 0 0;
+}
+
+.mover-down .bar {
+  border-radius: 0 0 4px 4px;
 }
 
 .ticker {

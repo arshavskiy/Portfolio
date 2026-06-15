@@ -1,9 +1,9 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {useToast} from 'primevue/usetoast'
 import {useConfirm} from 'primevue/useconfirm'
 import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useSafeToast} from '@/composables/useSafeToast'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useHistoryStore} from '@/stores/history'
 import {usePortfolioStore} from '@/stores/portfolio'
@@ -18,7 +18,7 @@ import AlertModal from '@/components/ui/AlertModal.vue'
 
 const route = useRoute()
 const router = useRouter()
-const toast = useToast()
+const toast = useSafeToast()
 const confirm = useConfirm()
 const watchlist = useWatchlistStore()
 const historyStore = useHistoryStore()
@@ -80,7 +80,7 @@ const rangeChange = computed(() => {
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const shekelValue = computed(() => {
   if (quote.value?.price == null) return null
-  if (marketGroup.value === 'Israel') return null
+  if (marketGroup.value === 'Israel' || marketGroup.value === 'US') return null
   if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
   return quote.value.price / ilsToUsd.value
 })
@@ -131,7 +131,7 @@ const extendedHours = computed(() => {
 
   return {
     ...source,
-    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel'
+    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel' && marketGroup.value !== 'US'
       ? source.price / ilsToUsd.value
       : null,
     timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),

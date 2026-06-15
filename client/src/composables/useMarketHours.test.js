@@ -15,13 +15,13 @@ test('US market during pre-market shows trading-hours countdown', () => {
   const state = getMarketHoursState(usMarket, new Date('2026-06-12T12:00:00Z'))
 
   assert.equal(state.statusLabel, 'Pre-Market Trading')
-  assert.equal(state.nextLabel, 'Trading Hours in 1h 30m')
+  assert.equal(state.nextLabel, 'Open in 1h 30m')
 })
 
 test('US market during regular trading shows after-hours countdown', () => {
   const state = getMarketHoursState(usMarket, new Date('2026-06-12T15:00:00Z'))
 
-  assert.equal(state.statusLabel, 'Trading Hours')
+  assert.equal(state.statusLabel, 'Open')
   assert.equal(state.nextLabel, 'After-Hours in 5h')
 })
 
