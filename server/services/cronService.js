@@ -43,20 +43,42 @@ async function checkAlerts() {
     }
 }
 
+// All US-session crons are pinned to Eastern time so the schedules mean what
+// they say regardless of the host timezone (Railway runs UTC).
+const ET = {timezone: 'America/New_York'}
+
+// Refresh quotes for every held ticker. Each getQuote also persists any fresh
+// extended-hours values (see stockService.saveExtendedSnapshot).
+async function refreshQuotes(label, {force = false} = {}) {
+    const positions = await Position.distinct('ticker')
+    if (!positions.length) return
+    await getQuotes(positions, {force})
+    console.log(`[cron] Refreshed quotes (${label}) for: ${positions.join(', ')}`)
+}
+
 function startCronJobs() {
-    // Refresh quote cache every 5 minutes during US market hours (Mon-Fri).
-  cron.schedule('*/5 14-21 * * 1-5', async () => {
+    // Regular US market hours: 09:30–16:00 ET, Mon–Fri.
+    cron.schedule('*/5 9-16 * * 1-5', async () => {
     try {
-      const positions = await Position.distinct('ticker')
-      if (positions.length > 0) {
-        await getQuotes(positions)
-        console.log(`[cron] Refreshed quotes for: ${positions.join(', ')}`)
-      }
+        await refreshQuotes('regular')
     } catch (err) {
       console.error('[cron] Quote refresh error:', err.message)
     }
-  })
+    }, ET)
     
+    // After-hours close: one run at 19:55 ET — just before the post-market
+    // session ends (20:00 ET), while Yahoo still reports postMarket* fields and
+    // marketState POST, Mon–Fri. Captures the final after-hours price so the
+    // last close is persisted even when no user opens the app. getQuote persists
+    // any fresh extended-hours values it sees (stockService.saveExtendedSnapshot).
+    cron.schedule('55 19 * * 1-5', async () => {
+        try {
+            await refreshQuotes('after-hours close', {force: true})
+        } catch (err) {
+            console.error('[cron] After-hours close refresh error:', err.message)
+        }
+    }, ET)
+
     // Check price alerts every 5 minutes, broader hours (covers TASE + extended).
     cron.schedule('*/5 * * * *', async () => {
         try {

@@ -1,8 +1,12 @@
 const YahooFinance = require('yahoo-finance2').default
 const crypto = require('crypto')
+const ExtendedQuote = require('../models/ExtendedQuote')
 const yahooFinance = new YahooFinance()
 
 const quoteCache = new Map()
+// In-memory mirror of the persisted last-seen extended-hours snapshot per
+// ticker, so the synchronous quote path never waits on the DB. Lazily loaded.
+const extendedSnapshotCache = new Map()
 const profileCache = new Map()
 const historyCache = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
@@ -177,12 +181,72 @@ function selectIntradayRows(rows, ticker, now = new Date()) {
   return grouped.get(sortedKeys[sortedKeys.length - 1]) || rows
 }
 
-async function getQuote(ticker) {
+// Lazily load the persisted extended-hours snapshot for a ticker into memory.
+async function loadExtendedSnapshot(ticker) {
+    const key = ticker.toUpperCase()
+    if (extendedSnapshotCache.has(key)) return extendedSnapshotCache.get(key)
+    let doc = null
+    try {
+        doc = await ExtendedQuote.findOne({ticker: key}).lean()
+    } catch {
+        doc = null
+    }
+    const snapshot = doc
+        ? {
+            postMarketPrice: doc.postMarketPrice,
+            postMarketChange: doc.postMarketChange,
+            postMarketChangePercent: doc.postMarketChangePercent,
+            postMarketTime: doc.postMarketTime,
+            preMarketPrice: doc.preMarketPrice,
+            preMarketChange: doc.preMarketChange,
+            preMarketChangePercent: doc.preMarketChangePercent,
+            preMarketTime: doc.preMarketTime,
+        }
+        : null
+    extendedSnapshotCache.set(key, snapshot)
+    return snapshot
+}
+
+// Persist the latest non-null extended-hours fields (in-memory + DB, fire-and-forget).
+function saveExtendedSnapshot(ticker, fields) {
+    const key = ticker.toUpperCase()
+    const prev = extendedSnapshotCache.get(key) || {}
+    const next = {...prev}
+    let changed = false
+    for (const [k, v] of Object.entries(fields)) {
+        if (v != null && v !== prev[k]) {
+            next[k] = v
+            changed = true
+        }
+    }
+    if (!changed) return
+    extendedSnapshotCache.set(key, next)
+    ExtendedQuote.updateOne({ticker: key}, {$set: {ticker: key, ...next}}, {upsert: true})
+        .catch((err) => console.error('[stockService] extended snapshot save error:', err.message))
+}
+
+async function getQuote(ticker, {force = false} = {}) {
   const cached = quoteCache.get(ticker)
-  if (cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
+    if (!force && cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
 
   const result = await yahooFinance.quote(ticker)
   const f = taFactor(ticker)
+    
+    const live = {
+        postMarketPrice: result.postMarketPrice != null ? result.postMarketPrice / f : null,
+        postMarketChange: result.postMarketChange != null ? result.postMarketChange / f : null,
+        postMarketChangePercent: result.postMarketChangePercent ?? null,
+        postMarketTime: result.postMarketTime ?? null,
+        preMarketPrice: result.preMarketPrice != null ? result.preMarketPrice / f : null,
+        preMarketChange: result.preMarketChange != null ? result.preMarketChange / f : null,
+        preMarketChangePercent: result.preMarketChangePercent ?? null,
+        preMarketTime: result.preMarketTime ?? null,
+    }
+    
+    // Capture any fresh extended-hours values for later, and pull the last-seen
+    // snapshot so we can expose it when Yahoo has dropped the live fields.
+    saveExtendedSnapshot(ticker, live)
+    const snapshot = (await loadExtendedSnapshot(ticker)) || {}
 
   const data = {
     ticker: result.symbol,
@@ -200,22 +264,25 @@ async function getQuote(ticker) {
     week52Low: result.fiftyTwoWeekLow / f,
     pe: result.trailingPE,
     marketState: result.marketState || null,
-    postMarketPrice: result.postMarketPrice != null ? result.postMarketPrice / f : null,
-    postMarketChange: result.postMarketChange != null ? result.postMarketChange / f : null,
-    postMarketChangePercent: result.postMarketChangePercent ?? null,
-    postMarketTime: result.postMarketTime ?? null,
-    preMarketPrice: result.preMarketPrice != null ? result.preMarketPrice / f : null,
-    preMarketChange: result.preMarketChange != null ? result.preMarketChange / f : null,
-    preMarketChangePercent: result.preMarketChangePercent ?? null,
-    preMarketTime: result.preMarketTime ?? null,
+      ...live,
+      // Last-seen extended-hours values, retained across regular hours. Falls back
+      // to live when present so consumers can always read these.
+      lastPostMarketPrice: live.postMarketPrice ?? snapshot.postMarketPrice ?? null,
+      lastPostMarketChange: live.postMarketChange ?? snapshot.postMarketChange ?? null,
+      lastPostMarketChangePercent: live.postMarketChangePercent ?? snapshot.postMarketChangePercent ?? null,
+      lastPostMarketTime: live.postMarketTime ?? snapshot.postMarketTime ?? null,
+      lastPreMarketPrice: live.preMarketPrice ?? snapshot.preMarketPrice ?? null,
+      lastPreMarketChange: live.preMarketChange ?? snapshot.preMarketChange ?? null,
+      lastPreMarketChangePercent: live.preMarketChangePercent ?? snapshot.preMarketChangePercent ?? null,
+      lastPreMarketTime: live.preMarketTime ?? snapshot.preMarketTime ?? null,
   }
 
   quoteCache.set(ticker, { data, ts: Date.now() })
   return data
 }
 
-async function getQuotes(tickers) {
-  return Promise.all(tickers.map((t) => getQuote(t).catch(() => null)))
+async function getQuotes(tickers, opts) {
+    return Promise.all(tickers.map((t) => getQuote(t, opts).catch(() => null)))
 }
 
 async function getHistory(ticker, range = '3mo', points = null) {

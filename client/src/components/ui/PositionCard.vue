@@ -43,9 +43,20 @@ const extendedChangePercent = computed(() => {
   if (props.pos.postMarketChangePercent != null) return props.pos.postMarketChangePercent
   if (props.pos.preMarketChangePercent != null) return props.pos.preMarketChangePercent
 
-  return calculateExtendedChangePercent(
+  const liveDerived = calculateExtendedChangePercent(
     props.pos.postMarketPrice ?? props.pos.preMarketPrice,
     props.pos.postMarketChange ?? props.pos.preMarketChange
+  )
+  if (liveDerived != null) return liveDerived
+
+  // Market is back open and Yahoo dropped the live fields — fall back to the
+  // last-seen extended-hours snapshot persisted server-side.
+  if (props.pos.lastPostMarketChangePercent != null) return props.pos.lastPostMarketChangePercent
+  if (props.pos.lastPreMarketChangePercent != null) return props.pos.lastPreMarketChangePercent
+
+  return calculateExtendedChangePercent(
+      props.pos.lastPostMarketPrice ?? props.pos.lastPreMarketPrice,
+      props.pos.lastPostMarketChange ?? props.pos.lastPreMarketChange
   )
 })
 </script>

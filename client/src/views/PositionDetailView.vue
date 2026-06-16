@@ -247,7 +247,23 @@ const extendedHours = computed(() => {
         changePercent: quote.value.preMarketChangePercent,
         time: quote.value.preMarketTime,
       }
-      : null
+          : quote.value.lastPostMarketPrice != null
+              ? {
+                label: 'After hours (last seen)',
+                price: quote.value.lastPostMarketPrice,
+                change: quote.value.lastPostMarketChange,
+                changePercent: quote.value.lastPostMarketChangePercent,
+                time: quote.value.lastPostMarketTime,
+              }
+              : quote.value.lastPreMarketPrice != null
+                  ? {
+                    label: 'Pre-market (last seen)',
+                    price: quote.value.lastPreMarketPrice,
+                    change: quote.value.lastPreMarketChange,
+                    changePercent: quote.value.lastPreMarketChangePercent,
+                    time: quote.value.lastPreMarketTime,
+                  }
+                  : null
 
   if (!source || source.price == null) return null
 
