@@ -27,9 +27,166 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="StockFolio" />
     <title>StockFolio</title>
+      <style>
+          /* Splash screen — painted before any JS bundle loads, removed once the
+             app's network requests go idle (see script below). */
+          #splash {
+              position: fixed;
+              inset: 0;
+              z-index: 9999;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              gap: 1.1rem;
+              background: #000000;
+              transition: opacity 0.35s ease, visibility 0.35s ease;
+          }
+
+          #splash.splash-hidden {
+              opacity: 0;
+              visibility: hidden;
+              pointer-events: none;
+          }
+
+          #splash .splash-logo {
+              font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+              font-size: 2.1rem;
+              font-weight: 800;
+              letter-spacing: -0.5px;
+              background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              animation: splash-pulse 1.6s ease-in-out infinite;
+          }
+
+          #splash .splash-bar {
+              width: 120px;
+              height: 3px;
+              border-radius: 2px;
+              background: #111111;
+              overflow: hidden;
+          }
+
+          #splash .splash-bar::after {
+              content: '';
+              display: block;
+              width: 40%;
+              height: 100%;
+              border-radius: 2px;
+              background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+              animation: splash-slide 1.2s ease-in-out infinite;
+          }
+
+          @keyframes splash-pulse {
+              0%, 100% {
+                  opacity: 1;
+                  transform: scale(1);
+              }
+              50% {
+                  opacity: 0.75;
+                  transform: scale(0.97);
+              }
+          }
+
+          @keyframes splash-slide {
+              0% {
+                  transform: translateX(-110%);
+              }
+              100% {
+                  transform: translateX(360%);
+              }
+          }
+      </style>
   </head>
   <body>
+  <div id="splash">
+      <div class="splash-logo">StockFolio</div>
+      <div class="splash-bar"></div>
+  </div>
     <div id="app"></div>
+  <script>
+      // Track in-flight fetch/XHR requests so the splash stays up until the
+      // network has been idle for a short stretch — not just "DOM ready".
+      // Patched before any app code runs, so every request the app makes
+      // (api/useApi.js -> fetch) is counted from the very first one.
+      (function () {
+          var pending = 0;
+          var sawRequest = false; // has the app made at least one request yet?
+          var appReady = false; // app dispatched 'app:ready' (e.g. dashboard mounted)
+          var idleTimer = null;
+          var hidden = false;
+          var IDLE_MS = 400;
+          var MAX_WAIT_MS = 8000; // safety net if something hangs/never resolves
+
+          function hideSplash() {
+              if (hidden) return;
+              hidden = true;
+              var el = document.getElementById('splash');
+              if (!el) return;
+              el.classList.add('splash-hidden');
+              setTimeout(function () {
+                  el.remove();
+              }, 400);
+          }
+
+          function maybeHide() {
+              // Only treat "no requests in flight" as idle once we've actually
+              // observed network activity (or the app told us it's ready) —
+              // otherwise the very first check (before main.js has even started
+              // fetching) would hide the splash instantly on every load.
+              if (pending <= 0 && (sawRequest || appReady)) hideSplash();
+          }
+
+          function scheduleIdleCheck() {
+              if (idleTimer) clearTimeout(idleTimer);
+              idleTimer = setTimeout(maybeHide, IDLE_MS);
+          }
+
+          function requestStarted() {
+              sawRequest = true;
+              pending++;
+          }
+
+          function requestFinished() {
+              pending = Math.max(0, pending - 1);
+              scheduleIdleCheck();
+          }
+
+          var nativeFetch = window.fetch;
+          if (nativeFetch) {
+              window.fetch = function () {
+                  requestStarted();
+                  return nativeFetch.apply(this, arguments).finally(requestFinished);
+              };
+          }
+
+          var nativeOpen = XMLHttpRequest.prototype.open;
+          var nativeSend = XMLHttpRequest.prototype.send;
+          XMLHttpRequest.prototype.open = function () {
+              this.__splashTracked = false;
+              return nativeOpen.apply(this, arguments);
+          };
+          XMLHttpRequest.prototype.send = function () {
+              if (!this.__splashTracked) {
+                  this.__splashTracked = true;
+                  requestStarted();
+                  this.addEventListener('loadend', requestFinished, {once: true});
+              }
+              return nativeSend.apply(this, arguments);
+          };
+
+          // Belt-and-suspenders signal: the app itself can dispatch this once
+          // its initial view has mounted, in case a route has no data to fetch.
+          window.addEventListener('app:ready', function () {
+              appReady = true;
+              scheduleIdleCheck();
+          });
+
+          setTimeout(hideSplash, MAX_WAIT_MS);
+      })();
+  </script>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

@@ -36,6 +36,11 @@ onMounted(() => {
   if (!isStandalone() && document.documentElement.requestFullscreen) {
     window.addEventListener('pointerdown', enterFullscreenOnce, { once: true })
   }
+  // Fallback signal for the splash screen (index.html): by the time the
+  // root component mounts, any child view's onMounted fetch has already
+  // been kicked off, so the network-idle tracker has something to wait on.
+  // Covers routes that fetch nothing at all, where idle would never trigger.
+  window.dispatchEvent(new Event('app:ready'))
 })
 onUnmounted(cleanupFs)
 </script>

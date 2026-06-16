@@ -67,7 +67,7 @@ onUnmounted(() => {
 <template>
   <div class="dashboard">
     <header class="dash-header">
-      <h1 class="gradient-title">StockFolio</h1>
+      <h1 class="gradient-title">Dashboard</h1>
       <!--      <PageSettings>-->
       <!--        <SettingsRow icon="pi pi-chart-line" label="Chart range">-->
       <!--          <div class="toggle-group">-->
