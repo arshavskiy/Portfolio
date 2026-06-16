@@ -137,6 +137,16 @@ onMounted(() => {
 })
 watch(() => props.data, () => nextTick(draw), {deep: true})
 watch(() => props.dayPnl, () => nextTick(draw))
+// The <svg> is torn down/recreated by the loading/empty v-if branches in the
+// template, so svgRef goes null while loading. Re-attach the ResizeObserver
+// and redraw once it reappears — otherwise a range switch can leave the old
+// range's chart on screen if data arrives in the same tick as the DOM swap.
+watch(() => props.loading, async (isLoading) => {
+  if (isLoading) return
+  await nextTick()
+  if (ro && wrapRef.value) ro.observe(wrapRef.value)
+  draw()
+})
 </script>
 
 <template>

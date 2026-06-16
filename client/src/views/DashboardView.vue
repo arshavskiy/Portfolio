@@ -2,7 +2,6 @@
 import {onMounted, onUnmounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
-import {useChartRange} from '@/composables/useChartRange'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
 import PortfolioCompareChart from '@/components/charts/PortfolioCompareChart.vue'
@@ -15,7 +14,6 @@ import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import NewsCard from "../components/charts/NewsCard.vue";
 
 const dashboard = useDashboardStore()
-const range = useChartRange()
 const {
   groupedPositions,
   portfolioPositions,
@@ -43,7 +41,7 @@ const HISTORY_RANGES = [
 
 onMounted(async () => {
   try {
-    await dashboard.initialize(range)
+    await dashboard.initialize()
   } catch {}
 })
 
