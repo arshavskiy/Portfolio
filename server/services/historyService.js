@@ -11,27 +11,36 @@ function isIls(ticker) {
     return ticker.toUpperCase().endsWith('.TA')
 }
 
+// Evenly downsample to at most `max` points, always keeping first + last —
+// avoids shipping/rendering thousands of daily points for long "All" ranges.
+function downsample(arr, max) {
+    if (!Array.isArray(arr) || arr.length <= max) return arr
+    const step = (arr.length - 1) / (max - 1)
+    const out = []
+    for (let i = 0; i < max; i++) out.push(arr[Math.round(i * step)])
+    return out
+}
+
 // Reconstruct total portfolio value (USD) for each calendar day in the range by
 // replaying transactions against per-ticker daily close prices. Also tracks the
 // invested cost basis (USD) so the client can draw a value-vs-invested baseline.
 async function getPortfolioHistory(userId, range = '1mo') {
     const txs = await Transaction.find({user: userId}).sort({date: 1}).lean()
     if (!txs.length) return []
-    
-    const days = RANGE_DAYS[range] ?? 30
-    const start = new Date()
-    if (days) start.setDate(start.getDate() - days)
+
+    const days = range in RANGE_DAYS ? RANGE_DAYS[range] : 30
     const firstTxDate = new Date(txs[0].date)
-    const rangeStart = days && start > firstTxDate ? start : firstTxDate
-    
+
     const tickers = [...new Set(txs.map((t) => t.ticker))]
-    
-    const histRange = !days || days > 365 ? '1y' : days <= 30 ? '3mo' : days <= 90 ? '6mo' : '1y'
+
+    // 'all' (days = null) means infinite/unbounded — pull each ticker's full
+    // available price history instead of capping at the usual 1y window.
+    const histRange = !days ? 'max' : days > 365 ? '1y' : days <= 30 ? '3mo' : days <= 90 ? '6mo' : '1y'
     const [histories, ilsToUsd] = await Promise.all([
         Promise.all(tickers.map((t) => getHistory(t, histRange).catch(() => []))),
         getIlsToUsd(),
     ])
-    
+
     const priceMap = {} // ticker -> sorted [{ ts, close }]
     tickers.forEach((t, i) => {
         priceMap[t] = (histories[i] || [])
@@ -39,6 +48,22 @@ async function getPortfolioHistory(userId, range = '1mo') {
             .map((r) => ({ts: new Date(r.date).getTime(), close: r.close}))
             .sort((a, b) => a.ts - b.ts)
     })
+
+    // Don't anchor the start to the first transaction — the chart should be
+    // able to show the period before the user ever bought anything (value/
+    // cost both $0 there), with a marker at the first-buy date instead. For a
+    // bounded range that's simply "today - days"; for 'all' it's the earliest
+    // price data we have for any held ticker.
+    let rangeStart
+    if (days) {
+        rangeStart = new Date()
+        rangeStart.setDate(rangeStart.getDate() - days)
+    } else {
+        const earliestPriceTs = Math.min(
+            ...tickers.map((t) => priceMap[t]?.[0]?.ts ?? Infinity)
+        )
+        rangeStart = Number.isFinite(earliestPriceTs) ? new Date(earliestPriceTs) : firstTxDate
+    }
     
     function closeOnOrBefore(ticker, ts) {
         const arr = priceMap[ticker]
@@ -96,8 +121,11 @@ async function getPortfolioHistory(userId, range = '1mo') {
         })
         cursor.setDate(cursor.getDate() + 1)
     }
-    
-    return points
+
+    // Tag every point with the first-buy date so the client can draw a
+    // marker line there, even if that exact day got dropped by downsampling.
+    const firstBuyDate = dayKey(firstTxDate)
+    return downsample(points, 500).map((p) => ({...p, firstBuyDate}))
 }
 
 module.exports = {getPortfolioHistory}

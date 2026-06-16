@@ -3,8 +3,11 @@ import {nextTick, onMounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
-  data: {type: Array, default: () => []}, // [{ date, value, cost }]
+  data: {type: Array, default: () => []}, // [{ date, value, cost, firstBuyDate }]
   loading: {type: Boolean, default: false},
+  // Live day P&L (USD) from the portfolio totals — authoritative "today
+  // red/green" signal, matching what the rest of the dashboard shows.
+  dayPnl: {type: Number, default: null},
 })
 
 const svgRef = ref(null)
@@ -20,9 +23,13 @@ function draw() {
   svg.attr('width', W).attr('height', H)
 
   const data = props.data
-  const first = data[0]
   const last = data[data.length - 1]
-  const isWin = last.value >= (first.value || 0)
+  const prev = data[data.length - 2] ?? last
+  // Color reflects today's actual move, not the move over the whole selected
+  // range — otherwise "All" can show green on a red day just because the
+  // portfolio is up since 1999. Prefer the live dayPnl (matches the rest of
+  // the dashboard); fall back to the history's own last-day close diff.
+  const isWin = props.dayPnl != null ? props.dayPnl >= 0 : last.value >= (prev.value || 0)
   const color = isWin ? '#00ff88' : '#ff3366'
 
   const x = d3.scaleLinear().domain([0, data.length - 1]).range([0, W])
@@ -79,6 +86,29 @@ function draw() {
       .attr('stroke-width', 1.5)
       .attr('filter', `url(#${filterId})`)
       .attr('d', line)
+
+  // First-buy marker: vertical dashed line where the portfolio actually
+  // started, so the $0 stretch before it reads as "pre-buy", not a bug.
+  const firstBuyDate = data[0]?.firstBuyDate
+  if (firstBuyDate && firstBuyDate > data[0].date) {
+    let buyIdx = data.findIndex((d) => d.date >= firstBuyDate)
+    if (buyIdx === -1) buyIdx = data.length - 1
+    const bx = x(buyIdx)
+
+    svg.append('line')
+        .attr('x1', bx).attr('x2', bx)
+        .attr('y1', 0).attr('y2', H)
+        .attr('stroke', '#94a3b8')
+        .attr('stroke-width', 1)
+        .attr('stroke-dasharray', '3 3')
+        .attr('opacity', 0.6)
+
+    svg.append('text')
+        .attr('x', bx + 4).attr('y', 11)
+        .attr('fill', '#94a3b8')
+        .attr('font-size', '9')
+        .text('Buy')
+  }
 }
 
 let ro
@@ -88,6 +118,7 @@ onMounted(() => {
   if (wrapRef.value) ro.observe(wrapRef.value)
 })
 watch(() => props.data, () => nextTick(draw), {deep: true})
+watch(() => props.dayPnl, () => nextTick(draw))
 </script>
 
 <template>

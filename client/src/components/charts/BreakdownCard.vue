@@ -6,6 +6,7 @@ import {useCurrency} from '@/composables/useFormat'
 
 const props = defineProps({
   positions: {type: Array, default: () => []},
+  combinedUsd: {type: Object, default: null},
 })
 
 const router = useRouter()
@@ -18,10 +19,18 @@ const isMixed = computed(() =>
     new Set(props.positions.map((p) => p.currency)).size > 1
 )
 
-// When currencies are mixed, allocate by USD-normalized value (server-provided
-// valueUsd) so a ₪1000 position isn't weighted the same as a $1000 one.
+// When currencies are mixed, allocate by ILS-normalized value so a ₪1000
+// position isn't weighted the same as a $1000 one. The server gives us
+// valueUsd (value converted to USD); convert that to ILS using the same
+// ilsToUsd rate the rest of the app uses (USD = valueUsd / ilsToUsd).
 // Single-currency portfolios keep using native value (valueUsd may be absent).
-const allocValue = (p) => (isMixed.value ? (p.valueUsd ?? p.value) : p.value)
+const allocValue = (p) => {
+  if (!isMixed.value) return p.value
+  if (p.currency === 'ILS') return p.value
+  const ilsToUsd = props.combinedUsd?.ilsToUsd
+  const usd = p.valueUsd ?? p.value
+  return ilsToUsd ? usd / ilsToUsd : usd
+}
 
 const totalValue = computed(() => props.positions.reduce((s, p) => s + allocValue(p), 0))
 
@@ -83,11 +92,12 @@ function draw() {
       .attr('fill', '#94a3b8').attr('font-size', '10').text('Total')
   g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
       .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '700')
-      .text(useCurrency(totalValue.value, isMixed.value ? 'USD' : (props.positions[0]?.currency || 'USD')))
+      .text(useCurrency(totalValue.value, isMixed.value ? 'ILS' : (props.positions[0]?.currency || 'USD')))
 }
 
 onMounted(() => nextTick(draw))
 watch(() => props.positions, () => nextTick(draw), {deep: true})
+watch(() => props.combinedUsd, () => nextTick(draw))
 </script>
 
 <template>

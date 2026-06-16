@@ -17,6 +17,7 @@ const HISTORY_CACHE_TTLS = {
   '3mo': 60 * 60 * 1000,
   '6mo': 60 * 60 * 1000,
   '1y': 60 * 60 * 1000,
+  max: 6 * 60 * 60 * 1000,
 }
 
 // TASE (.TA) prices from Yahoo are in agorot (1/100 shekel) — divide by 100
@@ -346,10 +347,13 @@ async function getHistory(ticker, range = '3mo', points = null) {
     return data
   }
 
-  const rangeMap = { '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365 }
-  const days = rangeMap[range] || 90
-  startDate.setDate(startDate.getDate() - days)
-  
+  // 'max' fetches the ticker's entire available history (no day cap) — used
+  // for the portfolio's "All" range so it isn't clipped to a fixed window.
+  const rangeMap = { '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365, '5y': 365 * 5 }
+  const days = range === 'max' ? null : (rangeMap[range] || 90)
+  if (days) startDate.setDate(startDate.getDate() - days)
+  else startDate.setFullYear(startDate.getFullYear() - 50) // effectively "since listing"
+
   // historical() is deprecated/removed by Yahoo and throws on split-adjusted
   // tickers with null rows (e.g. NVDA). Use chart() — its supported replacement.
   const result = await yahooFinance.chart(ticker, {

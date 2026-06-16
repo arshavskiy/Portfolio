@@ -4,6 +4,7 @@ import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
 import {useChartRange} from '@/composables/useChartRange'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
+import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
 import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
@@ -17,6 +18,7 @@ const range = useChartRange()
 const {
   groupedPositions,
   portfolioPositions,
+  portfolioCombinedUsd,
   portfolioLoading,
   watchlistMoversItems,
   watchlistMoversLoading,
@@ -25,7 +27,17 @@ const {
   showTrending,
   showSkeleton,
   showEmpty,
+  history,
+  historyLoading,
+  historyRange,
 } = storeToRefs(dashboard)
+
+const HISTORY_RANGES = [
+  {label: '1M', value: '1mo'},
+  {label: '6M', value: '6mo'},
+  {label: '1Y', value: '1y'},
+  {label: 'All', value: 'all'},
+]
 
 onMounted(async () => {
   try {
@@ -88,7 +100,7 @@ onUnmounted(() => {
 <!--    <WatchlistGainersLosersCard :items="watchlistGainersLosersItems" :loading="watchlistGainersLosersLoading"/>-->
 
     <!-- Allocation + movers, unified -->
-    <BreakdownCard :positions="portfolioPositions"/>
+    <BreakdownCard :combined-usd="portfolioCombinedUsd" :positions="portfolioPositions"/>
 
     <template v-if="showTrending">
       <TrendingCard />
@@ -152,22 +164,22 @@ onUnmounted(() => {
 <!--      <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />-->
 
       <!-- Portfolio value over time -->
-      <!--      <section v-if="portfolio.positions.length" class="history-card">-->
-      <!--        <div class="history-head">-->
-      <!--          &lt;!&ndash;          <h2 class="section-title">Portfolio Value</h2>&ndash;&gt;-->
-      <!--          <div class="toggle-group">-->
-      <!--            <button-->
-      <!--                v-for="opt in HISTORY_RANGES"-->
-      <!--                :key="opt.value"-->
-      <!--                :class="{ active: historyRange === opt.value }"-->
-      <!--                class="toggle-btn"-->
-      <!--                @click="historyRange = opt.value"-->
-      <!--            >{{ opt.label }}-->
-      <!--            </button>-->
-      <!--          </div>-->
-      <!--        </div>-->
-      <!--        <PortfolioHistoryChart :data="history" :loading="historyLoading"/>-->
-      <!--      </section>-->
+      <section v-if="portfolioPositions.length" class="history-card">
+        <div class="history-head">
+          <h2 class="section-title">Portfolio Value</h2>
+          <div class="toggle-group">
+            <button
+                v-for="opt in HISTORY_RANGES"
+                :key="opt.value"
+                :class="{ active: historyRange === opt.value }"
+                class="toggle-btn"
+                @click="historyRange = opt.value"
+            >{{ opt.label }}
+            </button>
+          </div>
+        </div>
+        <PortfolioHistoryChart :data="history" :day-pnl="portfolioCombinedUsd?.dayPnl" :loading="historyLoading"/>
+      </section>
 
       <div v-if="showEmpty" class="empty text-muted">
         No holdings yet. Add a transaction to get started, or explore what’s trending.
