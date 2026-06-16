@@ -32,9 +32,22 @@ const compactRangePercent = computed(() => {
   if (start == null || end == null || start === 0) return props.pos.pnlPercent
   return ((end - start) / start) * 100
 })
-const extendedChangePercent = computed(() =>
-  props.pos.postMarketChangePercent ?? props.pos.preMarketChangePercent ?? null
-)
+function calculateExtendedChangePercent(price, change) {
+  if (price == null || change == null) return null
+  const previous = price - change
+  if (!Number.isFinite(previous) || previous === 0) return null
+  return (change / previous) * 100
+}
+
+const extendedChangePercent = computed(() => {
+  if (props.pos.postMarketChangePercent != null) return props.pos.postMarketChangePercent
+  if (props.pos.preMarketChangePercent != null) return props.pos.preMarketChangePercent
+
+  return calculateExtendedChangePercent(
+    props.pos.postMarketPrice ?? props.pos.preMarketPrice,
+    props.pos.postMarketChange ?? props.pos.preMarketChange
+  )
+})
 </script>
 
 <template>
