@@ -226,10 +226,9 @@ function saveExtendedSnapshot(ticker, fields) {
         .catch((err) => console.error('[stockService] extended snapshot save error:', err.message))
 }
 
-async function getQuote(ticker, {force = false} = {}) {
-  const cached = quoteCache.get(ticker)
-    if (!force && cached && Date.now() - cached.ts < CACHE_TTL) return cached.data
-
+async function getQuote(ticker) {
+  // No TTL here — quotes are always fetched live from Yahoo so the dashboard
+  // reflects real-time prices on every load instead of a stale 5-min window.
   const result = await yahooFinance.quote(ticker)
   const f = taFactor(ticker)
     
@@ -282,8 +281,8 @@ async function getQuote(ticker, {force = false} = {}) {
   return data
 }
 
-async function getQuotes(tickers, opts) {
-    return Promise.all(tickers.map((t) => getQuote(t, opts).catch(() => null)))
+async function getQuotes(tickers) {
+    return Promise.all(tickers.map((t) => getQuote(t).catch(() => null)))
 }
 
 async function getHistory(ticker, range = '3mo', points = null) {

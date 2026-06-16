@@ -48,11 +48,13 @@ async function checkAlerts() {
 const ET = {timezone: 'America/New_York'}
 
 // Refresh quotes for every held ticker. Each getQuote also persists any fresh
-// extended-hours values (see stockService.saveExtendedSnapshot).
-async function refreshQuotes(label, {force = false} = {}) {
+// extended-hours values (see stockService.saveExtendedSnapshot). getQuote is
+// always live now (no cache), so this just keeps extended-hours snapshots
+// warm — not strictly needed for freshness anymore, but cheap to keep.
+async function refreshQuotes(label) {
     const positions = await Position.distinct('ticker')
     if (!positions.length) return
-    await getQuotes(positions, {force})
+    await getQuotes(positions)
     console.log(`[cron] Refreshed quotes (${label}) for: ${positions.join(', ')}`)
 }
 
@@ -73,7 +75,7 @@ function startCronJobs() {
     // any fresh extended-hours values it sees (stockService.saveExtendedSnapshot).
     cron.schedule('55 19 * * 1-5', async () => {
         try {
-            await refreshQuotes('after-hours close', {force: true})
+            await refreshQuotes('after-hours close')
         } catch (err) {
             console.error('[cron] After-hours close refresh error:', err.message)
         }

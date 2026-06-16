@@ -1,20 +1,12 @@
 /* Custom service worker — precache via Workbox injectManifest + Web Push handlers. */
 import {precacheAndRoute} from 'workbox-precaching'
-import {registerRoute} from 'workbox-routing'
-import {NetworkFirst} from 'workbox-strategies'
-import {ExpirationPlugin} from 'workbox-expiration'
 
 // Injected at build time by vite-plugin-pwa (injectManifest).
 precacheAndRoute(self.__WB_MANIFEST)
 
-// API: network-first with a short-lived cache fallback.
-registerRoute(
-    ({url}) => url.pathname.startsWith('/api/'),
-    new NetworkFirst({
-        cacheName: 'api-cache',
-        plugins: [new ExpirationPlugin({maxEntries: 50, maxAgeSeconds: 300})],
-    })
-)
+// API requests are intentionally not cached/intercepted here — they always
+// go straight to the network so the app shows live data, with no fallback
+// cache layer to go stale. (Offline use of API data is not supported.)
 
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()))
