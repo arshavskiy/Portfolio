@@ -73,6 +73,15 @@
 ### Removing
 - Swipe / delete icon → `DELETE /watchlist/:id`
 
+### Bulk Import (Holdings or Watchlist)
+1. From `HoldingsView` or `WatchlistView`, user opens **Import** → `ImportModal` (`mode="holdings"` or `mode="watchlist"`)
+2. User uploads `.xlsx`/`.xls`/`.csv`/`.docx` (or downloads a pre-filled template first via `downloadTemplate()`)
+3. `useImport.parseFile()` reads the file (SheetJS for spreadsheets, mammoth→first `<table>` for `.docx`) into header/row data
+4. `autoMap()` guesses ticker/company/shares/price/date/groups columns from header aliases; user can override the mapping per column
+5. `mapRows()` normalizes and validates each row (holdings require ticker + shares > 0 + price > 0; watchlist requires only ticker); invalid rows are flagged with an inline error and excluded from the submit count
+6. On confirm, the modal submits valid rows one-by-one as ordinary calls — `POST /portfolio/transaction` (type `buy`) for holdings, `POST /watchlist` for watchlist — tracking per-row success/failure
+7. `@imported` emits to the parent view, which refreshes the store; a summary toast reports rows imported vs. failed
+
 ---
 
 ## 4. Price Alerts
@@ -137,6 +146,25 @@
 3. `StockChart` renders candlestick or line chart with range tabs
 4. Alert badges show active/triggered state
 5. "Add Alert" button pre-fills ticker in Alert Modal
+6. User can drag any plotted point to select it; dragging a second point shows both as a comparison (value + % change between the two), emitted via `selection-change` and rendered as a draggable pill overlay
+
+---
+
+## 6a. Extended Hours & Top Movers
+
+### Extended-Hours Display
+1. Server quotes (`stockService`) pass through Yahoo's `preMarketPrice`/`preMarketChange`/`preMarketChangePercent` and `postMarketPrice`/`postMarketChange`/`postMarketChangePercent` unchanged
+2. `portfolioController` and `watchlistController` attach these fields to each position/watchlist item alongside the regular session `change`/`changePercent`
+3. Client components (`WatchRow`, `PositionCard`, `StockDetailView`) use `useMarketHours.getMarketHoursState()` to determine whether the relevant market is in a pre-market or after-hours session
+4. When the market is closed and an extended-hours change is available, the UI shows that figure instead of (or alongside) the stale regular-session change — with a fallback to the regular percent if no extended-hours value exists
+
+### Market Hours Card
+1. `DashboardView` renders `MarketHoursCard`, listing US/Israel/Europe/Asia/Crypto sessions via `MARKET_HOURS_LIST`
+2. Each market's status (`Open`/`Closed`/`Pre-Market Trading`/`After-Hours Trading`) and countdown to the next state change is computed client-side, timezone-aware, no server call needed
+
+### Top Movers / Gainers & Losers
+1. Dashboard renders `WatchlistMoversCard` / `TopMoversChart` and `WatchlistGainersLosersCard`, ranking held + watched tickers by `changePercent` (falling back to extended-hours percent when the market is closed)
+2. Cards re-rank reactively as `portfolioStore`/`watchlistStore` data refreshes
 
 ---
 

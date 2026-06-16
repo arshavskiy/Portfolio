@@ -27,10 +27,18 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - Transaction lots with buy/sell fees, tax amounts, net proceeds, and running average cost.
 - Fee profiles for broker fees and capital gains tax simulation.
 - Watchlist and stock detail pages with quote/history data.
+- Custom stock groups (multi-tag) with a group-by toggle on Dashboard, Holdings, and Watchlist.
+- Price alerts via Web Push (VAPID), one-shot trigger, in-app toast notifications.
+- Portfolio value-over-time chart, reconstructed from transaction history.
+- Bulk import of holdings or watchlist from `.xlsx`/`.xls`/`.csv`/`.docx` files, with column auto-mapping and a downloadable template.
+- Extended-hours (pre-market/after-hours) price and change data alongside regular session quotes.
+- Per-market trading-hours status (US/Israel/Europe/Asia/Crypto) with open/closed state and countdowns.
+- Dashboard top movers and gainers/losers cards across holdings and watchlist.
+- Draggable point selection on stock charts for comparing two points in range.
 - Personalized News page with watchlist-driven For You articles, topic feeds, infinite scroll, and normalized article cards.
 - Financial news provider chain: Marketaux first, Finnhub second, Yahoo Finance search fallback.
 - TASE `.TA` support, including agorot-to-shekel normalization.
-- PWA support through `vite-plugin-pwa`.
+- PWA support through `vite-plugin-pwa` (injectManifest, Web Push handling in custom service worker).
 
 ## Local Development
 
@@ -97,9 +105,18 @@ Deploy `server/` to Railway. Set `CLIENT_URL` to the Vercel app URL and configur
 - `GET /api/stocks/history/:ticker`
 - `GET /api/stocks/news`
 - `GET|POST|DELETE /api/watchlist`
+- `POST /api/watchlist/sync-holdings`
+- `GET /api/portfolio/groups`
+- `PUT /api/portfolio/position/:id/groups`
+- `GET /api/portfolio/history`
+- `GET|POST|PUT|DELETE /api/alerts`
+- `GET /api/alerts/vapid-key`
+- `POST /api/alerts/subscribe` / `POST /api/alerts/unsubscribe`
 - `GET|POST|PUT|DELETE /api/fee-profiles`
 
 Protected routes require an `Authorization: Bearer <token>` header.
+
+Bulk import (holdings/watchlist from spreadsheet files) is parsed client-side via `client/src/composables/useImport.js` (SheetJS + mammoth for `.docx`) and submitted as ordinary `POST /api/portfolio/transaction` / `POST /api/watchlist` calls — there is no dedicated import endpoint.
 
 ## Feature Docs
 

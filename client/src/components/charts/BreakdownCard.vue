@@ -14,18 +14,22 @@ const svgRef = ref(null)
 // Shared categorical palette for allocation slices + legend dots.
 const COLORS = ['#3b82f6', '#00ff88', '#f59e0b', '#ff3366', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
 
-const totalValue = computed(() => props.positions.reduce((s, p) => s + p.value, 0))
-
 const isMixed = computed(() =>
-    props.positions.some((p) => p.currency === 'ILS') &&
-    props.positions.some((p) => p.currency === 'USD')
+    new Set(props.positions.map((p) => p.currency)).size > 1
 )
+
+// When currencies are mixed, allocate by USD-normalized value (server-provided
+// valueUsd) so a ₪1000 position isn't weighted the same as a $1000 one.
+// Single-currency portfolios keep using native value (valueUsd may be absent).
+const allocValue = (p) => (isMixed.value ? (p.valueUsd ?? p.value) : p.value)
+
+const totalValue = computed(() => props.positions.reduce((s, p) => s + allocValue(p), 0))
 
 const legend = computed(() =>
     props.positions.map((p, i) => ({
       ticker: p.ticker,
       color: COLORS[i % COLORS.length],
-      pct: totalValue.value > 0 ? (p.value / totalValue.value) * 100 : 0,
+      pct: totalValue.value > 0 ? (allocValue(p) / totalValue.value) * 100 : 0,
     }))
 )
 
@@ -52,7 +56,7 @@ function draw() {
 
   const data = props.positions.map((p, i) => ({
     ticker: p.ticker,
-    value: p.value,
+    value: allocValue(p),
     color: COLORS[i % COLORS.length],
   }))
 
@@ -75,13 +79,11 @@ function draw() {
       })
       .on('click', (_, d) => router.push(`/stock/${encodeURIComponent(d.data.ticker)}`))
 
-  g.append('text').attr('text-anchor', 'middle').attr('dy', isMixed.value ? '0.35em' : '-0.3em')
-      .attr('fill', '#94a3b8').attr('font-size', '10').text(isMixed.value ? 'Total' : 'Total')
-  if (!isMixed.value) {
-    g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
-        .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '700')
-        .text(useCurrency(totalValue.value, props.positions[0]?.currency || 'USD'))
-  }
+  g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
+      .attr('fill', '#94a3b8').attr('font-size', '10').text('Total')
+  g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
+      .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '700')
+      .text(useCurrency(totalValue.value, isMixed.value ? 'USD' : (props.positions[0]?.currency || 'USD')))
 }
 
 onMounted(() => nextTick(draw))

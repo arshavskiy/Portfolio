@@ -41,7 +41,10 @@ Portfolio/
 │   │   │   ├── useGrouping.js
 │   │   │   ├── useChartRange.js
 │   │   │   ├── useMarketSuffix.js
+│   │   │   ├── useMarketHours.js
+│   │   │   ├── useImport.js
 │   │   │   ├── usePush.js
+│   │   │   ├── usePwa.js
 │   │   │   └── useAlertNotifier.js
 │   │   ├── views/            # Route-level pages
 │   │   ├── components/
@@ -121,8 +124,12 @@ groupsStore    → distinct group tags
 - **`useApi`** — all HTTP calls go through here; injects Bearer token automatically
 - **`useFormat`** — number/currency formatting; detects ILS vs USD from ticker suffix
 - **`useGrouping`** — pure function, groups any `items[]` by market or custom tag
+- **`useChartRange`** — shared range-tab state (`1d`/`5d`/`1mo`/`6mo`/`1y`) used by `RangeBar`
 - **`useMarketSuffix`** — persists selected market suffix to localStorage
+- **`useMarketHours`** — pure functions computing open/closed state, countdowns, and pre/post-market session windows per exchange (US, Israel, Europe, Asia, Crypto), timezone-aware via `Intl.DateTimeFormat`
+- **`useImport`** — parses uploaded `.xlsx`/`.xls`/`.csv`/`.docx` files (SheetJS, mammoth for docx) into rows, auto-maps columns to ticker/shares/price/date/groups by header aliases, validates rows, and generates a downloadable template
 - **`usePush`** — Web Push subscription lifecycle, reactive state
+- **`usePwa`** — install-prompt/update lifecycle for the PWA
 - **`useAlertNotifier`** — background polling for triggered alerts → toast
 
 ### Routing & Guards
@@ -151,6 +158,9 @@ Client HTTP request
 | Quote cache | `stockService` in-memory (node-cache) | 5 min | Yahoo Finance quotes per ticker |
 | FX rate | `stockService` in-memory | 1 hr | ILS→USD exchange rate |
 | History cache | `historyStore` (client, reactive Map) | 5 min | Stock price history per ticker+range |
+
+### Extended-Hours Quotes
+`stockService` quotes carry Yahoo's pre/post-market fields through unchanged: `preMarketPrice`, `preMarketChange`, `preMarketChangePercent`, `postMarketPrice`, `postMarketChange`, `postMarketChangePercent`. `portfolioController` and `watchlistController` attach these alongside the regular `change`/`changePercent` per position/watchlist item. The client falls back to the extended-hours percent when the market is closed and a pre/post value is present (see `useMarketHours.js` for session-state detection used to decide which figure to show).
 
 ### Background Jobs (cronService)
 Two cron schedules registered at startup:
