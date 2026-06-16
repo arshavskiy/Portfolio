@@ -5,6 +5,7 @@ import {useDashboardStore} from '@/stores/dashboard'
 import {useChartRange} from '@/composables/useChartRange'
 import BreakdownCard from '@/components/charts/BreakdownCard.vue'
 import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
+import PortfolioCompareChart from '@/components/charts/PortfolioCompareChart.vue'
 import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
 import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
@@ -33,10 +34,11 @@ const {
 } = storeToRefs(dashboard)
 
 const HISTORY_RANGES = [
+  {label: '1D', value: '1d'},
+  {label: '1W', value: '1wk'},
   {label: '1M', value: '1mo'},
+  {label: '3M', value: '3mo'},
   {label: '6M', value: '6mo'},
-  {label: '1Y', value: '1y'},
-  {label: 'All', value: 'all'},
 ]
 
 onMounted(async () => {
@@ -180,6 +182,9 @@ onUnmounted(() => {
         </div>
         <PortfolioHistoryChart :data="history" :day-pnl="portfolioCombinedUsd?.dayPnl" :loading="historyLoading"/>
       </section>
+
+    <!-- Per-stock comparison: normalized % change, one line per holding -->
+    <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
 
       <div v-if="showEmpty" class="empty text-muted">
         No holdings yet. Add a transaction to get started, or explore what’s trending.

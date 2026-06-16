@@ -10,6 +10,7 @@ import Button from 'primevue/button'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
+import WatchlistSearch from '@/components/ui/WatchlistSearch.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
@@ -23,6 +24,8 @@ const showImportModal = ref(false)
 const showGroupModal = ref(false)
 const groupItem = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'sector')
+const changeDirection = useStorage('watchlist-change-direction', 'down')
+const searchQuery = ref('')
 const now = ref(new Date())
 let marketTimer = null
 const WATCHLIST_SCROLL_KEY = 'watchlist-scroll-top'
@@ -33,7 +36,15 @@ function onImported() {
   watchlist.fetchWatchlist(range.value)
 }
 
-const grouped = computed(() => groupItems(watchlist.items, groupMode.value, now.value))
+const filteredItems = computed(() => {
+  const q = searchQuery.value.trim().toLowerCase()
+  if (!q) return watchlist.items
+  return watchlist.items.filter((item) =>
+      item.ticker.toLowerCase().includes(q) || item.companyName?.toLowerCase().includes(q)
+  )
+})
+
+const grouped = computed(() => groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value))
 
 function scrollContainer() {
   return document.querySelector('.main-content') || document.scrollingElement || document.documentElement
@@ -66,7 +77,11 @@ async function restoreScrollPosition() {
     if (row) {
       const container = scrollContainer()
       const containerRect = container.getBoundingClientRect()
-      const top = Math.max(row.getBoundingClientRect().top - containerRect.top + container.scrollTop - 120, 0)
+      // Clear the sticky header (it now overlays scrolled content) plus a
+      // little breathing room, instead of a fixed guess at its height.
+      const header = container.querySelector('.watchlist > header')
+      const headerClearance = (header?.getBoundingClientRect().height || 0) + 16
+      const top = Math.max(row.getBoundingClientRect().top - containerRect.top + container.scrollTop - headerClearance, 0)
       scrollToTop(top)
       return
     }
@@ -137,11 +152,11 @@ function onGroupsSaved() {
         </div>
       </div>
 
-
+      <WatchlistSearch v-model="searchQuery"/>
 
       <div>
         <RangeBar class="page-range"/>
-        <GroupModeBar v-model="groupMode" class="page-group-mode"/>
+        <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
       </div>
 
 
@@ -154,6 +169,11 @@ function onGroupsSaved() {
       <i class="pi pi-eye"/>
       <p>Your watchlist is empty</p>
       <Button label="Add Stock" @click="showModal = true"/>
+    </div>
+
+    <div v-else-if="!filteredItems.length" class="empty">
+      <i class="pi pi-search"/>
+      <p>No matches in your watchlist</p>
     </div>
 
     <div v-else class="watch-list">
@@ -195,6 +215,29 @@ function onGroupsSaved() {
 @media (min-width: 1280px) {
   .watchlist {
     padding: 2rem;
+  }
+}
+
+header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg-primary);
+  margin: -1rem -1rem 0;
+  padding: 1rem 1rem 0.75rem;
+}
+
+@media (min-width: 768px) {
+  header {
+    margin: -1.5rem -1.5rem 0;
+    padding: 1.5rem 1.5rem 0.75rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  header {
+    margin: -2rem -2rem 0;
+    padding: 2rem 2rem 0.75rem;
   }
 }
 

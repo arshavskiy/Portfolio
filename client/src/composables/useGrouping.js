@@ -64,11 +64,11 @@ function buildSingleFieldSections(items, getGroup, sortGroups = defaultGroupSort
         .map(([group, groupedItems]) => ({group, items: groupedItems}))
 }
 
-export function groupItems(items, mode, date = new Date()) {
+export function groupItems(items, mode, date = new Date(), changeDirection = 'down') {
     if (mode === 'none' || !items?.length) {
         return [{group: null, items: items || []}]
     }
-    
+
     if (mode === 'market') {
         return buildSingleFieldSections(
             items,
@@ -84,13 +84,16 @@ export function groupItems(items, mode, date = new Date()) {
     }
 
     if (mode === 'change') {
+        // 'down' = gainers first (biggest positive change up top, default).
+        // 'up' = losers first (biggest negative change up top).
+        const sign = changeDirection === 'up' ? -1 : 1
         const sortedItems = [...items].sort((a, b) => {
             const aChange = changeValueOf(a)
             const bChange = changeValueOf(b)
             if (aChange == null && bChange == null) return 0
             if (aChange == null) return 1
             if (bChange == null) return -1
-            return bChange - aChange
+            return (bChange - aChange) * sign
         })
         return [{group: null, items: sortedItems}]
     }

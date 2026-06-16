@@ -26,11 +26,12 @@ const range = useChartRange()
 const showModal = ref(false)
 const sparklines = ref({})
 const groupMode = useStorage('holdings-group-mode', 'sector')
+const changeDirection = useStorage('holdings-change-direction', 'down')
 const compactMode = useStorage('holdings-compact', true)
 const now = ref(new Date())
 let marketTimer = null
 
-const grouped = computed(() => groupItems(portfolio.positions, groupMode.value, now.value))
+const grouped = computed(() => groupItems(portfolio.positions, groupMode.value, now.value, changeDirection.value))
 
 function sparklinePoints(rangeValue) {
   const map = {
@@ -127,7 +128,7 @@ onUnmounted(() => {
 
 
     <RangeBar class="page-range"/>
-    <GroupModeBar v-model="groupMode" class="page-group-mode" />
+    <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
 
     <div v-if="portfolio.loading" class="loading text-muted">Loading...</div>
 

@@ -2,6 +2,18 @@
 import {GROUP_MODES} from '@/composables/useGrouping'
 
 const model = defineModel({type: String, required: true})
+// 'down' = gainers first (default), 'up' = losers first. Only meaningful
+// while model === 'change'; clicking the already-active Change chip again
+// flips it (next click toggles direction instead of needing a double-click).
+const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
+
+function onTap(value) {
+  if (value === 'change' && model.value === 'change') {
+    changeDirection.value = changeDirection.value === 'down' ? 'up' : 'down'
+    return
+  }
+  model.value = value
+}
 </script>
 
 <template>
@@ -11,9 +23,13 @@ const model = defineModel({type: String, required: true})
       :key="opt.value"
       class="group-btn"
       :class="{ active: model === opt.value }"
-      :title="`Group by ${opt.label}`"
-      @click="model = opt.value"
-    >{{ opt.label }}</button>
+      :title="opt.value === 'change' ? 'Group by Change (click again to flip gainers/losers)' : `Group by ${opt.label}`"
+      @click="onTap(opt.value)"
+    >{{ opt.label }}<i
+        v-if="opt.value === 'change' && model === 'change'"
+        :class="changeDirection === 'up' ? 'pi pi-arrow-down' : 'pi pi-arrow-up'"
+        class="change-dir-icon"
+    /></button>
   </div>
 </template>
 
@@ -48,5 +64,10 @@ const model = defineModel({type: String, required: true})
 .group-btn.active {
   background: var(--accent);
   color: #fff;
+}
+
+.change-dir-icon {
+  margin-left: .5px;
+  font-size: 0.55rem;
 }
 </style>

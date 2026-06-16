@@ -3,7 +3,7 @@ import {nextTick, onMounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
-  data: {type: Array, default: () => []}, // [{ date, value, cost, firstBuyDate }]
+  data: {type: Array, default: () => []}, // [{ date, value, cost, firstBuyDate, txDates }]
   loading: {type: Boolean, default: false},
   // Live day P&L (USD) from the portfolio totals — authoritative "today
   // red/green" signal, matching what the rest of the dashboard shows.
@@ -109,6 +109,24 @@ function draw() {
         .attr('font-size', '9')
         .text('Buy')
   }
+
+  // Tx markers: a small dot on the value line for every day a buy/sell
+  // happened in this range — without these, a deposit-driven jump (e.g.
+  // adding new cash + buys) looks like a broken/glitched chart instead of
+  // a real, explainable step in value.
+  const txDates = data[0]?.txDates || []
+  txDates.forEach((txDate) => {
+    if (txDate === firstBuyDate) return // already marked above
+    const idx = data.findIndex((d) => d.date >= txDate)
+    if (idx === -1) return
+    svg.append('circle')
+        .attr('cx', x(idx))
+        .attr('cy', y(data[idx].value))
+        .attr('r', 3)
+        .attr('fill', '#0f172a')
+        .attr('stroke', '#94a3b8')
+        .attr('stroke-width', 1.5)
+  })
 }
 
 let ro
