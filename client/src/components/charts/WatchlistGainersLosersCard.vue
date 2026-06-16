@@ -28,7 +28,7 @@ const rankedItems = computed(() => {
 })
 
 function openStock(item) {
-  router.push(`/stock/${encodeURIComponent(item.ticker)}`)
+  router.push(`/position/${encodeURIComponent(item.ticker)}`)
 }
 
 function openWatchlist() {

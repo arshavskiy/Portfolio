@@ -38,7 +38,7 @@ function selectGroup(g) {
 }
 
 function openIndex(idx) {
-  router.push(`/stock/${encodeURIComponent(idx.symbol)}`)
+  router.push(`/position/${encodeURIComponent(idx.symbol)}`)
 }
 
 function fmt(n) {

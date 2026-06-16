@@ -124,7 +124,7 @@ onUnmounted(() => {
 <!--            :key="`${section.group ?? ''}-${pos.ticker}`"-->
 <!--            :style="neonStyle(pos.pnlPercent)"-->
 <!--            class="stock-card"-->
-<!--            @click="$router.push(`/stock/${pos.ticker}`)"-->
+<!--            @click="$router.push(`/position/${pos.ticker}`)"-->
 <!--        >-->
 <!--          <div class="stock-top">-->
 <!--            <div class="stock-left">-->
@@ -173,12 +173,18 @@ onUnmounted(() => {
                 :key="opt.value"
                 :class="{ active: historyRange === opt.value }"
                 class="toggle-btn"
-                @click="historyRange = opt.value"
+                @click="dashboard.setHistoryRange(opt.value)"
             >{{ opt.label }}
             </button>
           </div>
         </div>
-        <PortfolioHistoryChart :data="history" :day-pnl="portfolioCombinedUsd?.dayPnl" :loading="historyLoading"/>
+        <PortfolioHistoryChart
+            :key="historyRange"
+            :data="history"
+            :day-pnl="portfolioCombinedUsd?.dayPnl"
+            :loading="historyLoading"
+            :range="historyRange"
+        />
       </section>
 
     <!-- Per-stock comparison: normalized % change, one line per holding -->

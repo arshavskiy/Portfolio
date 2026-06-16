@@ -1,10 +1,11 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
-import {gainLossClass, useCurrency, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
+import {useWatchlistStore} from '@/stores/watchlist'
 import api from '@/composables/useApi'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
@@ -22,8 +23,9 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const historyStore = useHistoryStore()
+const watchlist = useWatchlistStore()
 
-const ticker = decodeURIComponent(route.params.ticker).toUpperCase()
+const ticker = computed(() => decodeURIComponent(route.params.ticker).toUpperCase())
 const transactions = ref([])
 const quote = ref(null)
 const currentPrice = ref(null)
@@ -44,20 +46,33 @@ const now = ref(new Date())
 const selectedRange = ref('1d')
 const chartMode = ref('line')
 const chartModes = ['line', 'candle']
+let refreshTimer = null
 
 onMounted(async () => {
+  ensureWatchlistLoaded()
   await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx()])
   feeStore.fetchProfiles()
+  startAutoRefresh()
 })
+onUnmounted(() => clearInterval(refreshTimer))
 
 // Pre-fill sim price with current price once loaded
 watch(currentPrice, (p) => { if (p && !simPrice.value) simPrice.value = p })
 watch(selectedRange, loadHistory)
+watch(ticker, async () => {
+  transactions.value = []
+  quote.value = null
+  currentPrice.value = null
+  companyName.value = ''
+  selectedChartPoints.value = []
+  await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx()])
+  startAutoRefresh()
+})
 
 async function fetchLots() {
   loading.value = true
   try {
-    const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker)}&limit=500`)
+    const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker.value)}&limit=500`)
     transactions.value = data.transactions.sort((a, b) => new Date(a.date) - new Date(b.date))
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000 })
@@ -68,7 +83,7 @@ async function fetchLots() {
 
 async function fetchQuote() {
   try {
-    const q = await api.get(`/stocks/quote/${encodeURIComponent(ticker)}`)
+    const q = await api.get(`/stocks/quote/${encodeURIComponent(ticker.value)}`)
     quote.value = q
     currentPrice.value = q.price
     if (q.name) companyName.value = q.name
@@ -86,7 +101,7 @@ async function loadHistory() {
   chartLoading.value = true
   try {
     const points = selectedRange.value === '1d' ? 160 : 50
-    history.value = await historyStore.fetchHistory(ticker, selectedRange.value, points)
+    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
     history.value = []
@@ -182,7 +197,7 @@ function formatTaxPercent(value) {
   return `${num.toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
 }
 
-const tickerCurr = computed(() => ticker.endsWith('.TA') ? 'ILS' : 'USD')
+const tickerCurr = computed(() => ticker.value.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
 const matchingFeeProfiles = computed(() =>
   feeStore.profiles.filter((p) => (p.currency || 'USD') === tickerCurr.value)
@@ -195,8 +210,8 @@ function calcFee(rule, total) {
   return Math.round(fee * 100) / 100
 }
 const marketGroup = computed(() => {
-  if (ticker.endsWith('.TA')) return 'Israel'
-  if (/-USD$/.test(ticker)) return 'Crypto'
+  if (ticker.value.endsWith('.TA')) return 'Israel'
+  if (/-USD$/.test(ticker.value)) return 'Crypto'
   return 'US'
 })
 const marketMeta = computed(() => {
@@ -205,10 +220,17 @@ const marketMeta = computed(() => {
 })
 const shekelValue = computed(() => {
   if (quote.value?.price == null) return null
-  if (marketGroup.value === 'Israel') return null
+  if (marketGroup.value === 'Israel' || marketGroup.value === 'US') return null
   if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
   return quote.value.price / ilsToUsd.value
 })
+const quoteChange = computed(() => ({
+  amount: quote.value?.change ?? null,
+  percent: quote.value?.changePercent ?? null,
+}))
+const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
+const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
+const isWatched = computed(() => watchlist.items.some((i) => i.ticker === ticker.value))
 const sessionMetaText = computed(() => {
   const meta = marketMeta.value
   if (!meta?.closeLabel) return ''
@@ -226,6 +248,15 @@ function formatExtendedHoursTime(value, timezone) {
     minute: '2-digit',
     timeZoneName: 'short',
   }).format(date)
+}
+
+function calculateExtendedChange(price, change) {
+  if (price == null) return {change: null, changePercent: null}
+  const amount = change ?? (quote.value?.price != null ? price - quote.value.price : null)
+  if (amount == null) return {change: null, changePercent: null}
+  const previous = price - amount
+  const percent = Number.isFinite(previous) && previous !== 0 ? (amount / previous) * 100 : null
+  return {change: amount, changePercent: percent}
 }
 
 const extendedHours = computed(() => {
@@ -266,14 +297,40 @@ const extendedHours = computed(() => {
                   : null
 
   if (!source || source.price == null) return null
+  const derived = calculateExtendedChange(source.price, source.change)
 
   return {
     ...source,
-    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel'
+    change: source.change ?? derived.change,
+    changePercent: source.changePercent ?? derived.changePercent,
+    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel' && marketGroup.value !== 'US'
       ? source.price / ilsToUsd.value
       : null,
     timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),
   }
+})
+const extendedHoursChangeText = computed(() => {
+  if (!extendedHours.value) return ''
+  if (extendedHours.value.change == null && extendedHours.value.changePercent == null) return ''
+  return `${useTickerCurrency(extendedHours.value.change, ticker.value)} (${usePercent(extendedHours.value.changePercent)})`
+})
+const extendedHoursStats = computed(() => {
+  if (!extendedHours.value) return []
+  return [
+    {
+      label: `${extendedHours.value.label} Price`,
+      value: useTickerCurrency(extendedHours.value.price, ticker.value),
+    },
+    {
+      label: `${extendedHours.value.label} Change`,
+      value: extendedHoursChangeText.value || '—',
+      valueClass: gainLossClass(extendedHours.value.change),
+    },
+    {
+      label: `${extendedHours.value.label} Trade`,
+      value: extendedHours.value.timeLabel || '—',
+    },
+  ]
 })
 
 const simulation = computed(() => {
@@ -341,6 +398,32 @@ const selectedDelta = computed(() => {
 function handleChartSelection(points) {
   selectedChartPoints.value = points
 }
+
+async function ensureWatchlistLoaded() {
+  if (watchlist.items.length || watchlist.loading) return
+  try {
+    await watchlist.fetchWatchlist()
+  } catch {}
+}
+
+function startAutoRefresh() {
+  clearInterval(refreshTimer)
+  refreshTimer = setInterval(() => {
+    now.value = new Date()
+    fetchQuote()
+  }, 60000)
+}
+
+async function toggleWatchlist() {
+  const existing = watchlist.items.find((i) => i.ticker === ticker.value)
+  if (existing) {
+    await watchlist.removeItem(existing._id)
+    toast.add({severity: 'info', summary: 'Removed from watchlist', life: 2000})
+  } else {
+    await watchlist.addItem(ticker.value, quote.value?.name)
+    toast.add({severity: 'success', summary: 'Added to watchlist', life: 2000})
+  }
+}
 </script>
 
 <template>
@@ -348,8 +431,8 @@ function handleChartSelection(points) {
     <header class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <div class="header-info">
-        <h1 class="gradient-title">{{ companyName || ticker }}</h1>
-        <span class="text-muted">{{ ticker }} · Transaction Lots</span>
+        <h1 class="gradient-title">{{ ticker }}</h1>
+        <span class="text-muted">{{ companyName || headerSubtitle }}</span>
       </div>
       <div class="header-actions">
         <Button icon="pi pi-plus" rounded text @click="showModal = true" />
@@ -360,42 +443,53 @@ function handleChartSelection(points) {
           rounded
           @click="showAlertModal = true"
         />
+        <Button
+          v-tooltip.bottom="isWatched ? 'Remove from watchlist' : 'Add to watchlist'"
+          :icon="isWatched ? 'pi pi-trash' : 'pi pi-eye'"
+          :outlined="isWatched"
+          :severity="isWatched ? 'danger' : undefined"
+          text
+          rounded
+          @click="toggleWatchlist"
+        />
       </div>
     </header>
 
-    <template v-if="summary">
-      <div v-if="quote" class="quote-summary">
-        <div class="price-row">
-          <div class="price-main">
-            <div class="current-price">
-              {{ useTickerCurrency(quote.price, ticker) }}
-              <span v-if="shekelValue != null">
-                 {{ useCurrency(shekelValue, 'ILS') }}
-              </span>
-            </div>
-            <p :class="gainLossClass(quote.change)" class="price-change">
-              {{ useTickerCurrency(quote.change, ticker) }} ({{ usePercent(quote.changePercent) }})
-            </p>
-            <div v-if="extendedHours" class="extended-row">
-              <span class="extended-price">
-                {{ useTickerCurrency(extendedHours.price, ticker) }}
-                <span v-if="extendedHours.shekelPrice != null" class="extended-ils">
-                  {{ useCurrency(extendedHours.shekelPrice, 'ILS') }}
-                </span>
-              </span>
-              <span class="extended-change" :class="gainLossClass(extendedHours.change)">
-                {{ useTickerCurrency(extendedHours.change, ticker) }} ({{ usePercent(extendedHours.changePercent) }})
-              </span>
-            </div>
-            <p v-if="extendedHours" class="hours-line text-muted">
-              {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
-            </p>
-            <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
+    <div v-if="quote" class="quote-summary">
+      <div class="price-row">
+        <div class="price-main">
+          <div class="current-price">
+            {{ useTickerCurrency(quote.price, ticker) }}
+            <span v-if="shekelValue != null">
+               {{ useCurrency(shekelValue, 'ILS') }}
+            </span>
           </div>
-
+          <p :class="gainLossClass(quoteChange.amount)" class="price-change">
+            {{ useTickerCurrency(quoteChange.amount, ticker) }} ({{ usePercent(quoteChange.percent) }})
+          </p>
+          <div v-if="extendedHours" class="extended-row">
+            <span class="extended-price">
+              {{ useTickerCurrency(extendedHours.price, ticker) }}
+              <span v-if="extendedHours.shekelPrice != null" class="extended-ils">
+                {{ useCurrency(extendedHours.shekelPrice, 'ILS') }}
+              </span>
+            </span>
+            <span v-if="extendedHoursChangeText" class="extended-change" :class="gainLossClass(extendedHours.change)">
+              {{ extendedHoursChangeText }}
+            </span>
+          </div>
+          <p v-if="extendedHours" class="hours-line text-muted">
+            {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
+          </p>
+          <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
         </div>
       </div>
+    </div>
+    <div v-else-if="loading" class="quote-summary">
+      <div class="price-skeleton" />
+    </div>
 
+    <template v-if="summary">
       <!-- Gross P&L card -->
       <div class="pnl-card" :class="gainLossClass(summary.grossPnl)">
         <div class="pnl-header">
@@ -493,12 +587,55 @@ function handleChartSelection(points) {
       :mode="chartMode"
       :range="selectedRange"
       :ticker="ticker"
-      :current-price="currentPrice"
+      :current-price="previousCloseLine"
       @selection-change="handleChartSelection"
     />
 
+    <div v-if="quote" class="stats-grid">
+      <div
+        v-for="row in extendedHoursStats"
+        :key="row.label"
+        class="stat stat-extended"
+      >
+        <span class="text-muted">{{ row.label }}</span>
+        <span :class="row.valueClass">{{ row.value }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">Open</span>
+        <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">Day High</span>
+        <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">Day Low</span>
+        <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">Volume</span>
+        <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">Mkt Cap</span>
+        <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">P/E</span>
+        <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">52W High</span>
+        <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
+      </div>
+      <div class="stat">
+        <span class="text-muted">52W Low</span>
+        <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
+      </div>
+    </div>
+
     <!-- Sell Simulator -->
-    <div class="sim-wrap">
+    <div v-if="summary" class="sim-wrap">
       <button class="sim-toggle" @click="showSimulator = !showSimulator">
         <i class="pi pi-calculator" />
         Sell Simulator
@@ -704,6 +841,15 @@ function handleChartSelection(points) {
   font-size: 0.82rem;
 }
 
+.price-skeleton {
+  height: 2.5rem;
+  width: 160px;
+  border-radius: 6px;
+  animation: shimmer 1.5s infinite;
+  background: linear-gradient(90deg, var(--border) 25%, #475569 50%, var(--border) 75%);
+  background-size: 200% 100%;
+}
+
 .pnl-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -760,6 +906,37 @@ function handleChartSelection(points) {
   font-size: 0.84rem;
 }
 
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 1rem 0 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.stat {
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.88rem;
+}
+
+.stat span:last-child {
+  text-align: right;
+}
+
+.stat-extended {
+  background: rgba(168, 85, 247, 0.08);
+}
+
+.stat:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
 .sim-wrap { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
 .sim-toggle { width: 100%; display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; background: var(--bg-card); border: none; color: var(--text-primary); font-size: 0.9rem; font-weight: 600; cursor: pointer; }
 .sim-toggle i:first-child { color: var(--accent); }
@@ -796,4 +973,9 @@ function handleChartSelection(points) {
 .lot-avg { font-size: 0.75rem; }
 .lot-shares { font-size: 0.75rem; }
 .lot-edit-btn { margin-top: 2px; opacity: 0.6; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 </style>

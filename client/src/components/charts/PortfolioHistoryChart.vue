@@ -1,5 +1,5 @@
 <script setup>
-import {nextTick, onMounted, ref, watch} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
 
 const props = defineProps({
@@ -8,10 +8,16 @@ const props = defineProps({
   // Live day P&L (USD) from the portfolio totals — authoritative "today
   // red/green" signal, matching what the rest of the dashboard shows.
   dayPnl: {type: Number, default: null},
+  range: {type: String, default: ''},
 })
 
 const svgRef = ref(null)
 const wrapRef = ref(null)
+const dataSignature = computed(() => {
+  const first = props.data[0]
+  const last = props.data[props.data.length - 1]
+  return `${props.range}:${props.data.length}:${first?.date ?? ''}:${last?.date ?? ''}:${last?.value ?? ''}:${last?.cost ?? ''}`
+})
 
 function draw() {
   if (!svgRef.value || !wrapRef.value || !props.data.length) return
@@ -135,8 +141,11 @@ onMounted(() => {
   ro = new ResizeObserver(() => draw())
   if (wrapRef.value) ro.observe(wrapRef.value)
 })
-watch(() => props.data, () => nextTick(draw), {deep: true})
-watch(() => props.dayPnl, () => nextTick(draw))
+onUnmounted(() => {
+  if (ro) ro.disconnect()
+})
+watch(dataSignature, () => nextTick(draw), {flush: 'post'})
+watch(() => props.dayPnl, () => nextTick(draw), {flush: 'post'})
 // The <svg> is torn down/recreated by the loading/empty v-if branches in the
 // template, so svgRef goes null while loading. Re-attach the ResizeObserver
 // and redraw once it reappears — otherwise a range switch can leave the old

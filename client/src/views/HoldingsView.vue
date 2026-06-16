@@ -31,7 +31,13 @@ const compactMode = useStorage('holdings-compact', true)
 const now = ref(new Date())
 let marketTimer = null
 
-const grouped = computed(() => groupItems(portfolio.positions, groupMode.value, now.value, changeDirection.value))
+const positionsForGrouping = computed(() =>
+  portfolio.positions.map((pos) => ({
+    ...pos,
+    history: sparklines.value[pos.ticker] || pos.history || [],
+  }))
+)
+const grouped = computed(() => groupItems(positionsForGrouping.value, groupMode.value, now.value, changeDirection.value))
 
 function sparklinePoints(rangeValue) {
   const map = {

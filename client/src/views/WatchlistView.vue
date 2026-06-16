@@ -30,7 +30,7 @@ const now = ref(new Date())
 let marketTimer = null
 const WATCHLIST_SCROLL_KEY = 'watchlist-scroll-top'
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
-const WATCHLIST_RETURN_KEY = 'watchlist-return-from-stock'
+const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
 
 function onImported() {
   watchlist.fetchWatchlist(range.value)
@@ -94,7 +94,7 @@ function openStock(item) {
   saveScrollPosition()
   sessionStorage.setItem(WATCHLIST_TICKER_KEY, item.ticker)
   sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')
-  router.push(`/stock/${encodeURIComponent(item.ticker)}`)
+  router.push(`/position/${encodeURIComponent(item.ticker)}`)
 }
 
 onMounted(() => {
@@ -119,7 +119,7 @@ onUnmounted(() => {
 
 onBeforeRouteLeave((to) => {
   saveScrollPosition()
-  if (to.name !== 'StockDetail') {
+  if (to.name !== 'PositionDetail') {
     sessionStorage.removeItem(WATCHLIST_RETURN_KEY)
   }
 })

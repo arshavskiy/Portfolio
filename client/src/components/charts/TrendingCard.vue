@@ -20,7 +20,7 @@ function selectGroup(g) {
 }
 
 function openItem(it) {
-  router.push(`/stock/${encodeURIComponent(it.symbol)}`)
+  router.push(`/position/${encodeURIComponent(it.symbol)}`)
 }
 
 function fmt(n) {

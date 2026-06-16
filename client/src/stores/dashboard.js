@@ -31,6 +31,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   let marketTimer = null
   let initialized = false
+  let historyRequestId = 0
+  let skipNextHistoryWatch = false
 
   const portfolioPositions = computed(() => portfolio.positions)
   const portfolioTotals = computed(() => portfolio.totals)
@@ -60,14 +62,25 @@ export const useDashboardStore = defineStore('dashboard', () => {
     }
 
   async function fetchHistory() {
+    const requestId = ++historyRequestId
+    const range = historyRange.value
+    history.value = []
     historyLoading.value = true
     try {
-      history.value = await api.get(`/portfolio/history?range=${encodeURIComponent(historyRange.value)}`)
+      const data = await api.get(`/portfolio/history?range=${encodeURIComponent(range)}`)
+      if (requestId === historyRequestId) history.value = data
     } catch {
-      history.value = []
+      if (requestId === historyRequestId) history.value = []
     } finally {
-      historyLoading.value = false
+      if (requestId === historyRequestId) historyLoading.value = false
     }
+  }
+
+  async function setHistoryRange(range) {
+    if (historyRange.value === range) return
+    skipNextHistoryWatch = true
+    historyRange.value = range
+    await fetchHistory()
   }
     
     async function fetchSparklines() {
@@ -96,7 +109,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
     
     async function initialize() {
     if (!initialized) {
-      watch(historyRange, fetchHistory)
+      watch(historyRange, () => {
+        if (skipNextHistoryWatch) {
+          skipNextHistoryWatch = false
+          return
+        }
+        fetchHistory()
+      })
       watch(() => portfolio.positions.length, fetchHistory)
         watch(() => portfolio.positions, fetchSparklines, {deep: true})
       initialized = true
@@ -132,6 +151,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     showSkeleton,
     showEmpty,
     fetchHistory,
+    setHistoryRange,
     fetchSparklines,
     initialize,
     startClock,

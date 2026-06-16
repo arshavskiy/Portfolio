@@ -61,7 +61,7 @@ function draw() {
     .attr('fill', (d) => d.changePercent >= 0 ? '#22c55e' : '#ef4444')
     .attr('rx', 3)
     .style('cursor', 'pointer')
-    .on('click', (_, d) => router.push(`/stock/${d.ticker}`))
+    .on('click', (_, d) => router.push(`/position/${d.ticker}`))
 
   // Ticker labels
   g.selectAll('.label')
@@ -72,7 +72,7 @@ function draw() {
     .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')
     .text((d) => d.ticker)
     .style('cursor', 'pointer')
-    .on('click', (_, d) => router.push(`/stock/${d.ticker}`))
+    .on('click', (_, d) => router.push(`/position/${d.ticker}`))
 
   // Percent labels
   g.selectAll('.pct')

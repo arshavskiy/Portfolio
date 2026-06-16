@@ -4,7 +4,7 @@
 // Returns an array of { group, items } sections. In 'group' mode a stock with
 // multiple tags appears under EACH of its groups, plus an "Ungrouped" bucket
 // for stocks with no tags.
-import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
+import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from './useMarketHours.js'
 
 function marketOf(ticker) {
     const t = ticker.toUpperCase()

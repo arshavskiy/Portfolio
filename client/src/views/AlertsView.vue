@@ -86,7 +86,7 @@ async function remove(alert) {
           :class="{ triggered: !a.active && a.triggeredAt }"
           class="alert-row"
       >
-        <div class="alert-main" @click="router.push(`/stock/${a.ticker}`)">
+        <div class="alert-main" @click="router.push(`/position/${a.ticker}`)">
           <span class="ticker">{{ a.ticker }}</span>
           <span class="cond">
             <i :class="a.condition === 'above' ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"/>

@@ -64,7 +64,7 @@ async function fetchSeries() {
   try {
     const entries = await Promise.all(tickers.value.map(async (ticker) => {
       try {
-        return [ticker, await historyStore.fetchHistory(ticker, stockRange, 120)]
+        return [ticker, await historyStore.fetchHistory(ticker, stockRange, 40)]
       } catch {
         return [ticker, []]
       }
@@ -119,7 +119,7 @@ function draw() {
         .attr('stroke-width', 1.5)
         .attr('d', line)
         .style('cursor', 'pointer')
-        .on('click', () => router.push(`/stock/${encodeURIComponent(s.ticker)}`))
+        .on('click', () => router.push(`/position/${encodeURIComponent(s.ticker)}`))
   })
 }
 
@@ -150,7 +150,7 @@ watch(series, () => nextTick(draw), {deep: true})
           v-for="item in legend"
           :key="item.ticker"
           class="legend-item"
-          @click="router.push(`/stock/${encodeURIComponent(item.ticker)}`)"
+          @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
       >
         <span :style="{ background: item.color }" class="legend-dot"/>
         <span class="legend-ticker">{{ item.ticker }}</span>

@@ -86,7 +86,7 @@ function draw() {
       .on('mouseout', function () {
         d3.select(this).attr('d', arc)
       })
-      .on('click', (_, d) => router.push(`/stock/${encodeURIComponent(d.data.ticker)}`))
+      .on('click', (_, d) => router.push(`/position/${encodeURIComponent(d.data.ticker)}`))
 
   g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
       .attr('fill', '#94a3b8').attr('font-size', '10').text('Total')
@@ -112,7 +112,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
             v-for="item in legend"
             :key="item.ticker"
             class="legend-item"
-            @click="router.push(`/stock/${encodeURIComponent(item.ticker)}`)"
+            @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
         >
           <span :style="{ background: item.color }" class="legend-dot"/>
           <span class="legend-ticker">{{ item.ticker }}</span>
@@ -132,7 +132,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
               v-for="m in movers"
               :key="m.ticker"
               class="mover"
-              @click="router.push(`/stock/${encodeURIComponent(m.ticker)}`)"
+              @click="router.push(`/position/${encodeURIComponent(m.ticker)}`)"
           >
             <span class="mover-ticker">{{ m.ticker }}</span>
             <span :class="m.changePercent >= 0 ? 'up' : 'down'" class="mover-pct">
