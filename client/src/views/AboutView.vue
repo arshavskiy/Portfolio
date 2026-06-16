@@ -12,13 +12,14 @@ const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
 const qrCanvas = ref(null)
 
 const features = [
-  { icon: 'pi pi-chart-line', text: 'Live portfolio tracking with range-based performance and current-price charts' },
+  { icon: 'pi pi-chart-line', text: 'Live portfolio tracking with P&L, multi-currency totals, and a value-over-time chart' },
   { icon: 'pi pi-globe', text: 'Coverage for US stocks, TASE, global markets, and crypto watchlists' },
-  { icon: 'pi pi-briefcase', text: 'Compact holdings and watchlist rows with timeframe start/end price labels' },
-  { icon: 'pi pi-bell', text: 'Price alerts and per-ticker monitoring directly from stock pages' },
-  { icon: 'pi pi-bolt', text: 'Dashboard cards for markets, trending symbols, and live market-hours status' },
-  { icon: 'pi pi-tags', text: 'Sector-first organization with editable groups for holdings and watchlist items' },
-  { icon: 'pi pi-upload', text: 'Import from Excel / CSV and manage positions with buy, sell, and lot details' },
+  { icon: 'pi pi-money-bill', text: 'Buy/sell lots with fee profiles for broker fees and capital-gains tax simulation' },
+  { icon: 'pi pi-bell', text: 'Price alerts via push notifications, set and monitored per ticker' },
+  { icon: 'pi pi-bolt', text: 'Dashboard cards for top movers, trending symbols, and live market-hours status' },
+  { icon: 'pi pi-clock', text: 'Pre-market and after-hours price changes alongside regular session quotes' },
+  { icon: 'pi pi-tags', text: 'Custom multi-tag groups with group-by views across holdings and watchlist' },
+  { icon: 'pi pi-upload', text: 'Bulk import holdings or watchlist from Excel, CSV, or Word files' },
 ]
 
 onMounted(async () => {

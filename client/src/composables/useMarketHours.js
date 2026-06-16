@@ -321,7 +321,7 @@ export function getMarketHoursState(market, date = new Date()) {
             nextLabel = extendedState.isActive
                 ? `Open in ${formatDuration(extendedState.remainingMinutes)}`
                 : `Pre-Market in ${formatDuration(extendedState.untilStartMinutes)}`
-            statusLabel = extendedState.isActive ? 'Pre-Market Trading' : 'Before Trade'
+            statusLabel = extendedState.isActive ? 'Pre-Market ' : 'Before Trade'
             statusTone = extendedState.isActive ? 'phase' : 'closed'
         } else if (activeSession) {
             nextLabel = `After-Hours in ${formatDuration(activeSession.endMinutes - currentMinutes)}`
@@ -329,7 +329,7 @@ export function getMarketHoursState(market, date = new Date()) {
             statusTone = 'open'
         } else if (extendedState?.label === 'Post' && extendedState.isActive) {
             nextLabel = `Closed in ${formatDuration(extendedState.remainingMinutes)}`
-            statusLabel = 'After-Hours Trading'
+            statusLabel = 'After-Hours'
             statusTone = 'phase'
         } else {
             nextLabel = nextPreMarket ? `Pre-Market in ${formatDuration(nextPreMarket.inMinutes)}` : 'After Trade'

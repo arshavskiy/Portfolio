@@ -101,6 +101,7 @@ function rangeEndPrice(item) {
             {{ usePercent(item.changePercent) }}
           </span>
         </div>
+        <i class="pi pi-chevron-right row-go"/>
       </button>
     </div>
 
@@ -165,7 +166,7 @@ function rangeEndPrice(item) {
 
 .mover-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(92px, 0.9fr) auto;
+  grid-template-columns: minmax(0, 1.2fr) minmax(92px, 0.9fr) auto auto;
   gap: 0.75rem;
   align-items: center;
   padding: 0.85rem 0;
@@ -177,10 +178,21 @@ function rangeEndPrice(item) {
   color: inherit;
   cursor: pointer;
   text-align: left;
+  transition: background 0.15s;
 }
 
 .mover-row:first-child {
   border-top: none;
+}
+
+.mover-row:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.row-go {
+  font-size: 0.66rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
 }
 
 .row-left {

@@ -208,11 +208,28 @@ Client                       Server                    Browser/OS
 
 ## PWA
 
-- **Service Worker**: `injectManifest` mode (Workbox) — full control over SW logic
-- **Precaching**: all static assets from Vite build manifest
-- **Runtime caching**: API responses cached network-first
-- **Push handling**: `self.addEventListener('push', ...)` in `sw.js` renders notifications
-- **Notification click**: `self.addEventListener('notificationclick', ...)` navigates to `/alerts`
+Configured via `vite-plugin-pwa` in `vite.config.js` (`strategies: injectManifest`, `registerType: autoUpdate`). The custom service worker lives at `client/src/sw.js`.
+
+### Manifest & Installability
+- **Manifest**: name `StockFolio`, `display: fullscreen` with `display_override: [fullscreen, standalone, minimal-ui]`, portrait orientation, black theme/background, `start_url: /`, and 192/512 icons plus a maskable 512 variant.
+- **Install prompt**: `composables/usePwa.js` (`usePwaInstall`) captures `beforeinstallprompt` at module load (so the event isn't missed before a component mounts) and exposes `promptInstall()`; listens for `appinstalled`.
+- **Install banner**: `components/ui/InstallBanner.vue` shows a slide-up prompt only when installable, not already installed, authenticated, and not previously dismissed (`install-banner-dismissed` in localStorage).
+- **iOS**: no `beforeinstallprompt` support — `usePwa` exposes `isIos` so the UI can show a manual "Share → Add to Home Screen" hint instead.
+
+### Service Worker (`src/sw.js`)
+- **Precaching**: all built assets via Workbox `precacheAndRoute(self.__WB_MANIFEST)` (`globPatterns: **/*.{js,css,html,ico,png,svg}`).
+- **Runtime caching**: `/api/*` requests use `NetworkFirst` (cache `api-cache`, max 50 entries, 300s TTL) so recent data still renders when offline/flaky.
+- **Update flow**: `skipWaiting()` on install + `clients.claim()` on activate, combined with `autoUpdate`, so new versions take over immediately.
+- **Dev**: `devOptions.enabled: false` — the SW is disabled in dev to avoid serving stale JS bundles and breaking HMR; production builds keep the full SW (push + offline).
+
+### Web Push
+- **Push handler**: `push` event renders a notification with title/body, app icon + badge, a vibrate pattern, and a `tag` keyed by ticker (alerts for the same stock collapse).
+- **Notification click**: focuses an existing app window and navigates it to `notification.data.url` (fallback `/`), or opens a new window.
+- **Subscription lifecycle**: `composables/usePush.js` checks capability + secure context, requests `Notification` permission, fetches the VAPID key from `GET /alerts/vapid-key`, subscribes via `pushManager`, and posts to `/alerts/subscribe` (and `/alerts/unsubscribe` on disable). Drives the price-alert feature.
+- **Constraints**: HTTPS-only (a LAN IP over plain http silently fails; localhost is exempt). On iOS, Push is only available once the app is installed to the Home Screen.
+
+### Fullscreen
+- `composables/usePwa.js` (`useFullscreen`) wraps the Fullscreen API with `webkit` fallbacks — `enter`/`exit`/`toggle` plus reactive `isFullscreen` synced to `fullscreenchange`.
 
 ---
 

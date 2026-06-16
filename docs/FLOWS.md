@@ -196,10 +196,17 @@ On each buy/sell transaction with a `feeProfileId`:
 
 ## 9. PWA & Service Worker
 
-- Workbox `injectManifest` mode precaches built assets
-- Runtime caching: API calls cached network-first (5-min stale)
-- Push events handled in SW: constructs notification with title, body, and click URL
-- Click on notification navigates to `/alerts` within the app
+- Workbox `injectManifest` mode (`src/sw.js`) precaches all built assets
+- Runtime caching: `/api/*` calls cached network-first (`api-cache`, max 50 entries, 5-min TTL)
+- `autoUpdate` + `skipWaiting()`/`clients.claim()` so new versions activate immediately; SW is disabled in dev to protect HMR
+- Push events handled in SW: constructs a notification with title, body, app icon/badge, vibrate, and a ticker-keyed `tag`
+- Click on a notification focuses an existing window and navigates it to `notification.data.url` (fallback `/`)
+
+### Install Flow
+1. `usePwa` captures `beforeinstallprompt`; `InstallBanner.vue` shows a slide-up prompt (when installable, not installed, authenticated, not dismissed)
+2. User taps **Install** → `promptInstall()` triggers the native add-to-home-screen dialog
+3. On iOS (no `beforeinstallprompt`), the UI surfaces a manual "Share → Add to Home Screen" hint instead
+4. Push is HTTPS-only and, on iOS, requires the app to be installed first
 
 ---
 

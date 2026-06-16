@@ -107,6 +107,7 @@ watch(() => props.positions, () => nextTick(draw), {deep: true})
           <span :style="{ background: item.color }" class="legend-dot"/>
           <span class="legend-ticker">{{ item.ticker }}</span>
           <span class="legend-pct text-muted">{{ item.pct.toFixed(1) }}%</span>
+          <i class="pi pi-chevron-right legend-go"/>
         </div>
       </div>
     </div>
@@ -178,6 +179,21 @@ watch(() => props.positions, () => nextTick(draw), {deep: true})
   gap: 0.5rem;
   font-size: 0.85rem;
   cursor: pointer;
+  border-radius: 8px;
+  padding: 2px 4px;
+  margin: 0 -4px;
+  transition: background 0.15s;
+}
+
+.legend-item:active {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.legend-go {
+  font-size: 0.62rem;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  flex-shrink: 0;
 }
 
 .legend-dot {

@@ -75,6 +75,7 @@ watch(group, (nextGroup) => {
           <span class="t-price">{{ fmt(it.price) }}</span>
           <span class="t-change" :class="(it.changePercent ?? 0) >= 0 ? 'up' : 'down'">{{ pct(it.changePercent) }}</span>
         </div>
+        <i class="pi pi-chevron-right t-go" />
       </div>
     </div>
   </section>
@@ -146,6 +147,7 @@ watch(group, (nextGroup) => {
 .t-change { font-size: 0.72rem; font-weight: 600; }
 .t-change.up { color: var(--neon-green); }
 .t-change.down { color: var(--neon-red); }
+.t-go { font-size: 0.62rem; color: var(--text-secondary); opacity: 0.5; flex: 0 0 auto; }
 
 .t-row.skeleton {
   height: 44px;
