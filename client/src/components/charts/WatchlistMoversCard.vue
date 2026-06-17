@@ -10,12 +10,9 @@ const props = defineProps({
 const router = useRouter()
 
 function moverChangePercent(item) {
-  const start = item?.history?.[0]?.close ?? null
-  const end = item?.price ?? item?.history?.[item.history.length - 1]?.close ?? null
-  if (start != null && end != null && start !== 0) {
-    return ((end - start) / start) * 100
-  }
-  return item?.changePercent ?? null
+  return typeof item?.changePercent === 'number' && Number.isFinite(item.changePercent)
+      ? item.changePercent
+      : null
 }
 
 const gainers = computed(() =>

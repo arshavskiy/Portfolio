@@ -11,6 +11,17 @@ const router = useRouter()
 const svgRef = ref(null)
 const containerRef = ref(null)
 
+function apiMover(pos) {
+  const change = pos.change
+  const changePercent = pos.changePercent
+  if (typeof changePercent !== 'number' || !Number.isFinite(changePercent)) return null
+  return {
+    ...pos,
+    apiChange: typeof change === 'number' && Number.isFinite(change) ? change : null,
+    apiChangePercent: changePercent,
+  }
+}
+
 function draw() {
   if (!svgRef.value || !props.positions.length) return
 
@@ -18,8 +29,9 @@ function draw() {
   svg.selectAll('*').remove()
 
   const sorted = [...props.positions]
-    .filter((p) => p.changePercent != null)
-    .sort((a, b) => b.changePercent - a.changePercent)
+      .map(apiMover)
+      .filter(Boolean)
+      .sort((a, b) => b.apiChangePercent - a.apiChangePercent)
 
   const top = [
     ...sorted.slice(0, 3),
@@ -37,7 +49,7 @@ function draw() {
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
   const w = W - margin.left - margin.right
-  const maxAbs = d3.max(top, (d) => Math.abs(d.changePercent)) || 1
+  const maxAbs = d3.max(top, (d) => Math.abs(d.apiChangePercent)) || 1
   const x = d3.scaleLinear().domain([-maxAbs, maxAbs]).range([0, w])
   const y = d3.scaleBand().domain(top.map(d => d.ticker)).range([0, H - margin.top - margin.bottom]).padding(0.25)
 
@@ -54,11 +66,11 @@ function draw() {
     .data(top)
     .enter().append('rect')
     .attr('class', 'bar')
-    .attr('x', (d) => d.changePercent >= 0 ? zero : x(d.changePercent))
+      .attr('x', (d) => d.apiChangePercent >= 0 ? zero : x(d.apiChangePercent))
     .attr('y', (d) => y(d.ticker))
-    .attr('width', (d) => Math.abs(x(d.changePercent) - zero))
+      .attr('width', (d) => Math.abs(x(d.apiChangePercent) - zero))
     .attr('height', y.bandwidth())
-    .attr('fill', (d) => d.changePercent >= 0 ? '#22c55e' : '#ef4444')
+      .attr('fill', (d) => d.apiChangePercent >= 0 ? '#22c55e' : '#ef4444')
     .attr('rx', 3)
     .style('cursor', 'pointer')
     .on('click', (_, d) => router.push(`/position/${d.ticker}`))
@@ -82,10 +94,10 @@ function draw() {
     .attr('y', (d) => y(d.ticker) + y.bandwidth() / 2)
     .attr('text-anchor', 'start')
     .attr('dominant-baseline', 'middle')
-    .attr('fill', (d) => d.changePercent >= 0 ? '#22c55e' : '#ef4444')
+      .attr('fill', (d) => d.apiChangePercent >= 0 ? '#22c55e' : '#ef4444')
     .attr('font-size', '11')
     .attr('font-weight', '600')
-    .text((d) => `${d.changePercent >= 0 ? '+' : ''}${d.changePercent.toFixed(2)}%`)
+      .text((d) => `${d.apiChangePercent >= 0 ? '+' : ''}${d.apiChangePercent.toFixed(2)}%`)
 }
 
 onMounted(() => nextTick(draw))

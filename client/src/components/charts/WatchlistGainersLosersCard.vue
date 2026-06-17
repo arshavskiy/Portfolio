@@ -13,7 +13,11 @@ const router = useRouter()
 const mode = ref('gainers')
 
 const rankedItems = computed(() => {
-  const base = props.items.filter((item) => item?.ticker && item.changePercent != null)
+  const base = props.items.filter((item) =>
+      item?.ticker &&
+      typeof item.changePercent === 'number' &&
+      Number.isFinite(item.changePercent)
+  )
   if (mode.value === 'losers') {
     return [...base]
         .filter((item) => item.changePercent < 0)

@@ -46,8 +46,18 @@ const legend = computed(() =>
 // (biggest movers first) so stocks AND crypto both appear.
 const movers = computed(() => {
   return props.positions
-    .filter((p) => p.changePercent != null)
-    .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))
+      .map((p) => {
+        const change = p.change
+        const changePercent = p.changePercent
+        if (typeof changePercent !== 'number' || !Number.isFinite(changePercent)) return null
+        return {
+          ...p,
+          apiChange: typeof change === 'number' && Number.isFinite(change) ? change : null,
+          apiChangePercent: changePercent,
+        }
+      })
+      .filter(Boolean)
+      .sort((a, b) => Math.abs(b.apiChangePercent) - Math.abs(a.apiChangePercent))
 })
 
 function draw() {
@@ -135,8 +145,8 @@ watch(() => props.combinedUsd, () => nextTick(draw))
               @click="router.push(`/position/${encodeURIComponent(m.ticker)}`)"
           >
             <span class="mover-ticker">{{ m.ticker }}</span>
-            <span :class="m.changePercent >= 0 ? 'up' : 'down'" class="mover-pct">
-              {{ m.changePercent >= 0 ? '+' : '' }}{{ m.changePercent.toFixed(2) }}%
+            <span :class="m.apiChangePercent >= 0 ? 'up' : 'down'" class="mover-pct">
+              {{ m.apiChangePercent >= 0 ? '+' : '' }}{{ m.apiChangePercent.toFixed(2) }}%
             </span>
           </button>
         </div>
