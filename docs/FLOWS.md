@@ -176,10 +176,22 @@
 3. Profiles available in transaction modal dropdown
 
 ### Fee Calculation (Server)
-On each buy/sell transaction with a `feeProfileId`:
-- `buyFee.percent` applied to total, plus `buyFee.flat` → `feeAmount`
-- On sell: `sellFee` calculated the same; capital gains = `(salePrice − avgCost) × shares × capitalGainsTax%`
-- Transaction stored with `feeAmount`, `taxAmount`, `totalWithFees`, `netProceeds`
+On each buy/sell transaction:
+- If `feeProfileId` is provided, that profile is used.
+- If `feeProfileId` is omitted, the user's default fee profile is applied. USD tickers can fall back to an ILS default profile.
+- If `feeProfileId` is explicitly `null`, no fee profile is applied.
+- `buyFee.percent` is applied to total, plus `buyFee.flat` -> `feeAmount`.
+- On sell: `sellFee` is calculated the same; capital gains = `(salePrice - avgCost) x shares x capitalGainsTax%`.
+- `feeAmount` is stored in the fee profile currency. `totalWithFees` and `netProceeds` convert the fee to the transaction currency before adding/subtracting it.
+- Transaction stored with `feeProfile`, `feeAmount`, `taxAmount`, `totalWithFees`, `netProceeds`.
+
+### Position Fee/Tax Display (Client)
+- Position detail totals use stored transaction fees when present.
+- Older transactions with no saved fee and no saved profile estimate their fee from the current default profile for display only. Estimated rows are labeled `(default)`.
+- ILS fee profiles can be shown on USD tickers. Fee rows keep the original fee currency, while Net P&L converts fees into the ticker currency before calculating totals.
+- `totalTax` is realized tax already saved on sell transactions.
+- `estimatedTax` is the configured capital-gains tax estimate if the remaining position were sold now.
+- Net P&L and net return include all buy/sell fees, realized tax, and estimated tax if sold now.
 
 ---
 

@@ -146,7 +146,8 @@ const lots = computed(() => {
   })
 })
 
-// Full summary including all fees and taxes paid
+// Full summary including stored fees, display-only default fee estimates, realized tax,
+// and estimated tax if the remaining shares were sold now.
 const summary = computed(() => {
   if (!lots.value.length) return null
   const last = lots.value[lots.value.length - 1]
@@ -154,21 +155,28 @@ const summary = computed(() => {
   const avgCost = last.runningAvg
   const totalCost = shares * avgCost
 
-  // Accumulate fees & taxes from all lots
+  // Fee rows keep their original currency for display. Net totals convert mixed-currency
+  // fees into ticker currency so return math stays in one currency.
   let totalBuyFees = 0
   let totalSellFees = 0
   let totalTax = 0
   let realizedGross = 0   // sell proceeds before fees/tax
   let realizedNet = 0     // sell proceeds after fees/tax
+  const feeRows = []
 
   for (const tx of transactions.value) {
+    const feeAmount = effectiveFeeAmountOf(tx)
+    const feeCurrency = feeCurrencyOf(tx)
+    const feeInTickerCurrency = convertFeeToTickerCurrency(feeAmount, feeCurrency)
     if (tx.type === 'buy') {
-      totalBuyFees += tx.feeAmount || 0
+      totalBuyFees += feeInTickerCurrency
+      addFeeRow(feeRows, 'buy', feeAmount, feeCurrency, isDefaultFeeEstimate(tx))
     } else {
-      totalSellFees += tx.feeAmount || 0
+      totalSellFees += feeInTickerCurrency
+      addFeeRow(feeRows, 'sell', feeAmount, feeCurrency, isDefaultFeeEstimate(tx))
       totalTax += tx.taxAmount || 0
       realizedGross += tx.total || 0
-      realizedNet += tx.netProceeds != null ? tx.netProceeds : (tx.total - (tx.feeAmount || 0) - (tx.taxAmount || 0))
+      realizedNet += tx.total - feeInTickerCurrency - (tx.taxAmount || 0)
     }
   }
 
@@ -180,23 +188,26 @@ const summary = computed(() => {
   const grossPnlPct = avgCost > 0 && currentPrice.value != null
       ? ((currentPrice.value - avgCost) / avgCost) * 100 : null
 
-  // Net P&L = gross P&L - all fees paid - all tax paid (true profit)
-  const netPnl = grossPnl != null ? grossPnl - totalFees - totalTax : null
-  const netPnlPct = totalCost > 0 && netPnl != null
-      ? (netPnl / (totalCost + totalFees)) * 100 : null
-
   // Estimated future sell tax if sold at current price
   const unrealizedGain = currentValue != null ? currentValue - totalCost : null
-  // Tax rate from last used fee profile (if any)
-  const taxRate = transactions.value.find(t => t.feeProfile?.capitalGainsTax)?.feeProfile?.capitalGainsTax || 0
+  // Tax rate from a saved fee profile, falling back to the active default profile.
+  const taxRate = transactions.value.find(t => t.feeProfile?.capitalGainsTax)?.feeProfile?.capitalGainsTax ||
+      defaultFeeProfile()?.capitalGainsTax ||
+      0
   const estimatedTax = unrealizedGain != null && unrealizedGain > 0 && taxRate > 0
       ? Math.round(unrealizedGain * taxRate / 100 * 100) / 100 : 0
+
+  // Net P&L = gross P&L - all fees paid - realized tax - estimated tax if sold now.
+  const netPnl = grossPnl != null ? grossPnl - totalFees - totalTax - estimatedTax : null
+  const netPnlPct = totalCost > 0 && netPnl != null
+      ? (netPnl / (totalCost + totalFees)) * 100 : null
 
   return {
     shares, avgCost, totalCost, currentValue,
     grossPnl, grossPnlPct,
     netPnl, netPnlPct,
     totalBuyFees, totalSellFees, totalFees,
+    feeRows,
     totalTax, taxRate, estimatedTax,
     realizedGross, realizedNet,
   }
@@ -218,9 +229,68 @@ function formatTaxPercent(value) {
 
 const tickerCurr = computed(() => ticker.value.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
+
+function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
+  if (profileCurrency === transactionCurrency) return true
+  return transactionCurrency === 'USD' && profileCurrency === 'ILS'
+}
+
 const matchingFeeProfiles = computed(() =>
-    feeStore.profiles.filter((p) => (p.currency || 'USD') === tickerCurr.value)
+    feeStore.profiles.filter((p) => isAllowedFeeCurrency(p.currency || 'USD', tickerCurr.value))
 )
+
+function defaultFeeProfile() {
+  return feeStore.profiles.find((p) => p.isDefault && (p.currency || 'USD') === tickerCurr.value) ||
+      (tickerCurr.value === 'USD' ? feeStore.profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
+}
+
+function feeProfileOf(tx) {
+  return tx.feeProfile || (tx.feeAmount ? null : defaultFeeProfile())
+}
+
+function feeCurrencyOf(tx) {
+  return feeProfileOf(tx)?.currency || tickerCurr.value
+}
+
+function isDefaultFeeEstimate(tx) {
+  return !tx.feeProfile && !(tx.feeAmount > 0) && Boolean(defaultFeeProfile())
+}
+
+function effectiveFeeAmountOf(tx) {
+  if (tx.feeAmount > 0) return tx.feeAmount
+  const profile = feeProfileOf(tx)
+  if (!profile) return 0
+  const total = tx.total || (tx.shares || 0) * (tx.price || 0)
+  const rule = tx.type === 'buy' ? profile.buyFee : profile.sellFee
+  return calcFee(rule, total)
+}
+
+function convertFeeToTickerCurrency(amount, feeCurrency) {
+  if (!amount || feeCurrency === tickerCurr.value) return amount || 0
+  if (feeCurrency === 'ILS' && tickerCurr.value === 'USD' && Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0) {
+    return amount * ilsToUsd.value
+  }
+  if (feeCurrency === 'USD' && tickerCurr.value === 'ILS' && Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0) {
+    return amount / ilsToUsd.value
+  }
+  return amount || 0
+}
+
+function addFeeRow(rows, type, amount, currency, estimated = false) {
+  if (!amount) return
+  const key = `${type}:${currency}:${estimated ? 'default' : 'saved'}`
+  const existing = rows.find((row) => row.key === key)
+  if (existing) {
+    existing.amount += amount
+    return
+  }
+  rows.push({key, type, amount, currency, estimated})
+}
+
+function netProceedsOf(tx) {
+  const fee = convertFeeToTickerCurrency(effectiveFeeAmountOf(tx), feeCurrencyOf(tx))
+  return (tx.total || 0) - fee - (tx.taxAmount || 0)
+}
 
 function calcFee(rule, total) {
   if (!rule || !rule.value) return 0
@@ -371,6 +441,8 @@ const simulation = computed(() => {
   // Get sell fee from selected profile
   const profile = feeStore.profiles.find(p => p._id === simFeeProfileId.value)
   const sellFee = calcFee(profile?.sellFee, grossProceeds)
+  const sellFeeCurrency = profile?.currency || tickerCurr.value
+  const sellFeeInTickerCurrency = convertFeeToTickerCurrency(sellFee, sellFeeCurrency)
 
   // Capital gains tax on profit only
   const taxRate = profile?.capitalGainsTax || 0
@@ -379,7 +451,7 @@ const simulation = computed(() => {
       ? Math.round(gain * taxRate / 100 * 100) / 100
       : 0
 
-  const netProceeds = grossProceeds - sellFee - tax
+  const netProceeds = grossProceeds - sellFeeInTickerCurrency - tax
   // Net profit = net proceeds - original cost - buy fees already paid
   const netProfit = netProceeds - totalCost - totalBuyFees
   const netProfitPct = (totalCost + totalBuyFees) > 0
@@ -387,15 +459,18 @@ const simulation = computed(() => {
 
   return {
     sellPrice, shares, grossProceeds,
-    sellFee, tax, taxRate,
+    sellFee, sellFeeCurrency, sellFeeInTickerCurrency, tax, taxRate,
     netProceeds, netProfit, netProfitPct,
     profileName: profile?.name || null,
   }
 })
 
 watch([tickerCurr, () => feeStore.profiles], ([txCurrency, profiles]) => {
-  if (!simFeeProfileId.value || !profiles.some((p) => p._id === simFeeProfileId.value && (p.currency || 'USD') === txCurrency)) {
-    simFeeProfileId.value = profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency)?._id || null
+  if (!simFeeProfileId.value || !profiles.some((p) => p._id === simFeeProfileId.value && isAllowedFeeCurrency(p.currency || 'USD', txCurrency))) {
+    simFeeProfileId.value = (
+      profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency) ||
+      (txCurrency === 'USD' ? profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
+    )?._id || null
   }
 }, {immediate: true})
 
@@ -585,7 +660,7 @@ async function toggleWatchlist() {
         </div>
 
         <!-- Net P&L card (after all fees + tax) -->
-        <div v-if="summary.totalFees > 0 || summary.totalTax > 0" :class="gainLossClass(summary.netPnl)"
+        <div v-if="summary.totalFees > 0 || summary.totalTax > 0 || summary.estimatedTax > 0" :class="gainLossClass(summary.netPnl)"
              class="pnl-card net-card">
           <div class="pnl-header">
             <span class="pnl-label text-muted">Net P&L <span class="after-badge">after fees & tax</span></span>
@@ -594,13 +669,9 @@ async function toggleWatchlist() {
           </span>
           </div>
           <div class="fee-breakdown">
-            <div v-if="summary.totalBuyFees > 0" class="fee-row">
-              <span class="text-muted">Buy fees paid</span>
-              <span class="loss">-{{ useTickerCurrency(summary.totalBuyFees, ticker) }}</span>
-            </div>
-            <div v-if="summary.totalSellFees > 0" class="fee-row">
-              <span class="text-muted">Sell fees paid</span>
-              <span class="loss">-{{ useTickerCurrency(summary.totalSellFees, ticker) }}</span>
+            <div v-for="row in summary.feeRows" :key="row.key" class="fee-row">
+              <span class="text-muted">{{ row.type === 'buy' ? 'Buy' : 'Sell' }} fees {{ row.estimated ? '(default)' : 'paid' }}</span>
+              <span class="loss">-{{ useCurrency(row.amount, row.currency) }}</span>
             </div>
             <div v-if="summary.totalTax > 0" class="fee-row">
               <span class="text-muted">Capital gains tax paid</span>
@@ -755,7 +826,7 @@ async function toggleWatchlist() {
             </div>
             <div v-if="simulation.sellFee > 0" class="sim-row">
               <span class="text-muted">Sell fee{{ simulation.profileName ? ` · ${simulation.profileName}` : '' }}</span>
-              <span class="loss">-{{ currSymbol }}{{ simulation.sellFee.toFixed(2) }}</span>
+              <span class="loss">-{{ useCurrency(simulation.sellFee, simulation.sellFeeCurrency) }}</span>
             </div>
             <div v-if="simulation.tax > 0" class="sim-row">
               <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
@@ -799,14 +870,14 @@ async function toggleWatchlist() {
               {{ lot.shares }} shares @ {{ useTickerCurrency(lot.price, ticker) }}
             </div>
             <!-- Buy fee -->
-            <div v-if="lot.type === 'buy' && lot.feeAmount" class="lot-extra loss">
-              <i class="pi pi-percentage"/> Buy fee: {{ useTickerCurrency(lot.feeAmount, ticker) }}
-              <span v-if="lot.feeProfile?.name" class="text-muted"> · {{ lot.feeProfile.name }}</span>
+            <div v-if="lot.type === 'buy' && effectiveFeeAmountOf(lot)" class="lot-extra loss">
+              <i class="pi pi-percentage"/> Buy fee: {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
+              <span class="text-muted"> · {{ feeProfileOf(lot)?.name || 'Default profile' }}</span>
             </div>
             <!-- Sell fee -->
-            <div v-if="lot.type === 'sell' && lot.feeAmount" class="lot-extra loss">
-              <i class="pi pi-percentage"/> Sell fee: {{ useTickerCurrency(lot.feeAmount, ticker) }}
-              <span v-if="lot.feeProfile?.name" class="text-muted"> · {{ lot.feeProfile.name }}</span>
+            <div v-if="lot.type === 'sell' && effectiveFeeAmountOf(lot)" class="lot-extra loss">
+              <i class="pi pi-percentage"/> Sell fee: {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
+              <span class="text-muted"> · {{ feeProfileOf(lot)?.name || 'Default profile' }}</span>
             </div>
             <!-- Tax -->
             <div v-if="lot.taxAmount" class="lot-extra loss">
@@ -816,7 +887,7 @@ async function toggleWatchlist() {
             <!-- Net proceeds -->
             <div v-if="lot.type === 'sell'" class="lot-extra gain">
               <i class="pi pi-wallet"/> Net proceeds: {{
-                useTickerCurrency(lot.netProceeds ?? (lot.total - (lot.feeAmount || 0) - (lot.taxAmount || 0)), ticker)
+                useTickerCurrency(netProceedsOf(lot), ticker)
               }}
             </div>
             <div v-if="lot.notes" class="lot-notes text-muted">{{ lot.notes }}</div>

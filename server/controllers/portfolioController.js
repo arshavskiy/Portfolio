@@ -1,6 +1,10 @@
 const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
 const FeeProfile = require('../models/FeeProfile')
+
+// Transaction fee profile input is tri-state:
+// undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
+// feeAmount stays in profile currency; totalWithFees/netProceeds convert it first.
 const Watchlist = require('../models/Watchlist')
 const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd} = require('../services/stockService')
 const { computeTransactionCosts } = require('./feeProfileController')
@@ -51,6 +55,31 @@ function normalizeGroups(groups) {
     if (out.length >= 10) break
   }
   return out
+}
+
+function tickerCurrency(ticker) {
+  return ticker?.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD'
+}
+
+async function convertFeeToTransactionCurrency(amount, feeCurrency, transactionCurrency) {
+  if (!amount || feeCurrency === transactionCurrency) return amount || 0
+  const ilsToUsd = await getIlsToUsd()
+  if (feeCurrency === 'ILS' && transactionCurrency === 'USD' && ilsToUsd > 0) return amount * ilsToUsd
+  if (feeCurrency === 'USD' && transactionCurrency === 'ILS' && ilsToUsd > 0) return amount / ilsToUsd
+  return amount || 0
+}
+
+async function findDefaultFeeProfile(userId, transactionCurrency) {
+  const exact = await FeeProfile.findOne({
+    user: userId,
+    isDefault: true,
+    currency: transactionCurrency,
+  })
+  if (exact) return exact
+  if (transactionCurrency === 'USD') {
+    return FeeProfile.findOne({user: userId, isDefault: true, currency: 'ILS'})
+  }
+  return null
 }
 
 exports.getPortfolio = async (req, res) => {
@@ -174,17 +203,22 @@ exports.addTransaction = async (req, res) => {
 
     let feeProfile = null
     let feeAmount = 0
+    let feeAmountForTotals = 0
     let taxAmount = 0
     if (feeProfileId) {
       feeProfile = await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
-      if (feeProfile) {
-        // For sell tax, get current avg cost from position
-        const pos = type === 'sell'
-          ? await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
-          : null
-        const avgCost = pos?.avgCost ?? null
-        ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, type, total, shares, price, avgCost))
-      }
+    } else if (feeProfileId === undefined) {
+      feeProfile = await findDefaultFeeProfile(req.user._id, tickerCurrency(ticker))
+    }
+
+    if (feeProfile) {
+      // For sell tax, get current avg cost from position
+      const pos = type === 'sell'
+        ? await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
+        : null
+      const avgCost = pos?.avgCost ?? null
+      ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, type, total, shares, price, avgCost))
+      feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeProfile.currency || 'USD', tickerCurrency(ticker))
     }
 
     invalidateCache(ticker)
@@ -193,8 +227,8 @@ exports.addTransaction = async (req, res) => {
       feeProfile: feeProfile?._id || null,
       feeAmount,
       taxAmount,
-      totalWithFees: type === 'buy' ? total + feeAmount : total - feeAmount,
-      netProceeds: type === 'sell' ? total - feeAmount - taxAmount : undefined,
+      totalWithFees: type === 'buy' ? total + feeAmountForTotals : total - feeAmountForTotals,
+      netProceeds: type === 'sell' ? total - feeAmountForTotals - taxAmount : undefined,
     })
 
     let position = await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
@@ -286,15 +320,20 @@ exports.updateTransaction = async (req, res) => {
 
     let feeProfile = null
     let feeAmount = 0
+    let feeAmountForTotals = 0
     let taxAmount = 0
     if (feeProfileId) {
       feeProfile = await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
-      if (feeProfile) {
-        const pos = tx.type === 'sell'
-          ? await Position.findOne({ user: req.user._id, ticker: tx.ticker })
-          : null
-        ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, tx.type, shares * price, shares, price, pos?.avgCost ?? null))
-      }
+    } else if (feeProfileId === undefined) {
+      feeProfile = await findDefaultFeeProfile(req.user._id, tickerCurrency(tx.ticker))
+    }
+
+    if (feeProfile) {
+      const pos = tx.type === 'sell'
+        ? await Position.findOne({ user: req.user._id, ticker: tx.ticker })
+        : null
+      ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, tx.type, shares * price, shares, price, pos?.avgCost ?? null))
+      feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeProfile.currency || 'USD', tickerCurrency(tx.ticker))
     }
 
     const total = shares * price
@@ -306,8 +345,8 @@ exports.updateTransaction = async (req, res) => {
     tx.feeProfile = feeProfile?._id || null
     tx.feeAmount = feeAmount
     tx.taxAmount = taxAmount
-    tx.totalWithFees = tx.type === 'buy' ? total + feeAmount : total - feeAmount
-    tx.netProceeds = tx.type === 'sell' ? total - feeAmount - taxAmount : undefined
+    tx.totalWithFees = tx.type === 'buy' ? total + feeAmountForTotals : total - feeAmountForTotals
+    tx.netProceeds = tx.type === 'sell' ? total - feeAmountForTotals - taxAmount : undefined
     await tx.save()
     
     await recomputePosition(req.user._id, tx.ticker)

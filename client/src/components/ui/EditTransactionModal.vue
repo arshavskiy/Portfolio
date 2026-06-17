@@ -34,10 +34,16 @@ const ticker = computed(() => props.transaction?.ticker || '')
 const crypto = computed(() => isCrypto(ticker.value))
 const currency = computed(() => tickerCurrency(ticker.value))
 const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
+
+function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
+  if (profileCurrency === transactionCurrency) return true
+  return transactionCurrency === 'USD' && profileCurrency === 'ILS'
+}
+
 const matchingProfiles = computed(() => {
   const txCurrency = currency.value
   return feeStore.profiles.filter((p) => {
-    if ((p.currency || 'USD') === txCurrency) return true
+    if (isAllowedFeeCurrency(p.currency || 'USD', txCurrency)) return true
     return p._id === (props.transaction?.feeProfile?._id || props.transaction?.feeProfile)
   })
 })
@@ -89,7 +95,7 @@ async function save() {
       price: price.value,
       date: date.value,
       notes: notes.value || undefined,
-      feeProfileId: selectedFeeProfile.value || undefined,
+      feeProfileId: selectedFeeProfile.value ?? null,
     })
     toast.add({ severity: 'success', summary: 'Transaction updated', life: 2000 })
     emit('update:visible', false)

@@ -73,6 +73,13 @@ Record a buy or sell. A sell fully or partially reduces shares; reaching 0 delet
   "feeProfileId": "objectId (optional)"
 }
 ```
+`feeProfileId` handling:
+- Omitted field: server applies the user's default fee profile when one exists.
+- `"feeProfileId": null`: explicit no-fee transaction.
+- ObjectId value: server applies that specific profile.
+
+Fee amounts are stored in the fee profile currency. Server totals that belong to the transaction, such as `totalWithFees` and `netProceeds`, convert mixed-currency fees into the ticker transaction currency first.
+
 **Response `201`** — created transaction document with fee/tax fields.
 
 ### PUT /portfolio/transaction/:id `🔒`
