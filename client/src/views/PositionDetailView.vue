@@ -46,10 +46,15 @@ const now = ref(new Date())
 const selectedRange = ref('1d')
 const chartMode = ref('line')
 const chartModes = ['line', 'candle']
+const watchlistNavTickers = ref([])
 let refreshTimer = null
 let pageRequestId = 0
+const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
+const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
+const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
 
 onMounted(async () => {
+  loadWatchlistNavContext()
   await loadPositionData()
   feeStore.fetchProfiles()
   startAutoRefresh()
@@ -57,9 +62,12 @@ onMounted(async () => {
 onUnmounted(() => clearInterval(refreshTimer))
 
 // Pre-fill sim price with current price once loaded
-watch(currentPrice, (p) => { if (p && !simPrice.value) simPrice.value = p })
+watch(currentPrice, (p) => {
+  if (p && !simPrice.value) simPrice.value = p
+})
 watch(selectedRange, loadHistory)
 watch(ticker, async () => {
+  loadWatchlistNavContext()
   transactions.value = []
   quote.value = null
   currentPrice.value = null
@@ -85,7 +93,7 @@ async function fetchLots() {
     const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker.value)}&limit=500`)
     transactions.value = data.transactions.sort((a, b) => new Date(a.date) - new Date(b.date))
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000 })
+    toast.add({severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000})
   }
 }
 
@@ -95,14 +103,16 @@ async function fetchQuote() {
     quote.value = q
     currentPrice.value = q.price
     if (q.name) companyName.value = q.name
-  } catch {}
+  } catch {
+  }
 }
 
 async function loadFx() {
   try {
     const data = await api.get('/stocks/fx/ils-to-usd')
     ilsToUsd.value = data?.ilsToUsd ?? null
-  } catch {}
+  } catch {
+  }
 }
 
 async function loadHistory() {
@@ -111,7 +121,7 @@ async function loadHistory() {
     const points = selectedRange.value === '1d' ? 160 : 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000 })
+    toast.add({severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000})
     history.value = []
   } finally {
     chartLoading.value = false
@@ -131,7 +141,7 @@ const lots = computed(() => {
       shares -= tx.shares
     }
     const avgCost = shares > 0 ? totalCost / shares : 0
-    return { ...tx, runningShares: shares, runningAvg: avgCost }
+    return {...tx, runningShares: shares, runningAvg: avgCost}
   })
 })
 
@@ -167,19 +177,19 @@ const summary = computed(() => {
   // Gross P&L = current value - cost basis (ignores fees/tax)
   const grossPnl = currentValue != null ? currentValue - totalCost : null
   const grossPnlPct = avgCost > 0 && currentPrice.value != null
-    ? ((currentPrice.value - avgCost) / avgCost) * 100 : null
+      ? ((currentPrice.value - avgCost) / avgCost) * 100 : null
 
   // Net P&L = gross P&L - all fees paid - all tax paid (true profit)
   const netPnl = grossPnl != null ? grossPnl - totalFees - totalTax : null
   const netPnlPct = totalCost > 0 && netPnl != null
-    ? (netPnl / (totalCost + totalFees)) * 100 : null
+      ? (netPnl / (totalCost + totalFees)) * 100 : null
 
   // Estimated future sell tax if sold at current price
   const unrealizedGain = currentValue != null ? currentValue - totalCost : null
   // Tax rate from last used fee profile (if any)
   const taxRate = transactions.value.find(t => t.feeProfile?.capitalGainsTax)?.feeProfile?.capitalGainsTax || 0
   const estimatedTax = unrealizedGain != null && unrealizedGain > 0 && taxRate > 0
-    ? Math.round(unrealizedGain * taxRate / 100 * 100) / 100 : 0
+      ? Math.round(unrealizedGain * taxRate / 100 * 100) / 100 : 0
 
   return {
     shares, avgCost, totalCost, currentValue,
@@ -192,7 +202,7 @@ const summary = computed(() => {
 })
 
 function formatDate(d) {
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})
 }
 
 function fmt(val) {
@@ -208,7 +218,7 @@ function formatTaxPercent(value) {
 const tickerCurr = computed(() => ticker.value.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
 const matchingFeeProfiles = computed(() =>
-  feeStore.profiles.filter((p) => (p.currency || 'USD') === tickerCurr.value)
+    feeStore.profiles.filter((p) => (p.currency || 'USD') === tickerCurr.value)
 )
 
 function calcFee(rule, total) {
@@ -217,6 +227,7 @@ function calcFee(rule, total) {
   if (rule.minFee && fee < rule.minFee) fee = rule.minFee
   return Math.round(fee * 100) / 100
 }
+
 const marketGroup = computed(() => {
   if (ticker.value.endsWith('.TA')) return 'Israel'
   if (/-USD$/.test(ticker.value)) return 'Crypto'
@@ -239,6 +250,15 @@ const quoteChange = computed(() => ({
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
 const isWatched = computed(() => Boolean(watchedItem.value))
+const watchlistNavIndex = computed(() => watchlistNavTickers.value.indexOf(ticker.value))
+const previousWatchlistTicker = computed(() => {
+  const index = watchlistNavIndex.value
+  return index > 0 ? watchlistNavTickers.value[index - 1] : null
+})
+const nextWatchlistTicker = computed(() => {
+  const index = watchlistNavIndex.value
+  return index >= 0 && index < watchlistNavTickers.value.length - 1 ? watchlistNavTickers.value[index + 1] : null
+})
 const sessionMetaText = computed(() => {
   const meta = marketMeta.value
   if (!meta?.closeLabel) return ''
@@ -271,21 +291,21 @@ const extendedHours = computed(() => {
   if (!quote.value || marketGroup.value === 'Crypto') return null
 
   const source = quote.value.postMarketPrice != null
-    ? {
-      label: 'After hours',
-      price: quote.value.postMarketPrice,
-      change: quote.value.postMarketChange,
-      changePercent: quote.value.postMarketChangePercent,
-      time: quote.value.postMarketTime,
-    }
-    : quote.value.preMarketPrice != null
       ? {
-        label: 'Pre-market',
-        price: quote.value.preMarketPrice,
-        change: quote.value.preMarketChange,
-        changePercent: quote.value.preMarketChangePercent,
-        time: quote.value.preMarketTime,
+        label: 'After hours',
+        price: quote.value.postMarketPrice,
+        change: quote.value.postMarketChange,
+        changePercent: quote.value.postMarketChangePercent,
+        time: quote.value.postMarketTime,
       }
+      : quote.value.preMarketPrice != null
+          ? {
+            label: 'Pre-market',
+            price: quote.value.preMarketPrice,
+            change: quote.value.preMarketChange,
+            changePercent: quote.value.preMarketChangePercent,
+            time: quote.value.preMarketTime,
+          }
           : quote.value.lastPostMarketPrice != null
               ? {
                 label: 'After hours (last seen)',
@@ -312,8 +332,8 @@ const extendedHours = computed(() => {
     change: source.change ?? derived.change,
     changePercent: source.changePercent ?? derived.changePercent,
     shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel' && marketGroup.value !== 'US'
-      ? source.price / ilsToUsd.value
-      : null,
+        ? source.price / ilsToUsd.value
+        : null,
     timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),
   }
 })
@@ -343,7 +363,7 @@ const extendedHoursStats = computed(() => {
 
 const simulation = computed(() => {
   if (!simPrice.value || !summary.value) return null
-  const { shares, avgCost, totalCost, totalBuyFees } = summary.value
+  const {shares, avgCost, totalCost, totalBuyFees} = summary.value
   const sellPrice = simPrice.value
   const grossProceeds = sellPrice * shares
 
@@ -355,14 +375,14 @@ const simulation = computed(() => {
   const taxRate = profile?.capitalGainsTax || 0
   const gain = grossProceeds - totalCost
   const tax = gain > 0 && taxRate > 0
-    ? Math.round(gain * taxRate / 100 * 100) / 100
-    : 0
+      ? Math.round(gain * taxRate / 100 * 100) / 100
+      : 0
 
   const netProceeds = grossProceeds - sellFee - tax
   // Net profit = net proceeds - original cost - buy fees already paid
   const netProfit = netProceeds - totalCost - totalBuyFees
   const netProfitPct = (totalCost + totalBuyFees) > 0
-    ? (netProfit / (totalCost + totalBuyFees)) * 100 : 0
+      ? (netProfit / (totalCost + totalBuyFees)) * 100 : 0
 
   return {
     sellPrice, shares, grossProceeds,
@@ -376,7 +396,7 @@ watch([tickerCurr, () => feeStore.profiles], ([txCurrency, profiles]) => {
   if (!simFeeProfileId.value || !profiles.some((p) => p._id === simFeeProfileId.value && (p.currency || 'USD') === txCurrency)) {
     simFeeProfileId.value = profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency)?._id || null
   }
-}, { immediate: true })
+}, {immediate: true})
 
 const selectedDelta = computed(() => {
   if (selectedChartPoints.value.length !== 2) return null
@@ -405,6 +425,30 @@ const selectedDelta = computed(() => {
 
 function handleChartSelection(points) {
   selectedChartPoints.value = points
+}
+
+function loadWatchlistNavContext() {
+  try {
+    const tickers = JSON.parse(sessionStorage.getItem(WATCHLIST_NAV_KEY) || '[]')
+    watchlistNavTickers.value = Array.isArray(tickers)
+        ? tickers.map((value) => String(value).toUpperCase()).filter(Boolean)
+        : []
+  } catch {
+    watchlistNavTickers.value = []
+  }
+}
+
+function openWatchlistTicker(nextTicker) {
+  if (!nextTicker) return
+  sessionStorage.setItem(WATCHLIST_TICKER_KEY, nextTicker)
+  sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')
+  router.push(`/position/${encodeURIComponent(nextTicker)}`)
+}
+
+function returnToWatchlist() {
+  sessionStorage.setItem(WATCHLIST_TICKER_KEY, ticker.value)
+  sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')
+  router.push('/watchlist')
 }
 
 async function fetchWatchlistItem() {
@@ -438,29 +482,45 @@ async function toggleWatchlist() {
 
 <template>
   <div class="position-detail">
+    <Button
+        v-if="previousWatchlistTicker"
+        v-tooltip.right="`Previous: ${previousWatchlistTicker}`"
+        aria-label="Previous watchlist stock"
+        class="watchlist-slide-handle watchlist-slide-handle-left"
+        icon="pi pi-angle-left"
+        @click="openWatchlistTicker(previousWatchlistTicker)"
+    />
+    <Button
+        v-if="nextWatchlistTicker"
+        v-tooltip.left="`Next: ${nextWatchlistTicker}`"
+        aria-label="Next watchlist stock"
+        class="watchlist-slide-handle watchlist-slide-handle-right"
+        icon="pi pi-angle-right"
+        @click="openWatchlistTicker(nextWatchlistTicker)"
+    />
     <header class="page-header">
-      <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
+      <Button icon="pi pi-arrow-left" rounded text @click="returnToWatchlist"/>
       <div class="header-info">
         <h1 class="gradient-title">{{ ticker }}</h1>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
       </div>
       <div class="header-actions">
-        <Button icon="pi pi-plus" rounded text @click="showModal = true" />
+        <Button icon="pi pi-plus" rounded text @click="showModal = true"/>
         <Button
-          v-tooltip.bottom="'Set price alert'"
-          icon="pi pi-bell"
-          text
-          rounded
-          @click="showAlertModal = true"
+            v-tooltip.bottom="'Set price alert'"
+            icon="pi pi-bell"
+            rounded
+            text
+            @click="showAlertModal = true"
         />
         <Button
-          v-tooltip.bottom="isWatched ? 'Remove from watchlist' : 'Add to watchlist'"
-          :icon="isWatched ? 'pi pi-trash' : 'pi pi-eye'"
-          :outlined="isWatched"
-          :severity="isWatched ? 'danger' : undefined"
-          text
-          rounded
-          @click="toggleWatchlist"
+            v-tooltip.bottom="isWatched ? 'Remove from watchlist' : 'Add to watchlist'"
+            :icon="isWatched ? 'pi pi-trash' : 'pi pi-eye'"
+            :outlined="isWatched"
+            :severity="isWatched ? 'danger' : undefined"
+            rounded
+            text
+            @click="toggleWatchlist"
         />
       </div>
     </header>
@@ -470,321 +530,391 @@ async function toggleWatchlist() {
     </div>
 
     <template v-else>
-    <div v-if="quote" class="quote-summary">
-      <div class="price-row">
-        <div class="price-main">
-          <div class="current-price">
-            {{ useTickerCurrency(quote.price, ticker) }}
-            <span v-if="shekelValue != null">
+      <div v-if="quote" class="quote-summary">
+        <div class="price-row">
+          <div class="price-main">
+            <div class="current-price">
+              {{ useTickerCurrency(quote.price, ticker) }}
+              <span v-if="shekelValue != null">
                {{ useCurrency(shekelValue, 'ILS') }}
             </span>
-          </div>
-          <p :class="gainLossClass(quoteChange.amount)" class="price-change">
-            {{ useTickerCurrency(quoteChange.amount, ticker) }} ({{ usePercent(quoteChange.percent) }})
-          </p>
-          <div v-if="extendedHours" class="extended-row">
+            </div>
+            <p :class="gainLossClass(quoteChange.amount)" class="price-change">
+              {{ useTickerCurrency(quoteChange.amount, ticker) }} ({{ usePercent(quoteChange.percent) }})
+            </p>
+            <div v-if="extendedHours" class="extended-row">
             <span class="extended-price">
               {{ useTickerCurrency(extendedHours.price, ticker) }}
               <span v-if="extendedHours.shekelPrice != null" class="extended-ils">
                 {{ useCurrency(extendedHours.shekelPrice, 'ILS') }}
               </span>
             </span>
-            <span v-if="extendedHoursChangeText" class="extended-change" :class="gainLossClass(extendedHours.change)">
+              <span v-if="extendedHoursChangeText" :class="gainLossClass(extendedHours.change)" class="extended-change">
               {{ extendedHoursChangeText }}
             </span>
+            </div>
+            <p v-if="extendedHours" class="hours-line text-muted">
+              {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
+            </p>
+            <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
           </div>
-          <p v-if="extendedHours" class="hours-line text-muted">
-            {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
-          </p>
-          <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
         </div>
       </div>
-    </div>
-    <div v-else-if="loading" class="quote-summary">
-      <div class="price-skeleton" />
-    </div>
+      <div v-else-if="loading" class="quote-summary">
+        <div class="price-skeleton"/>
+      </div>
 
-    <template v-if="summary">
-      <!-- Gross P&L card -->
-      <div class="pnl-card" :class="gainLossClass(summary.grossPnl)">
-        <div class="pnl-header">
-          <!--          <span class="pnl-label text-muted">Gross P&L</span>-->
-          <span class="pnl-label text-muted">Avg {{ useTickerCurrency(summary.avgCost, ticker) }} → {{ currentPrice != null ? useTickerCurrency(currentPrice, ticker) : '…' }}</span>
-        </div>
-        <div class="pnl-row">
+      <template v-if="summary">
+        <!-- Gross P&L card -->
+        <div :class="gainLossClass(summary.grossPnl)" class="pnl-card">
+          <div class="pnl-header">
+            <!--          <span class="pnl-label text-muted">Gross P&L</span>-->
+            <span class="pnl-label text-muted">Avg {{
+                useTickerCurrency(summary.avgCost, ticker)
+              }} → {{ currentPrice != null ? useTickerCurrency(currentPrice, ticker) : '…' }}</span>
+          </div>
+          <div class="pnl-row">
           <span class="pnl-pct" :class="gainLossClass(summary.grossPnlPct)">
             {{ summary.grossPnlPct != null ? fmt(summary.grossPnlPct) + summary.grossPnlPct.toFixed(2) + '%' : '—' }}
           </span>
-          <span class="pnl-value" :class="gainLossClass(summary.grossPnl)">
+            <span :class="gainLossClass(summary.grossPnl)" class="pnl-value">
             {{ summary.grossPnl != null ? fmt(summary.grossPnl) + useTickerCurrency(summary.grossPnl, ticker) : '—' }}
           </span>
+          </div>
         </div>
-      </div>
 
-      <!-- Net P&L card (after all fees + tax) -->
-      <div v-if="summary.totalFees > 0 || summary.totalTax > 0" class="pnl-card net-card" :class="gainLossClass(summary.netPnl)">
-        <div class="pnl-header">
-          <span class="pnl-label text-muted">Net P&L <span class="after-badge">after fees & tax</span></span>
-          <span class="pnl-label" :class="gainLossClass(summary.netPnl)">
+        <!-- Net P&L card (after all fees + tax) -->
+        <div v-if="summary.totalFees > 0 || summary.totalTax > 0" :class="gainLossClass(summary.netPnl)"
+             class="pnl-card net-card">
+          <div class="pnl-header">
+            <span class="pnl-label text-muted">Net P&L <span class="after-badge">after fees & tax</span></span>
+            <span :class="gainLossClass(summary.netPnl)" class="pnl-label">
             {{ summary.netPnl != null ? fmt(summary.netPnl) + useTickerCurrency(summary.netPnl, ticker) : '—' }}
           </span>
+          </div>
+          <div class="fee-breakdown">
+            <div v-if="summary.totalBuyFees > 0" class="fee-row">
+              <span class="text-muted">Buy fees paid</span>
+              <span class="loss">-{{ useTickerCurrency(summary.totalBuyFees, ticker) }}</span>
+            </div>
+            <div v-if="summary.totalSellFees > 0" class="fee-row">
+              <span class="text-muted">Sell fees paid</span>
+              <span class="loss">-{{ useTickerCurrency(summary.totalSellFees, ticker) }}</span>
+            </div>
+            <div v-if="summary.totalTax > 0" class="fee-row">
+              <span class="text-muted">Capital gains tax paid</span>
+              <span class="loss">-{{ useTickerCurrency(summary.totalTax, ticker) }}</span>
+            </div>
+            <div v-if="summary.estimatedTax > 0" class="fee-row est-row">
+              <span class="text-muted">Est. tax if sold now ({{ formatTaxPercent(summary.taxRate) }})</span>
+              <span class="loss">-{{ useTickerCurrency(summary.estimatedTax, ticker) }}</span>
+            </div>
+          </div>
+          <div v-if="summary.netPnlPct != null" :class="gainLossClass(summary.netPnlPct)" class="net-pct">
+            {{ fmt(summary.netPnlPct) }}{{ summary.netPnlPct.toFixed(2) }}% net return
+          </div>
         </div>
-        <div class="fee-breakdown">
-          <div v-if="summary.totalBuyFees > 0" class="fee-row">
-            <span class="text-muted">Buy fees paid</span>
-            <span class="loss">-{{ useTickerCurrency(summary.totalBuyFees, ticker) }}</span>
+
+        <!-- Stats grid -->
+        <div class="stats-row">
+          <div class="stat-item">
+            <span class="text-muted">Shares held</span>
+            <span>{{ summary.shares.toFixed(4).replace(/\.?0+$/, '') }}</span>
           </div>
-          <div v-if="summary.totalSellFees > 0" class="fee-row">
-            <span class="text-muted">Sell fees paid</span>
-            <span class="loss">-{{ useTickerCurrency(summary.totalSellFees, ticker) }}</span>
+          <div class="stat-item">
+            <span class="text-muted">Avg cost</span>
+            <span>{{ useTickerCurrency(summary.avgCost, ticker) }}</span>
           </div>
-          <div v-if="summary.totalTax > 0" class="fee-row">
-            <span class="text-muted">Capital gains tax paid</span>
-            <span class="loss">-{{ useTickerCurrency(summary.totalTax, ticker) }}</span>
+          <div class="stat-item">
+            <span class="text-muted">Total invested</span>
+            <span>{{ useTickerCurrency(summary.totalCost, ticker) }}</span>
           </div>
-          <div v-if="summary.estimatedTax > 0" class="fee-row est-row">
-            <span class="text-muted">Est. tax if sold now ({{ formatTaxPercent(summary.taxRate) }})</span>
-            <span class="loss">-{{ useTickerCurrency(summary.estimatedTax, ticker) }}</span>
+          <div class="stat-item">
+            <span class="text-muted">Current value</span>
+            <span>{{ summary.currentValue != null ? useTickerCurrency(summary.currentValue, ticker) : '…' }}</span>
           </div>
         </div>
-        <div v-if="summary.netPnlPct != null" class="net-pct" :class="gainLossClass(summary.netPnlPct)">
-          {{ fmt(summary.netPnlPct) }}{{ summary.netPnlPct.toFixed(2) }}% net return
-        </div>
+      </template>
+
+      <div class="chart-controls">
+        <RangeBar v-model="selectedRange" class="page-range"/>
+        <SelectButton v-model="chartMode" :options="chartModes" size="small"/>
       </div>
 
-      <!-- Stats grid -->
-      <div class="stats-row">
-        <div class="stat-item">
-          <span class="text-muted">Shares held</span>
-          <span>{{ summary.shares.toFixed(4).replace(/\.?0+$/, '') }}</span>
+      <div class="chart-measure">
+        <div class="text-muted measure-hint">
+          Tap two points on the chart to measure delta.
         </div>
-        <div class="stat-item">
-          <span class="text-muted">Avg cost</span>
-          <span>{{ useTickerCurrency(summary.avgCost, ticker) }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="text-muted">Total invested</span>
-          <span>{{ useTickerCurrency(summary.totalCost, ticker) }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="text-muted">Current value</span>
-          <span>{{ summary.currentValue != null ? useTickerCurrency(summary.currentValue, ticker) : '…' }}</span>
-        </div>
-      </div>
-    </template>
-
-    <div class="chart-controls">
-      <RangeBar v-model="selectedRange" class="page-range" />
-      <SelectButton v-model="chartMode" :options="chartModes" size="small" />
-    </div>
-
-    <div class="chart-measure">
-      <div class="text-muted measure-hint">
-        Tap two points on the chart to measure delta.
-      </div>
-      <div v-if="selectedDelta" class="measure-summary">
+        <div v-if="selectedDelta" class="measure-summary">
         <span :class="gainLossClass(selectedDelta.amount)">
           {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
         </span>
-        <span class="text-muted">
-          {{ useTickerCurrency(selectedDelta.startPrice, ticker) }} to {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
+          <span class="text-muted">
+          {{
+              useTickerCurrency(selectedDelta.startPrice, ticker)
+            }} to {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
         </span>
-        <span class="text-muted">
+          <span class="text-muted">
           {{ selectedDelta.startLabel }} to {{ selectedDelta.endLabel }} · {{ selectedDelta.spanLabel }}
         </span>
-      </div>
-    </div>
-
-    <StockChart
-      :key="`${ticker}-${selectedRange}-${chartMode}`"
-      :data="history"
-      :loading="chartLoading"
-      :mode="chartMode"
-      :range="selectedRange"
-      :ticker="ticker"
-      :current-price="previousCloseLine"
-      @selection-change="handleChartSelection"
-    />
-
-    <div v-if="quote" class="stats-grid">
-      <div
-        v-for="row in extendedHoursStats"
-        :key="row.label"
-        class="stat stat-extended"
-      >
-        <span class="text-muted">{{ row.label }}</span>
-        <span :class="row.valueClass">{{ row.value }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">Open</span>
-        <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">Day High</span>
-        <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">Day Low</span>
-        <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">Volume</span>
-        <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">Mkt Cap</span>
-        <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">P/E</span>
-        <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">52W High</span>
-        <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
-      </div>
-      <div class="stat">
-        <span class="text-muted">52W Low</span>
-        <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
-      </div>
-    </div>
-
-    <!-- Sell Simulator -->
-    <div v-if="summary" class="sim-wrap">
-      <button class="sim-toggle" @click="showSimulator = !showSimulator">
-        <i class="pi pi-calculator" />
-        Sell Simulator
-        <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron" />
-      </button>
-
-      <div v-if="showSimulator" class="sim-body">
-        <div class="sim-inputs">
-          <div class="sim-field">
-            <label>Sell price per share</label>
-            <InputNumber
-              v-model="simPrice"
-              mode="currency"
-              :currency="tickerCurr"
-              :min="0.001"
-              :max-fraction-digits="4"
-              fluid
-            />
-          </div>
-          <div class="sim-field">
-            <label>Fee profile</label>
-            <Select
-              v-model="simFeeProfileId"
-              :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
-              option-label="label"
-              option-value="value"
-              fluid
-            />
-          </div>
         </div>
+      </div>
 
-        <div v-if="simulation" class="sim-results">
-          <div class="sim-row">
-            <span class="text-muted">Gross proceeds</span>
-            <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
+      <StockChart
+          :key="`${ticker}-${selectedRange}-${chartMode}`"
+          :current-price="previousCloseLine"
+          :data="history"
+          :loading="chartLoading"
+          :mode="chartMode"
+          :range="selectedRange"
+          :ticker="ticker"
+          @selection-change="handleChartSelection"
+      />
+
+      <div v-if="quote" class="stats-grid">
+        <div
+            v-for="row in extendedHoursStats"
+            :key="row.label"
+            class="stat stat-extended"
+        >
+          <span class="text-muted">{{ row.label }}</span>
+          <span :class="row.valueClass">{{ row.value }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">Open</span>
+          <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">Day High</span>
+          <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">Day Low</span>
+          <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">Volume</span>
+          <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">Mkt Cap</span>
+          <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">P/E</span>
+          <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">52W High</span>
+          <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted">52W Low</span>
+          <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
+        </div>
+      </div>
+
+      <!-- Sell Simulator -->
+      <div v-if="summary" class="sim-wrap">
+        <button class="sim-toggle" @click="showSimulator = !showSimulator">
+          <i class="pi pi-calculator"/>
+          Sell Simulator
+          <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
+        </button>
+
+        <div v-if="showSimulator" class="sim-body">
+          <div class="sim-inputs">
+            <div class="sim-field">
+              <label>Sell price per share</label>
+              <InputNumber
+                  v-model="simPrice"
+                  :currency="tickerCurr"
+                  :max-fraction-digits="4"
+                  :min="0.001"
+                  fluid
+                  mode="currency"
+              />
+            </div>
+            <div class="sim-field">
+              <label>Fee profile</label>
+              <Select
+                  v-model="simFeeProfileId"
+                  :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
+                  fluid
+                  option-label="label"
+                  option-value="value"
+              />
+            </div>
           </div>
-          <div v-if="simulation.sellFee > 0" class="sim-row">
-            <span class="text-muted">Sell fee{{ simulation.profileName ? ` · ${simulation.profileName}` : '' }}</span>
-            <span class="loss">-{{ currSymbol }}{{ simulation.sellFee.toFixed(2) }}</span>
-          </div>
-          <div v-if="simulation.tax > 0" class="sim-row">
-            <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
-            <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
-          </div>
-          <div class="sim-row sim-divider">
-            <span>Net proceeds</span>
-            <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
-          </div>
-          <div class="sim-row sim-profit" :class="gainLossClass(simulation.netProfit)">
-            <span>Net profit / loss</span>
-            <div class="sim-profit-right">
-              <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{ simulation.netProfitPct.toFixed(2) }}%</span>
-              <span>{{ fmt(simulation.netProfit) }}{{ currSymbol }}{{ Math.abs(simulation.netProfit).toFixed(2) }}</span>
+
+          <div v-if="simulation" class="sim-results">
+            <div class="sim-row">
+              <span class="text-muted">Gross proceeds</span>
+              <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
+            </div>
+            <div v-if="simulation.sellFee > 0" class="sim-row">
+              <span class="text-muted">Sell fee{{ simulation.profileName ? ` · ${simulation.profileName}` : '' }}</span>
+              <span class="loss">-{{ currSymbol }}{{ simulation.sellFee.toFixed(2) }}</span>
+            </div>
+            <div v-if="simulation.tax > 0" class="sim-row">
+              <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
+              <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
+            </div>
+            <div class="sim-row sim-divider">
+              <span>Net proceeds</span>
+              <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
+            </div>
+            <div :class="gainLossClass(simulation.netProfit)" class="sim-row sim-profit">
+              <span>Net profit / loss</span>
+              <div class="sim-profit-right">
+                <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{
+                    simulation.netProfitPct.toFixed(2)
+                  }}%</span>
+                <span>{{ fmt(simulation.netProfit) }}{{ currSymbol }}{{
+                    Math.abs(simulation.netProfit).toFixed(2)
+                  }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
       <div v-if="!lots.length" class="empty">
-      <i class="pi pi-list" />
-      <p class="text-muted">No transactions yet</p>
-      <Button label="Add Transaction" @click="showModal = true" />
-    </div>
+        <i class="pi pi-list"/>
+        <p class="text-muted">No transactions yet</p>
+        <Button label="Add Transaction" @click="showModal = true"/>
+      </div>
 
-    <div v-else class="lots-list">
-      <h2 class="section-title">Lots</h2>
-      <div v-for="lot in lots" :key="lot._id" class="lot-row">
-        <div class="lot-left">
-          <div class="lot-top">
-            <Tag :value="lot.type.toUpperCase()" :severity="lot.type === 'buy' ? 'success' : 'danger'" class="lot-tag" />
-            <span class="lot-date text-muted">{{ formatDate(lot.date) }}</span>
+      <div v-else class="lots-list">
+        <h2 class="section-title">Lots</h2>
+        <div v-for="lot in lots" :key="lot._id" class="lot-row">
+          <div class="lot-left">
+            <div class="lot-top">
+              <Tag :severity="lot.type === 'buy' ? 'success' : 'danger'" :value="lot.type.toUpperCase()"
+                   class="lot-tag"/>
+              <span class="lot-date text-muted">{{ formatDate(lot.date) }}</span>
+            </div>
+            <div class="lot-detail">
+              {{ lot.shares }} shares @ {{ useTickerCurrency(lot.price, ticker) }}
+            </div>
+            <!-- Buy fee -->
+            <div v-if="lot.type === 'buy' && lot.feeAmount" class="lot-extra loss">
+              <i class="pi pi-percentage"/> Buy fee: {{ useTickerCurrency(lot.feeAmount, ticker) }}
+              <span v-if="lot.feeProfile?.name" class="text-muted"> · {{ lot.feeProfile.name }}</span>
+            </div>
+            <!-- Sell fee -->
+            <div v-if="lot.type === 'sell' && lot.feeAmount" class="lot-extra loss">
+              <i class="pi pi-percentage"/> Sell fee: {{ useTickerCurrency(lot.feeAmount, ticker) }}
+              <span v-if="lot.feeProfile?.name" class="text-muted"> · {{ lot.feeProfile.name }}</span>
+            </div>
+            <!-- Tax -->
+            <div v-if="lot.taxAmount" class="lot-extra loss">
+              <i class="pi pi-building-columns"/> Tax ({{ formatTaxPercent(lot.feeProfile?.capitalGainsTax) }}):
+              {{ useTickerCurrency(lot.taxAmount, ticker) }}
+            </div>
+            <!-- Net proceeds -->
+            <div v-if="lot.type === 'sell'" class="lot-extra gain">
+              <i class="pi pi-wallet"/> Net proceeds: {{
+                useTickerCurrency(lot.netProceeds ?? (lot.total - (lot.feeAmount || 0) - (lot.taxAmount || 0)), ticker)
+              }}
+            </div>
+            <div v-if="lot.notes" class="lot-notes text-muted">{{ lot.notes }}</div>
           </div>
-          <div class="lot-detail">
-            {{ lot.shares }} shares @ {{ useTickerCurrency(lot.price, ticker) }}
+          <div class="lot-right">
+            <span class="lot-total">{{ useTickerCurrency(lot.total, ticker) }}</span>
+            <span class="lot-avg text-muted">Avg → {{ useTickerCurrency(lot.runningAvg, ticker) }}</span>
+            <span class="lot-shares text-muted">{{ lot.runningShares.toFixed(2) }} held</span>
+            <Button class="lot-edit-btn" icon="pi pi-pencil" rounded size="small" text @click.stop="editingTx = lot"/>
           </div>
-          <!-- Buy fee -->
-          <div v-if="lot.type === 'buy' && lot.feeAmount" class="lot-extra loss">
-            <i class="pi pi-percentage" /> Buy fee: {{ useTickerCurrency(lot.feeAmount, ticker) }}
-            <span v-if="lot.feeProfile?.name" class="text-muted"> · {{ lot.feeProfile.name }}</span>
-          </div>
-          <!-- Sell fee -->
-          <div v-if="lot.type === 'sell' && lot.feeAmount" class="lot-extra loss">
-            <i class="pi pi-percentage" /> Sell fee: {{ useTickerCurrency(lot.feeAmount, ticker) }}
-            <span v-if="lot.feeProfile?.name" class="text-muted"> · {{ lot.feeProfile.name }}</span>
-          </div>
-          <!-- Tax -->
-          <div v-if="lot.taxAmount" class="lot-extra loss">
-            <i class="pi pi-building-columns" /> Tax ({{ formatTaxPercent(lot.feeProfile?.capitalGainsTax) }}): {{ useTickerCurrency(lot.taxAmount, ticker) }}
-          </div>
-          <!-- Net proceeds -->
-          <div v-if="lot.type === 'sell'" class="lot-extra gain">
-            <i class="pi pi-wallet" /> Net proceeds: {{ useTickerCurrency(lot.netProceeds ?? (lot.total - (lot.feeAmount||0) - (lot.taxAmount||0)), ticker) }}
-          </div>
-          <div v-if="lot.notes" class="lot-notes text-muted">{{ lot.notes }}</div>
-        </div>
-        <div class="lot-right">
-          <span class="lot-total">{{ useTickerCurrency(lot.total, ticker) }}</span>
-          <span class="lot-avg text-muted">Avg → {{ useTickerCurrency(lot.runningAvg, ticker) }}</span>
-          <span class="lot-shares text-muted">{{ lot.runningShares.toFixed(2) }} held</span>
-          <Button icon="pi pi-pencil" text rounded size="small" class="lot-edit-btn" @click.stop="editingTx = lot" />
         </div>
       </div>
-    </div>
     </template>
 
     <AddTransactionModal
-      v-model:visible="showModal"
-      :default-ticker="ticker"
-      @hide="fetchLots"
+        v-model:visible="showModal"
+        :default-ticker="ticker"
+        @hide="fetchLots"
     />
 
-    <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker" />
+    <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker"/>
 
     <EditTransactionModal
-      :visible="!!editingTx"
-      :transaction="editingTx"
-      @update:visible="v => { if (!v) editingTx = null }"
-      @saved="fetchLots"
+        :transaction="editingTx"
+        :visible="!!editingTx"
+        @saved="fetchLots"
+        @update:visible="v => { if (!v) editingTx = null }"
     />
   </div>
 </template>
 
 <style scoped>
-.position-detail { padding: 0.5rem 1rem 2rem; }
-.page-header { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; }
-.header-info { flex: 1; }
-.header-actions { display: flex; align-items: center; gap: 0.125rem; }
+.position-detail {
+  padding: 0.5rem 1rem 2rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.watchlist-slide-handle {
+  position: fixed;
+  top: 50%;
+  z-index: 20;
+  width: 2.75rem;
+  height: 2.75rem;
+  transform: translateY(-50%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #fff;
+}
+
+.watchlist-slide-handle:enabled:hover,
+.watchlist-slide-handle:enabled:focus {
+  background: transparent;
+  color: #fff;
+}
+
+.watchlist-slide-handle-left {
+  left: 0;
+}
+
+.watchlist-slide-handle-right {
+  right: 0;
+}
+
+@media (min-width: 768px) {
+  .watchlist-slide-handle-left {
+    left: 0.35rem;
+  }
+
+  .watchlist-slide-handle-right {
+    right: 0.35rem;
+  }
+}
 
 .header-info h1 {
   font-size: 1.3rem;
   line-height: 1;
 }
-.header-info span { font-size: 0.82rem; }
+
+.header-info span {
+  font-size: 0.82rem;
+}
 
 .quote-summary {
   margin-bottom: 1rem;
@@ -871,34 +1001,110 @@ async function toggleWatchlist() {
   padding: 1rem 1.25rem;
   margin-bottom: 0.75rem;
 }
-.pnl-card.gain { border-color: rgba(34,197,94,0.3); }
-.pnl-card.loss { border-color: rgba(239,68,68,0.3); }
-.net-card { background: rgba(255,255,255,0.02); }
 
-.pnl-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; font-size: 0.82rem; }
-.pnl-label { font-size: 0.82rem; }
-.after-badge { background: rgba(59,130,246,0.15); color: var(--accent); border-radius: 4px; padding: 1px 6px; font-size: 0.7rem; margin-left: 4px; }
+.pnl-card.gain {
+  border-color: rgba(34, 197, 94, 0.3);
+}
 
-.pnl-row { display: flex; justify-content: space-between; align-items: center; }
-.pnl-pct { font-size: 1.8rem; font-weight: 700; }
-.pnl-value { font-size: 1.1rem; font-weight: 600; }
+.pnl-card.loss {
+  border-color: rgba(239, 68, 68, 0.3);
+}
 
-.fee-breakdown { display: flex; flex-direction: column; gap: 4px; margin: 0.75rem 0 0.5rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
-.fee-row { display: flex; justify-content: space-between; font-size: 0.82rem; }
-.est-row { border-top: 1px dashed var(--border); padding-top: 4px; margin-top: 2px; }
-.net-pct { font-size: 0.9rem; font-weight: 600; text-align: right; margin-top: 0.5rem; }
+.net-card {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.pnl-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.pnl-label {
+  font-size: 0.82rem;
+}
+
+.after-badge {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  margin-left: 4px;
+}
+
+.pnl-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pnl-pct {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.pnl-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.fee-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0.75rem 0 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+}
+
+.fee-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+}
+
+.est-row {
+  border-top: 1px dashed var(--border);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+
+.net-pct {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+  margin-top: 0.5rem;
+}
 
 .stats-row {
-  display: grid; grid-template-columns: 1fr 1fr;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; overflow: hidden; margin-bottom: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
 }
+
 .stat-item {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
 }
-.stat-item:nth-last-child(-n+2) { border-bottom: none; }
-.stat-item .text-muted { font-size: 0.78rem; }
+
+.stat-item:nth-last-child(-n+2) {
+  border-bottom: none;
+}
+
+.stat-item .text-muted {
+  font-size: 0.78rem;
+}
 
 .chart-controls {
   margin-bottom: 0.75rem;
@@ -951,21 +1157,108 @@ async function toggleWatchlist() {
   border-bottom: none;
 }
 
-.sim-wrap { margin-bottom: 1.5rem; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-.sim-toggle { width: 100%; display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; background: var(--bg-card); border: none; color: var(--text-primary); font-size: 0.9rem; font-weight: 600; cursor: pointer; }
-.sim-toggle i:first-child { color: var(--accent); }
-.sim-chevron { margin-left: auto; color: var(--text-secondary); font-size: 0.75rem; }
-.sim-body { padding: 1rem; background: var(--bg-card); border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 1rem; }
-.sim-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-.sim-field { display: flex; flex-direction: column; gap: 0.4rem; }
-.sim-field label { font-size: 0.8rem; color: var(--text-secondary); }
-.sim-results { display: flex; flex-direction: column; gap: 6px; background: rgba(255,255,255,0.03); border-radius: 8px; padding: 0.75rem; }
-.sim-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
-.sim-divider { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 2px; font-weight: 600; }
-.sim-net { font-size: 1rem; font-weight: 700; }
-.sim-profit { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 2px; font-weight: 700; }
-.sim-profit-right { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
-.sim-profit-pct { font-size: 1.2rem; }
+.sim-wrap {
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.sim-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-card);
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sim-toggle i:first-child {
+  color: var(--accent);
+}
+
+.sim-chevron {
+  margin-left: auto;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.sim-body {
+  padding: 1rem;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sim-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.sim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.sim-field label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.sim-results {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.sim-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.sim-divider {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.sim-net {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.sim-profit {
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+  margin-top: 2px;
+  font-weight: 700;
+}
+
+.sim-profit-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
+.sim-profit-pct {
+  font-size: 1.2rem;
+}
 
 .page-loader {
   display: flex;
@@ -973,28 +1266,117 @@ async function toggleWatchlist() {
   align-items: center;
   min-height: 260px;
 }
-.empty { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 3rem 1rem; }
-.empty i { font-size: 3rem; color: var(--text-secondary); }
 
-.section-title { font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
-.lots-list { display: flex; flex-direction: column; }
-.lot-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 0.85rem 0; border-bottom: 1px solid var(--border); gap: 0.5rem; }
-.lot-left { flex: 1; display: flex; flex-direction: column; gap: 3px; }
-.lot-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2px; }
-.lot-tag { font-size: 0.7rem; }
-.lot-date { font-size: 0.78rem; }
-.lot-detail { font-size: 0.88rem; }
-.lot-extra { font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
-.lot-extra i { font-size: 0.65rem; }
-.lot-notes { font-size: 0.78rem; font-style: italic; color: var(--text-secondary); }
-.lot-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
-.lot-total { font-weight: 600; font-size: 0.95rem; }
-.lot-avg { font-size: 0.75rem; }
-.lot-shares { font-size: 0.75rem; }
-.lot-edit-btn { margin-top: 2px; opacity: 0.6; }
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 3rem 1rem;
+}
+
+.empty i {
+  font-size: 3rem;
+  color: var(--text-secondary);
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.lots-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.lot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+  gap: 0.5rem;
+}
+
+.lot-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.lot-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2px;
+}
+
+.lot-tag {
+  font-size: 0.7rem;
+}
+
+.lot-date {
+  font-size: 0.78rem;
+}
+
+.lot-detail {
+  font-size: 0.88rem;
+}
+
+.lot-extra {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lot-extra i {
+  font-size: 0.65rem;
+}
+
+.lot-notes {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
+.lot-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.lot-total {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.lot-avg {
+  font-size: 0.75rem;
+}
+
+.lot-shares {
+  font-size: 0.75rem;
+}
+
+.lot-edit-btn {
+  margin-top: 2px;
+  opacity: 0.6;
+}
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>

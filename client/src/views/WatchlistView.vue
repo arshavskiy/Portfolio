@@ -32,6 +32,7 @@ let marketTimer = null
 const WATCHLIST_SCROLL_KEY = 'watchlist-scroll-top'
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
 const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
+const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
 
 function onImported() {
   watchlist.fetchWatchlist(range.value)
@@ -46,6 +47,20 @@ const filteredItems = computed(() => {
 })
 
 const grouped = computed(() => groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value))
+
+const visibleOrderedItems = computed(() => {
+  const seen = new Set()
+  const items = []
+  for (const section of grouped.value) {
+    for (const item of section.items) {
+      const key = item.ticker.toUpperCase()
+      if (seen.has(key)) continue
+      seen.add(key)
+      items.push(item)
+    }
+  }
+  return items
+})
 
 function scrollContainer() {
   return document.querySelector('.main-content') || document.scrollingElement || document.documentElement
@@ -95,6 +110,7 @@ function openStock(item) {
   saveScrollPosition()
   sessionStorage.setItem(WATCHLIST_TICKER_KEY, item.ticker)
   sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')
+  sessionStorage.setItem(WATCHLIST_NAV_KEY, JSON.stringify(visibleOrderedItems.value.map((it) => it.ticker)))
   router.push(`/position/${encodeURIComponent(item.ticker)}`)
 }
 
