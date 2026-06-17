@@ -28,14 +28,16 @@ const groupMode = useStorage('watchlist-group-mode', 'prepost')
 const changeDirection = useStorage('watchlist-change-direction', 'down')
 const searchQuery = ref('')
 const now = ref(new Date())
+const rangeLoading = ref(false)
 let marketTimer = null
+let rangeRequestId = 0
 const WATCHLIST_SCROLL_KEY = 'watchlist-scroll-top'
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
 const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
 const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
 
 function onImported() {
-  watchlist.fetchWatchlist(range.value)
+  watchlist.fetchWatchlist(range.value, {force: true})
 }
 
 const filteredItems = computed(() => {
@@ -47,6 +49,20 @@ const filteredItems = computed(() => {
 })
 
 const grouped = computed(() => groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value))
+const initialLoading = computed(() => watchlist.loading && !watchlist.items.length)
+const cacheStatusText = computed(() => {
+  const meta = watchlist.cacheMeta
+  if (!meta?.savedAt) return ''
+
+  const time = new Intl.DateTimeFormat('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(meta.savedAt))
+
+  if (meta.stale) return `Offline cache from ${time}`
+  if (meta.cached) return `Cached ${time}`
+  return `Updated ${time}`
+})
 
 const visibleOrderedItems = computed(() => {
   const seen = new Set()
@@ -124,7 +140,15 @@ onMounted(() => {
     now.value = new Date()
   }, 60000)
 })
-watch(range, (r) => watchlist.fetchWatchlist(r))
+watch(range, async (r) => {
+  const requestId = ++rangeRequestId
+  rangeLoading.value = true
+  try {
+    await watchlist.fetchWatchlist(r)
+  } finally {
+    if (requestId === rangeRequestId) rangeLoading.value = false
+  }
+})
 watch(() => watchlist.loading, (loading) => {
   if (!loading && watchlist.items.length) restoreScrollPosition().catch(() => {
   })
@@ -147,7 +171,7 @@ function openGroups(item) {
 }
 
 function onGroupsSaved() {
-  watchlist.fetchWatchlist(range.value)
+  watchlist.fetchWatchlist(range.value, {force: true})
 }
 
 </script>
@@ -174,11 +198,15 @@ function onGroupsSaved() {
       <div>
         <RangeBar class="page-range"/>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
+        <div v-if="cacheStatusText" class="cache-status">
+          <i :class="watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync'"/>
+          <span>{{ cacheStatusText }}</span>
+        </div>
       </div>
 
 
     </header>
-    <div v-if="watchlist.loading" class="page-loader">
+    <div v-if="initialLoading" class="page-loader">
       <AppLoader/>
     </div>
 
@@ -193,18 +221,23 @@ function onGroupsSaved() {
       <p>No matches in your watchlist</p>
     </div>
 
-    <div v-else class="watch-list">
-      <template v-for="section in grouped" :key="section.group ?? '_all'">
-        <div v-if="section.group" class="market-header">{{ section.group }}</div>
-        <WatchRow
-            v-for="item in section.items"
-            :key="`${section.group ?? ''}-${item._id}`"
-            :data-watchlist-ticker="item.ticker"
-            :item="item"
-            @edit-groups="openGroups"
-            @open-stock="openStock"
-        />
-      </template>
+    <div v-else class="watch-list-shell" :class="{ loading: rangeLoading }">
+      <div v-if="rangeLoading" class="watch-list-loader">
+        <AppLoader/>
+      </div>
+      <div class="watch-list">
+        <template v-for="section in grouped" :key="section.group ?? '_all'">
+          <div v-if="section.group" class="market-header">{{ section.group }}</div>
+          <WatchRow
+              v-for="item in section.items"
+              :key="`${section.group ?? ''}-${item._id}`"
+              :data-watchlist-ticker="item.ticker"
+              :item="item"
+              @edit-groups="openGroups"
+              @open-stock="openStock"
+          />
+        </template>
+      </div>
     </div>
 
     <AddWatchlistModal v-model:visible="showModal"/>
@@ -314,6 +347,27 @@ header {
   border-top: 1px solid var(--border);
 }
 
+.watch-list-shell {
+  position: relative;
+  min-height: 180px;
+}
+
+.watch-list-shell.loading .watch-list {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.watch-list-loader {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 3rem;
+  background: color-mix(in srgb, var(--bg-primary) 60%, transparent);
+}
+
 .toggle-group {
   display: flex;
   gap: 0.25rem;
@@ -339,5 +393,21 @@ header {
 
 .page-group-mode {
   margin-bottom: 1rem;
+}
+
+.cache-status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: -0.5rem;
+  margin-bottom: 0.85rem;
+  padding: 0 0.1rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.cache-status i {
+  font-size: 0.72rem;
 }
 </style>

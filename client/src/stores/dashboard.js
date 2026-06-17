@@ -2,6 +2,7 @@ import {computed, ref, watch} from 'vue'
 import {defineStore} from 'pinia'
 import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
+import {cachedFetch} from '@/composables/useClientCache'
 import {groupItems} from '@/composables/useGrouping'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
@@ -15,6 +16,7 @@ import {useHistoryStore} from '@/stores/history'
 // overwritten by whatever range the Watchlist page last fetched, and vice
 // versa, regardless of what range each caller asked for.
 const DASHBOARD_RANGE = '1d'
+const DASHBOARD_WATCHLIST_TTL_MS = 5 * 60 * 1000
 
 export const useDashboardStore = defineStore('dashboard', () => {
   const portfolio = usePortfolioStore()
@@ -53,7 +55,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
         const hadData = dashboardWatchlistItems.value.length > 0
         if (!hadData) dashboardWatchlistLoading.value = true
         try {
-            dashboardWatchlistItems.value = await api.get(`/watchlist?range=${DASHBOARD_RANGE}`)
+            dashboardWatchlistItems.value = await cachedFetch(
+                `watchlist:${DASHBOARD_RANGE}`,
+                DASHBOARD_WATCHLIST_TTL_MS,
+                () => api.get(`/watchlist?range=${DASHBOARD_RANGE}`)
+            )
         } catch {
             dashboardWatchlistItems.value = []
         } finally {

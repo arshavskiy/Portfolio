@@ -8,6 +8,7 @@ import {useWatchlistStore} from '@/stores/watchlist'
 import {useHistoryStore} from '@/stores/history'
 import {usePortfolioStore} from '@/stores/portfolio'
 import api from '@/composables/useApi'
+import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
 import SelectButton from 'primevue/selectbutton'
@@ -181,7 +182,7 @@ const selectedDelta = computed(() => {
 
 async function loadQuote() {
   try {
-    quote.value = await api.get(`/stocks/quote/${encodeURIComponent(ticker.value)}`)
+    quote.value = await fetchCachedQuote(ticker.value)
   } catch (err) {
     toast.add({severity: 'error', summary: 'Failed to refresh', detail: err.message, life: 2000})
   }

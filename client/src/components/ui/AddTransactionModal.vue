@@ -8,6 +8,7 @@ import {useGroupsStore} from '@/stores/groups'
 import {tickerCurrency} from '@/composables/useFormat'
 import {MARKETS, useMarketSuffix} from '@/composables/useMarketSuffix'
 import api from '@/composables/useApi'
+import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
@@ -148,7 +149,7 @@ async function fetchMarketPrice() {
   if (!t) return
   fetchingPrice.value = true
   try {
-    const q = await api.get(`/stocks/quote/${encodeURIComponent(t)}`)
+    const q = await fetchCachedQuote(t)
     marketPrice.value = q?.price ?? null
   } catch {
     marketPrice.value = null

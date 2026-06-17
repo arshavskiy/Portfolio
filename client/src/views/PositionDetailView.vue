@@ -6,6 +6,7 @@ import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrenc
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
 import api from '@/composables/useApi'
+import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
@@ -99,7 +100,7 @@ async function fetchLots() {
 
 async function fetchQuote() {
   try {
-    const q = await api.get(`/stocks/quote/${encodeURIComponent(ticker.value)}`)
+    const q = await fetchCachedQuote(ticker.value)
     quote.value = q
     currentPrice.value = q.price
     if (q.name) companyName.value = q.name
