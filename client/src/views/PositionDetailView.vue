@@ -905,6 +905,8 @@ async function toggleWatchlist() {
     <AddTransactionModal
         v-model:visible="showModal"
         :default-ticker="ticker"
+        :default-price="currentPrice"
+        :max-shares="summary?.shares ?? null"
         @hide="fetchLots"
     />
 

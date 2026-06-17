@@ -179,6 +179,18 @@ function useMarketPrice() {
   if (marketPrice.value != null) price.value = marketPrice.value
 }
 
+async function sellAllAtMarket() {
+  if (type.value !== 'sell' || !props.maxShares) return
+  shares.value = props.maxShares
+  if (marketPrice.value == null) await fetchMarketPrice()
+  const latestPrice = marketPrice.value ?? props.defaultPrice
+  if (latestPrice == null) {
+    toast.add({ severity: 'warn', summary: 'Market price unavailable', life: 2000 })
+    return
+  }
+  price.value = latestPrice
+}
+
 // Prefetch the live quote for the current ticker so buy/sell can offer a
 // market-price quick action.
 watch(currentTicker, (t) => {
@@ -353,6 +365,17 @@ async function submit() {
         </div>
       </div>
 
+      <button
+          v-if="type === 'sell' && maxShares"
+          class="sell-all-market"
+          type="button"
+          :disabled="fetchingPrice"
+          @click="sellAllAtMarket"
+      >
+        <i class="pi pi-bolt"/>
+        <span>{{ fetchingPrice ? 'Loading market price...' : 'Sell all at market price' }}</span>
+      </button>
+
       <div class="field">
         <label>Date</label>
         <DatePicker v-model="date" :max-date="new Date()" date-format="dd/mm/yy" show-icon fluid />
@@ -479,6 +502,27 @@ async function submit() {
   line-height: 1.1;
   text-align: right;
   flex-shrink: 0;
+}
+
+.sell-all-market {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sell-all-market:disabled {
+  opacity: 0.65;
+  cursor: wait;
 }
 
 .hint {
