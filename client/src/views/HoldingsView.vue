@@ -16,6 +16,7 @@ import ImportModal from '@/components/ui/ImportModal.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const toast = useToast()
 const confirm = useConfirm()
@@ -25,7 +26,7 @@ const alerts = useAlertsStore()
 const range = useChartRange()
 const showModal = ref(false)
 const sparklines = ref({})
-const groupMode = useStorage('holdings-group-mode', 'sector')
+const groupMode = useStorage('holdings-group-mode', 'prepost')
 const changeDirection = useStorage('holdings-change-direction', 'down')
 const compactMode = useStorage('holdings-compact', true)
 const now = ref(new Date())
@@ -136,7 +137,9 @@ onUnmounted(() => {
     <RangeBar class="page-range"/>
     <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
 
-    <div v-if="portfolio.loading" class="loading text-muted">Loading...</div>
+    <div v-if="portfolio.loading" class="page-loader">
+      <AppLoader/>
+    </div>
 
     <div v-else-if="!portfolio.positions.length" class="empty">
       <i class="pi pi-briefcase"/>
@@ -215,6 +218,13 @@ onUnmounted(() => {
 
 .empty i {
   font-size: 3rem;
+}
+
+.page-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
 }
 
 .positions-list {

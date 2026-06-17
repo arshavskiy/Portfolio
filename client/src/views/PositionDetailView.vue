@@ -5,7 +5,6 @@ import {useToast} from 'primevue/usetoast'
 import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
-import {useWatchlistStore} from '@/stores/watchlist'
 import api from '@/composables/useApi'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
@@ -18,12 +17,12 @@ import AlertModal from '@/components/ui/AlertModal.vue'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import StockChart from '@/components/charts/StockChart.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const historyStore = useHistoryStore()
-const watchlist = useWatchlistStore()
 
 const ticker = computed(() => decodeURIComponent(route.params.ticker).toUpperCase())
 const transactions = ref([])
@@ -31,6 +30,7 @@ const quote = ref(null)
 const currentPrice = ref(null)
 const companyName = ref('')
 const loading = ref(false)
+const watchedItem = ref(null)
 const showModal = ref(false)
 const showAlertModal = ref(false)
 const showSimulator = ref(false)
@@ -47,10 +47,10 @@ const selectedRange = ref('1d')
 const chartMode = ref('line')
 const chartModes = ['line', 'candle']
 let refreshTimer = null
+let pageRequestId = 0
 
 onMounted(async () => {
-  ensureWatchlistLoaded()
-  await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx()])
+  await loadPositionData()
   feeStore.fetchProfiles()
   startAutoRefresh()
 })
@@ -64,20 +64,28 @@ watch(ticker, async () => {
   quote.value = null
   currentPrice.value = null
   companyName.value = ''
+  watchedItem.value = null
   selectedChartPoints.value = []
-  await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx()])
+  await loadPositionData()
   startAutoRefresh()
 })
 
-async function fetchLots() {
+async function loadPositionData() {
+  const requestId = ++pageRequestId
   loading.value = true
+  try {
+    await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx(), fetchWatchlistItem()])
+  } finally {
+    if (requestId === pageRequestId) loading.value = false
+  }
+}
+
+async function fetchLots() {
   try {
     const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker.value)}&limit=500`)
     transactions.value = data.transactions.sort((a, b) => new Date(a.date) - new Date(b.date))
   } catch (err) {
     toast.add({ severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000 })
-  } finally {
-    loading.value = false
   }
 }
 
@@ -230,7 +238,7 @@ const quoteChange = computed(() => ({
 }))
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
-const isWatched = computed(() => watchlist.items.some((i) => i.ticker === ticker.value))
+const isWatched = computed(() => Boolean(watchedItem.value))
 const sessionMetaText = computed(() => {
   const meta = marketMeta.value
   if (!meta?.closeLabel) return ''
@@ -399,11 +407,13 @@ function handleChartSelection(points) {
   selectedChartPoints.value = points
 }
 
-async function ensureWatchlistLoaded() {
-  if (watchlist.items.length || watchlist.loading) return
+async function fetchWatchlistItem() {
   try {
-    await watchlist.fetchWatchlist()
-  } catch {}
+    const data = await api.get(`/watchlist/item/${encodeURIComponent(ticker.value)}`)
+    watchedItem.value = data?.item || null
+  } catch {
+    watchedItem.value = null
+  }
 }
 
 function startAutoRefresh() {
@@ -415,12 +425,12 @@ function startAutoRefresh() {
 }
 
 async function toggleWatchlist() {
-  const existing = watchlist.items.find((i) => i.ticker === ticker.value)
-  if (existing) {
-    await watchlist.removeItem(existing._id)
+  if (watchedItem.value) {
+    await api.delete(`/watchlist/${watchedItem.value._id}`)
+    watchedItem.value = null
     toast.add({severity: 'info', summary: 'Removed from watchlist', life: 2000})
   } else {
-    await watchlist.addItem(ticker.value, quote.value?.name)
+    watchedItem.value = await api.post('/watchlist', {ticker: ticker.value, companyName: quote.value?.name})
     toast.add({severity: 'success', summary: 'Added to watchlist', life: 2000})
   }
 }
@@ -455,6 +465,11 @@ async function toggleWatchlist() {
       </div>
     </header>
 
+    <div v-if="loading" class="page-loader">
+      <AppLoader/>
+    </div>
+
+    <template v-else>
     <div v-if="quote" class="quote-summary">
       <div class="price-row">
         <div class="price-main">
@@ -695,9 +710,7 @@ async function toggleWatchlist() {
       </div>
     </div>
 
-    <div v-if="loading" class="text-muted loading">Loading...</div>
-
-    <div v-else-if="!lots.length" class="empty">
+      <div v-if="!lots.length" class="empty">
       <i class="pi pi-list" />
       <p class="text-muted">No transactions yet</p>
       <Button label="Add Transaction" @click="showModal = true" />
@@ -742,6 +755,7 @@ async function toggleWatchlist() {
         </div>
       </div>
     </div>
+    </template>
 
     <AddTransactionModal
       v-model:visible="showModal"
@@ -953,7 +967,12 @@ async function toggleWatchlist() {
 .sim-profit-right { display: flex; flex-direction: column; align-items: flex-end; gap: 1px; }
 .sim-profit-pct { font-size: 1.2rem; }
 
-.loading { padding: 1rem 0; }
+.page-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 260px;
+}
 .empty { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 3rem 1rem; }
 .empty i { font-size: 3rem; color: var(--text-secondary); }
 

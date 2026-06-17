@@ -4,6 +4,7 @@ import * as d3 from 'd3'
 import {useRouter} from 'vue-router'
 import {useHistoryStore} from '@/stores/history'
 import {usePercent} from '@/composables/useFormat'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
   positions: {type: Array, default: () => []},
@@ -140,7 +141,9 @@ watch(series, () => nextTick(draw), {deep: true})
     <h2 class="card-title">Stock Performance</h2>
 
     <div ref="wrapRef" class="compare-wrap">
-      <div v-if="loading && !normalized.length" class="compare-state">Loading…</div>
+      <div v-if="loading && !normalized.length" class="compare-state">
+        <AppLoader/>
+      </div>
       <div v-else-if="!normalized.length" class="compare-state">Not enough history yet</div>
       <svg v-else ref="svgRef" class="compare-svg"/>
     </div>

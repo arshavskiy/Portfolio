@@ -1,6 +1,7 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
   data: {type: Array, default: () => []}, // [{ date, value, cost, firstBuyDate, txDates }]
@@ -160,7 +161,9 @@ watch(() => props.loading, async (isLoading) => {
 
 <template>
   <div ref="wrapRef" class="hist-wrap">
-    <div v-if="loading" class="hist-state">Loading…</div>
+    <div v-if="loading" class="hist-state">
+      <AppLoader/>
+    </div>
     <div v-else-if="!data.length" class="hist-state">Not enough history yet</div>
     <svg v-else ref="svgRef" class="hist-svg"/>
   </div>

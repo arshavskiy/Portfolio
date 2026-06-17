@@ -50,7 +50,29 @@ exports.getWatchlist = async (req, res) => {
 
     res.json(enriched)
   } catch (err) {
-    res.status(500).json({ message: err.message })
+      res.status(500).json({message: err.message})
+  }
+}
+
+exports.getWatchlistItem = async (req, res) => {
+    try {
+        const ticker = req.params.ticker.toUpperCase()
+        const item = await Watchlist.findOne({user: req.user._id, ticker}).lean()
+        res.json({
+            item: item
+                ? {
+                    _id: item._id,
+                    ticker: item.ticker,
+                    companyName: item.companyName,
+                    sector: item.sector || null,
+                    industry: item.industry || null,
+                    addedAt: item.addedAt,
+                    groups: normalizeGroups(item.groups || []),
+                }
+                : null,
+        })
+  } catch (err) {
+        res.status(500).json({message: err.message})
   }
 }
 

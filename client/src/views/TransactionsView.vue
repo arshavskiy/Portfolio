@@ -7,6 +7,7 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const transactions = ref([])
 const loading = ref(false)
@@ -99,7 +100,9 @@ function exportCSV() {
       />
     </div>
 
-    <div v-if="loading" class="text-muted loading">Loading...</div>
+    <div v-if="loading" class="page-loader">
+      <AppLoader/>
+    </div>
 
     <div v-else-if="!filtered.length" class="empty">
       <i class="pi pi-list" />
@@ -159,7 +162,12 @@ function exportCSV() {
 .filter-input { flex: 1; }
 .filter-select { width: 130px; }
 
-.loading { padding: 1rem 0; }
+.page-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+}
 .empty { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 3rem 1rem; }
 .empty i { font-size: 3rem; color: var(--text-secondary); }
 

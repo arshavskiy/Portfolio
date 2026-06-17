@@ -5,6 +5,7 @@ import {useRouter} from 'vue-router'
 import {storeToRefs} from 'pinia'
 import {DEFAULT_NEWS_TOPICS, useNewsStore} from '@/stores/news'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const router = useRouter()
 const news = useNewsStore()
@@ -119,7 +120,7 @@ onUnmounted(() => observer?.disconnect())
     </div>
 
     <div ref="sentinelRef" class="scroll-sentinel">
-      <span v-if="loadingMore" class="news-loader" aria-label="Loading more articles" />
+      <AppLoader v-if="loadingMore"/>
       <button
         v-else-if="hasMore && !loading"
         class="load-more-btn"
@@ -233,23 +234,6 @@ onUnmounted(() => observer?.disconnect())
   border-color: rgba(0, 207, 255, 0.8);
   box-shadow: 0 0 14px rgba(0, 207, 255, 0.15);
   transform: translateY(-1px);
-}
-
-.news-loader {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid rgba(0, 207, 255, 0.14);
-  border-top-color: var(--neon-blue);
-  border-right-color: #a855f7;
-  box-shadow: 0 0 12px rgba(0, 207, 255, 0.22), inset 0 0 8px rgba(168, 85, 247, 0.08);
-  animation: newsSpin 0.75s linear infinite;
-}
-
-@keyframes newsSpin {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 @keyframes shimmer {

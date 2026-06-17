@@ -14,6 +14,7 @@ import WatchlistSearch from '@/components/ui/WatchlistSearch.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
@@ -23,7 +24,7 @@ const showModal = ref(false)
 const showImportModal = ref(false)
 const showGroupModal = ref(false)
 const groupItem = ref(null)
-const groupMode = useStorage('watchlist-group-mode', 'sector')
+const groupMode = useStorage('watchlist-group-mode', 'prepost')
 const changeDirection = useStorage('watchlist-change-direction', 'down')
 const searchQuery = ref('')
 const now = ref(new Date())
@@ -161,8 +162,8 @@ function onGroupsSaved() {
 
 
     </header>
-    <div v-if="watchlist.loading" class="skeleton-list">
-      <div v-for="n in 5" :key="n" class="skeleton-row"/>
+    <div v-if="watchlist.loading" class="page-loader">
+      <AppLoader/>
     </div>
 
     <div v-else-if="!watchlist.items.length" class="empty">
@@ -284,24 +285,11 @@ header {
   font-size: 3rem;
 }
 
-.skeleton-list {
+.page-loader {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.skeleton-row {
-  height: 60px;
-  background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-  border-bottom: 1px solid var(--border);
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
 }
 
 .watch-list {

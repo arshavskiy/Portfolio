@@ -1,14 +1,20 @@
 <script setup>
+import {watch} from 'vue'
 import {GROUP_MODES} from '@/composables/useGrouping'
 
 const model = defineModel({type: String, required: true})
-// 'down' = gainers first (default), 'up' = losers first. Only meaningful
-// while model === 'change'; clicking the already-active Change chip again
+// 'down' = gainers first (default), 'up' = losers first. Meaningful
+// while model === 'change' or 'prepost'; clicking the already-active chip again
 // flips it (next click toggles direction instead of needing a double-click).
 const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
+const directionalModes = new Set(['change', 'prepost'])
+
+watch(model, (value) => {
+  if (value === 'sector') model.value = 'prepost'
+}, {immediate: true})
 
 function onTap(value) {
-  if (value === 'change' && model.value === 'change') {
+  if (directionalModes.has(value) && model.value === value) {
     changeDirection.value = changeDirection.value === 'down' ? 'up' : 'down'
     return
   }
@@ -23,13 +29,16 @@ function onTap(value) {
       :key="opt.value"
       class="group-btn"
       :class="{ active: model === opt.value }"
-      :title="opt.value === 'change' ? 'Group by Change (click again to flip gainers/losers)' : `Group by ${opt.label}`"
+      :title="directionalModes.has(opt.value) ? `${opt.label} (click again to flip up/down)` : `Group by ${opt.label}`"
       @click="onTap(opt.value)"
-    >{{ opt.label }}<i
-        v-if="opt.value === 'change' && model === 'change'"
+    >
+      <span>{{ opt.label }}</span>
+      <i
+          v-if="directionalModes.has(opt.value) && model === opt.value"
         :class="changeDirection === 'up' ? 'pi pi-arrow-down' : 'pi pi-arrow-up'"
         class="change-dir-icon"
-    /></button>
+      />
+    </button>
   </div>
 </template>
 
@@ -44,12 +53,13 @@ function onTap(value) {
 }
 
 .group-btn {
+  position: relative;
   flex: 1;
   background: none;
   border: none;
   color: var(--text-secondary);
   border-radius: 6px;
-  padding: 5px 0;
+  padding: 5px 12px 5px 4px;
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -67,7 +77,10 @@ function onTap(value) {
 }
 
 .change-dir-icon {
-  margin-left: .5px;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 0.55rem;
 }
 </style>

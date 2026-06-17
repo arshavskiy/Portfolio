@@ -1,5 +1,5 @@
 // Shared grouping logic for positions / watchlist items.
-// mode: 'none' | 'market' | 'change' | 'sector' | 'industry' | 'group'
+// mode: 'none' | 'market' | 'change' | 'prepost' | 'industry' | 'group'
 //
 // Returns an array of { group, items } sections. In 'group' mode a stock with
 // multiple tags appears under EACH of its groups, plus an "Ungrouped" bucket
@@ -53,6 +53,16 @@ function changeValueOf(item) {
     return typeof item?.changePercent === 'number' ? item.changePercent : null
 }
 
+function prePostValueOf(item) {
+    const values = [
+        item?.postMarketChangePercent,
+        item?.preMarketChangePercent,
+        item?.lastPostMarketChangePercent,
+        item?.lastPreMarketChangePercent,
+    ]
+    return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
+}
+
 function buildSingleFieldSections(items, getGroup, sortGroups = defaultGroupSort) {
     const map = {}
     for (const it of items) {
@@ -98,8 +108,17 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         return [{group: null, items: sortedItems}]
     }
     
-    if (mode === 'sector') {
-        return buildSingleFieldSections(items, (it) => classifyOf(it, 'sector'))
+    if (mode === 'prepost' || mode === 'sector') {
+        const sign = changeDirection === 'up' ? -1 : 1
+        const sortedItems = [...items].sort((a, b) => {
+            const aChange = prePostValueOf(a)
+            const bChange = prePostValueOf(b)
+            if (aChange == null && bChange == null) return 0
+            if (aChange == null) return 1
+            if (bChange == null) return -1
+            return (bChange - aChange) * sign
+        })
+        return [{group: null, items: sortedItems}]
     }
     
     if (mode === 'industry') {
@@ -130,7 +149,7 @@ export const GROUP_MODES = [
     {label: 'None', value: 'none'},
     {label: 'Market', value: 'market'},
     {label: 'Change', value: 'change'},
-    {label: 'Sector', value: 'sector'},
+    {label: 'Pre/Post', value: 'prepost'},
     {label: 'Industry', value: 'industry'},
     {label: 'Groups', value: 'group'},
 ]
