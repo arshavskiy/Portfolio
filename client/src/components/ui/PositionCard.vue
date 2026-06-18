@@ -79,6 +79,9 @@ const extendedChangePercent = computed(() => {
         </span>
       </span>
       <span class="company text-muted">{{ pos.companyName }}</span>
+      <span v-if="pos.dividendYield" class="div-yield">
+        <i class="pi pi-dollar"/> {{ (pos.dividendYield * 100).toFixed(2) }}%
+      </span>
       <div class="group-tags compact-tags" @click.stop="emit('edit-groups', pos)">
         <span v-for="g in pos.groups || []" :key="g" class="group-tag">{{ g }}</span>
         <span class="group-tag add-tag">
@@ -134,6 +137,9 @@ const extendedChangePercent = computed(() => {
           </span>
         </span>
         <span class="company text-muted">{{ pos.companyName }}</span>
+        <span v-if="pos.dividendYield" class="div-yield">
+          <i class="pi pi-dollar"/> {{ (pos.dividendYield * 100).toFixed(2) }}%
+        </span>
         <div class="group-tags" @click.stop="emit('edit-groups', pos)">
           <span v-for="g in pos.groups || []" :key="g" class="group-tag">{{ g }}</span>
           <span class="group-tag add-tag">
@@ -381,6 +387,21 @@ const extendedChangePercent = computed(() => {
 
 .add-tag i {
   font-size: 0.55rem;
+}
+
+.div-yield {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 3px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #fbbf24;
+  letter-spacing: 0.01em;
+}
+
+.div-yield i {
+  font-size: 0.6rem;
 }
 
 .alert-badge {

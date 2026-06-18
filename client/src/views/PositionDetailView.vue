@@ -563,7 +563,7 @@ function openWatchlistTicker(nextTicker) {
 function returnToWatchlist() {
   sessionStorage.setItem(WATCHLIST_TICKER_KEY, ticker.value)
   sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')
-  router.push('/watchlist')
+  router.go(-1)
 }
 
 async function fetchWatchlistItem() {
@@ -834,6 +834,14 @@ async function toggleWatchlist() {
         <div class="stat">
           <span class="text-muted">52W Low</span>
           <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
+        </div>
+        <div v-if="quote.dividendYield" class="stat">
+          <span class="text-muted">Div Yield</span>
+          <span class="div-yield-val">{{ (quote.dividendYield * 100).toFixed(2) }}%</span>
+        </div>
+        <div v-if="quote.dividendRate" class="stat">
+          <span class="text-muted">Div / Share</span>
+          <span>{{ useTickerCurrency(quote.dividendRate, ticker) }}</span>
         </div>
       </div>
 
@@ -1348,6 +1356,11 @@ async function toggleWatchlist() {
 
 .stat:nth-last-child(-n+2) {
   border-bottom: none;
+}
+
+.div-yield-val {
+  color: #fbbf24;
+  font-weight: 600;
 }
 
 .sim-wrap {

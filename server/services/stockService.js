@@ -272,6 +272,8 @@ async function getQuote(ticker) {
     week52High: result.fiftyTwoWeekHigh / f,
     week52Low: result.fiftyTwoWeekLow / f,
     pe: result.trailingPE,
+    dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
+    dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
     marketState: result.marketState || null,
       ...live,
       // Last-seen extended-hours values, retained across regular hours. Falls back

@@ -157,6 +157,8 @@ exports.getPortfolio = async (req, res) => {
         dayPnl,
         valueUsd: value * fxRate,
         groups: p.groups || [],
+        dividendRate: q.dividendRate ?? null,
+        dividendYield: q.dividendYield ?? null,
       }
     })
 
