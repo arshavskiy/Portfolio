@@ -143,7 +143,7 @@ function confirmDelete() {
       <div class="modal-header">
         <Tag
           :value="transaction?.type?.toUpperCase()"
-          :severity="transaction?.type === 'buy' ? 'success' : 'danger'"
+          :severity="transaction?.type === 'buy' ? 'success' : transaction?.type === 'sell' ? 'danger' : 'info'"
         />
         <span class="modal-title">Edit · {{ ticker }}</span>
       </div>
@@ -152,11 +152,15 @@ function confirmDelete() {
     <div class="edit-form">
       <div class="fields-row">
         <div class="field">
-          <label>{{ crypto ? 'Amount' : 'Shares' }}</label>
+          <label>{{
+              transaction?.type === 'dividend' ? (transaction?.drip ? 'DRIP shares' : 'Shares held') : (crypto ? 'Amount' : 'Shares')
+            }}</label>
           <InputNumber v-model="shares" :max-fraction-digits="crypto ? 8 : 4" :min="0" fluid/>
         </div>
         <div class="field">
-          <label>{{ crypto ? 'Price per coin' : 'Price per share' }}</label>
+          <label>{{
+              transaction?.type === 'dividend' ? 'Dividend per share' : (crypto ? 'Price per coin' : 'Price per share')
+            }}</label>
           <InputNumber
             v-model="price"
             mode="currency"

@@ -13,6 +13,12 @@ const routes = [
       { path: 'news/article/:id', name: 'NewsArticle', component: () => import('@/views/NewsArticleView.vue'), meta: { requiresAuth: true } },
       { path: 'news', name: 'News', component: () => import('@/views/NewsView.vue'), meta: { requiresAuth: true } },
       { path: 'holdings', name: 'Holdings', component: () => import('@/views/HoldingsView.vue'), meta: { requiresAuth: true } },
+        {
+            path: 'rebalance',
+            name: 'Rebalance',
+            component: () => import('@/views/RebalanceView.vue'),
+            meta: {requiresAuth: true}
+        },
       { path: 'watchlist', name: 'Watchlist', component: () => import('@/views/WatchlistView.vue'), meta: { requiresAuth: true } },
       { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
       { path: 'stock/:ticker', redirect: to => `/position/${encodeURIComponent(to.params.ticker)}` },

@@ -3,6 +3,7 @@ import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useConfirm} from 'primevue/useconfirm'
 import {useStorage} from '@vueuse/core'
+import {useRouter} from 'vue-router'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useAlertsStore} from '@/stores/alerts'
@@ -20,6 +21,7 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 
 const toast = useToast()
 const confirm = useConfirm()
+const router = useRouter()
 const portfolio = usePortfolioStore()
 const historyStore = useHistoryStore()
 const alerts = useAlertsStore()
@@ -119,6 +121,13 @@ onUnmounted(() => {
             size="small"
             text
             @click="compactMode = !compactMode"
+        />
+        <Button
+            v-tooltip.bottom="'Rebalance'"
+            icon="pi pi-sliders-h"
+            size="small"
+            text
+            @click="router.push('/rebalance')"
         />
         <Button
             v-tooltip.bottom="'Import from file'"

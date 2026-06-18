@@ -20,10 +20,15 @@ async function recomputePosition(userId, ticker) {
     if (t.type === 'buy') {
       totalCost += t.shares * t.price
       totalShares += t.shares
-    } else {
+    } else if (t.type === 'sell') {
       if (totalShares > 0) totalCost -= (totalCost / totalShares) * t.shares
       totalShares -= t.shares
+    } else if (t.type === 'dividend' && t.drip && t.shares > 0) {
+        // DRIP: shares added at the dividend price
+        totalCost += t.shares * t.price
+        totalShares += t.shares
     }
+      // cash dividend: no position change
   }
   totalShares = Math.max(0, totalShares)
   
@@ -194,13 +199,19 @@ exports.getHistory = async (req, res) => {
 
 exports.addTransaction = async (req, res) => {
   try {
-    const {ticker, type, shares, price, date, notes, feeProfileId, groups} = req.body
-    if (!ticker || !type || !shares || !price)
+      const {ticker, type, shares, price, date, notes, feeProfileId, groups, drip, total: clientTotal} = req.body
+      if (!ticker || !type)
+          return res.status(400).json({message: 'ticker and type required'})
+      // Dividends: price = per-share dividend amount, shares = DRIP shares (or 0 for cash)
+      if (type !== 'dividend' && (!shares || !price))
       return res.status(400).json({ message: 'ticker, type, shares, price required' })
-    
-    const normalizedGroups = normalizeGroups(groups)
+      if (type === 'dividend' && !price)
+          return res.status(400).json({message: 'price (dividend per share) required'})
 
-    const total = shares * price
+    const normalizedGroups = normalizeGroups(groups)
+      
+      // For dividends, client computes total = amountPerShare * sharesHeld; use it directly.
+      const total = type === 'dividend' ? (clientTotal || (shares || 0) * (price || 0)) : (shares * price)
 
     let feeProfile = null
     let feeAmount = 0
@@ -224,17 +235,25 @@ exports.addTransaction = async (req, res) => {
 
     invalidateCache(ticker)
     const tx = await Transaction.create({
-      user: req.user._id, ticker: ticker.toUpperCase(), type, shares, price, total, date, notes,
+        user: req.user._id,
+        ticker: ticker.toUpperCase(),
+        type,
+        shares: shares || 0,
+        price: price || 0,
+        total,
+        date,
+        notes,
+        drip: type === 'dividend' ? Boolean(drip) : undefined,
       feeProfile: feeProfile?._id || null,
       feeAmount,
       taxAmount,
-      totalWithFees: type === 'buy' ? total + feeAmountForTotals : total - feeAmountForTotals,
+        totalWithFees: type === 'buy' ? total + feeAmountForTotals : (type === 'sell' ? total - feeAmountForTotals : total),
       netProceeds: type === 'sell' ? total - feeAmountForTotals - taxAmount : undefined,
     })
 
     let position = await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
       const symbol = ticker.toUpperCase()
-      const profile = type === 'buy' ? await getTickerProfile(symbol) : null
+      const profile = (type === 'buy' || type === 'dividend') ? await getTickerProfile(symbol) : null
 
     if (type === 'buy') {
       if (position) {
@@ -284,6 +303,18 @@ exports.addTransaction = async (req, res) => {
       } else {
         await position.save()
       }
+    } else if (type === 'dividend') {
+        if (drip && shares > 0 && position) {
+            // DRIP: reinvest dividend as additional shares at the given price
+            const newShares = position.shares + shares
+            position.avgCost = (position.avgCost * position.shares + price * shares) / newShares
+            position.shares = newShares
+            position.companyName = position.companyName || profile?.companyName || symbol
+            position.sector = position.sector || profile?.sector || null
+            position.industry = position.industry || profile?.industry || null
+            await position.save()
+        }
+        // Cash dividend: no position change; transaction is the record
     }
 
     res.status(201).json({ transaction: tx })
@@ -396,6 +427,139 @@ exports.getGroups = async (req, res) => {
   } catch (err) {
     res.status(500).json({message: err.message})
   }
+}
+
+// Realized capital gains: replay all buys/sells per ticker (avg-cost method)
+// to compute gain/loss on each sell, then group by year.
+// Also includes dividends received per year for a complete income picture.
+exports.getRealizedGains = async (req, res) => {
+    try {
+        const yearFilter = req.query.year ? Number(req.query.year) : null
+        const allTx = await Transaction.find({user: req.user._id, type: {$in: ['buy', 'sell', 'dividend']}})
+            .populate('feeProfile', 'name currency capitalGainsTax')
+            .sort({date: 1})
+        
+        // Per-ticker running state: shares held + total cost basis
+        const state = {}
+        // Results: per sell event
+        const sells = []
+        
+        for (const tx of allTx) {
+            const t = tx.ticker
+            if (!state[t]) state[t] = {shares: 0, cost: 0}
+            
+            if (tx.type === 'buy') {
+                state[t].cost += tx.shares * tx.price
+                state[t].shares += tx.shares
+            } else if (tx.type === 'sell') {
+                const avgCost = state[t].shares > 0 ? state[t].cost / state[t].shares : 0
+                const costBasis = avgCost * tx.shares
+                const proceeds = tx.total || tx.shares * tx.price
+                const feePaid = tx.feeAmount || 0
+                const taxPaid = tx.taxAmount || 0
+                const grossGain = proceeds - costBasis
+                const netGain = grossGain - feePaid - taxPaid
+                
+                sells.push({
+                    _id: tx._id,
+                    ticker: t,
+                    date: tx.date,
+                    shares: tx.shares,
+                    price: tx.price,
+                    proceeds,
+                    costBasis,
+                    avgCostAtSale: avgCost,
+                    feePaid,
+                    taxPaid,
+                    grossGain,
+                    netGain,
+                    notes: tx.notes,
+                })
+                
+                // Update running state
+                state[t].cost -= costBasis
+                state[t].shares -= tx.shares
+                if (state[t].shares <= 0) {
+                    state[t].shares = 0;
+                    state[t].cost = 0
+                }
+            } else if (tx.type === 'dividend' && !tx.drip) {
+                sells.push({
+                    _id: tx._id,
+                    ticker: t,
+                    date: tx.date,
+                    isDividend: true,
+                    grossGain: tx.total || 0,
+                    netGain: tx.total || 0,
+                    notes: tx.notes,
+                })
+            }
+        }
+        
+        // Group by year, then by ticker
+        const byYear = {}
+        for (const s of sells) {
+            const year = new Date(s.date).getFullYear()
+            if (yearFilter && year !== yearFilter) continue
+            if (!byYear[year]) byYear[year] = {
+                year,
+                sells: [],
+                dividends: [],
+                totalGross: 0,
+                totalNet: 0,
+                totalDividends: 0
+            }
+            if (s.isDividend) {
+                byYear[year].dividends.push(s)
+                byYear[year].totalDividends += s.grossGain
+            } else {
+                byYear[year].sells.push(s)
+                byYear[year].totalGross += s.grossGain
+                byYear[year].totalNet += s.netGain
+            }
+        }
+        
+        // Sort years descending, events within each year descending by date
+        const years = Object.values(byYear)
+            .sort((a, b) => b.year - a.year)
+            .map((y) => ({
+                ...y,
+                sells: y.sells.sort((a, b) => new Date(b.date) - new Date(a.date)),
+                dividends: y.dividends.sort((a, b) => new Date(b.date) - new Date(a.date)),
+            }))
+        
+        const availableYears = Object.keys(byYear).map(Number).sort((a, b) => b - a)
+        res.json({years, availableYears})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+// Dividend summary: total received per ticker + grand total, with DRIP flag.
+exports.getDividendSummary = async (req, res) => {
+    try {
+        const dividends = await Transaction.find({user: req.user._id, type: 'dividend'}).sort({date: -1})
+        const byTicker = {}
+        for (const d of dividends) {
+            const t = d.ticker
+            if (!byTicker[t]) byTicker[t] = {ticker: t, total: 0, count: 0, drip: false, transactions: []}
+            byTicker[t].total += d.total || 0
+            byTicker[t].count++
+            if (d.drip) byTicker[t].drip = true
+            byTicker[t].transactions.push(d)
+        }
+        const positions = await Position.find({user: req.user._id})
+        const posMap = Object.fromEntries(positions.map((p) => [p.ticker, p]))
+        const summary = Object.values(byTicker).map((row) => ({
+            ...row,
+            shares: posMap[row.ticker]?.shares ?? null,
+            avgCost: posMap[row.ticker]?.avgCost ?? null,
+        }))
+        const grandTotal = summary.reduce((s, r) => s + r.total, 0)
+        res.json({summary, grandTotal})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
 }
 
 // Replace a position's group tags.

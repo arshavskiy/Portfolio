@@ -15,6 +15,7 @@ import Select from 'primevue/select'
 import SelectButton from 'primevue/selectbutton'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AlertModal from '@/components/ui/AlertModal.vue'
+import DividendModal from '@/components/ui/DividendModal.vue'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import StockChart from '@/components/charts/StockChart.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
@@ -34,6 +35,7 @@ const loading = ref(false)
 const watchedItem = ref(null)
 const showModal = ref(false)
 const showAlertModal = ref(false)
+const showDividendModal = ref(false)
 const showSimulator = ref(false)
 const editingTx = ref(null)
 const simPrice = ref(null)
@@ -135,6 +137,12 @@ async function loadHistory() {
     chartLoading.value = false
   }
 }
+
+// Dividend transactions for this position
+const dividendTxs = computed(() =>
+    transactions.value.filter((tx) => tx.type === 'dividend').sort((a, b) => new Date(b.date) - new Date(a.date))
+)
+const totalDividends = computed(() => dividendTxs.value.reduce((s, d) => s + (d.total || 0), 0))
 
 // Running weighted average per lot
 const lots = computed(() => {
@@ -614,6 +622,14 @@ async function toggleWatchlist() {
       <div class="header-actions">
         <Button icon="pi pi-plus" rounded text @click="showModal = true"/>
         <Button
+            v-if="summary"
+            v-tooltip.bottom="'Log dividend'"
+            icon="pi pi-dollar"
+            rounded
+            text
+            @click="showDividendModal = true"
+        />
+        <Button
             v-tooltip.bottom="'Set price alert'"
             icon="pi pi-bell"
             rounded
@@ -886,6 +902,32 @@ async function toggleWatchlist() {
         </div>
       </div>
 
+      <!-- Dividend summary -->
+      <div v-if="dividendTxs.length" class="dividends-section">
+        <div class="dividends-header">
+          <h2 class="section-title">Dividends</h2>
+          <span class="div-total gain">Total {{ useTickerCurrency(totalDividends, ticker) }}</span>
+        </div>
+        <div v-for="d in dividendTxs" :key="d._id" class="lot-row">
+          <div class="lot-left">
+            <div class="lot-top">
+              <span class="div-badge">DIV</span>
+              <span class="lot-date text-muted">{{ formatDate(d.date) }}</span>
+              <span v-if="d.drip" class="drip-tag">DRIP</span>
+            </div>
+            <div class="lot-detail">
+              {{ useTickerCurrency(d.price, ticker) }} / share
+              <template v-if="d.drip && d.shares"> · +{{ d.shares }} shares</template>
+            </div>
+            <div v-if="d.notes" class="lot-notes text-muted">{{ d.notes }}</div>
+          </div>
+          <div class="lot-right">
+            <span class="lot-total gain">+{{ useTickerCurrency(d.total, ticker) }}</span>
+            <Button class="lot-edit-btn" icon="pi pi-pencil" rounded size="small" text @click.stop="editingTx = d"/>
+          </div>
+        </div>
+      </div>
+
       <div v-if="!lots.length" class="empty">
         <i class="pi pi-list"/>
         <p class="text-muted">No transactions yet</p>
@@ -946,6 +988,14 @@ async function toggleWatchlist() {
     />
 
     <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker"/>
+
+    <DividendModal
+        v-model:visible="showDividendModal"
+        :current-price="currentPrice"
+        :default-ticker="ticker"
+        :position-shares="summary?.shares ?? null"
+        @saved="fetchLots"
+    />
 
     <EditTransactionModal
         :transaction="editingTx"
@@ -1512,6 +1562,41 @@ async function toggleWatchlist() {
 .lot-edit-btn {
   margin-top: 2px;
   opacity: 0.6;
+}
+
+.dividends-section {
+  margin-top: 1.5rem;
+}
+
+.dividends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.div-total {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.div-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: rgba(0, 195, 106, 0.15);
+  color: var(--neon-green);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.drip-tag {
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--accent);
+  border-radius: 4px;
+  padding: 1px 5px;
 }
 
 @keyframes shimmer {
