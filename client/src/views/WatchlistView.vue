@@ -35,6 +35,14 @@ const WATCHLIST_SCROLL_KEY = 'watchlist-scroll-top'
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
 const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
 const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
+const MIN_RANGE_LOADER_MS = 350
+const RANGE_LABELS = {
+  '1d': '1D',
+  '5d': '5D',
+  '1mo': '1M',
+  '6mo': '6M',
+  '1y': '1Y',
+}
 
 function onImported() {
   watchlist.fetchWatchlist(range.value, {force: true})
@@ -50,6 +58,7 @@ const filteredItems = computed(() => {
 
 const grouped = computed(() => groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value))
 const initialLoading = computed(() => watchlist.loading && !watchlist.items.length)
+const rangeLabel = computed(() => RANGE_LABELS[range.value] || range.value)
 const cacheStatusText = computed(() => {
   const meta = watchlist.cacheMeta
   if (!meta?.savedAt) return ''
@@ -142,10 +151,13 @@ onMounted(() => {
 })
 watch(range, async (r) => {
   const requestId = ++rangeRequestId
+  const startedAt = Date.now()
   rangeLoading.value = true
   try {
     await watchlist.fetchWatchlist(r)
   } finally {
+    const remaining = MIN_RANGE_LOADER_MS - (Date.now() - startedAt)
+    if (remaining > 0) await new Promise((resolve) => setTimeout(resolve, remaining))
     if (requestId === rangeRequestId) rangeLoading.value = false
   }
 })
@@ -197,6 +209,10 @@ function onGroupsSaved() {
 
       <div>
         <RangeBar class="page-range"/>
+        <div v-if="rangeLoading" class="range-loading-indicator">
+          <AppLoader/>
+          <span>Loading {{ rangeLabel }} data</span>
+        </div>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
         <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
           <i :class="watchlist.cacheMeta?.stale ? 'pi pi-wifi-slash' : (watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync')"/>
@@ -393,6 +409,21 @@ header {
 
 .page-group-mode {
   margin-bottom: 1rem;
+}
+
+.range-loading-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: -0.45rem 0 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.range-loading-indicator :deep(.app-loader) {
+  width: 16px;
+  height: 16px;
 }
 
 .cache-status {

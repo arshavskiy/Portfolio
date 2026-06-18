@@ -53,6 +53,13 @@ let pageRequestId = 0
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
 const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
 const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
+const RANGE_LABELS = {
+  '1d': '1D',
+  '5d': '5D',
+  '1mo': '1M',
+  '6mo': '6M',
+  '1y': '1Y',
+}
 
 onMounted(async () => {
   loadWatchlistNavContext()
@@ -323,6 +330,25 @@ const quoteChange = computed(() => ({
   amount: quote.value?.change ?? null,
   percent: quote.value?.changePercent ?? null,
 }))
+const rangeChange = computed(() => {
+  const rows = history.value.filter((row) => Number.isFinite(row?.close))
+  if (rows.length < 2) return null
+
+  const firstClose = rows[0].close
+  const lastClose = rows[rows.length - 1].close
+  if (!Number.isFinite(firstClose) || !Number.isFinite(lastClose) || firstClose === 0) return null
+
+  const amount = lastClose - firstClose
+  return {
+    amount,
+    percent: (amount / firstClose) * 100,
+  }
+})
+const displayedPriceChange = computed(() => rangeChange.value || quoteChange.value)
+const displayedPriceChangeLabel = computed(() => rangeChange.value
+  ? `${RANGE_LABELS[selectedRange.value] || selectedRange.value} range`
+  : 'Today'
+)
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
 const isWatched = computed(() => Boolean(watchedItem.value))
@@ -620,8 +646,9 @@ async function toggleWatchlist() {
                {{ useCurrency(shekelValue, 'ILS') }}
             </span>
             </div>
-            <p :class="gainLossClass(quoteChange.amount)" class="price-change">
-              {{ useTickerCurrency(quoteChange.amount, ticker) }} ({{ usePercent(quoteChange.percent) }})
+            <p :class="gainLossClass(displayedPriceChange.amount)" class="price-change">
+              {{ useTickerCurrency(displayedPriceChange.amount, ticker) }} ({{ usePercent(displayedPriceChange.percent) }})
+              <span class="price-change-label">{{ displayedPriceChangeLabel }}</span>
             </p>
             <div v-if="extendedHours" class="extended-row">
             <span class="extended-price">
@@ -1028,6 +1055,13 @@ async function toggleWatchlist() {
 
 .price-change {
   font-size: 1rem;
+}
+
+.price-change-label {
+  margin-left: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 600;
 }
 
 .price-ils {
