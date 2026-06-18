@@ -17,12 +17,22 @@ export const useFeeProfileStore = defineStore('feeProfiles', () => {
 
   async function createProfile(payload) {
     const p = await api.post('/fee-profiles', payload)
+    if (p.isDefault) {
+      profiles.value = profiles.value.map((x) =>
+        (x.currency || 'USD') === (p.currency || 'USD') ? {...x, isDefault: false} : x
+      )
+    }
     profiles.value.unshift(p)
     return p
   }
 
   async function updateProfile(id, payload) {
     const p = await api.put(`/fee-profiles/${id}`, payload)
+    if (p.isDefault) {
+      profiles.value = profiles.value.map((x) =>
+        x._id !== id && (x.currency || 'USD') === (p.currency || 'USD') ? {...x, isDefault: false} : x
+      )
+    }
     const idx = profiles.value.findIndex((x) => x._id === id)
     if (idx !== -1) profiles.value[idx] = p
     return p

@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import {reactive} from 'vue'
 import api from '@/composables/useApi'
-import {cachedFetch, invalidateClientCachePrefix} from '@/composables/useClientCache'
+import {cachedFetch, invalidateClientCachePrefix, setClientCacheEntry} from '@/composables/useClientCache'
 
 const CACHE_PREFIX = 'history:'
 
@@ -70,11 +70,21 @@ export const useHistoryStore = defineStore('history', () => {
     return promise
   }
 
+  async function seedHistory(ticker, range = '1mo', points, data, savedAt = Date.now()) {
+    if (!ticker || !Array.isArray(data)) return null
+    const key = makeKey(ticker, range, points)
+    cache[key] = {
+      data,
+      expiresAt: savedAt + ttlForRange(range),
+    }
+    return setClientCacheEntry(`${CACHE_PREFIX}${key}`, data, savedAt)
+  }
+
   function clearHistory() {
     for (const key of Object.keys(cache)) delete cache[key]
     for (const key of Object.keys(loading)) delete loading[key]
     invalidateClientCachePrefix(CACHE_PREFIX).catch(() => {})
   }
 
-  return { fetchHistory, getEntry, isLoading, clearHistory }
+  return { fetchHistory, seedHistory, getEntry, isLoading, clearHistory }
 })

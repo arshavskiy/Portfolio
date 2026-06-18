@@ -56,8 +56,8 @@ const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
 
 onMounted(async () => {
   loadWatchlistNavContext()
+  if (!feeStore.profiles.length) await feeStore.fetchProfiles()
   await loadPositionData()
-  feeStore.fetchProfiles()
   startAutoRefresh()
 })
 onUnmounted(() => clearInterval(refreshTimer))
@@ -240,8 +240,13 @@ const matchingFeeProfiles = computed(() =>
 )
 
 function defaultFeeProfile() {
-  return feeStore.profiles.find((p) => p.isDefault && (p.currency || 'USD') === tickerCurr.value) ||
-      (tickerCurr.value === 'USD' ? feeStore.profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
+  function preferredProfile(currency) {
+    const profiles = feeStore.profiles.filter((p) => (p.currency || 'USD') === currency)
+    return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
+  }
+
+  return preferredProfile(tickerCurr.value) ||
+      (tickerCurr.value === 'USD' ? preferredProfile('ILS') : null)
 }
 
 function feeProfileOf(tx) {
@@ -682,8 +687,11 @@ async function toggleWatchlist() {
               <span class="loss">-{{ useTickerCurrency(summary.estimatedTax, ticker) }}</span>
             </div>
           </div>
-          <div v-if="summary.netPnlPct != null" :class="gainLossClass(summary.netPnlPct)" class="net-pct">
-            {{ fmt(summary.netPnlPct) }}{{ summary.netPnlPct.toFixed(2) }}% net return
+          <div v-if="summary.netPnlPct != null" class="fee-row net-return-row">
+            <span class="text-muted net-return-label">Net Return</span>
+            <span :class="gainLossClass(summary.netPnlPct)" class="net-pct">
+              {{ fmt(summary.netPnlPct) }}{{ summary.netPnlPct.toFixed(2) }}%
+            </span>
           </div>
         </div>
 
@@ -1150,7 +1158,34 @@ async function toggleWatchlist() {
   font-size: 0.9rem;
   font-weight: 600;
   text-align: right;
-  margin-top: 0.5rem;
+}
+
+.net-return-row {
+  position: relative;
+  padding-top: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.net-return-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  background-size: 200% 100%;
+  animation: net-return-border-sweep 8s ease-in-out infinite;
+}
+
+.net-return-label {
+  font-weight: 700;
+}
+
+@keyframes net-return-border-sweep {
+  0% { background-position: 200% 0; opacity: 0.45; }
+  50% { opacity: 1; }
+  100% { background-position: -200% 0; opacity: 0.45; }
 }
 
 .stats-row {

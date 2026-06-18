@@ -236,7 +236,7 @@ function feeLabel(p) {
       </div>
 
       <div class="field-row-inline">
-        <label>Set as default</label>
+        <label>Set as default for currency</label>
         <ToggleSwitch v-model="form.isDefault" />
       </div>
 

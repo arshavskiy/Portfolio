@@ -2,14 +2,32 @@ import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import api from '@/composables/useApi'
 import {cachedFetch, invalidateClientCachePrefix} from '@/composables/useClientCache'
+import {seedQuoteCache} from '@/composables/useQuoteCache'
+import {useHistoryStore} from '@/stores/history'
 
 export const useWatchlistStore = defineStore('watchlist', () => {
   const items = ref([])
   const loading = ref(false)
   const cacheMeta = ref(null)
+  const historyStore = useHistoryStore()
   let lastRange = '1d'
   const CACHE_TTL_MS = 5 * 60 * 1000
   const CACHE_PREFIX = 'watchlist:'
+
+  function detailHistoryPoints(range) {
+    return range === '1d' ? 160 : 50
+  }
+
+  function seedDetailCaches(data, range, savedAt = Date.now()) {
+    data.forEach((item) => {
+      const {history, groups, addedAt, companyName, sector, industry, _id, ...quote} = item
+      if (!quote.name && companyName) quote.name = companyName
+      seedQuoteCache(item.ticker, quote, savedAt).catch(() => {})
+      if (Array.isArray(history) && history.length) {
+        historyStore.seedHistory(item.ticker, range, detailHistoryPoints(range), history, savedAt).catch(() => {})
+      }
+    })
+  }
 
   // Cache watchlist responses briefly per chart range, while still allowing
   // mutation flows to force a fresh load. Concurrent calls for the same range
@@ -22,6 +40,7 @@ export const useWatchlistStore = defineStore('watchlist', () => {
     if (!hadData) loading.value = true
 
     try {
+      let responseSavedAt = Date.now()
       const data = await cachedFetch(
         `${CACHE_PREFIX}${range}`,
         CACHE_TTL_MS,
@@ -29,11 +48,13 @@ export const useWatchlistStore = defineStore('watchlist', () => {
         {
           force,
           onCacheMeta(meta) {
+            responseSavedAt = meta.savedAt || responseSavedAt
             if (lastRange === range) cacheMeta.value = {...meta, range}
           },
         }
       )
       if (lastRange === range) items.value = data
+      seedDetailCaches(data, range, responseSavedAt)
       return data
     } finally {
       if (!hadData) loading.value = false

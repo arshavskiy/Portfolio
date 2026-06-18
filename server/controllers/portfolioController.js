@@ -70,14 +70,15 @@ async function convertFeeToTransactionCurrency(amount, feeCurrency, transactionC
 }
 
 async function findDefaultFeeProfile(userId, transactionCurrency) {
-  const exact = await FeeProfile.findOne({
-    user: userId,
-    isDefault: true,
-    currency: transactionCurrency,
-  })
+  async function preferredProfile(currency) {
+    const profiles = await FeeProfile.find({ user: userId, currency }).sort({ isDefault: -1, createdAt: 1 })
+    return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
+  }
+
+  const exact = await preferredProfile(transactionCurrency)
   if (exact) return exact
   if (transactionCurrency === 'USD') {
-    return FeeProfile.findOne({user: userId, isDefault: true, currency: 'ILS'})
+    return preferredProfile('ILS')
   }
   return null
 }

@@ -22,13 +22,14 @@ function normalizeGroups(groups) {
 exports.getWatchlist = async (req, res) => {
   try {
       const range = ['1d', '5d', '1mo', '3mo', '6mo', '1y'].includes(req.query.range) ? req.query.range : '1mo'
+      const detailPoints = range === '1d' ? 160 : 50
     const items = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 })
     if (!items.length) return res.json([])
 
     const tickers = items.map((i) => i.ticker)
       const [quotes, histories] = await Promise.all([
           getQuotes(tickers),
-          Promise.all(tickers.map((t) => getHistory(t, range, 40).catch(() => []))),
+          Promise.all(tickers.map((t) => getHistory(t, range, detailPoints).catch(() => []))),
       ])
     const quoteMap = {}
     quotes.forEach((q) => { if (q) quoteMap[q.ticker] = q })

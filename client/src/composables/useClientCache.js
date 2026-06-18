@@ -98,6 +98,13 @@ export async function cachedFetch(key, ttlMs, fetcher, {force = false, allowStal
   return request
 }
 
+export async function setClientCacheEntry(key, data, savedAt = Date.now()) {
+  const entry = {key, data, savedAt}
+  memoryCache.set(key, entry)
+  await writePersistentEntry(entry)
+  return entry
+}
+
 export async function invalidateClientCacheKey(key) {
   memoryCache.delete(key)
   const db = await openCacheDb()

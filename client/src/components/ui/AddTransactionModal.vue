@@ -69,7 +69,8 @@ function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
 }
 
 function defaultFeeProfileForCurrency(currency) {
-  return feeStore.profiles.find((p) => p.isDefault && (p.currency || 'USD') === currency)
+  const profiles = feeStore.profiles.filter((p) => (p.currency || 'USD') === currency)
+  return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
 }
 
 const matchingProfiles = computed(() => {

@@ -1,5 +1,5 @@
 import api from '@/composables/useApi'
-import {cachedFetch, invalidateClientCacheKey} from '@/composables/useClientCache'
+import {cachedFetch, invalidateClientCacheKey, setClientCacheEntry} from '@/composables/useClientCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 
 const CACHE_PREFIX = 'quote:'
@@ -30,6 +30,11 @@ export function fetchCachedQuote(ticker, options = {}) {
     () => api.get(`/stocks/quote/${encodeURIComponent(normalized)}`),
     options
   )
+}
+
+export function seedQuoteCache(ticker, quote, savedAt) {
+  if (!ticker || !quote?.price) return Promise.resolve(null)
+  return setClientCacheEntry(quoteCacheKey(ticker.toUpperCase()), quote, savedAt)
 }
 
 export function invalidateQuoteCache(ticker) {

@@ -11,12 +11,13 @@ const profileCache = new Map()
 const historyCache = new Map()
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
 const HISTORY_CACHE_TTLS = {
-  '1d': 5 * 60 * 1000,
-  '5d': 15 * 60 * 1000,
-  '1mo': 30 * 60 * 1000,
-  '3mo': 60 * 60 * 1000,
-  '6mo': 60 * 60 * 1000,
-  '1y': 60 * 60 * 1000,
+  '1d': 2 * 60 * 1000,
+  '1wk': 10 * 60 * 1000,
+  '5d': 10 * 60 * 1000,
+  '1mo': 60 * 60 * 1000,
+  '3mo': 6 * 60 * 60 * 1000,
+  '6mo': 6 * 60 * 60 * 1000,
+  '1y': 6 * 60 * 60 * 1000,
   max: 6 * 60 * 60 * 1000,
 }
 
@@ -227,9 +228,17 @@ function saveExtendedSnapshot(ticker, fields) {
 }
 
 async function getQuote(ticker) {
-  // No TTL here — quotes are always fetched live from Yahoo so the dashboard
-  // reflects real-time prices on every load instead of a stale 5-min window.
-  const result = await yahooFinance.quote(ticker)
+  const key = ticker.toUpperCase()
+  const cached = quoteCache.get(key) || quoteCache.get(ticker)
+  let result
+  try {
+    // No TTL here — quotes are always fetched live from Yahoo so the dashboard
+    // reflects real-time prices on every load instead of a stale 5-min window.
+    result = await yahooFinance.quote(ticker)
+  } catch (error) {
+    if (cached?.data) return cached.data
+    throw error
+  }
   const f = taFactor(ticker)
     
     const live = {
@@ -277,7 +286,7 @@ async function getQuote(ticker) {
       lastPreMarketTime: live.preMarketTime ?? snapshot.preMarketTime ?? null,
   }
 
-  quoteCache.set(ticker, { data, ts: Date.now() })
+  quoteCache.set(key, { data, ts: Date.now() })
   return data
 }
 
@@ -294,6 +303,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
   const endDate = new Date()
   const startDate = new Date()
 
+  try {
   // 1d uses chart() with 5m intervals for intraday
   if (range === '1d') {
     startDate.setDate(startDate.getDate() - 7)
@@ -375,6 +385,10 @@ async function getHistory(ticker, range = '3mo', points = null) {
   const data = downsample(rows, points)
   historyCache.set(key, { data, ts: Date.now() })
   return data
+  } catch (error) {
+    if (cached?.data) return cached.data
+    throw error
+  }
 }
 
 async function searchTicker(query) {

@@ -13,9 +13,12 @@ exports.createProfile = async (req, res) => {
   try {
     const { name, country, currency, buyFee, sellFee, capitalGainsTax, isDefault } = req.body
     if (!name) return res.status(400).json({ message: 'name required' })
-    if (isDefault) await FeeProfile.updateMany({ user: req.user._id }, { isDefault: false })
+    const profileCurrency = currency || 'USD'
+    if (isDefault) {
+      await FeeProfile.updateMany({ user: req.user._id, currency: profileCurrency }, { isDefault: false })
+    }
     const profile = await FeeProfile.create({
-      user: req.user._id, name, country, currency: currency || 'USD',
+      user: req.user._id, name, country, currency: profileCurrency,
       buyFee: buyFee || { type: 'percent', value: 0, minFee: 0 },
       sellFee: sellFee || { type: 'percent', value: 0, minFee: 0 },
       capitalGainsTax: capitalGainsTax || 0,
@@ -32,8 +35,14 @@ exports.updateProfile = async (req, res) => {
     const profile = await FeeProfile.findOne({ _id: req.params.id, user: req.user._id })
     if (!profile) return res.status(404).json({ message: 'Not found' })
     const { name, country, currency, buyFee, sellFee, capitalGainsTax, isDefault } = req.body
-    if (isDefault) await FeeProfile.updateMany({ user: req.user._id }, { isDefault: false })
-    Object.assign(profile, { name, country, currency, buyFee, sellFee, capitalGainsTax, isDefault: !!isDefault })
+    const profileCurrency = currency || 'USD'
+    if (isDefault) {
+      await FeeProfile.updateMany(
+        { user: req.user._id, currency: profileCurrency, _id: { $ne: profile._id } },
+        { isDefault: false }
+      )
+    }
+    Object.assign(profile, { name, country, currency: profileCurrency, buyFee, sellFee, capitalGainsTax, isDefault: !!isDefault })
     await profile.save()
     res.json(profile)
   } catch (err) {
