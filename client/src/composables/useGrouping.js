@@ -1,5 +1,5 @@
 // Shared grouping logic for positions / watchlist items.
-// mode: 'none' | 'market' | 'change' | 'prepost' | 'industry' | 'group'
+// mode: 'market' | 'change' | 'pre' | 'post' | 'industry' | 'group'
 //
 // Returns an array of { group, items } sections. In 'group' mode a stock with
 // multiple tags appears under EACH of its groups, plus an "Ungrouped" bucket
@@ -43,6 +43,14 @@ function defaultGroupSort(a, b) {
     return a.localeCompare(b)
 }
 
+function itemSortKey(item) {
+    return `${String(item?.ticker || '').toUpperCase()}\u0000${String(item?.companyName || item?.name || '')}`.trim()
+}
+
+function sortItemsAscending(items) {
+    return [...items].sort((a, b) => itemSortKey(a).localeCompare(itemSortKey(b)))
+}
+
 function changeValueOf(item) {
     const history = Array.isArray(item?.history) ? item.history : []
     const start = history[0]?.close
@@ -53,12 +61,18 @@ function changeValueOf(item) {
     return typeof item?.changePercent === 'number' ? item.changePercent : null
 }
 
-function prePostValueOf(item) {
+function preValueOf(item) {
+    const values = [
+        item?.preMarketChangePercent,
+        item?.lastPreMarketChangePercent,
+    ]
+    return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
+}
+
+function postValueOf(item) {
     const values = [
         item?.postMarketChangePercent,
-        item?.preMarketChangePercent,
         item?.lastPostMarketChangePercent,
-        item?.lastPreMarketChangePercent,
     ]
     return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
 }
@@ -71,11 +85,11 @@ function buildSingleFieldSections(items, getGroup, sortGroups = defaultGroupSort
     }
     return Object.entries(map)
         .sort(([a], [b]) => sortGroups(a, b))
-        .map(([group, groupedItems]) => ({group, items: groupedItems}))
+        .map(([group, groupedItems]) => ({group, items: sortItemsAscending(groupedItems)}))
 }
 
 export function groupItems(items, mode, date = new Date(), changeDirection = 'down') {
-    if (mode === 'none' || !items?.length) {
+    if (!items?.length) {
         return [{group: null, items: items || []}]
     }
 
@@ -108,11 +122,12 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         return [{group: null, items: sortedItems}]
     }
     
-    if (mode === 'prepost' || mode === 'sector') {
+    if (mode === 'pre' || mode === 'post') {
         const sign = changeDirection === 'up' ? -1 : 1
+        const valueOf = mode === 'pre' ? preValueOf : postValueOf
         const sortedItems = [...items].sort((a, b) => {
-            const aChange = prePostValueOf(a)
-            const bChange = prePostValueOf(b)
+            const aChange = valueOf(a)
+            const bChange = valueOf(b)
             if (aChange == null && bChange == null) return 0
             if (aChange == null) return 1
             if (bChange == null) return -1
@@ -140,16 +155,16 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
     }
     const sections = Object.entries(map)
         .sort(([a], [b]) => a.localeCompare(b))
-        .map(([group, items]) => ({group, items}))
-    if (ungrouped.length) sections.push({group: 'Ungrouped', items: ungrouped})
+        .map(([group, items]) => ({group, items: sortItemsAscending(items)}))
+    if (ungrouped.length) sections.push({group: 'Ungrouped', items: sortItemsAscending(ungrouped)})
     return sections
 }
 
 export const GROUP_MODES = [
-    {label: 'None', value: 'none'},
     {label: 'Market', value: 'market'},
     {label: 'Change', value: 'change'},
-    {label: 'Pre/Post', value: 'prepost'},
+    {label: 'Pre', value: 'pre'},
+    {label: 'Post', value: 'post'},
     {label: 'Industry', value: 'industry'},
     {label: 'Groups', value: 'group'},
 ]

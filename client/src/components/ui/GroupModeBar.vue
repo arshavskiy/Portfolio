@@ -3,14 +3,15 @@ import {watch} from 'vue'
 import {GROUP_MODES} from '@/composables/useGrouping'
 
 const model = defineModel({type: String, required: true})
-// 'down' = gainers first (default), 'up' = losers first. Meaningful
-// while model === 'change' or 'prepost'; clicking the already-active chip again
+// 'down' = gainers first (default), 'up' = losers first. Meaningful while
+// model === 'change', 'pre', or 'post'; clicking the already-active chip again
 // flips it (next click toggles direction instead of needing a double-click).
 const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
-const directionalModes = new Set(['change', 'prepost'])
+const directionalModes = new Set(['change', 'pre', 'post'])
+const validModes = new Set(GROUP_MODES.map((opt) => opt.value))
 
 watch(model, (value) => {
-  if (value === 'sector') model.value = 'prepost'
+  if (!validModes.has(value)) model.value = 'market'
 }, {immediate: true})
 
 function onTap(value) {

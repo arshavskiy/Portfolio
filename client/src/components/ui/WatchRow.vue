@@ -33,26 +33,34 @@ function calculateExtendedChangePercent(price, change) {
   return (change / previous) * 100
 }
 
-const extendedChangePercent = computed(() => {
-  if (props.item.postMarketChangePercent != null) return props.item.postMarketChangePercent
-  if (props.item.preMarketChangePercent != null) return props.item.preMarketChangePercent
+function resolveExtendedHours(kind) {
+  const isPost = kind === 'post'
+  const priceKey = isPost ? 'postMarketPrice' : 'preMarketPrice'
+  const changeKey = isPost ? 'postMarketChange' : 'preMarketChange'
+  const percentKey = isPost ? 'postMarketChangePercent' : 'preMarketChangePercent'
+  const lastPriceKey = isPost ? 'lastPostMarketPrice' : 'lastPreMarketPrice'
+  const lastChangeKey = isPost ? 'lastPostMarketChange' : 'lastPreMarketChange'
+  const lastPercentKey = isPost ? 'lastPostMarketChangePercent' : 'lastPreMarketChangePercent'
 
-  const liveDerived = calculateExtendedChangePercent(
-    props.item.postMarketPrice ?? props.item.preMarketPrice,
-    props.item.postMarketChange ?? props.item.preMarketChange
-  )
-  if (liveDerived != null) return liveDerived
+  if (props.item[priceKey] != null || props.item[changeKey] != null || props.item[percentKey] != null) {
+    return {
+      label: isPost ? 'After hours' : 'Pre-market',
+      percent: props.item[percentKey] ?? calculateExtendedChangePercent(props.item[priceKey], props.item[changeKey]),
+    }
+  }
 
-  // Market is back open and Yahoo dropped the live fields — fall back to the
-  // last-seen extended-hours snapshot persisted server-side.
-  if (props.item.lastPostMarketChangePercent != null) return props.item.lastPostMarketChangePercent
-  if (props.item.lastPreMarketChangePercent != null) return props.item.lastPreMarketChangePercent
+  if (props.item[lastPriceKey] != null || props.item[lastChangeKey] != null || props.item[lastPercentKey] != null) {
+    return {
+      label: isPost ? 'After hours (last seen)' : 'Pre-market (last seen)',
+      percent: props.item[lastPercentKey] ?? calculateExtendedChangePercent(props.item[lastPriceKey], props.item[lastChangeKey]),
+    }
+  }
 
-  return calculateExtendedChangePercent(
-      props.item.lastPostMarketPrice ?? props.item.lastPreMarketPrice,
-      props.item.lastPostMarketChange ?? props.item.lastPreMarketChange
-  )
-})
+  return null
+}
+
+const postMarketExtended = computed(() => resolveExtendedHours('post'))
+const preMarketExtended = computed(() => resolveExtendedHours('pre'))
 </script>
 
 <template>
@@ -91,16 +99,30 @@ const extendedChangePercent = computed(() => {
       <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
-      <span
-          v-if="extendedChangePercent != null"
-          :class="extendedChangePercent >= 0 ? 'extended-gain' : 'extended-loss'"
-          class="extended-change"
-      >
-        <span class="extended-icon">
-          <i class="pi pi-sun"/>
+      <div v-if="postMarketExtended || preMarketExtended" class="extended-hours">
+        <span
+            v-if="postMarketExtended"
+            :class="postMarketExtended.percent >= 0 ? 'extended-gain' : 'extended-loss'"
+            class="extended-change"
+            :title="postMarketExtended.label"
+        >
+          <span class="extended-icon">
+            <i class="pi pi-sun"/>
+          </span>
+          {{ usePercent(postMarketExtended.percent) }}
         </span>
-        {{ usePercent(extendedChangePercent) }}
-      </span>
+        <span
+            v-if="preMarketExtended"
+            :class="preMarketExtended.percent >= 0 ? 'extended-pre-gain' : 'extended-pre-loss'"
+            class="extended-change extended-pre"
+            :title="preMarketExtended.label"
+        >
+          <span class="extended-icon extended-icon-pre">
+            <i class="pi pi-sun"/>
+          </span>
+          {{ usePercent(preMarketExtended.percent) }}
+        </span>
+      </div>
     </div>
   </div>
 </template>
@@ -263,6 +285,13 @@ const extendedChangePercent = computed(() => {
   line-height: 1;
 }
 
+.extended-hours {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
 .extended-icon {
   display: inline-flex;
   align-items: center;
@@ -275,6 +304,12 @@ const extendedChangePercent = computed(() => {
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.28);
 }
 
+.extended-icon-pre {
+  background: rgba(251, 191, 36, 0.22);
+  color: #fbbf24;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.24);
+}
+
 .extended-icon i {
   font-size: 0.65rem;
 }
@@ -285,6 +320,18 @@ const extendedChangePercent = computed(() => {
 
 .extended-loss {
   color: #e02d4a;
+}
+
+.extended-pre {
+  color: #fbbf24;
+}
+
+.extended-pre-gain {
+  color: #fbbf24;
+}
+
+.extended-pre-loss {
+  color: #fbbf24;
 }
 
 </style>

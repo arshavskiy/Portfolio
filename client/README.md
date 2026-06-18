@@ -8,6 +8,15 @@ Vue 3 + Vite frontend for StockFolio.
 - News: watchlist-based For You feed, topic filters, shared neon article cards, and infinite scroll.
 - Holdings, watchlist, transactions, stock detail, alerts, profile, login, and register.
 
+## Grouping
+
+The Holdings and Watchlist pages share the same grouping bar:
+
+- `Market` is the default view.
+- `Pre` and `Post` sort by their own extended-hours moves.
+- `Change`, `Industry`, and `Groups` follow the same shared grouping rules.
+- Items inside each grouped section render in ascending ticker order.
+
 ## News UI
 
 News article rendering is shared through `src/components/charts/NewsArticleCard.vue`.
