@@ -198,8 +198,8 @@ function onGroupsSaved() {
       <div>
         <RangeBar class="page-range"/>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
-        <div v-if="cacheStatusText" class="cache-status">
-          <i :class="watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync'"/>
+        <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
+          <i :class="watchlist.cacheMeta?.stale ? 'pi pi-wifi-slash' : (watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync')"/>
           <span>{{ cacheStatusText }}</span>
         </div>
       </div>
@@ -409,5 +409,9 @@ header {
 
 .cache-status i {
   font-size: 0.72rem;
+}
+
+.cache-status.stale {
+  color: #fbbf24;
 }
 </style>

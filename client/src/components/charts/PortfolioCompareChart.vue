@@ -27,6 +27,14 @@ const COLORS = ['#3b82f6', '#00ff88', '#f59e0b', '#ff3366', '#8b5cf6', '#06b6d4'
 const STOCK_RANGE = {'1d': '1d', '1wk': '5d', '1mo': '1mo', '3mo': '3mo', '6mo': '6mo', '1y': '1y', all: '5y'}
 
 const tickers = computed(() => [...new Set(props.positions.map((p) => p.ticker))])
+const positionByTicker = computed(() => {
+  return Object.fromEntries(props.positions.map((p) => [p.ticker, p]))
+})
+
+function stockName(ticker) {
+  const position = positionByTicker.value[ticker]
+  return position?.companyName || position?.name || ticker
+}
 
 const colorFor = (ticker) => {
   const i = tickers.value.indexOf(ticker)
@@ -54,6 +62,7 @@ const normalized = computed(() => {
 const legend = computed(() =>
     normalized.value.map((s) => ({
       ticker: s.ticker,
+      name: stockName(s.ticker),
       color: s.color,
       pct: s.points[s.points.length - 1]?.pct ?? 0,
     }))
@@ -156,7 +165,8 @@ watch(series, () => nextTick(draw), {deep: true})
           @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
       >
         <span :style="{ background: item.color }" class="legend-dot"/>
-        <span class="legend-ticker">{{ item.ticker }}</span>
+        <span class="legend-name" :title="`${item.name} · ${item.ticker}`">{{ item.name }}</span>
+        <span class="legend-symbol text-muted">{{ item.ticker }}</span>
         <span :class="item.pct >= 0 ? 'up' : 'down'" class="legend-pct">{{ usePercent(item.pct) }}</span>
       </button>
     </div>
@@ -231,9 +241,19 @@ watch(series, () => nextTick(draw), {deep: true})
   flex-shrink: 0;
 }
 
-.legend-ticker {
-  font-size: 0.78rem;
+.legend-name {
+  font-size: 0.72rem;
   font-weight: 700;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend-symbol {
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .legend-pct {

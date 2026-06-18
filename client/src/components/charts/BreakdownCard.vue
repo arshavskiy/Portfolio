@@ -34,9 +34,14 @@ const allocValue = (p) => {
 
 const totalValue = computed(() => props.positions.reduce((s, p) => s + allocValue(p), 0))
 
+function stockName(position) {
+  return position.companyName || position.name || position.ticker
+}
+
 const legend = computed(() =>
     props.positions.map((p, i) => ({
       ticker: p.ticker,
+      name: stockName(p),
       color: COLORS[i % COLORS.length],
       pct: totalValue.value > 0 ? (allocValue(p) / totalValue.value) * 100 : 0,
     }))
@@ -52,6 +57,7 @@ const movers = computed(() => {
         if (typeof changePercent !== 'number' || !Number.isFinite(changePercent)) return null
         return {
           ...p,
+          displayName: stockName(p),
           apiChange: typeof change === 'number' && Number.isFinite(change) ? change : null,
           apiChangePercent: changePercent,
         }
@@ -125,7 +131,8 @@ watch(() => props.combinedUsd, () => nextTick(draw))
             @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
         >
           <span :style="{ background: item.color }" class="legend-dot"/>
-          <span class="legend-ticker">{{ item.ticker }}</span>
+          <span class="legend-name" :title="`${item.name} · ${item.ticker}`">{{ item.name }}</span>
+          <span class="legend-symbol text-muted">{{ item.ticker }}</span>
           <span class="legend-pct text-muted">{{ item.pct.toFixed(1) }}%</span>
           <i class="pi pi-chevron-right legend-go"/>
         </div>
@@ -144,7 +151,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
               class="mover"
               @click="router.push(`/position/${encodeURIComponent(m.ticker)}`)"
           >
-            <span class="mover-ticker">{{ m.ticker }}</span>
+            <span class="mover-name" :title="`${m.displayName} · ${m.ticker}`">{{ m.displayName }}</span>
             <span :class="m.apiChangePercent >= 0 ? 'up' : 'down'" class="mover-pct">
               {{ m.apiChangePercent >= 0 ? '+' : '' }}{{ m.apiChangePercent.toFixed(2) }}%
             </span>
@@ -223,9 +230,20 @@ watch(() => props.combinedUsd, () => nextTick(draw))
   flex-shrink: 0;
 }
 
-.legend-ticker {
+.legend-name {
   font-weight: 600;
+  font-size: 0.76rem;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend-symbol {
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .legend-pct {
@@ -277,9 +295,13 @@ watch(() => props.combinedUsd, () => nextTick(draw))
   border-color: var(--accent);
 }
 
-.mover-ticker {
-  font-size: 0.82rem;
+.mover-name {
+  font-size: 0.72rem;
   font-weight: 700;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mover-pct {
