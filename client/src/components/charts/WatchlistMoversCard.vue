@@ -243,8 +243,8 @@ function openStock(item) {
 }
 
 .bar {
-  width: min(18px, 100%);
-  border-radius: 4px 4px 0 0;
+  width: min(10px, 100%);
+  border-radius: 1px 1px 0 0;
 }
 
 .mover-down .bar {
