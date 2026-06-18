@@ -4,6 +4,7 @@ import Toast from 'primevue/toast'
 import ConfirmDialog from 'primevue/confirmdialog'
 import {useAlertNotifier} from '@/composables/useAlertNotifier'
 import InstallBanner from '@/components/ui/InstallBanner.vue'
+import PwaUpdateBanner from '@/components/ui/PwaUpdateBanner.vue'
 
 useAlertNotifier()
 
@@ -50,4 +51,5 @@ onUnmounted(cleanupFs)
   <ConfirmDialog />
   <RouterView />
   <InstallBanner />
+  <PwaUpdateBanner />
 </template>
