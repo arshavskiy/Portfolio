@@ -17,9 +17,14 @@ let timer = null
 
 const groups = computed(() => marketGroups.value)
 const indices = computed(() => marketsByGroup.value[group.value] || [])
+const visibleIndices = computed(() => indices.value.filter(hasIndexData))
 const loading = computed(() => Boolean(marketLoadingByGroup.value[group.value]))
-const primaryGroups = computed(() => ['Israel', 'US'].filter((name) => groups.value.includes(name)))
-const extraGroups = computed(() => groups.value.filter((name) => !primaryGroups.value.includes(name)))
+const visibleGroups = computed(() => groups.value.filter((name) => {
+  const loaded = Object.prototype.hasOwnProperty.call(marketsByGroup.value, name)
+  return !loaded || (marketsByGroup.value[name] || []).some(hasIndexData) || marketLoadingByGroup.value[name]
+}))
+const primaryGroups = computed(() => ['Israel', 'US'].filter((name) => visibleGroups.value.includes(name)))
+const extraGroups = computed(() => visibleGroups.value.filter((name) => !primaryGroups.value.includes(name)))
 const isExtraGroupActive = computed(() => extraGroups.value.includes(group.value))
 const primaryMarketMetas = computed(() =>
   primaryGroups.value
@@ -56,6 +61,10 @@ function statusClass(meta) {
   return meta.statusTone === 'open' ? 'meta-open' : 'meta-closed'
 }
 
+function hasIndexData(idx) {
+  return Number.isFinite(idx?.price) || Number.isFinite(idx?.changePercent) || idx?.history?.length
+}
+
 onMounted(() => {
   marketData.fetchMarkets(group.value).catch(() => {})
   timer = setInterval(() => {
@@ -66,6 +75,12 @@ onMounted(() => {
 watch(group, (nextGroup) => {
   marketData.fetchMarkets(nextGroup).catch(() => {})
   if (!extraGroups.value.includes(nextGroup)) moreOpen.value = false
+})
+
+watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, availableGroups]) => {
+  if (isLoading || currentIndices.length || !Object.prototype.hasOwnProperty.call(marketsByGroup.value, group.value)) return
+  const fallback = availableGroups.find((name) => name !== group.value)
+  if (fallback) group.value = fallback
 })
 
 onUnmounted(() => {
@@ -119,12 +134,12 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <div v-if="loading && !indices.length" class="markets-grid">
+    <div v-if="loading && !visibleIndices.length" class="markets-grid">
       <div v-for="n in 6" :key="n" class="index-tile skeleton"/>
     </div>
 
-    <div v-else class="markets-grid">
-      <div v-for="idx in indices" :key="idx.symbol" class="index-tile" @click="openIndex(idx)">
+    <div v-else-if="visibleIndices.length" class="markets-grid">
+      <div v-for="idx in visibleIndices" :key="idx.symbol" class="index-tile" @click="openIndex(idx)">
         <div class="idx-name">{{ idx.name }}</div>
         <div class="idx-spark">
           <SparklineChart
