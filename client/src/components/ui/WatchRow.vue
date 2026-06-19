@@ -10,6 +10,16 @@ const props = defineProps({
 const emit = defineEmits(['edit-groups', 'open-stock'])
 const alerts = useAlertsStore()
 
+// marketState from Yahoo: 'REGULAR' = open, 'PRE' = pre-market, 'POST' = after-hours, 'CLOSED' = closed
+const marketDot = computed(() => {
+  const state = props.item.marketState
+  if (!state) return null
+  if (state === 'REGULAR') return {cls: 'dot-open', title: 'Market open — live price'}
+  if (state === 'PRE') return {cls: 'dot-ext', title: 'Pre-market'}
+  if (state === 'POST') return {cls: 'dot-ext', title: 'After-hours'}
+  return {cls: 'dot-closed', title: 'Market closed — last close price'}
+})
+
 // Active price alerts on this ticker → drives the bell indicator.
 const activeAlerts = computed(() =>
     alerts.forTicker(props.item.ticker).filter((a) => a.active).length
@@ -116,7 +126,10 @@ const activeExtended = computed(() => {
     </div>
 
     <div class="row-right">
-      <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
+      <span class="price-line">
+        <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
+        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>
+      </span>
       <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
@@ -248,10 +261,38 @@ const activeExtended = computed(() => {
   gap: 4px;
 }
 
+.price-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .price {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary);
+}
+
+.market-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-open {
+  background: #00c36a;
+  box-shadow: 0 0 4px #00c36a;
+}
+
+.dot-ext {
+  background: #c084fc;
+  box-shadow: 0 0 4px #c084fc;
+}
+
+.dot-closed {
+  background: var(--text-secondary);
+  opacity: 0.5;
 }
 
 .badge {
