@@ -44,6 +44,14 @@ const simFeeProfileId = ref(null)
 const buySimShares = ref(null)
 const buySimPrice = ref(null)
 const buySimFeeProfileId = ref(null)
+const buySimMode = ref('amount') // 'amount' | 'target' | 'shares'
+const buySimAmount = ref(null)   // total budget (mode: amount)
+const buySimTargetAvg = ref(null) // desired avg cost (mode: target)
+const BUY_SIM_MODES = [
+  {label: 'Amount', value: 'amount'},
+  {label: 'Target avg', value: 'target'},
+  {label: 'Shares', value: 'shares'},
+]
 const feeStore = useFeeProfileStore()
 const history = ref([])
 const chartLoading = ref(false)
@@ -236,6 +244,10 @@ const summary = computed(() => {
     realizedGross, realizedNet,
   }
 })
+
+watch(summary, (s) => {
+  if (s?.avgCost && !buySimTargetAvg.value) buySimTargetAvg.value = s.avgCost
+}, {immediate: true})
 
 function formatDate(d) {
   return new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})
@@ -528,38 +540,26 @@ watch([tickerCurr, () => feeStore.profiles], ([txCurrency, profiles]) => {
   }
 }, {immediate: true})
 
-const buySimulation = computed(() => {
-  if (!buySimPrice.value || !buySimShares.value || buySimShares.value <= 0) return null
-  const price = buySimPrice.value
-  const shares = buySimShares.value
+function calcBuySimulation(price, shares) {
+  if (!price || !shares || shares <= 0) return null
   const cost = price * shares
 
   const profile = feeStore.profiles.find(p => p._id === buySimFeeProfileId.value)
   const buyFee = calcFee(profile?.buyFee, cost)
   const buyFeeCurrency = profile?.currency || tickerCurr.value
   const buyFeeInTickerCurrency = convertFeeToTickerCurrency(buyFee, buyFeeCurrency)
-
   const totalCost = cost + buyFeeInTickerCurrency
 
-  // New blended avg cost if user already holds shares
   const existingShares = summary.value?.shares ?? 0
   const existingCost = summary.value?.totalCost ?? 0
-  const newAvgCost = (existingShares + shares) > 0
-      ? (existingCost + totalCost) / (existingShares + shares)
-      : price
-
-  // Break-even: price needed to net zero after recovering all cost basis + buy fee + estimated sell fee + tax
   const combinedShares = existingShares + shares
   const combinedCost = existingCost + totalCost
+  const newAvgCost = combinedShares > 0 ? combinedCost / combinedShares : price
+
   const rawBreakEven = combinedCost / combinedShares
-  // Iteratively solve for sell price P where:
-  //   P * combinedShares - sellFee(P * combinedShares) - tax(P * combinedShares - combinedCost) = combinedCost
-  // One Newton step is sufficient for linear fee rules.
-  const taxRate = summary.value?.taxRate ?? profile?.capitalGainsTax ?? 0
   const sellFeeRule = profile?.sellFee
   const estimatedSellFee = calcFee(sellFeeRule, rawBreakEven * combinedShares)
   const estimatedSellFeeInTickerCurrency = convertFeeToTickerCurrency(estimatedSellFee, profile?.currency || tickerCurr.value)
-  // gain at rawBreakEven ≈ 0 so tax ≈ 0; iterate once for the sell-fee component
   const breakEven = (combinedCost + estimatedSellFeeInTickerCurrency) / combinedShares
 
   return {
@@ -569,6 +569,41 @@ const buySimulation = computed(() => {
     hasSellFee: estimatedSellFeeInTickerCurrency > 0,
     profileName: profile?.name || null,
   }
+}
+
+const buySimulation = computed(() => {
+  const price = buySimPrice.value
+  if (!price || price <= 0) return null
+
+  if (buySimMode.value === 'shares') {
+    return buySimShares.value > 0 ? calcBuySimulation(price, buySimShares.value) : null
+  }
+
+  if (buySimMode.value === 'amount') {
+    const budget = buySimAmount.value
+    if (!budget || budget <= 0) return null
+    const wholeShares = Math.floor(budget / price)
+    if (wholeShares <= 0) return null
+    const result = calcBuySimulation(price, wholeShares)
+    return result ? {...result, leftover: budget - result.cost} : null
+  }
+
+  if (buySimMode.value === 'target') {
+    const targetAvg = buySimTargetAvg.value
+    if (!targetAvg || targetAvg <= 0) return null
+    const existingShares = summary.value?.shares ?? 0
+    const existingCost = summary.value?.totalCost ?? 0
+    if (existingShares <= 0) return null
+    // Solve: (existingCost + shares * price) / (existingShares + shares) = targetAvg
+    // => shares = (existingShares * targetAvg - existingCost) / (price - targetAvg)
+    if (price >= targetAvg) return {targetImpossible: true, price, targetAvg}
+    const neededShares = (existingShares * targetAvg - existingCost) / (price - targetAvg)
+    if (!Number.isFinite(neededShares) || neededShares <= 0) return null
+    const wholeShares = Math.ceil(neededShares)
+    return calcBuySimulation(price, wholeShares)
+  }
+
+  return null
 })
 
 const selectedDelta = computed(() => {
@@ -998,6 +1033,14 @@ async function toggleWatchlist() {
         </button>
 
         <div v-if="showBuySimulator" class="sim-body">
+          <SelectButton
+              v-model="buySimMode"
+              :options="BUY_SIM_MODES"
+              class="sim-mode-bar"
+              option-label="label"
+              option-value="value"
+          />
+
           <div class="sim-inputs">
             <div class="sim-field">
               <label>Buy price per share</label>
@@ -1010,7 +1053,9 @@ async function toggleWatchlist() {
                   mode="currency"
               />
             </div>
-            <div class="sim-field">
+
+            <!-- Mode: shares -->
+            <div v-if="buySimMode === 'shares'" class="sim-field">
               <label>Shares to buy</label>
               <InputNumber
                   v-model="buySimShares"
@@ -1020,6 +1065,33 @@ async function toggleWatchlist() {
                   placeholder="0"
               />
             </div>
+
+            <!-- Mode: amount -->
+            <div v-if="buySimMode === 'amount'" class="sim-field">
+              <label>Budget (total to invest)</label>
+              <InputNumber
+                  v-model="buySimAmount"
+                  :currency="tickerCurr"
+                  :max-fraction-digits="0"
+                  :min="0"
+                  fluid
+                  mode="currency"
+              />
+            </div>
+
+            <!-- Mode: target avg -->
+            <div v-if="buySimMode === 'target'" class="sim-field">
+              <label>Target average cost</label>
+              <InputNumber
+                  v-model="buySimTargetAvg"
+                  :currency="tickerCurr"
+                  :max-fraction-digits="4"
+                  :min="0.001"
+                  fluid
+                  mode="currency"
+              />
+            </div>
+
             <div class="sim-field">
               <label>Fee profile</label>
               <Select
@@ -1033,31 +1105,50 @@ async function toggleWatchlist() {
           </div>
 
           <div class="sim-results">
-            <template v-if="buySimulation">
+            <template v-if="buySimulation?.targetImpossible">
+              <span class="sim-placeholder loss">Current price ({{ useTickerCurrency(buySimulation.price, ticker) }}) is already above target avg ({{ useTickerCurrency(buySimulation.targetAvg, ticker) }}) — buying more would raise your average, not lower it.</span>
+            </template>
+            <template v-else-if="buySimulation">
+              <!-- Amount mode: show shares recommendation first -->
+              <div v-if="buySimMode === 'amount'" class="sim-row sim-highlight">
+                <span class="text-muted">Shares to buy</span>
+                <span class="sim-net">{{ buySimulation.shares }}</span>
+              </div>
+              <!-- Target mode: show shares recommendation first -->
+              <div v-if="buySimMode === 'target'" class="sim-row sim-highlight">
+                <span class="text-muted">Shares to buy</span>
+                <span class="sim-net">{{ buySimulation.shares }}</span>
+              </div>
               <div class="sim-row">
                 <span class="text-muted">Shares cost</span>
                 <span>{{ currSymbol }}{{ buySimulation.cost.toFixed(2) }}</span>
               </div>
               <div v-if="buySimulation.buyFee > 0" class="sim-row">
-                <span class="text-muted">Buy fee{{
-                    buySimulation.profileName ? ` · ${buySimulation.profileName}` : ''
-                  }}</span>
+                <span class="text-muted">Buy fee{{ buySimulation.profileName ? ` · ${buySimulation.profileName}` : '' }}</span>
                 <span class="loss">+{{ useCurrency(buySimulation.buyFee, buySimulation.buyFeeCurrency) }}</span>
               </div>
               <div class="sim-row sim-divider">
                 <span>Total outlay</span>
                 <span class="sim-net">{{ currSymbol }}{{ buySimulation.totalCost.toFixed(2) }}</span>
               </div>
+              <div v-if="buySimMode === 'amount' && buySimulation.leftover != null" class="sim-row">
+                <span class="text-muted">Leftover cash</span>
+                <span>{{ currSymbol }}{{ buySimulation.leftover.toFixed(2) }}</span>
+              </div>
+              <div class="sim-row">
+                <span class="text-muted">New avg cost</span>
+                <span>{{ useTickerCurrency(buySimulation.newAvgCost, ticker) }}</span>
+              </div>
               <div class="sim-row">
                 <span class="text-muted">Break-even price</span>
                 <span>{{ useTickerCurrency(buySimulation.breakEven, ticker) }}</span>
               </div>
-              <div v-if="summary" class="sim-row">
-                <span class="text-muted">New avg cost</span>
-                <span>{{ useTickerCurrency(buySimulation.newAvgCost, ticker) }}</span>
-              </div>
             </template>
-            <span v-else class="sim-placeholder text-muted">Enter a price and shares to see results</span>
+            <span v-else class="sim-placeholder text-muted">
+              <template v-if="buySimMode === 'shares'">Enter a price and number of shares</template>
+              <template v-else-if="buySimMode === 'amount'">Enter a price and your total budget</template>
+              <template v-else>Enter a price and your target average cost</template>
+            </span>
           </div>
         </div>
       </div>
@@ -1581,10 +1672,34 @@ async function toggleWatchlist() {
   padding: 0.75rem;
 }
 
+.sim-mode-bar {
+  margin-bottom: 0.75rem;
+  width: 100%;
+}
+
+:deep(.sim-mode-bar .p-selectbutton) {
+  width: 100%;
+  display: flex;
+}
+
+:deep(.sim-mode-bar .p-togglebutton) {
+  flex: 1;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+}
+
 .sim-placeholder {
   font-size: 0.8rem;
   text-align: center;
   padding: 0.25rem 0;
+}
+
+.sim-highlight {
+  background: rgba(99, 102, 241, 0.1);
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+  font-weight: 700;
 }
 
 .sim-row {
