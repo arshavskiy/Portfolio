@@ -7,7 +7,7 @@ const model = defineModel({type: String, required: true})
 // model === 'change', 'pre', or 'post'; clicking the already-active chip again
 // flips it (next click toggles direction instead of needing a double-click).
 const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
-const directionalModes = new Set(['change', 'pre', 'post'])
+const directionalModes = new Set(['change', 'pre', 'post', 'extended'])
 const validModes = new Set(GROUP_MODES.map((opt) => opt.value))
 
 watch(model, (value) => {

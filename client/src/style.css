@@ -13,6 +13,8 @@
   --neon-green: #00ff88;
   --neon-red: #ff3366;
   --neon-blue: #00cfff;
+  --purple: #a855f7;
+  --gold: #fbbf24;
   --nav-height: 64px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -29,6 +31,14 @@ html, body, #app {
 .gain { color: var(--neon-green); }
 .loss { color: var(--neon-red); }
 .text-muted { color: var(--text-secondary); }
+
+.text-purple {
+  color: var(--purple);
+}
+
+.text-gold {
+  color: var(--gold);
+}
 
 /* ── Gradient titles ── */
 .gradient-title,

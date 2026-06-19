@@ -45,6 +45,7 @@ function resolveExtendedHours(kind) {
   if (props.item[priceKey] != null || props.item[changeKey] != null || props.item[percentKey] != null) {
     return {
       label: isPost ? 'After hours' : 'Pre-market',
+      price: props.item[priceKey] ?? null,
       percent: props.item[percentKey] ?? calculateExtendedChangePercent(props.item[priceKey], props.item[changeKey]),
     }
   }
@@ -52,6 +53,7 @@ function resolveExtendedHours(kind) {
   if (props.item[lastPriceKey] != null || props.item[lastChangeKey] != null || props.item[lastPercentKey] != null) {
     return {
       label: isPost ? 'After hours (last seen)' : 'Pre-market (last seen)',
+      price: props.item[lastPriceKey] ?? null,
       percent: props.item[lastPercentKey] ?? calculateExtendedChangePercent(props.item[lastPriceKey], props.item[lastChangeKey]),
     }
   }
@@ -59,8 +61,16 @@ function resolveExtendedHours(kind) {
   return null
 }
 
-const postMarketExtended = computed(() => resolveExtendedHours('post'))
-const preMarketExtended = computed(() => resolveExtendedHours('pre'))
+// Show pre-market before regular open (before 09:30 ET), post-market otherwise
+const activeExtended = computed(() => {
+  const ticker = props.item.ticker
+  if (/-USD$/u.test(ticker)) return resolveExtendedHours('post') // crypto: no pre-market
+  const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
+  const d = new Date(nowNy)
+  const minutes = d.getHours() * 60 + d.getMinutes()
+  const isPreTime = minutes < 9 * 60 + 30
+  return resolveExtendedHours(isPreTime ? 'pre' : 'post') ?? resolveExtendedHours(isPreTime ? 'post' : 'pre') ?? null
+})
 </script>
 
 <template>
@@ -92,6 +102,17 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
         <span>{{ useTickerCurrency(rangeStartPrice, item.ticker) }}</span>
         <span>{{ useTickerCurrency(rangeEndPrice, item.ticker) }}</span>
       </div>
+      <div v-if="activeExtended" :title="activeExtended.label" class="extended-combined">
+        <span v-if="activeExtended.price" :class="activeExtended.label.startsWith('Pre') ? 'gold' : 'purple'"
+              class="ext-price">{{
+            useTickerCurrency(activeExtended.price, item.ticker)
+          }}</span>
+        <span class="ext-bottom">
+<!--          <i class="pi pi-sun ext-icon"/>-->
+          <span :class="activeExtended.percent >= 0 ? 'extended-gain' : 'extended-loss'"
+                class="ext-val">{{ usePercent(activeExtended.percent) }}</span>
+        </span>
+      </div>
     </div>
 
     <div class="row-right">
@@ -99,30 +120,6 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
       <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
-      <div v-if="postMarketExtended || preMarketExtended" class="extended-hours">
-        <span
-            v-if="postMarketExtended"
-            :class="postMarketExtended.percent >= 0 ? 'extended-gain' : 'extended-loss'"
-            class="extended-change"
-            :title="postMarketExtended.label"
-        >
-          <span class="extended-icon">
-            <i class="pi pi-sun"/>
-          </span>
-          {{ usePercent(postMarketExtended.percent) }}
-        </span>
-        <span
-            v-if="preMarketExtended"
-            :class="preMarketExtended.percent >= 0 ? 'extended-pre-gain' : 'extended-pre-loss'"
-            class="extended-change extended-pre"
-            :title="preMarketExtended.label"
-        >
-          <span class="extended-icon extended-icon-pre">
-            <i class="pi pi-sun"/>
-          </span>
-          {{ usePercent(preMarketExtended.percent) }}
-        </span>
-      </div>
     </div>
   </div>
 </template>
@@ -181,7 +178,7 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 130px;
+  width: 120px;
 }
 
 .group-tags {
@@ -225,9 +222,10 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
 
 .row-chart {
   position: relative;
-  flex: 1;
-  min-width: 0;
+  flex: 0 0 100px;
+  width: 100px;
   height: 40px;
+  align-self: flex-end;
 }
 
 .chart-range-labels {
@@ -246,7 +244,7 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
   flex-direction: column;
   align-items: flex-end;
   min-width: 76px;
-  flex: 0 0 76px;
+  flex: 1;
   gap: 4px;
 }
 
@@ -275,44 +273,57 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
   color: #fff;
 }
 
-.extended-change {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 5px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.extended-hours {
+.extended-combined {
+  position: absolute;
+  top: -3px;
+  left: 110px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 3px;
+  gap: 1px;
+  line-height: 1;
+  border-radius: 5px;
+  padding: 2px 5px;
+  pointer-events: none;
 }
 
-.extended-icon {
+.ext-price {
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.ext-price.purple {
+  color: #c084fc;
+}
+
+.ext-price.gold {
+  color: #fbbf24;
+}
+
+.purple {
+  color: var(--purple);
+}
+
+.gold {
+  color: var(--gold);
+}
+
+.ext-bottom {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  background: rgba(168, 85, 247, 0.28);
+  gap: 2px;
+}
+
+.ext-icon {
+  font-size: 0.55rem;
   color: #c084fc;
-  box-shadow: 0 0 10px rgba(168, 85, 247, 0.28);
 }
 
-.extended-icon-pre {
-  background: rgba(251, 191, 36, 0.22);
-  color: #fbbf24;
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.24);
+.ext-val {
+  font-size: 0.66rem;
+  font-weight: 700;
 }
 
-.extended-icon i {
-  font-size: 0.65rem;
-}
 
 .extended-gain {
   color: #00c36a;
@@ -321,17 +332,4 @@ const preMarketExtended = computed(() => resolveExtendedHours('pre'))
 .extended-loss {
   color: #e02d4a;
 }
-
-.extended-pre {
-  color: #fbbf24;
-}
-
-.extended-pre-gain {
-  color: #fbbf24;
-}
-
-.extended-pre-loss {
-  color: #fbbf24;
-}
-
 </style>

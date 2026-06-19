@@ -331,7 +331,7 @@ const extendedChangePercent = computed(() => {
   flex-direction: column;
   align-items: flex-end;
   min-width: 76px;
-  flex: 0 0 76px;
+  flex: 1;
   gap: 4px;
 }
 
@@ -356,7 +356,7 @@ const extendedChangePercent = computed(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 130px;
+  width: 120px;
 }
 
 .group-tags {

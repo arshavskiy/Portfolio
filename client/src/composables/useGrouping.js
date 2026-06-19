@@ -122,9 +122,24 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         return [{group: null, items: sortedItems}]
     }
     
-    if (mode === 'pre' || mode === 'post') {
+    if (mode === 'pre' || mode === 'post' || mode === 'extended') {
         const sign = changeDirection === 'up' ? -1 : 1
-        const valueOf = mode === 'pre' ? preValueOf : postValueOf
+        // 'extended' picks pre vs post based on current time: pre before/during open, post after
+        let valueOf
+        if (mode === 'extended') {
+            const usMarket = {
+                days: [1, 2, 3, 4, 5],
+                sessions: [{start: '09:30', end: '16:00'}],
+                timezone: 'America/New_York'
+            }
+            const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
+            const d = new Date(nowNy)
+            const minutes = d.getHours() * 60 + d.getMinutes()
+            const isPreTime = minutes < 9 * 60 + 30
+            valueOf = isPreTime ? preValueOf : postValueOf
+        } else {
+            valueOf = mode === 'pre' ? preValueOf : postValueOf
+        }
         const sortedItems = [...items].sort((a, b) => {
             const aChange = valueOf(a)
             const bChange = valueOf(b)
@@ -163,8 +178,7 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
 export const GROUP_MODES = [
     {label: 'Market', value: 'market'},
     {label: 'Change', value: 'change'},
-    {label: 'Pre', value: 'pre'},
-    {label: 'Post', value: 'post'},
+    {label: 'Pre/Post', value: 'extended'},
     {label: 'Industry', value: 'industry'},
     {label: 'Groups', value: 'group'},
 ]

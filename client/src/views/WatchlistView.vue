@@ -63,9 +63,10 @@ const cacheStatusText = computed(() => {
   const meta = watchlist.cacheMeta
   if (!meta?.savedAt) return ''
 
-  const time = new Intl.DateTimeFormat('en-US', {
+  const time = new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   }).format(new Date(meta.savedAt))
 
   if (meta.stale) return `Offline cache from ${time}`

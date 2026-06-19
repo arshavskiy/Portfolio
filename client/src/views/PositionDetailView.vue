@@ -37,9 +37,13 @@ const showModal = ref(false)
 const showAlertModal = ref(false)
 const showDividendModal = ref(false)
 const showSimulator = ref(false)
+const showBuySimulator = ref(false)
 const editingTx = ref(null)
 const simPrice = ref(null)
 const simFeeProfileId = ref(null)
+const buySimShares = ref(null)
+const buySimPrice = ref(null)
+const buySimFeeProfileId = ref(null)
 const feeStore = useFeeProfileStore()
 const history = ref([])
 const chartLoading = ref(false)
@@ -74,6 +78,7 @@ onUnmounted(() => clearInterval(refreshTimer))
 // Pre-fill sim price with current price once loaded
 watch(currentPrice, (p) => {
   if (p && !simPrice.value) simPrice.value = p
+  if (p && !buySimPrice.value) buySimPrice.value = p
 })
 watch(selectedRange, loadHistory)
 watch(ticker, async () => {
@@ -152,10 +157,14 @@ const lots = computed(() => {
     if (tx.type === 'buy') {
       totalCost += tx.shares * tx.price
       shares += tx.shares
-    } else {
+    } else if (tx.type === 'sell') {
       totalCost -= (totalCost / shares) * tx.shares
       shares -= tx.shares
+    } else if (tx.type === 'dividend' && tx.drip && tx.shares > 0) {
+      totalCost += tx.shares * tx.price
+      shares += tx.shares
     }
+    // cash dividend: no position change
     const avgCost = shares > 0 ? totalCost / shares : 0
     return {...tx, runningShares: shares, runningAvg: avgCost}
   })
@@ -511,7 +520,56 @@ watch([tickerCurr, () => feeStore.profiles], ([txCurrency, profiles]) => {
       (txCurrency === 'USD' ? profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
     )?._id || null
   }
+  if (!buySimFeeProfileId.value || !profiles.some((p) => p._id === buySimFeeProfileId.value && isAllowedFeeCurrency(p.currency || 'USD', txCurrency))) {
+    buySimFeeProfileId.value = (
+        profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency) ||
+        (txCurrency === 'USD' ? profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
+    )?._id || null
+  }
 }, {immediate: true})
+
+const buySimulation = computed(() => {
+  if (!buySimPrice.value || !buySimShares.value || buySimShares.value <= 0) return null
+  const price = buySimPrice.value
+  const shares = buySimShares.value
+  const cost = price * shares
+
+  const profile = feeStore.profiles.find(p => p._id === buySimFeeProfileId.value)
+  const buyFee = calcFee(profile?.buyFee, cost)
+  const buyFeeCurrency = profile?.currency || tickerCurr.value
+  const buyFeeInTickerCurrency = convertFeeToTickerCurrency(buyFee, buyFeeCurrency)
+
+  const totalCost = cost + buyFeeInTickerCurrency
+
+  // New blended avg cost if user already holds shares
+  const existingShares = summary.value?.shares ?? 0
+  const existingCost = summary.value?.totalCost ?? 0
+  const newAvgCost = (existingShares + shares) > 0
+      ? (existingCost + totalCost) / (existingShares + shares)
+      : price
+
+  // Break-even: price needed to net zero after recovering all cost basis + buy fee + estimated sell fee + tax
+  const combinedShares = existingShares + shares
+  const combinedCost = existingCost + totalCost
+  const rawBreakEven = combinedCost / combinedShares
+  // Iteratively solve for sell price P where:
+  //   P * combinedShares - sellFee(P * combinedShares) - tax(P * combinedShares - combinedCost) = combinedCost
+  // One Newton step is sufficient for linear fee rules.
+  const taxRate = summary.value?.taxRate ?? profile?.capitalGainsTax ?? 0
+  const sellFeeRule = profile?.sellFee
+  const estimatedSellFee = calcFee(sellFeeRule, rawBreakEven * combinedShares)
+  const estimatedSellFeeInTickerCurrency = convertFeeToTickerCurrency(estimatedSellFee, profile?.currency || tickerCurr.value)
+  // gain at rawBreakEven ≈ 0 so tax ≈ 0; iterate once for the sell-fee component
+  const breakEven = (combinedCost + estimatedSellFeeInTickerCurrency) / combinedShares
+
+  return {
+    price, shares, cost,
+    buyFee, buyFeeCurrency, buyFeeInTickerCurrency,
+    totalCost, newAvgCost, breakEven,
+    hasSellFee: estimatedSellFeeInTickerCurrency > 0,
+    profileName: profile?.name || null,
+  }
+})
 
 const selectedDelta = computed(() => {
   if (selectedChartPoints.value.length !== 2) return null
@@ -843,6 +901,22 @@ async function toggleWatchlist() {
           <span class="text-muted">Div / Share</span>
           <span>{{ useTickerCurrency(quote.dividendRate, ticker) }}</span>
         </div>
+        <div v-if="quote.dividendRate && summary?.taxRate" class="stat">
+          <span class="text-muted">Div after tax ({{ formatTaxPercent(summary.taxRate) }})</span>
+          <span class="div-yield-val">{{
+              useTickerCurrency(quote.dividendRate * (1 - summary.taxRate / 100), ticker)
+            }}</span>
+        </div>
+        <div v-if="quote.dividendRate && summary" class="stat">
+          <span class="text-muted">Annual div total</span>
+          <span class="div-yield-val">{{ useTickerCurrency(quote.dividendRate * summary.shares, ticker) }}</span>
+        </div>
+        <div v-if="quote.dividendRate && summary?.taxRate" class="stat">
+          <span class="text-muted">Annual div after tax</span>
+          <span class="div-yield-val">{{
+              useTickerCurrency(quote.dividendRate * summary.shares * (1 - summary.taxRate / 100), ticker)
+            }}</span>
+        </div>
       </div>
 
       <!-- Sell Simulator -->
@@ -878,34 +952,112 @@ async function toggleWatchlist() {
             </div>
           </div>
 
-          <div v-if="simulation" class="sim-results">
-            <div class="sim-row">
-              <span class="text-muted">Gross proceeds</span>
-              <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
-            </div>
-            <div v-if="simulation.sellFee > 0" class="sim-row">
-              <span class="text-muted">Sell fee{{ simulation.profileName ? ` · ${simulation.profileName}` : '' }}</span>
-              <span class="loss">-{{ useCurrency(simulation.sellFee, simulation.sellFeeCurrency) }}</span>
-            </div>
-            <div v-if="simulation.tax > 0" class="sim-row">
-              <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
-              <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
-            </div>
-            <div class="sim-row sim-divider">
-              <span>Net proceeds</span>
-              <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
-            </div>
-            <div :class="gainLossClass(simulation.netProfit)" class="sim-row sim-profit">
-              <span>Net profit / loss</span>
-              <div class="sim-profit-right">
-                <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{
-                    simulation.netProfitPct.toFixed(2)
-                  }}%</span>
-                <span>{{ fmt(simulation.netProfit) }}{{ currSymbol }}{{
-                    Math.abs(simulation.netProfit).toFixed(2)
-                  }}</span>
+          <div class="sim-results">
+            <template v-if="simulation">
+              <div class="sim-row">
+                <span class="text-muted">Gross proceeds</span>
+                <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
               </div>
+              <div v-if="simulation.sellFee > 0" class="sim-row">
+                <span class="text-muted">Sell fee{{
+                    simulation.profileName ? ` · ${simulation.profileName}` : ''
+                  }}</span>
+                <span class="loss">-{{ useCurrency(simulation.sellFee, simulation.sellFeeCurrency) }}</span>
+              </div>
+              <div v-if="simulation.tax > 0" class="sim-row">
+                <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
+                <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
+              </div>
+              <div class="sim-row sim-divider">
+                <span>Net proceeds</span>
+                <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
+              </div>
+              <div :class="gainLossClass(simulation.netProfit)" class="sim-row sim-profit">
+                <span>Net profit / loss</span>
+                <div class="sim-profit-right">
+                  <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{
+                      simulation.netProfitPct.toFixed(2)
+                    }}%</span>
+                  <span>{{ fmt(simulation.netProfit) }}{{ currSymbol }}{{
+                      Math.abs(simulation.netProfit).toFixed(2)
+                    }}</span>
+                </div>
+              </div>
+            </template>
+            <span v-else class="sim-placeholder text-muted">Enter a sell price to see results</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buy Simulator -->
+      <div class="sim-wrap">
+        <button class="sim-toggle" @click="showBuySimulator = !showBuySimulator">
+          <i class="pi pi-shopping-cart"/>
+          Buy Simulator
+          <i :class="showBuySimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
+        </button>
+
+        <div v-if="showBuySimulator" class="sim-body">
+          <div class="sim-inputs">
+            <div class="sim-field">
+              <label>Buy price per share</label>
+              <InputNumber
+                  v-model="buySimPrice"
+                  :currency="tickerCurr"
+                  :max-fraction-digits="4"
+                  :min="0.001"
+                  fluid
+                  mode="currency"
+              />
             </div>
+            <div class="sim-field">
+              <label>Shares to buy</label>
+              <InputNumber
+                  v-model="buySimShares"
+                  :max-fraction-digits="4"
+                  :min="0.0001"
+                  fluid
+                  placeholder="0"
+              />
+            </div>
+            <div class="sim-field">
+              <label>Fee profile</label>
+              <Select
+                  v-model="buySimFeeProfileId"
+                  :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
+                  fluid
+                  option-label="label"
+                  option-value="value"
+              />
+            </div>
+          </div>
+
+          <div class="sim-results">
+            <template v-if="buySimulation">
+              <div class="sim-row">
+                <span class="text-muted">Shares cost</span>
+                <span>{{ currSymbol }}{{ buySimulation.cost.toFixed(2) }}</span>
+              </div>
+              <div v-if="buySimulation.buyFee > 0" class="sim-row">
+                <span class="text-muted">Buy fee{{
+                    buySimulation.profileName ? ` · ${buySimulation.profileName}` : ''
+                  }}</span>
+                <span class="loss">+{{ useCurrency(buySimulation.buyFee, buySimulation.buyFeeCurrency) }}</span>
+              </div>
+              <div class="sim-row sim-divider">
+                <span>Total outlay</span>
+                <span class="sim-net">{{ currSymbol }}{{ buySimulation.totalCost.toFixed(2) }}</span>
+              </div>
+              <div class="sim-row">
+                <span class="text-muted">Break-even price</span>
+                <span>{{ useTickerCurrency(buySimulation.breakEven, ticker) }}</span>
+              </div>
+              <div v-if="summary" class="sim-row">
+                <span class="text-muted">New avg cost</span>
+                <span>{{ useTickerCurrency(buySimulation.newAvgCost, ticker) }}</span>
+              </div>
+            </template>
+            <span v-else class="sim-placeholder text-muted">Enter a price and shares to see results</span>
           </div>
         </div>
       </div>
@@ -1427,6 +1579,12 @@ async function toggleWatchlist() {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
   padding: 0.75rem;
+}
+
+.sim-placeholder {
+  font-size: 0.8rem;
+  text-align: center;
+  padding: 0.25rem 0;
 }
 
 .sim-row {
