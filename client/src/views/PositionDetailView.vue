@@ -1085,8 +1085,8 @@ async function toggleWatchlist() {
               <InputNumber
                   v-model="buySimTargetAvg"
                   :currency="tickerCurr"
-                  :max-fraction-digits="4"
-                  :min="0.001"
+                  :max-fraction-digits="0"
+                  :min="1"
                   fluid
                   mode="currency"
               />
@@ -1106,7 +1106,9 @@ async function toggleWatchlist() {
 
           <div class="sim-results">
             <template v-if="buySimulation?.targetImpossible">
-              <span class="sim-placeholder loss">Current price ({{ useTickerCurrency(buySimulation.price, ticker) }}) is already above target avg ({{ useTickerCurrency(buySimulation.targetAvg, ticker) }}) — buying more would raise your average, not lower it.</span>
+              <span class="sim-placeholder loss">Buy price ({{ useTickerCurrency(buySimulation.price, ticker) }}) must be below target avg ({{
+                  useTickerCurrency(buySimulation.targetAvg, ticker)
+                }}) to average down. Lower the buy price or raise the target avg.</span>
             </template>
             <template v-else-if="buySimulation">
               <!-- Amount mode: show shares recommendation first -->
