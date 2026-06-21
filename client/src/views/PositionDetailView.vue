@@ -8,6 +8,8 @@ import {useHistoryStore} from '@/stores/history'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
+import {signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
+import {useMomentumStore} from '@/stores/momentum'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InputNumber from 'primevue/inputnumber'
@@ -141,7 +143,8 @@ async function loadFx() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    const points = selectedRange.value === '1d' ? 160 : 50
+    const pointsMap = { '1d': 160, '5d': 100, '1mo': 60 }
+    const points = pointsMap[selectedRange.value] ?? 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
     toast.add({severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000})
@@ -585,7 +588,7 @@ const buySimulation = computed(() => {
     const wholeShares = Math.floor(budget / price)
     if (wholeShares <= 0) return null
     const result = calcBuySimulation(price, wholeShares)
-    return result ? {...result, leftover: budget - result.cost} : null
+    return result ? {...result, leftover: budget - result.totalCost} : null
   }
 
   if (buySimMode.value === 'target') {
@@ -676,6 +679,17 @@ function startAutoRefresh() {
   }, 60000)
 }
 
+// ── Momentum score ────────────────────────────────────────────────────────────
+const momentumStore = useMomentumStore()
+const watchedItemList = computed(() => watchedItem.value ? [watchedItem.value] : [])
+useListMomentumScores(watchedItemList)
+
+const momentumScore = computed(() => {
+  void momentumStore.scores
+  return momentumStore.getScore(ticker.value)
+})
+const momentumSignal = computed(() => momentumScore.value != null ? signalFromScore(momentumScore.value) : null)
+
 async function toggleWatchlist() {
   if (watchedItem.value) {
     await api.delete(`/watchlist/${watchedItem.value._id}`)
@@ -709,7 +723,15 @@ async function toggleWatchlist() {
     <header class="page-header">
       <Button icon="pi pi-arrow-left" rounded text @click="returnToWatchlist"/>
       <div class="header-info">
-        <h1 class="gradient-title">{{ ticker }}</h1>
+        <div class="header-title-row">
+          <h1 class="gradient-title">{{ ticker }}</h1>
+          <span
+            v-if="momentumSignal"
+            :class="momentumSignal.cls"
+            :title="momentumSignal.title"
+            class="momentum-badge"
+          >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{ momentumScore }})</span></span>
+        </div>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
       </div>
       <div class="header-actions">
@@ -1273,7 +1295,40 @@ async function toggleWatchlist() {
 
 .header-info {
   flex: 1;
+  min-width: 0;
 }
+
+.header-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.momentum-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.momentum-score {
+  font-size: 0.56rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.sig-max-bull   { background: rgba(0,195,106,0.28); color: #00c36a; box-shadow: 0 0 8px rgba(0,195,106,0.5); }
+.sig-strong-bull { background: rgba(0,195,106,0.18); color: #00c36a; }
+.sig-bull        { background: rgba(0,195,106,0.1);  color: #00c36a; }
+.sig-max-bear    { background: rgba(224,45,74,0.28); color: #e02d4a; box-shadow: 0 0 8px rgba(224,45,74,0.5); }
+.sig-strong-bear { background: rgba(224,45,74,0.18); color: #e02d4a; }
+.sig-bear        { background: rgba(224,45,74,0.1);  color: #e02d4a; }
+.sig-neutral     { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
 
 .header-actions {
   display: flex;

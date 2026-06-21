@@ -1,7 +1,8 @@
 <script setup>
-import {computed} from 'vue'
+import {computed, toRef} from 'vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
+import {useItemMomentum} from '@/composables/useMomentumScore'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const props = defineProps({
@@ -81,6 +82,11 @@ const activeExtended = computed(() => {
   const isPreTime = minutes < 9 * 60 + 30
   return resolveExtendedHours(isPreTime ? 'pre' : 'post') ?? resolveExtendedHours(isPreTime ? 'post' : 'pre') ?? null
 })
+
+// ── Signal / momentum ────────────────────────────────────────────────────────
+
+const extPercentRef = computed(() => activeExtended.value?.percent ?? null)
+const {combinedScore, signal} = useItemMomentum(toRef(props, 'item'), extPercentRef)
 </script>
 
 <template>
@@ -92,6 +98,9 @@ const activeExtended = computed(() => {
               class="alert-badge">
           <i class="pi pi-bell"/>
           <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
+        </span>
+        <span :class="signal.cls" :title="signal.title" class="signal-badge">
+          {{ signal.icon }}<span class="signal-score">({{ combinedScore > 0 ? '+' : '' }}{{ combinedScore }})</span>
         </span>
       </span>
       <span class="company text-muted">{{ item.companyName }}</span>
@@ -372,5 +381,63 @@ const activeExtended = computed(() => {
 
 .extended-loss {
   color: #e02d4a;
+}
+
+.signal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.signal-score {
+  font-size: 0.52rem;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.sig-max-bull {
+  background: rgba(0, 195, 106, 0.28);
+  color: #00c36a;
+  box-shadow: 0 0 8px rgba(0, 195, 106, 0.5);
+}
+
+.sig-strong-bull {
+  background: rgba(0, 195, 106, 0.18);
+  color: #00c36a;
+  box-shadow: 0 0 5px rgba(0, 195, 106, 0.3);
+}
+
+.sig-bull {
+  background: rgba(0, 195, 106, 0.1);
+  color: #00c36a;
+}
+
+.sig-max-bear {
+  background: rgba(224, 45, 74, 0.28);
+  color: #e02d4a;
+  box-shadow: 0 0 8px rgba(224, 45, 74, 0.5);
+}
+
+.sig-strong-bear {
+  background: rgba(224, 45, 74, 0.18);
+  color: #e02d4a;
+  box-shadow: 0 0 5px rgba(224, 45, 74, 0.3);
+}
+
+.sig-bear {
+  background: rgba(224, 45, 74, 0.1);
+  color: #e02d4a;
+}
+
+.sig-neutral {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
 }
 </style>

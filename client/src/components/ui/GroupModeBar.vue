@@ -7,7 +7,7 @@ const model = defineModel({type: String, required: true})
 // model === 'change', 'pre', or 'post'; clicking the already-active chip again
 // flips it (next click toggles direction instead of needing a double-click).
 const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
-const directionalModes = new Set(['change', 'pre', 'post', 'extended'])
+const directionalModes = new Set(['change', 'pre', 'post', 'extended', 'momentum'])
 const validModes = new Set(GROUP_MODES.map((opt) => opt.value))
 
 watch(model, (value) => {
@@ -19,6 +19,8 @@ function onTap(value) {
     changeDirection.value = changeDirection.value === 'down' ? 'up' : 'down'
     return
   }
+  // Reset direction to default when switching modes so momentum always starts bullish-first
+  if (value !== model.value) changeDirection.value = 'down'
   model.value = value
 }
 </script>
@@ -29,13 +31,17 @@ function onTap(value) {
       v-for="opt in GROUP_MODES"
       :key="opt.value"
       class="group-btn"
-      :class="{ active: model === opt.value }"
-      :title="directionalModes.has(opt.value) ? `${opt.label} (click again to flip up/down)` : `Group by ${opt.label}`"
+      :class="{
+        active: model === opt.value,
+        'btn-momentum': opt.value === 'momentum',
+        'btn-momentum-bear': opt.value === 'momentum' && model === opt.value && changeDirection === 'up',
+      }"
+      :title="opt.title || (directionalModes.has(opt.value) ? `${opt.label} (click again to flip)` : `Group by ${opt.label}`)"
       @click="onTap(opt.value)"
     >
-      <span>{{ opt.label }}</span>
+      <span>{{ opt.value === 'momentum' && model === opt.value && changeDirection === 'up' ? '▼' : opt.label }}</span>
       <i
-          v-if="directionalModes.has(opt.value) && model === opt.value"
+          v-if="directionalModes.has(opt.value) && opt.value !== 'momentum' && model === opt.value"
         :class="changeDirection === 'up' ? 'pi pi-arrow-down' : 'pi pi-arrow-up'"
         class="change-dir-icon"
       />
@@ -83,5 +89,19 @@ function onTap(value) {
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.55rem;
+}
+
+.btn-momentum {
+  color: #00c36a;
+}
+
+.btn-momentum.active {
+  background: rgba(0, 195, 106, 0.2);
+  color: #00c36a;
+}
+
+.btn-momentum-bear.active {
+  background: rgba(224, 45, 74, 0.2);
+  color: #e02d4a;
 }
 </style>

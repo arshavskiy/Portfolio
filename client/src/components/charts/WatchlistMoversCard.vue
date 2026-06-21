@@ -141,11 +141,11 @@ function openStock(item) {
 
 .card-title {
   margin: 0;
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #e2e8f0;
+  color: var(--text-secondary);
 }
 
 .head-note {

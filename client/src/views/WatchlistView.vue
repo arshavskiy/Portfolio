@@ -6,6 +6,7 @@ import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
+import {useMomentumStore} from '@/stores/momentum'
 import Button from 'primevue/button'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
@@ -18,6 +19,7 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
+const momentumStore = useMomentumStore()
 const router = useRouter()
 const range = useChartRange()
 const showModal = ref(false)
@@ -56,7 +58,11 @@ const filteredItems = computed(() => {
   )
 })
 
-const grouped = computed(() => groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value))
+// Reference momentumStore.scores so grouped re-sorts when wave votes arrive
+const grouped = computed(() => {
+  void momentumStore.scores
+  return groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value)
+})
 const initialLoading = computed(() => watchlist.loading && !watchlist.items.length)
 const rangeLabel = computed(() => RANGE_LABELS[range.value] || range.value)
 const cacheStatusText = computed(() => {

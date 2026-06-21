@@ -288,6 +288,10 @@ function draw() {
     parsed.length > 1 &&
     (parsed[parsed.length - 1].date - parsed[0].date) <= (36 * 60 * 60 * 1000)
   )
+  // 5d uses sub-daily bars but spans multiple days — use index scale to collapse weekend gaps
+  const multiDayIntraday = !intraday && props.range === '5d' && parsed.length > 1 &&
+    (parsed[parsed.length - 1].date - parsed[0].date) <= (8 * 24 * 60 * 60 * 1000)
+
   const showVolume = intraday && parsed.some((d) => Number.isFinite(d.volume) && d.volume > 0)
   const volumeHeight = showVolume ? 42 : 0
   const volumeGap = showVolume ? 8 : 0
@@ -295,7 +299,35 @@ function draw() {
   const volumeTop = h + volumeGap
   const volumeBottom = volumeTop + volumeHeight
 
-  const x = d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
+  // For 5d: index-based x scale collapses weekend/overnight gaps
+  const xByIndex = multiDayIntraday
+    ? d3.scaleLinear().domain([0, Math.max(1, parsed.length - 1)]).range([0, w])
+    : null
+  const x = multiDayIntraday ? null : d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
+
+  const indexMap = multiDayIntraday ? new Map(parsed.map((d, i) => [d, i])) : null
+
+  function xPos(d) {
+    if (multiDayIntraday) return xByIndex(indexMap.get(d) ?? 0)
+    return x(d.date)
+  }
+
+  function xPosFromDate(date) {
+    if (multiDayIntraday) {
+      const t = date.getTime()
+      const idx = parsed.findIndex(d => d.date.getTime() === t)
+      return xByIndex(idx >= 0 ? idx : 0)
+    }
+    return x(date)
+  }
+
+  function xInvert(px) {
+    if (multiDayIntraday) {
+      const i = Math.round(xByIndex.invert(px))
+      return parsed[Math.max(0, Math.min(i, parsed.length - 1))]
+    }
+    return null
+  }
   const priceValues = parsed.flatMap((d) => {
     if (props.mode === 'candle') return [d.low, d.high]
     return [d.close]
@@ -323,6 +355,19 @@ function draw() {
     ])
   const xTickValues = intraday ? buildIntradayTickValues(x, sessionSegments) : null
 
+  // For 5d index scale: pick one tick per trading day (first bar of each day)
+  const multiDayTickData = multiDayIntraday ? (() => {
+    const seen = new Set()
+    return parsed
+      .map((d, i) => ({ d, i }))
+      .filter(({ d }) => {
+        const day = d.date.toDateString()
+        if (seen.has(day)) return false
+        seen.add(day)
+        return true
+      })
+  })() : null
+
   // Grid
   g.append('g')
     .call(d3.axisLeft(y).ticks(4).tickSize(-w).tickFormat(''))
@@ -346,8 +391,8 @@ function draw() {
     g.selectAll('.wick')
       .data(parsed)
       .enter().append('line')
-      .attr('x1', (d) => x(d.date))
-      .attr('x2', (d) => x(d.date))
+      .attr('x1', (d) => xPos(d))
+      .attr('x2', (d) => xPos(d))
       .attr('y1', (d) => y(d.high))
       .attr('y2', (d) => y(d.low))
       .attr('stroke', (d) => d.close >= d.open ? '#22c55e' : '#ef4444')
@@ -357,7 +402,7 @@ function draw() {
     g.selectAll('.candle')
       .data(parsed)
       .enter().append('rect')
-      .attr('x', (d) => x(d.date) - bandW / 2)
+      .attr('x', (d) => xPos(d) - bandW / 2)
       .attr('y', (d) => y(Math.max(d.open, d.close)))
       .attr('width', bandW)
       .attr('height', (d) => Math.max(1, Math.abs(y(d.open) - y(d.close))))
@@ -375,13 +420,13 @@ function draw() {
         g.append('path')
           .datum(segment.points)
           .attr('fill', d3.color(segmentColor).copy({ opacity: 0.16 }))
-          .attr('d', d3.area().x((d) => x(d.date)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
+          .attr('d', d3.area().x((d) => xPos(d)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
       })
     } else {
       g.append('path')
         .datum(parsed)
         .attr('fill', isUp ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)')
-        .attr('d', d3.area().x((d) => x(d.date)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
+        .attr('d', d3.area().x((d) => xPos(d)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
     }
 
     // Line
@@ -390,7 +435,7 @@ function draw() {
       .attr('fill', 'none')
       .attr('stroke', color)
       .attr('stroke-width', 1.5)
-      .attr('d', d3.line().x((d) => x(d.date)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
+      .attr('d', d3.line().x((d) => xPos(d)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
   }
 
   if (showVolume) {
@@ -400,7 +445,7 @@ function draw() {
       .data(parsed)
       .enter().append('rect')
       .attr('class', 'volume-bar')
-      .attr('x', (d) => x(d.date) - (bandW / 2))
+      .attr('x', (d) => xPos(d) - (bandW / 2))
       .attr('y', (d) => yVolume(d.volume || 0))
       .attr('width', bandW)
       .attr('height', (d) => Math.max(1, volumeBottom - yVolume(d.volume || 0)))
@@ -409,8 +454,20 @@ function draw() {
   }
 
   // X axis
-  g.append('g').attr('transform', `translate(0,${showVolume ? volumeBottom : h})`)
-    .call(
+  const xAxisG = g.append('g').attr('transform', `translate(0,${showVolume ? volumeBottom : h})`)
+  if (multiDayIntraday && multiDayTickData) {
+    // Manually place one label per trading day, evenly spaced by index
+    xAxisG.selectAll('text')
+      .data(multiDayTickData)
+      .enter().append('text')
+      .attr('x', ({ i }) => xByIndex(i))
+      .attr('y', 18)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#94a3b8')
+      .attr('font-size', '10')
+      .text(({ d }) => d3.timeFormat('%b %d')(d.date))
+  } else {
+    xAxisG.call(
       d3.axisBottom(x)
         .tickValues(xTickValues)
         .ticks(intraday ? 8 : 5)
@@ -422,6 +479,7 @@ function draw() {
       .attr('fill', (d) => marketBoundaryTicks.includes(new Date(d).getTime()) ? '#e2e8f0' : '#94a3b8')
       .attr('font-size', (d) => marketBoundaryTicks.includes(new Date(d).getTime()) ? '11' : '10')
       .attr('font-weight', (d) => marketBoundaryTicks.includes(new Date(d).getTime()) ? 700 : 400))
+  }
 
   // Y axis
   g.append('g')
@@ -522,22 +580,31 @@ function draw() {
 
   // Crosshair + selection
   const bisect = d3.bisector((d) => d.date).left
+
+  function nearestPoint(mx) {
+    const localX = mx - margin.left
+    if (multiDayIntraday) {
+      const i = Math.round(xByIndex.invert(localX))
+      return parsed[Math.max(0, Math.min(i, parsed.length - 1))] ?? null
+    }
+    return pickNearestPoint(mx, parsed, x, bisect, margin.left)
+  }
+
   const interactionRect = svg.append('rect')
     .attr('width', W).attr('height', H).attr('fill', 'none').attr('pointer-events', 'all')
     .on('mousemove touchmove', (event) => {
       if (draggingSelection.value) return
       const mx = localPointerX(event, svgRef.value)
       if (!Number.isFinite(mx)) return
-      const d = pickNearestPoint(mx, parsed, x, bisect, margin.left)
+      const d = nearestPoint(mx)
       if (!d) return
-
       showFocusAt(d)
     })
     .on('click', (event) => {
       if (draggingSelection.value || Date.now() < suppressClickUntil.value) return
       const mx = localPointerX(event, svgRef.value)
       if (!Number.isFinite(mx)) return
-      const d = pickNearestPoint(mx, parsed, x, bisect, margin.left)
+      const d = nearestPoint(mx)
       if (!d) return
       selectPoint(d)
       renderSelections()
@@ -552,7 +619,7 @@ function draw() {
     .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3,3').attr('stroke-width', 1)
   focus.append('circle').attr('r', 4).attr('fill', color).attr('stroke', '#0f172a').attr('stroke-width', 2)
   function showFocusAt(point, showValue = false) {
-    const cx = x(point.date)
+    const cx = xPos(point)
     const cy = y(point.close)
     focus.raise()
     focus.style('display', null)
@@ -578,7 +645,7 @@ function draw() {
         const source = event?.sourceEvent ?? event
         const localX = localPointerX(source, svgRef.value) ?? event?.x
         const draggedPoint = Number.isFinite(localX)
-          ? pickNearestPoint(localX, parsed, x, bisect, margin.left)
+          ? nearestPoint(localX)
           : null
         if (!draggedPoint) return
 
@@ -607,7 +674,7 @@ function draw() {
     selectionLayer.selectAll('*').remove()
 
     selectedPoints.value.forEach((point, index) => {
-      const cx = x(new Date(point.date))
+      const cx = xPos(point)
       const cy = y(point.close)
       const stroke = index === 0 ? '#e2e8f0' : '#cbd5e1'
       const label = point.close?.toFixed(2) || '—'

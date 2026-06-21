@@ -75,6 +75,7 @@ h2.gradient-h2 {
 /* ── Section h2 gradient (global override) ── */
 .section h2,
 .section-title,
+.card-title,
 .fee-section-title {
   background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
   -webkit-background-clip: text;

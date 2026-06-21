@@ -89,7 +89,7 @@ watch(() => [props.positions, props.combinedUsd], () => nextTick(draw), { deep: 
 
 <style scoped>
 .allocation-wrap { margin-bottom: 1rem; }
-.section-title { font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+.section-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
 .chart-row { display: flex; align-items: center; gap: 1rem; }
 svg { flex: 0 0 auto; width: 160px; }
 .legend { display: flex; flex-direction: column; gap: 0.4rem; flex: 1; }

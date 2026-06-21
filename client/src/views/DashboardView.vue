@@ -9,6 +9,7 @@ import MarketsCard from '@/components/charts/MarketsCard.vue'
 import TrendingCard from '@/components/charts/TrendingCard.vue'
 import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
 import WatchlistGainersLosersCard from '@/components/charts/WatchlistGainersLosersCard.vue'
+import TopMomentumCard from '@/components/charts/TopMomentumCard.vue'
 import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import SkeletonCard from '@/components/ui/SkeletonCard.vue'
 import NewsCard from "../components/charts/NewsCard.vue";
@@ -97,6 +98,7 @@ onUnmounted(() => {
     <!--    <MarketHoursCard />-->
 
     <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
+    <TopMomentumCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
 <!--    <WatchlistGainersLosersCard :items="watchlistGainersLosersItems" :loading="watchlistGainersLosersLoading"/>-->
 
     <!-- Allocation + movers, unified -->
@@ -224,6 +226,14 @@ onUnmounted(() => {
   padding: 0 0.25rem;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.section-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
 }
 
 .history-head .section-title {

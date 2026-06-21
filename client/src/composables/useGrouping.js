@@ -5,6 +5,7 @@
 // multiple tags appears under EACH of its groups, plus an "Ungrouped" bucket
 // for stocks with no tags.
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from './useMarketHours.js'
+import {useMomentumStore} from '@/stores/momentum.js'
 
 function marketOf(ticker) {
     const t = ticker.toUpperCase()
@@ -75,6 +76,69 @@ function postValueOf(item) {
         item?.lastPostMarketChangePercent,
     ]
     return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
+}
+
+function extWeight(pct) {
+    if (pct == null) return 0
+    const abs = Math.abs(pct)
+    const sign = pct > 0 ? 1 : -1
+    if (abs > 5)   return sign * 3
+    if (abs > 2)   return sign * 2
+    if (abs > 0.5) return sign * 1
+    return 0
+}
+
+function dayWeight(pct) {
+    if (pct == null) return 0
+    if (pct > 3)  return 2
+    if (pct > 0)  return 1
+    if (pct < -3) return -2
+    if (pct < 0)  return -1
+    return 0
+}
+
+function activeExtValueOf(item) {
+    const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
+    const d = new Date(nowNy)
+    const minutes = d.getHours() * 60 + d.getMinutes()
+    const isPreTime = minutes < 9 * 60 + 30
+    // Mirror WatchRow: pre before 09:30, post after
+    return isPreTime
+        ? (preValueOf(item) ?? postValueOf(item))
+        : (postValueOf(item) ?? preValueOf(item))
+}
+
+export function momentumScoreOf(item) {
+    let score = 0
+
+    // Pre/post-market (weighted ±3) — time-aware to match WatchRow badge
+    const ext = activeExtValueOf(item)
+    score += extWeight(ext)
+
+    // Today's session (weighted ±2)
+    const dayPct = typeof item?.changePercent === 'number' ? item.changePercent : null
+    score += dayWeight(dayPct)
+
+    // Week trend: first vs last close (±1)
+    const hist = Array.isArray(item?.history) ? item.history : []
+    if (hist.length >= 2) {
+        const first = hist[0]?.close
+        const last  = hist[hist.length - 1]?.close
+        if (first != null && last != null && first !== 0) {
+            if (last > first) score += 1
+            else if (last < first) score -= 1
+        }
+
+        // Price vs week SMA (±1)
+        const closes = hist.map(h => h.close).filter(v => v != null)
+        if (closes.length >= 3 && item?.price != null) {
+            const sma = closes.reduce((a, b) => a + b, 0) / closes.length
+            if (item.price > sma) score += 1
+            else if (item.price < sma) score -= 1
+        }
+    }
+
+    return score
 }
 
 function buildSingleFieldSections(items, getGroup, sortGroups = defaultGroupSort) {
@@ -151,6 +215,28 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         return [{group: null, items: sortedItems}]
     }
     
+    if (mode === 'momentum') {
+        // Use published combined scores from WatchRow (includes wave vote).
+        // Fall back to momentumScoreOf() for rows not yet rendered.
+        const momentumStore = useMomentumStore()
+        const scoreOf = (item) => momentumStore.getScore(item.ticker) ?? momentumScoreOf(item)
+
+        // 'down' = bullish first (highest positive score at top)
+        // 'up'   = bearish first (most negative score at top)
+        // Zero-score items always sink to the bottom.
+        const bullishFirst = changeDirection !== 'up'
+        const sortedItems = [...items].sort((a, b) => {
+            const sa = scoreOf(a)
+            const sb = scoreOf(b)
+            if (sa === 0 && sb === 0) return itemSortKey(a).localeCompare(itemSortKey(b))
+            if (sa === 0) return 1
+            if (sb === 0) return -1
+            const diff = bullishFirst ? sb - sa : sa - sb
+            return diff !== 0 ? diff : itemSortKey(a).localeCompare(itemSortKey(b))
+        })
+        return [{group: null, items: sortedItems}]
+    }
+
     if (mode === 'industry') {
         return buildSingleFieldSections(items, (it) => classifyOf(it, 'industry'))
     }
@@ -179,6 +265,7 @@ export const GROUP_MODES = [
     {label: 'Market', value: 'market'},
     {label: 'Change', value: 'change'},
     {label: 'Pre/Post', value: 'extended'},
+    {label: '▲', value: 'momentum', title: 'Sort by momentum signal'},
     {label: 'Industry', value: 'industry'},
     {label: 'Groups', value: 'group'},
 ]
