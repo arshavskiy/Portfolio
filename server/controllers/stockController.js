@@ -1,6 +1,7 @@
 const {
   getQuote,
   getHistory,
+  isHistoryCached,
   searchTicker,
   getMarkets,
   MARKET_GROUP_NAMES,
@@ -11,6 +12,17 @@ const {
   NEWS_TOPICS,
   getIlsToUsd,
 } = require('../services/stockService')
+
+const HISTORY_TTL_SECONDS = {
+  '1d': 120,
+  '5d': 600,
+  '1wk': 600,
+  '1mo': 3600,
+  '3mo': 21600,
+  '6mo': 21600,
+  '1y': 21600,
+  'max': 21600,
+}
 const Watchlist = require('../models/Watchlist')
 
 exports.getMarkets = async (req, res) => {
@@ -102,7 +114,12 @@ exports.getHistory = async (req, res) => {
     const {range = '3mo', points} = req.query
     const cap = Number(points)
     const pts = Number.isFinite(cap) && cap >= 2 ? Math.floor(cap) : null
-    const data = await getHistory(req.params.ticker.toUpperCase(), range, pts)
+    const ticker = req.params.ticker.toUpperCase()
+    const hit = isHistoryCached(ticker, range)
+    const ttl = HISTORY_TTL_SECONDS[range] ?? 21600
+    const data = await getHistory(ticker, range, pts)
+    res.set('X-Cache', hit ? 'HIT' : 'MISS')
+    res.set('Cache-Control', `private, max-age=${ttl}`)
     res.json(data)
   } catch (err) {
     res.status(500).json({ message: err.message })

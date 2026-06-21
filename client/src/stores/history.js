@@ -5,8 +5,10 @@ import {cachedFetch, invalidateClientCachePrefix, setClientCacheEntry} from '@/c
 
 const CACHE_PREFIX = 'history:'
 
-function makeKey(ticker, range, points) {
-  return `${ticker.toUpperCase()}?range=${range}${points ? `&points=${points}` : ''}`
+// Cache key covers only ticker+range — points is applied client-side after fetch
+// so multiple callers requesting different point counts share one network request.
+function makeKey(ticker, range) {
+  return `${ticker.toUpperCase()}?range=${range}`
 }
 
 function ttlForRange(range) {
@@ -16,39 +18,46 @@ function ttlForRange(range) {
   return 6 * 60 * 60 * 1000
 }
 
+function downsample(arr, max) {
+  if (!Array.isArray(arr) || !max || arr.length <= max || max < 2) return arr
+  const step = (arr.length - 1) / (max - 1)
+  const out = []
+  for (let i = 0; i < max; i++) out.push(arr[Math.round(i * step)])
+  return out
+}
+
 export const useHistoryStore = defineStore('history', () => {
   const cache = reactive({})
   const loading = reactive({})
 
   function getEntry(ticker, range = '1mo', points) {
-    const key = makeKey(ticker, range, points)
+    const key = makeKey(ticker, range)
     const entry = cache[key]
     if (!entry) return null
     if (entry.expiresAt <= Date.now()) {
       delete cache[key]
       return null
     }
-    return entry.data
+    return downsample(entry.data, points)
   }
 
-  function isLoading(ticker, range = '1mo', points) {
-    return !!loading[makeKey(ticker, range, points)]
+  function isLoading(ticker, range = '1mo') {
+    return !!loading[makeKey(ticker, range)]
   }
 
   async function fetchHistory(ticker, range = '1mo', points) {
-    const key = makeKey(ticker, range, points)
+    const key = makeKey(ticker, range)
     const cached = cache[key]
 
-    if (cached?.data && cached.expiresAt > Date.now()) return cached.data
-    if (cached?.promise) return cached.promise
+    if (cached?.data && cached.expiresAt > Date.now()) return downsample(cached.data, points)
+    if (cached?.promise) return cached.promise.then(data => downsample(data, points))
 
     loading[key] = true
 
-    const pointsParam = points ? `&points=${encodeURIComponent(points)}` : ''
     const promise = cachedFetch(
       `${CACHE_PREFIX}${key}`,
       ttlForRange(range),
-      () => api.get(`/stocks/history/${encodeURIComponent(ticker)}?range=${encodeURIComponent(range)}${pointsParam}`)
+      () => api.get(`/stocks/history/${encodeURIComponent(ticker)}?range=${encodeURIComponent(range)}`)
     )
       .then((data) => {
         cache[key] = {
@@ -67,12 +76,12 @@ export const useHistoryStore = defineStore('history', () => {
       })
 
     cache[key] = { promise, expiresAt: 0 }
-    return promise
+    return promise.then(data => downsample(data, points))
   }
 
   async function seedHistory(ticker, range = '1mo', points, data, savedAt = Date.now()) {
     if (!ticker || !Array.isArray(data)) return null
-    const key = makeKey(ticker, range, points)
+    const key = makeKey(ticker, range)
     cache[key] = {
       data,
       expiresAt: savedAt + ttlForRange(range),

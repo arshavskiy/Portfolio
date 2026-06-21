@@ -41,8 +41,10 @@ function cleanProfileValue(value) {
   return normalized || null
 }
 
-function historyCacheKey(ticker, range = '3mo', points = null) {
-  return `${ticker.toUpperCase()}:${range}:${points || 'all'}`
+// Cache by ticker+range only — points is applied after fetch so all callers
+// with different point counts share one cached Yahoo request.
+function historyCacheKey(ticker, range = '3mo') {
+  return `${ticker.toUpperCase()}:${range}`
 }
 
 function historyCacheTtl(range) {
@@ -297,9 +299,9 @@ async function getQuotes(tickers) {
 }
 
 async function getHistory(ticker, range = '3mo', points = null) {
-  const key = historyCacheKey(ticker, range, points)
+  const key = historyCacheKey(ticker, range)
   const cached = historyCache.get(key)
-  if (cached && Date.now() - cached.ts < historyCacheTtl(range)) return cached.data
+  if (cached && Date.now() - cached.ts < historyCacheTtl(range)) return downsample(cached.data, points)
 
   const fmt = (d) => d.toISOString().split('T')[0]
   const endDate = new Date()
@@ -327,9 +329,9 @@ async function getHistory(ticker, range = '3mo', points = null) {
         close: r.close / f,
         volume: r.volume,
       }))
-    const data = downsample(selectIntradayRows(rows, ticker), points)
-    historyCache.set(key, { data, ts: Date.now() })
-    return data
+    const full = selectIntradayRows(rows, ticker)
+    historyCache.set(key, { data: full, ts: Date.now() })
+    return downsample(full, points)
   }
 
   const f = taFactor(ticker)
@@ -341,9 +343,8 @@ async function getHistory(ticker, range = '3mo', points = null) {
       interval: '30m',
       includePrePost: false,
     })
-    const f = taFactor(ticker)
     const quotes = result?.quotes || []
-    const rows = quotes
+    const full = quotes
       .filter((r) => r && r.close != null)
       .map((r) => ({
         date: r.date,
@@ -353,9 +354,8 @@ async function getHistory(ticker, range = '3mo', points = null) {
         close: r.close / f,
         volume: r.volume,
       }))
-    const data = downsample(rows, points)
-    historyCache.set(key, { data, ts: Date.now() })
-    return data
+    historyCache.set(key, { data: full, ts: Date.now() })
+    return downsample(full, points)
   }
 
   // 'max' fetches the ticker's entire available history (no day cap) — used
@@ -372,9 +372,9 @@ async function getHistory(ticker, range = '3mo', points = null) {
     period2: fmt(endDate),
     interval: '1d',
   })
-  
+
   const quotes = result?.quotes || []
-  const rows = quotes
+  const full = quotes
       .filter((r) => r && r.close != null)
       .map((r) => ({
         date: r.date,
@@ -384,11 +384,10 @@ async function getHistory(ticker, range = '3mo', points = null) {
         close: r.close / f,
         volume: r.volume,
       }))
-  const data = downsample(rows, points)
-  historyCache.set(key, { data, ts: Date.now() })
-  return data
+  historyCache.set(key, { data: full, ts: Date.now() })
+  return downsample(full, points)
   } catch (error) {
-    if (cached?.data) return cached.data
+    if (cached?.data) return downsample(cached.data, points)
     throw error
   }
 }
@@ -889,10 +888,17 @@ async function getIlsToUsd() {
   }
 }
 
+function isHistoryCached(ticker, range) {
+  const key = historyCacheKey(ticker, range)
+  const entry = historyCache.get(key)
+  return !!(entry && Date.now() - entry.ts < historyCacheTtl(range))
+}
+
 module.exports = {
   getQuote,
   getQuotes,
   getHistory,
+  isHistoryCached,
   searchTicker,
   getTickerProfile,
   invalidateCache,
