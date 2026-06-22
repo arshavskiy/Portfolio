@@ -10,13 +10,11 @@ const feeProfileSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true, trim: true },   // e.g. "IBI", "Meitav"
-    country: { type: String, default: '' },               // e.g. "Israel", "USA"
-    currency: { type: String, default: 'USD' },
 
     buyFee: { type: feeRuleSchema, default: () => ({ type: 'percent', value: 0, minFee: 0 }) },
     sellFee: { type: feeRuleSchema, default: () => ({ type: 'percent', value: 0, minFee: 0 }) },
 
-    capitalGainsTax: { type: Number, default: 0 },         // % e.g. 25 for Israel
+    capitalGainsTax: { type: Number, default: 0 },         // % e.g. 25
     isDefault: { type: Boolean, default: false },
   },
   { timestamps: true }

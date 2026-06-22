@@ -8,7 +8,6 @@ import InputText from 'primevue/inputtext'
 import InputNumber from 'primevue/inputnumber'
 import SelectButton from 'primevue/selectbutton'
 import ToggleSwitch from 'primevue/toggleswitch'
-import Select from 'primevue/select'
 
 const props = defineProps({ visible: Boolean })
 const emit = defineEmits(['update:visible'])
@@ -19,19 +18,9 @@ const store = useFeeProfileStore()
 const editing = ref(null)
 const form = ref(defaultForm())
 
-const COUNTRIES = [
-  { label: 'Israel', value: 'Israel', tax: 25 },
-  { label: 'USA', value: 'USA', tax: 20 },
-  { label: 'UK', value: 'UK', tax: 20 },
-  { label: 'Germany', value: 'Germany', tax: 26.375 },
-  { label: 'Other', value: 'Other', tax: 0 },
-]
-
 function defaultForm() {
   return {
     name: '',
-    country: '',
-    currency: 'USD',
     buyFee: { type: 'percent', value: 0, minFee: 0 },
     sellFee: { type: 'percent', value: 0, minFee: 0 },
     capitalGainsTax: 0,
@@ -46,8 +35,6 @@ function openEdit(p) {
   editing.value = p
   form.value = {
     name: p.name,
-    country: p.country || '',
-    currency: p.currency || 'USD',
     buyFee: { ...p.buyFee },
     sellFee: { ...p.sellFee },
     capitalGainsTax: p.capitalGainsTax || 0,
@@ -55,11 +42,6 @@ function openEdit(p) {
   }
 }
 function closeEdit() { editing.value = null }
-
-function onCountryChange(val) {
-  const c = COUNTRIES.find((c) => c.value === val)
-  if (c) form.value.capitalGainsTax = c.tax
-}
 
 function formatPercentValue(value, digits = 3) {
   const num = Number(value)
@@ -106,10 +88,10 @@ async function remove(p) {
 
 function feeLabel(p) {
   const buy = p.buyFee?.value
-    ? `Buy ${p.buyFee.type === 'percent' ? formatFeePercent(p.buyFee.value) : `${p.currency || 'USD'} ${p.buyFee.value}`}`
+    ? `Buy ${p.buyFee.type === 'percent' ? formatFeePercent(p.buyFee.value) : p.buyFee.value}`
     : null
   const sell = p.sellFee?.value
-    ? `Sell ${p.sellFee.type === 'percent' ? formatFeePercent(p.sellFee.value) : `${p.currency || 'USD'} ${p.sellFee.value}`}`
+    ? `Sell ${p.sellFee.type === 'percent' ? formatFeePercent(p.sellFee.value) : p.sellFee.value}`
     : null
   const tax = p.capitalGainsTax ? `Tax ${formatPercentValue(p.capitalGainsTax)}%` : null
   return [buy, sell, tax].filter(Boolean).join(' · ') || 'No fees'
@@ -139,9 +121,6 @@ function feeLabel(p) {
               <span v-if="p.isDefault" class="default-badge">Default</span>
             </span>
             <span class="profile-detail text-muted">{{ feeLabel(p) }}</span>
-            <span class="profile-country text-muted">
-              {{ p.country || '—' }} · {{ p.currency || 'USD' }}
-            </span>
           </div>
           <div class="profile-actions">
             <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(p)" />
@@ -162,25 +141,6 @@ function feeLabel(p) {
       <div class="field">
         <label>Broker / Vendor name</label>
         <InputText v-model="form.name" placeholder="e.g. IBI, Meitav, IBKR" fluid />
-      </div>
-
-      <div class="fields-row">
-        <div class="field">
-          <label>Country</label>
-          <Select
-            v-model="form.country"
-            :options="COUNTRIES"
-            option-label="label"
-            option-value="value"
-            placeholder="Select..."
-            fluid
-            @change="onCountryChange(form.country)"
-          />
-        </div>
-        <div class="field">
-          <label>Currency</label>
-          <SelectButton v-model="form.currency" :options="['USD', 'ILS', 'EUR']" />
-        </div>
       </div>
 
       <!-- Buy fee -->
@@ -236,7 +196,7 @@ function feeLabel(p) {
       </div>
 
       <div class="field-row-inline">
-        <label>Set as default for currency</label>
+        <label>Set as default profile</label>
         <ToggleSwitch v-model="form.isDefault" />
       </div>
 

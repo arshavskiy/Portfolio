@@ -269,23 +269,11 @@ function formatTaxPercent(value) {
 const tickerCurr = computed(() => ticker.value.endsWith('.TA') ? 'ILS' : 'USD')
 const currSymbol = computed(() => tickerCurr.value === 'ILS' ? '₪' : '$')
 
-function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
-  if (profileCurrency === transactionCurrency) return true
-  return transactionCurrency === 'USD' && profileCurrency === 'ILS'
-}
-
-const matchingFeeProfiles = computed(() =>
-    feeStore.profiles.filter((p) => isAllowedFeeCurrency(p.currency || 'USD', tickerCurr.value))
-)
+const matchingFeeProfiles = computed(() => feeStore.profiles)
 
 function defaultFeeProfile() {
-  function preferredProfile(currency) {
-    const profiles = feeStore.profiles.filter((p) => (p.currency || 'USD') === currency)
-    return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
-  }
-
-  return preferredProfile(tickerCurr.value) ||
-      (tickerCurr.value === 'USD' ? preferredProfile('ILS') : null)
+  const profiles = feeStore.profiles
+  return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
 }
 
 function feeProfileOf(tx) {
@@ -293,7 +281,7 @@ function feeProfileOf(tx) {
 }
 
 function feeCurrencyOf(tx) {
-  return feeProfileOf(tx)?.currency || tickerCurr.value
+  return tickerCurr.value
 }
 
 function isDefaultFeeEstimate(tx) {
@@ -504,8 +492,8 @@ const simulation = computed(() => {
   // Get sell fee from selected profile
   const profile = feeStore.profiles.find(p => p._id === simFeeProfileId.value)
   const sellFee = calcFee(profile?.sellFee, grossProceeds)
-  const sellFeeCurrency = profile?.currency || tickerCurr.value
-  const sellFeeInTickerCurrency = convertFeeToTickerCurrency(sellFee, sellFeeCurrency)
+  const sellFeeCurrency = tickerCurr.value
+  const sellFeeInTickerCurrency = sellFee
 
   // Capital gains tax on profit only
   const taxRate = profile?.capitalGainsTax || 0
@@ -528,18 +516,13 @@ const simulation = computed(() => {
   }
 })
 
-watch([tickerCurr, () => feeStore.profiles], ([txCurrency, profiles]) => {
-  if (!simFeeProfileId.value || !profiles.some((p) => p._id === simFeeProfileId.value && isAllowedFeeCurrency(p.currency || 'USD', txCurrency))) {
-    simFeeProfileId.value = (
-      profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency) ||
-      (txCurrency === 'USD' ? profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
-    )?._id || null
+watch(() => feeStore.profiles, (profiles) => {
+  const def = profiles.find((p) => p.isDefault)?._id || profiles[0]?._id || null
+  if (!simFeeProfileId.value || !profiles.some((p) => p._id === simFeeProfileId.value)) {
+    simFeeProfileId.value = def
   }
-  if (!buySimFeeProfileId.value || !profiles.some((p) => p._id === buySimFeeProfileId.value && isAllowedFeeCurrency(p.currency || 'USD', txCurrency))) {
-    buySimFeeProfileId.value = (
-        profiles.find((p) => p.isDefault && (p.currency || 'USD') === txCurrency) ||
-        (txCurrency === 'USD' ? profiles.find((p) => p.isDefault && (p.currency || 'USD') === 'ILS') : null)
-    )?._id || null
+  if (!buySimFeeProfileId.value || !profiles.some((p) => p._id === buySimFeeProfileId.value)) {
+    buySimFeeProfileId.value = def
   }
 }, {immediate: true})
 
@@ -549,9 +532,7 @@ function calcBuySimulation(price, shares) {
 
   const profile = feeStore.profiles.find(p => p._id === buySimFeeProfileId.value)
   const buyFee = calcFee(profile?.buyFee, cost)
-  const buyFeeCurrency = profile?.currency || tickerCurr.value
-  const buyFeeInTickerCurrency = convertFeeToTickerCurrency(buyFee, buyFeeCurrency)
-  const totalCost = cost + buyFeeInTickerCurrency
+  const totalCost = cost + buyFee
 
   const existingShares = summary.value?.shares ?? 0
   const existingCost = summary.value?.totalCost ?? 0
@@ -560,16 +541,14 @@ function calcBuySimulation(price, shares) {
   const newAvgCost = combinedShares > 0 ? combinedCost / combinedShares : price
 
   const rawBreakEven = combinedCost / combinedShares
-  const sellFeeRule = profile?.sellFee
-  const estimatedSellFee = calcFee(sellFeeRule, rawBreakEven * combinedShares)
-  const estimatedSellFeeInTickerCurrency = convertFeeToTickerCurrency(estimatedSellFee, profile?.currency || tickerCurr.value)
-  const breakEven = (combinedCost + estimatedSellFeeInTickerCurrency) / combinedShares
+  const estimatedSellFee = calcFee(profile?.sellFee, rawBreakEven * combinedShares)
+  const breakEven = (combinedCost + estimatedSellFee) / combinedShares
 
   return {
     price, shares, cost,
-    buyFee, buyFeeCurrency, buyFeeInTickerCurrency,
+    buyFee, buyFeeInTickerCurrency: buyFee,
     totalCost, newAvgCost, breakEven,
-    hasSellFee: estimatedSellFeeInTickerCurrency > 0,
+    hasSellFee: estimatedSellFee > 0,
     profileName: profile?.name || null,
   }
 }

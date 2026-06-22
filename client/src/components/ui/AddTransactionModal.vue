@@ -63,19 +63,12 @@ const currencySymbol = computed(() => txCurrency.value === 'ILS' ? '₪' : '$')
 const isCryptoBuy = computed(() => marketSuffix.value === '-USD' || /-USD$/i.test(currentTicker.value))
 const shareDigits = computed(() => isCryptoBuy.value ? 8 : 4)
 
-function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
-  if (profileCurrency === transactionCurrency) return true
-  return transactionCurrency === 'USD' && profileCurrency === 'ILS'
-}
-
-function defaultFeeProfileForCurrency(currency) {
-  const profiles = feeStore.profiles.filter((p) => (p.currency || 'USD') === currency)
+function defaultFeeProfile() {
+  const profiles = feeStore.profiles
   return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
 }
 
-const matchingProfiles = computed(() => {
-  return feeStore.profiles.filter((p) => isAllowedFeeCurrency(p.currency || 'USD', txCurrency.value))
-})
+const matchingProfiles = computed(() => feeStore.profiles)
 
 function formatFeePercent(value) {
   const num = Number(value)
@@ -93,7 +86,7 @@ const feeOptions = computed(() => [
   { label: 'No fee', value: null },
   ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
-    const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${p.currency} ${fee.value}`) : '0%'
+    const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : fee.value) : '0%'
     const taxStr = p.capitalGainsTax ? ` · Tax ${formatTaxPercent(p.capitalGainsTax)}` : ''
     return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id, profile: p }
   }),
@@ -117,8 +110,7 @@ const feeAmount = computed(() => {
   const rule = type.value === 'buy' ? selectedProfile.value.buyFee : selectedProfile.value.sellFee
   return calcFee(rule, total)
 })
-const feeCurrency = computed(() => selectedProfile.value?.currency || txCurrency.value)
-const feeMatchesTransactionCurrency = computed(() => feeCurrency.value === txCurrency.value)
+const feeCurrency = computed(() => txCurrency.value)
 
 // Capital gains tax estimate (sell only) — uses a placeholder avg cost of 0 if unknown
 const taxAmount = computed(() => {
@@ -140,23 +132,14 @@ watch(() => props.visible, (v) => {
     notes.value = ''
     groups.value = []
     type.value = props.defaultType === 'sell' ? 'sell' : 'buy'
-    const initialCurrency = props.defaultTicker
-      ? tickerCurrency(props.defaultTicker)
-      : (marketSuffix.value === '.TA' ? 'ILS' : 'USD')
-    selectedFeeProfile.value = (
-      defaultFeeProfileForCurrency(initialCurrency) ||
-      (initialCurrency === 'USD' ? defaultFeeProfileForCurrency('ILS') : null)
-    )?._id || null
+    selectedFeeProfile.value = defaultFeeProfile()?._id || null
     groupsStore.fetchGroups()
   }
 })
 
-watch([txCurrency, () => feeStore.profiles], ([nextCurrency, profiles]) => {
-  if (!profiles.some((p) => p._id === selectedFeeProfile.value && isAllowedFeeCurrency(p.currency || 'USD', nextCurrency))) {
-    selectedFeeProfile.value = (
-      defaultFeeProfileForCurrency(nextCurrency) ||
-      (nextCurrency === 'USD' ? defaultFeeProfileForCurrency('ILS') : null)
-    )?._id || null
+watch(() => feeStore.profiles, (profiles) => {
+  if (!profiles.some((p) => p._id === selectedFeeProfile.value)) {
+    selectedFeeProfile.value = defaultFeeProfile()?._id || null
   }
 }, { immediate: true })
 
@@ -430,11 +413,11 @@ async function submit() {
           <span class="loss">calculated on profit at sell</span>
         </div>
         <div class="total-line total-final">
-          <span>{{ feeAmount > 0 && !feeMatchesTransactionCurrency ? 'Trade value' : (type === 'buy' ? 'Total cost' : 'Net proceeds') }}</span>
+          <span>{{ type === 'buy' ? 'Total cost' : 'Net proceeds' }}</span>
           <span class="total-amount">
             {{ currencySymbol }}{{ type === 'buy'
-              ? ((((shares || 0) * (price || 0)) + (feeMatchesTransactionCurrency ? feeAmount : 0)).toFixed(2))
-              : ((((shares || 0) * (price || 0)) - (feeMatchesTransactionCurrency ? feeAmount : 0)).toFixed(2)) }}
+              ? ((((shares || 0) * (price || 0)) + feeAmount).toFixed(2))
+              : ((((shares || 0) * (price || 0)) - feeAmount).toFixed(2)) }}
             <span v-if="type === 'sell' && selectedProfile?.capitalGainsTax" class="text-muted" style="font-size:0.75rem"> (before tax)</span>
           </span>
         </div>
