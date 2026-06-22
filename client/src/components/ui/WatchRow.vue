@@ -44,6 +44,14 @@ function calculateExtendedChangePercent(price, change) {
   return (change / previous) * 100
 }
 
+// Last-seen snapshots are stale if older than 20 hours — covers overnight
+// pre-market (e.g. 04:00 ET today vs 20:00 ET yesterday = 8 hrs) but rejects
+// data from a previous trading session (e.g. Friday post seen on Monday).
+function isRecentSnapshot(timeValue) {
+  if (!timeValue) return false
+  return Date.now() - new Date(timeValue).getTime() < 20 * 60 * 60 * 1000
+}
+
 function resolveExtendedHours(kind) {
   const isPost = kind === 'post'
   const priceKey = isPost ? 'postMarketPrice' : 'preMarketPrice'
@@ -52,6 +60,7 @@ function resolveExtendedHours(kind) {
   const lastPriceKey = isPost ? 'lastPostMarketPrice' : 'lastPreMarketPrice'
   const lastChangeKey = isPost ? 'lastPostMarketChange' : 'lastPreMarketChange'
   const lastPercentKey = isPost ? 'lastPostMarketChangePercent' : 'lastPreMarketChangePercent'
+  const lastTimeKey = isPost ? 'lastPostMarketTime' : 'lastPreMarketTime'
 
   if (props.item[priceKey] != null || props.item[changeKey] != null || props.item[percentKey] != null) {
     return {
@@ -61,7 +70,10 @@ function resolveExtendedHours(kind) {
     }
   }
 
-  if (props.item[lastPriceKey] != null || props.item[lastChangeKey] != null || props.item[lastPercentKey] != null) {
+  if (
+    isRecentSnapshot(props.item[lastTimeKey]) &&
+    (props.item[lastPriceKey] != null || props.item[lastChangeKey] != null || props.item[lastPercentKey] != null)
+  ) {
     return {
       label: isPost ? 'After hours (last seen)' : 'Pre-market (last seen)',
       price: props.item[lastPriceKey] ?? null,
@@ -72,9 +84,12 @@ function resolveExtendedHours(kind) {
   return null
 }
 
-// Show pre-market before regular open (before 09:30 ET), post-market otherwise
+// Show pre-market before regular open (before 09:30 ET), post-market otherwise.
+// Suppress entirely during REGULAR hours — market is open, extended data is irrelevant.
 const activeExtended = computed(() => {
   const ticker = props.item.ticker
+  const state = props.item.marketState
+  if (state === 'REGULAR') return null
   if (/-USD$/u.test(ticker)) return resolveExtendedHours('post') // crypto: no pre-market
   const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
   const d = new Date(nowNy)
