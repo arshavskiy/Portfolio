@@ -364,10 +364,16 @@ const rangeChange = computed(() => {
     percent: (amount / firstClose) * 100,
   }
 })
-const displayedPriceChange = computed(() => rangeChange.value || quoteChange.value)
-const displayedPriceChangeLabel = computed(() => rangeChange.value
-  ? `${RANGE_LABELS[selectedRange.value] || selectedRange.value} range`
-  : 'Today'
+// For 1d, always use the API's changePercent (today vs previous close) — the
+// chart history spans yesterday's bars during pre-market, so rangeChange would
+// reflect the wrong day's move.
+const displayedPriceChange = computed(() =>
+  selectedRange.value === '1d' ? quoteChange.value : (rangeChange.value || quoteChange.value)
+)
+const displayedPriceChangeLabel = computed(() =>
+  selectedRange.value !== '1d' && rangeChange.value
+    ? `${RANGE_LABELS[selectedRange.value] || selectedRange.value} range`
+    : 'Today'
 )
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
