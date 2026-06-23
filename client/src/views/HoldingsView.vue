@@ -12,6 +12,7 @@ import {groupItems} from '@/composables/useGrouping'
 import Button from 'primevue/button'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
+import WatchRow from '@/components/ui/WatchRow.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
@@ -37,6 +38,7 @@ let marketTimer = null
 const positionsForGrouping = computed(() =>
   portfolio.positions.map((pos) => ({
     ...pos,
+    price: pos.currentPrice,
     history: sparklines.value[pos.ticker] || pos.history || [],
   }))
 )
@@ -159,14 +161,21 @@ onUnmounted(() => {
     <div v-else :class="compactMode ? 'positions-compact' : 'positions-list'">
       <template v-for="section in grouped" :key="section.group ?? '_all'">
         <div v-if="section.group" class="market-header">{{ section.group }}</div>
-        <PositionCard
-            v-for="pos in section.items"
-            :key="`${section.group ?? ''}-${pos.ticker}`"
-            :pos="pos"
-            :sparkline="sparklines[pos.ticker]"
-            :compact="compactMode"
-            @edit-groups="openGroups"
-        />
+        <template v-for="pos in section.items" :key="`${section.group ?? ''}-${pos.ticker}`">
+          <WatchRow
+              v-if="compactMode"
+              :item="pos"
+              @edit-groups="openGroups"
+              @open-stock="$router.push(`/position/${pos.ticker}`)"
+          />
+          <PositionCard
+              v-else
+              :pos="pos"
+              :sparkline="sparklines[pos.ticker]"
+              :compact="false"
+              @edit-groups="openGroups"
+          />
+        </template>
       </template>
     </div>
 
@@ -245,7 +254,7 @@ onUnmounted(() => {
 .positions-compact {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0;
 }
 
 /* Tile full cards into columns on wider screens (compact stays single-column). */
