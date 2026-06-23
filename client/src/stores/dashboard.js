@@ -6,6 +6,7 @@ import {cachedFetch} from '@/composables/useClientCache'
 import {groupItems} from '@/composables/useGrouping'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
+import {useMarketDataStore} from '@/stores/marketData'
 
 // The dashboard always shows "today" — its watchlist-derived data (movers,
 // breakdown %, sparklines) is intentionally NOT tied to the shared
@@ -21,6 +22,7 @@ const DASHBOARD_WATCHLIST_TTL_MS = 5 * 60 * 1000
 export const useDashboardStore = defineStore('dashboard', () => {
   const portfolio = usePortfolioStore()
   const historyStore = useHistoryStore()
+  const marketDataStore = useMarketDataStore()
 
   const groupMode = useStorage('dashboard-group-mode', 'sector')
   const historyRange = useStorage('dashboard-history-range', '1mo')
@@ -30,6 +32,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const historyLoading = ref(false)
     const dashboardWatchlistItems = ref([])
     const dashboardWatchlistLoading = ref(false)
+
+  const ready = ref(false)
 
   let marketTimer = null
   let initialized = false
@@ -129,13 +133,17 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
     await Promise.all([
       portfolio.fetchPortfolio(),
-        fetchDashboardWatchlist(),
+      fetchDashboardWatchlist(),
+      marketDataStore.fetchMarkets('US').catch(() => {}),
+      marketDataStore.fetchTrending('US').catch(() => {}),
     ])
-        await Promise.all([fetchSparklines(), fetchHistory()])
+    await Promise.all([fetchSparklines(), fetchHistory()])
     startClock()
+    ready.value = true
   }
 
   return {
+    ready,
     groupMode,
     historyRange,
     now,

@@ -1,21 +1,19 @@
 <script setup>
-import {onMounted, onUnmounted} from 'vue'
+import {defineAsyncComponent, onMounted, onUnmounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
-import BreakdownCard from '@/components/charts/BreakdownCard.vue'
-import PortfolioHistoryChart from '@/components/charts/PortfolioHistoryChart.vue'
-import PortfolioCompareChart from '@/components/charts/PortfolioCompareChart.vue'
-import MarketsCard from '@/components/charts/MarketsCard.vue'
-import TrendingCard from '@/components/charts/TrendingCard.vue'
-import WatchlistMoversCard from '@/components/charts/WatchlistMoversCard.vue'
-import WatchlistGainersLosersCard from '@/components/charts/WatchlistGainersLosersCard.vue'
-import TopMomentumCard from '@/components/charts/TopMomentumCard.vue'
-import TotalsGrid from '@/components/charts/TotalsGrid.vue'
-import SkeletonCard from '@/components/ui/SkeletonCard.vue'
-import NewsCard from "../components/charts/NewsCard.vue";
+
+const BreakdownCard         = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
+const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
+const PortfolioCompareChart = defineAsyncComponent(() => import('@/components/charts/PortfolioCompareChart.vue'))
+const MarketsCard           = defineAsyncComponent(() => import('@/components/charts/MarketsCard.vue'))
+const TrendingCard          = defineAsyncComponent(() => import('@/components/charts/TrendingCard.vue'))
+const WatchlistMoversCard   = defineAsyncComponent(() => import('@/components/charts/WatchlistMoversCard.vue'))
+const TopMomentumCard       = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
 
 const dashboard = useDashboardStore()
 const {
+  ready,
   groupedPositions,
   portfolioPositions,
   portfolioCombinedUsd,
@@ -67,39 +65,19 @@ onUnmounted(() => {
   <div class="dashboard">
     <header class="dash-header">
       <h1 class="gradient-title">Dashboard</h1>
-      <!--      <PageSettings>-->
-      <!--        <SettingsRow icon="pi pi-chart-line" label="Chart range">-->
-      <!--          <div class="toggle-group">-->
-      <!--            <button-->
-      <!--                v-for="opt in RANGE_OPTIONS"-->
-      <!--                :key="opt.value"-->
-      <!--                :class="{ active: range === opt.value }"-->
-      <!--                class="toggle-btn"-->
-      <!--                @click="range = opt.value"-->
-      <!--            >{{ opt.label }}-->
-      <!--            </button>-->
-      <!--          </div>-->
-      <!--        </SettingsRow>-->
-      <!--        <SettingsRow icon="pi pi-objects-column" label="Group by">-->
-      <!--          <Select-->
-      <!--              v-model="groupMode"-->
-      <!--              :options="GROUP_MODES"-->
-      <!--              class="group-select"-->
-      <!--              option-label="label"-->
-      <!--              option-value="value"-->
-      <!--          />-->
-      <!--        </SettingsRow>-->
-      <!--      </PageSettings>-->
     </header>
 
+    <!-- Full-page loader until all data is ready -->
+    <div v-if="!ready" class="dash-loader">
+      <div class="dash-skeleton" v-for="n in 5" :key="n" />
+    </div>
 
-    <!-- Global markets overview (always shown) -->
+    <template v-else>
+    <!-- Global markets overview -->
     <MarketsCard />
-    <!--    <MarketHoursCard />-->
 
     <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
     <TopMomentumCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
-<!--    <WatchlistGainersLosersCard :items="watchlistGainersLosersItems" :loading="watchlistGainersLosersLoading"/>-->
 
     <!-- Allocation + movers, unified -->
     <BreakdownCard :combined-usd="portfolioCombinedUsd" :positions="portfolioPositions"/>
@@ -107,13 +85,6 @@ onUnmounted(() => {
     <template v-if="showTrending">
       <TrendingCard />
     </template>
-
-    <!-- Market news -->
-<!--    <NewsCard/>-->
-
-    <div v-if="showSkeleton" class="cards-grid">
-      <SkeletonCard v-for="n in 3" :key="n" />
-    </div>
 
 <!--    <template v-else>-->
 
@@ -196,12 +167,38 @@ onUnmounted(() => {
         No holdings yet. Add a transaction to get started, or explore what’s trending.
       </div>
 
-<!--    </template>-->
+    </template>
   </div>
 </template>
 
 <style scoped>
 .dashboard { padding: 1rem; }
+
+.dash-loader {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.dash-skeleton {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  height: 120px;
+  background: linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+.dash-skeleton:first-child { height: 80px; }
+.dash-skeleton:nth-child(2) { height: 160px; }
+.dash-skeleton:nth-child(3) { height: 100px; }
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 .dash-header {
   display: flex;
