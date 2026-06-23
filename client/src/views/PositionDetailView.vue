@@ -733,15 +733,6 @@ async function toggleWatchlist() {
           >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{ momentumScore }})</span></span>
         </div>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
-        <!-- Always-visible signal breakdown -->
-        <div v-if="momentumBreakdown.length" class="signal-breakdown">
-          <div class="signal-chips">
-            <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
-              <span class="chip-label">{{ chip.label }}</span>
-              <span class="chip-value">{{ chip.value }}</span>
-            </div>
-          </div>
-        </div>
       </div>
       <div class="header-actions">
         <Button icon="pi pi-plus" rounded text @click="showModal = true"/>
@@ -805,6 +796,15 @@ async function toggleWatchlist() {
               {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
             </p>
             <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
+          </div>
+        </div>
+        <!-- Signal breakdown below price block -->
+        <div v-if="momentumBreakdown.length" class="signal-breakdown">
+          <div class="signal-chips">
+            <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
+              <span class="chip-label">{{ chip.label }}</span>
+              <span class="chip-value">{{ chip.value }}</span>
+            </div>
           </div>
         </div>
       </div>

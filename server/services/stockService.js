@@ -229,13 +229,14 @@ function saveExtendedSnapshot(ticker, fields) {
         .catch((err) => console.error('[stockService] extended snapshot save error:', err.message))
 }
 
+const QUOTE_TTL = 90 * 1000 // 90 seconds
+
 async function getQuote(ticker) {
   const key = ticker.toUpperCase()
   const cached = quoteCache.get(key) || quoteCache.get(ticker)
+  if (cached && Date.now() - cached.ts < QUOTE_TTL) return cached.data
   let result
   try {
-    // No TTL here — quotes are always fetched live from Yahoo so the dashboard
-    // reflects real-time prices on every load instead of a stale 5-min window.
     result = await yahooFinance.quote(ticker)
   } catch (error) {
     if (cached?.data) return cached.data
@@ -297,7 +298,87 @@ async function getQuote(ticker) {
 }
 
 async function getQuotes(tickers) {
-    return Promise.all(tickers.map((t) => getQuote(t).catch(() => null)))
+  if (!tickers || !tickers.length) return []
+
+  const now = Date.now()
+  const fresh = []
+  const stale = []
+
+  for (const t of tickers) {
+    const key = t.toUpperCase()
+    const cached = quoteCache.get(key)
+    if (cached && now - cached.ts < QUOTE_TTL) {
+      fresh.push({ ticker: t, data: cached.data })
+    } else {
+      stale.push(t)
+    }
+  }
+
+  if (stale.length > 0) {
+    try {
+      const results = await yahooFinance.quote(stale)
+      const arr = Array.isArray(results) ? results : [results]
+      await Promise.all(arr.map(async (result) => {
+        if (!result?.symbol) return
+        const ticker = stale.find(t => t.toUpperCase() === result.symbol.toUpperCase()) || result.symbol
+        const f = taFactor(ticker)
+        const live = {
+          postMarketPrice: result.postMarketPrice != null ? result.postMarketPrice / f : null,
+          postMarketChange: result.postMarketChange != null ? result.postMarketChange / f : null,
+          postMarketChangePercent: result.postMarketChangePercent ?? null,
+          postMarketTime: result.postMarketTime ?? null,
+          preMarketPrice: result.preMarketPrice != null ? result.preMarketPrice / f : null,
+          preMarketChange: result.preMarketChange != null ? result.preMarketChange / f : null,
+          preMarketChangePercent: result.preMarketChangePercent ?? null,
+          preMarketTime: result.preMarketTime ?? null,
+        }
+        saveExtendedSnapshot(ticker, live)
+        const snapshot = (await loadExtendedSnapshot(ticker)) || {}
+        const data = {
+          ticker: result.symbol,
+          name: result.shortName,
+          price: result.regularMarketPrice / f,
+          previousClose: (result.regularMarketPreviousClose ?? result.previousClose) / f,
+          change: result.regularMarketChange / f,
+          changePercent: result.regularMarketChangePercent,
+          volume: result.regularMarketVolume,
+          avgVolume: result.averageVolume ?? result.averageDailyVolume3Month ?? null,
+          marketCap: result.marketCap != null ? result.marketCap / f : null,
+          dayHigh: result.regularMarketDayHigh / f,
+          dayLow: result.regularMarketDayLow / f,
+          open: result.regularMarketOpen / f,
+          week52High: result.fiftyTwoWeekHigh / f,
+          week52Low: result.fiftyTwoWeekLow / f,
+          pe: result.trailingPE,
+          dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
+          dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
+          marketState: result.marketState || null,
+          regularMarketTime: result.regularMarketTime ?? null,
+          ...live,
+          lastPostMarketPrice: live.postMarketPrice ?? snapshot.postMarketPrice ?? null,
+          lastPostMarketChange: live.postMarketChange ?? snapshot.postMarketChange ?? null,
+          lastPostMarketChangePercent: live.postMarketChangePercent ?? snapshot.postMarketChangePercent ?? null,
+          lastPostMarketTime: live.postMarketTime ?? snapshot.postMarketTime ?? null,
+          lastPreMarketPrice: live.preMarketPrice ?? snapshot.preMarketPrice ?? null,
+          lastPreMarketChange: live.preMarketChange ?? snapshot.preMarketChange ?? null,
+          lastPreMarketChangePercent: live.preMarketChangePercent ?? snapshot.preMarketChangePercent ?? null,
+          lastPreMarketTime: live.preMarketTime ?? snapshot.preMarketTime ?? null,
+        }
+        quoteCache.set(result.symbol.toUpperCase(), { data, ts: Date.now() })
+        fresh.push({ ticker, data })
+      }))
+    } catch (err) {
+      console.error('[getQuotes] batch failed, falling back to individual:', err.message)
+      const fallbacks = await Promise.all(stale.map((t) => getQuote(t).catch(() => null)))
+      stale.forEach((t, i) => { if (fallbacks[i]) fresh.push({ ticker: t, data: fallbacks[i] }) })
+    }
+  }
+
+  // Return in original order, null for any that failed
+  return tickers.map(t => {
+    const found = fresh.find(f => f.ticker.toUpperCase() === t.toUpperCase())
+    return found ? found.data : null
+  })
 }
 
 async function getHistory(ticker, range = '3mo', points = null) {
