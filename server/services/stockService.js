@@ -277,6 +277,7 @@ async function getQuote(ticker) {
     dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
     dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
     marketState: result.marketState || null,
+    regularMarketTime: result.regularMarketTime ?? null,
       ...live,
       // Last-seen extended-hours values, retained across regular hours. Falls back
       // to live when present so consumers can always read these.

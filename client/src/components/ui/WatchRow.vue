@@ -84,6 +84,14 @@ function resolveExtendedHours(kind) {
   return null
 }
 
+// Quote is stale when CLOSED and last trade was >28 hours ago (weekend/holiday).
+const isStaleQuote = computed(() => {
+  if (props.item.marketState !== 'CLOSED') return false
+  const t = props.item.regularMarketTime
+  if (!t) return false
+  return Date.now() - new Date(t).getTime() > 28 * 60 * 60 * 1000
+})
+
 // During REGULAR hours show today's pre-market snapshot (gap context) but
 // never post-market (which would be from a previous session).
 // During PRE/POST/CLOSED show the matching session first, fall back to the other.
@@ -155,7 +163,8 @@ const {combinedScore, signal} = useItemMomentum(toRef(props, 'item'), extPercent
         <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
         <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>
       </span>
-      <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
+      <span v-if="isStaleQuote" class="badge badge-stale">No trade today</span>
+      <span v-else :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
     </div>
@@ -337,6 +346,15 @@ const {combinedScore, signal} = useItemMomentum(toRef(props, 'item'), extPercent
 .badge-loss {
   background: #e02d4a;
   color: #fff;
+}
+
+.badge-stale {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  font-weight: 500;
+  min-width: unset;
 }
 
 .extended-combined {
