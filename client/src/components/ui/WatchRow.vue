@@ -84,13 +84,14 @@ function resolveExtendedHours(kind) {
   return null
 }
 
-// Show pre-market before regular open (before 09:30 ET), post-market otherwise.
-// Suppress entirely during REGULAR hours — market is open, extended data is irrelevant.
+// During REGULAR hours show today's pre-market snapshot (gap context) but
+// never post-market (which would be from a previous session).
+// During PRE/POST/CLOSED show the matching session first, fall back to the other.
 const activeExtended = computed(() => {
   const ticker = props.item.ticker
   const state = props.item.marketState
-  if (state === 'REGULAR') return null
   if (/-USD$/u.test(ticker)) return resolveExtendedHours('post') // crypto: no pre-market
+  if (state === 'REGULAR') return resolveExtendedHours('pre') // today's gap only, no post
   const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
   const d = new Date(nowNy)
   const minutes = d.getHours() * 60 + d.getMinutes()
