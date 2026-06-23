@@ -164,18 +164,14 @@ const combinedDisplay = computed(() => {
       <div v-if="usdTotal" class="stat">
         <span class="stat-label text-muted">USD</span>
         <span class="stat-value">{{ useCurrency(usdTotal.value, 'USD') }}</span>
-        <span :class="gainLossClass(usdTotal.pnl)" class="stat-pnl">
-          {{ usdTotal.pnl >= 0 ? '+' : '' }}{{ useCurrency(usdTotal.pnl, 'USD') }}
-          <span class="stat-pct">({{ usePercent(usdTotal.pnlPercent) }})</span>
-        </span>
+        <span :class="gainLossClass(usdTotal.pnl)" class="stat-pnl">{{ usdTotal.pnl >= 0 ? '+' : '' }}{{ useCurrency(usdTotal.pnl, 'USD') }}</span>
+        <span :class="gainLossClass(usdTotal.pnl)" class="stat-pct">{{ usePercent(usdTotal.pnlPercent) }}</span>
       </div>
       <div v-if="ilsTotal" class="stat" :class="usdTotal ? 'stat-bordered' : ''">
         <span class="stat-label text-muted">ILS ₪</span>
         <span class="stat-value">{{ useCurrency(ilsTotal.value, 'ILS') }}</span>
-        <span :class="gainLossClass(ilsTotal.pnl)" class="stat-pnl">
-          {{ ilsTotal.pnl >= 0 ? '+' : '' }}{{ useCurrency(ilsTotal.pnl, 'ILS') }}
-          <span class="stat-pct">({{ usePercent(ilsTotal.pnlPercent) }})</span>
-        </span>
+        <span :class="gainLossClass(ilsTotal.pnl)" class="stat-pnl">{{ ilsTotal.pnl >= 0 ? '+' : '' }}{{ useCurrency(ilsTotal.pnl, 'ILS') }}</span>
+        <span :class="gainLossClass(ilsTotal.pnl)" class="stat-pct">{{ usePercent(ilsTotal.pnlPercent) }}</span>
       </div>
       <div v-if="combinedDisplay" class="stat" :class="(usdTotal || ilsTotal) ? 'stat-bordered' : ''">
         <div class="stat-label-row">
@@ -186,10 +182,8 @@ const combinedDisplay = computed(() => {
           </div>
         </div>
         <span class="stat-value">{{ useCurrency(combinedDisplay.value, combinedDisplay.currency) }}</span>
-        <span :class="gainLossClass(combinedDisplay.pnl)" class="stat-pnl">
-          {{ combinedDisplay.pnl >= 0 ? '+' : '' }}{{ useCurrency(combinedDisplay.pnl, combinedDisplay.currency) }}
-          <span class="stat-pct">({{ usePercent(combinedDisplay.pnlPercent) }})</span>
-        </span>
+        <span :class="gainLossClass(combinedDisplay.pnl)" class="stat-pnl">{{ combinedDisplay.pnl >= 0 ? '+' : '' }}{{ useCurrency(combinedDisplay.pnl, combinedDisplay.currency) }}</span>
+        <span :class="gainLossClass(combinedDisplay.pnl)" class="stat-pct">{{ usePercent(combinedDisplay.pnlPercent) }}</span>
       </div>
     </div>
 
