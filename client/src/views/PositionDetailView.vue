@@ -8,7 +8,7 @@ import {useHistoryStore} from '@/stores/history'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
-import {signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
+import {buildBreakdown, signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
 import {useMomentumStore} from '@/stores/momentum'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
@@ -675,6 +675,21 @@ const momentumScore = computed(() => {
 })
 const momentumSignal = computed(() => momentumScore.value != null ? signalFromScore(momentumScore.value) : null)
 
+const extPctForBreakdown = computed(() => {
+  const q = quote.value
+  if (!q) return null
+  return q.preMarketChangePercent ?? q.postMarketChangePercent ?? q.lastPreMarketChangePercent ?? q.lastPostMarketChangePercent ?? null
+})
+const momentumBreakdown = computed(() => buildBreakdown({
+  dayPct: quote.value?.changePercent ?? null,
+  extPct: extPctForBreakdown.value,
+  hist: history.value,
+  price: quote.value?.price ?? null,
+  volume: quote.value?.volume ?? null,
+  avgVolume: quote.value?.avgVolume ?? null,
+  wave: 0,
+}))
+
 async function toggleWatchlist() {
   if (watchedItem.value) {
     await api.delete(`/watchlist/${watchedItem.value._id}`)
@@ -858,6 +873,20 @@ async function toggleWatchlist() {
           </div>
         </div>
       </template>
+
+      <!-- Signal breakdown -->
+      <div v-if="momentumBreakdown.length" class="signal-breakdown">
+        <div class="signal-breakdown-title">
+          <span v-if="momentumSignal" :class="momentumSignal.cls" class="momentum-badge">{{ momentumSignal.icon }}</span>
+          <span class="text-muted">Signal breakdown</span>
+        </div>
+        <div class="signal-chips">
+          <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
+            <span class="chip-label">{{ chip.label }}</span>
+            <span class="chip-value">{{ chip.value }}</span>
+          </div>
+        </div>
+      </div>
 
       <div class="chart-controls">
         <RangeBar v-model="selectedRange" class="page-range"/>
@@ -1935,4 +1964,68 @@ async function toggleWatchlist() {
     background-position: -200% 0;
   }
 }
+
+.signal-breakdown {
+  margin: 0.75rem 0 0.25rem;
+  padding: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.signal-breakdown-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.6rem;
+}
+
+.signal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.signal-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  min-width: 72px;
+  flex: 1;
+}
+
+.chip-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.chip-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.chip-bull {
+  background: rgba(0, 195, 106, 0.08);
+  border-color: rgba(0, 195, 106, 0.3);
+}
+.chip-bull .chip-value { color: #00c36a; }
+
+.chip-bear {
+  background: rgba(224, 45, 74, 0.08);
+  border-color: rgba(224, 45, 74, 0.3);
+}
+.chip-bear .chip-value { color: #e02d4a; }
+
+.chip-neutral {
+  background: rgba(255, 255, 255, 0.03);
+}
+.chip-neutral .chip-value { color: var(--text-secondary); }
 </style>

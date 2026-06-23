@@ -267,6 +267,7 @@ async function getQuote(ticker) {
     change: result.regularMarketChange / f,
     changePercent: result.regularMarketChangePercent,
     volume: result.regularMarketVolume,
+    avgVolume: result.averageVolume ?? result.averageDailyVolume3Month ?? null,
     marketCap: result.marketCap != null ? result.marketCap / f : null,
     dayHigh: result.regularMarketDayHigh / f,
     dayLow: result.regularMarketDayLow / f,
