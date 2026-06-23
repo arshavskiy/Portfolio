@@ -101,7 +101,7 @@ const activeExtended = computed(() => {
 // ── Signal / momentum ────────────────────────────────────────────────────────
 
 const extPercentRef = computed(() => activeExtended.value?.percent ?? null)
-const {signal} = useItemMomentum(toRef(props, 'item'), extPercentRef)
+const {combinedScore, signal} = useItemMomentum(toRef(props, 'item'), extPercentRef)
 </script>
 
 <template>
@@ -114,7 +114,9 @@ const {signal} = useItemMomentum(toRef(props, 'item'), extPercentRef)
           <i class="pi pi-bell"/>
           <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
         </span>
-        <span :class="signal.cls" :title="signal.title" class="signal-badge">{{ signal.icon }}</span>
+        <span :class="signal.cls" :title="signal.title" class="signal-badge">
+          {{ signal.icon }}<span class="signal-score">({{ combinedScore > 0 ? '+' : '' }}{{ combinedScore }})</span>
+        </span>
       </span>
       <span class="company text-muted">{{ item.companyName }}</span>
       <div class="group-tags compact-tags" @click.stop="emit('edit-groups', item)">
