@@ -353,6 +353,8 @@ const combinedDisplay = computed(() => {
 .currency-toggle {
   display: flex;
   gap: 2px;
+  position: absolute;
+  right: 20px;
 }
 
 .currency-toggle button {

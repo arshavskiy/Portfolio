@@ -111,7 +111,7 @@ exports.getQuote = async (req, res) => {
 
 exports.getHistory = async (req, res) => {
   try {
-    const {range = '3mo', points} = req.query
+    const {range = '1mo', points} = req.query
     const cap = Number(points)
     const pts = Number.isFinite(cap) && cap >= 2 ? Math.floor(cap) : null
     const ticker = req.params.ticker.toUpperCase()
