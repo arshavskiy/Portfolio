@@ -674,7 +674,6 @@ const momentumScore = computed(() => {
   return momentumStore.getScore(ticker.value)
 })
 const momentumSignal = computed(() => momentumScore.value != null ? signalFromScore(momentumScore.value) : null)
-const showBreakdown = ref(false)
 
 const extPctForBreakdown = computed(() => {
   const q = quote.value
@@ -728,14 +727,14 @@ async function toggleWatchlist() {
           <h1 class="gradient-title">{{ ticker }}</h1>
           <span
             v-if="momentumSignal"
-            :class="[momentumSignal.cls, showBreakdown ? 'momentum-badge-active' : '']"
+            :class="momentumSignal.cls"
+            :title="momentumSignal.title"
             class="momentum-badge"
-            @click.stop="showBreakdown = !showBreakdown"
           >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{ momentumScore }})</span></span>
         </div>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
-        <!-- Tap-to-expand signal breakdown -->
-        <div v-if="showBreakdown && momentumBreakdown.length" class="signal-breakdown">
+        <!-- Always-visible signal breakdown -->
+        <div v-if="momentumBreakdown.length" class="signal-breakdown">
           <div class="signal-chips">
             <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
               <span class="chip-label">{{ chip.label }}</span>
@@ -1332,15 +1331,6 @@ async function toggleWatchlist() {
   opacity: 0.8;
 }
 
-.momentum-badge {
-  cursor: pointer;
-  user-select: none;
-}
-
-.momentum-badge-active {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
 
 .sig-max-bull   { background: rgba(0,195,106,0.28); color: #00c36a; box-shadow: 0 0 8px rgba(0,195,106,0.5); }
 .sig-strong-bull { background: rgba(0,195,106,0.18); color: #00c36a; }
