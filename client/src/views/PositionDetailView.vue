@@ -674,6 +674,7 @@ const momentumScore = computed(() => {
   return momentumStore.getScore(ticker.value)
 })
 const momentumSignal = computed(() => momentumScore.value != null ? signalFromScore(momentumScore.value) : null)
+const showBreakdown = ref(false)
 
 const extPctForBreakdown = computed(() => {
   const q = quote.value
@@ -727,12 +728,21 @@ async function toggleWatchlist() {
           <h1 class="gradient-title">{{ ticker }}</h1>
           <span
             v-if="momentumSignal"
-            :class="momentumSignal.cls"
-            :title="momentumSignal.title"
+            :class="[momentumSignal.cls, showBreakdown ? 'momentum-badge-active' : '']"
             class="momentum-badge"
+            @click.stop="showBreakdown = !showBreakdown"
           >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{ momentumScore }})</span></span>
         </div>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
+        <!-- Tap-to-expand signal breakdown -->
+        <div v-if="showBreakdown && momentumBreakdown.length" class="signal-breakdown">
+          <div class="signal-chips">
+            <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
+              <span class="chip-label">{{ chip.label }}</span>
+              <span class="chip-value">{{ chip.value }}</span>
+            </div>
+          </div>
+        </div>
       </div>
       <div class="header-actions">
         <Button icon="pi pi-plus" rounded text @click="showModal = true"/>
@@ -873,20 +883,6 @@ async function toggleWatchlist() {
           </div>
         </div>
       </template>
-
-      <!-- Signal breakdown -->
-      <div v-if="momentumBreakdown.length" class="signal-breakdown">
-        <div class="signal-breakdown-title">
-          <span v-if="momentumSignal" :class="momentumSignal.cls" class="momentum-badge">{{ momentumSignal.icon }}</span>
-          <span class="text-muted">Signal breakdown</span>
-        </div>
-        <div class="signal-chips">
-          <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
-            <span class="chip-label">{{ chip.label }}</span>
-            <span class="chip-value">{{ chip.value }}</span>
-          </div>
-        </div>
-      </div>
 
       <div class="chart-controls">
         <RangeBar v-model="selectedRange" class="page-range"/>
@@ -1334,6 +1330,16 @@ async function toggleWatchlist() {
   font-size: 0.56rem;
   font-weight: 600;
   opacity: 0.8;
+}
+
+.momentum-badge {
+  cursor: pointer;
+  user-select: none;
+}
+
+.momentum-badge-active {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
 
 .sig-max-bull   { background: rgba(0,195,106,0.28); color: #00c36a; box-shadow: 0 0 8px rgba(0,195,106,0.5); }
@@ -1966,21 +1972,7 @@ async function toggleWatchlist() {
 }
 
 .signal-breakdown {
-  margin: 0.75rem 0 0.25rem;
-  padding: 0.75rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-}
-
-.signal-breakdown-title {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 0.6rem;
+  margin-top: 0.6rem;
 }
 
 .signal-chips {
