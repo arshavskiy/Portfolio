@@ -9,6 +9,7 @@ import {useHistoryStore} from '@/stores/history'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
+import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import Button from 'primevue/button'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
@@ -17,7 +18,6 @@ import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import GroupModeBar from '@/components/ui/GroupModeBar.vue'
-import TotalsGrid from '@/components/charts/TotalsGrid.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
 const toast = useToast()
@@ -109,6 +109,10 @@ async function onTransactionDone() {
 onUnmounted(() => {
   if (marketTimer) clearInterval(marketTimer)
 })
+
+const ilsTotal = computed(() => portfolio.totals.find(t => t.currency === 'ILS') ?? null)
+const usdTotal = computed(() => portfolio.totals.find(t => t.currency === 'USD') ?? null)
+const combined = computed(() => portfolio.combinedUsd)
 </script>
 
 <template>
@@ -142,7 +146,32 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <TotalsGrid :totals="portfolio.totals" :combined-usd="portfolio.combinedUsd" />
+    <div v-if="combined || ilsTotal || usdTotal" class="stats-card">
+      <div v-if="usdTotal" class="stat">
+        <span class="stat-label text-muted">USD</span>
+        <span class="stat-value">{{ useCurrency(usdTotal.value, 'USD') }}</span>
+        <span :class="gainLossClass(usdTotal.pnl)" class="stat-pnl">
+          {{ usdTotal.pnl >= 0 ? '+' : '' }}{{ useCurrency(usdTotal.pnl, 'USD') }}
+          <span class="stat-pct">({{ usePercent(usdTotal.pnlPercent) }})</span>
+        </span>
+      </div>
+      <div v-if="ilsTotal" class="stat" :class="usdTotal ? 'stat-bordered' : ''">
+        <span class="stat-label text-muted">ILS ₪</span>
+        <span class="stat-value">{{ useCurrency(ilsTotal.value, 'ILS') }}</span>
+        <span :class="gainLossClass(ilsTotal.pnl)" class="stat-pnl">
+          {{ ilsTotal.pnl >= 0 ? '+' : '' }}{{ useCurrency(ilsTotal.pnl, 'ILS') }}
+          <span class="stat-pct">({{ usePercent(ilsTotal.pnlPercent) }})</span>
+        </span>
+      </div>
+      <div v-if="combined" class="stat" :class="(usdTotal || ilsTotal) ? 'stat-bordered' : ''">
+        <span class="stat-label text-muted">Combined</span>
+        <span class="stat-value">{{ useCurrency(combined.value, 'USD') }}</span>
+        <span :class="gainLossClass(combined.pnl)" class="stat-pnl">
+          {{ combined.pnl >= 0 ? '+' : '' }}{{ useCurrency(combined.pnl, 'USD') }}
+          <span class="stat-pct">({{ usePercent(combined.pnlPercent) }})</span>
+        </span>
+      </div>
+    </div>
 
 
     <RangeBar class="page-range"/>
@@ -249,6 +278,55 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.stats-card {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin-bottom: 0.75rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.stat-bordered {
+  border-left: 1px solid var(--border);
+  padding-left: 0.75rem;
+}
+
+.stat-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.stat-value {
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-pnl {
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-pct {
+  font-size: 0.68rem;
 }
 
 .positions-compact {
