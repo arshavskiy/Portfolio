@@ -1,5 +1,4 @@
-import {computed, ref, watch} from 'vue'
-import {useHistoryStore} from '@/stores/history'
+import {computed, watch} from 'vue'
 import {useMomentumStore} from '@/stores/momentum'
 
 export function extWeight(pct) {
@@ -55,67 +54,46 @@ export function signalFromScore(s) {
   return {icon: '→', cls: 'sig-neutral', title: `No clear signal (${sign}${s})` }
 }
 
-// Computes momentum + wave for a single item ref/reactive object.
-// Publishes combined score to the momentum store so any consumer can read it.
+// Computes momentum score for a single item. No wave fetch — avoids extra API
+// requests per watchlist row. Publishes to store so consumers (TopMomentumCard,
+// PositionDetailView) can read scores without re-computing.
 export function useItemMomentum(itemRef, extPercentRef) {
-  const historyStore = useHistoryStore()
   const momentumStore = useMomentumStore()
 
-  const momentumScore = computed(() => {
+  const score = computed(() => {
     const item = itemRef.value
-    let score = 0
+    let s = 0
 
-    score += extWeight(extPercentRef?.value ?? null)
-    score += dayWeight(item?.changePercent ?? null)
+    s += extWeight(extPercentRef?.value ?? null)
+    s += dayWeight(item?.changePercent ?? null)
 
     const hist = item?.history
     if (Array.isArray(hist) && hist.length >= 2) {
       const first = hist[0]?.close
       const last  = hist[hist.length - 1]?.close
       if (first != null && last != null && first !== 0) {
-        if (last > first) score += 1
-        else if (last < first) score -= 1
+        if (last > first) s += 1
+        else if (last < first) s -= 1
       }
 
       const closes = hist.map(h => h.close).filter(v => v != null)
       if (closes.length >= 3 && item?.price != null) {
         const sma = closes.reduce((a, b) => a + b, 0) / closes.length
-        if (item.price > sma) score += 1
-        else if (item.price < sma) score -= 1
+        if (item.price > sma) s += 1
+        else if (item.price < sma) s -= 1
       }
     }
 
-    return score
+    return s
   })
 
-  const waveVote = ref(0)
-  const monthlyHistory = ref(null)
-
-  watch(momentumScore, async (score) => {
-    if (Math.abs(score) < 4) {
-      monthlyHistory.value = null
-      waveVote.value = 0
-      return
-    }
-    if (monthlyHistory.value) return
-    try {
-      const data = await historyStore.fetchHistory(itemRef.value?.ticker, '1mo', 30)
-      monthlyHistory.value = data
-      waveVote.value = detectWave(data)
-    } catch {
-      waveVote.value = 0
-    }
-  }, {immediate: true})
-
-  const combinedScore = computed(() => momentumScore.value + waveVote.value)
-
-  watch(combinedScore, (s) => {
+  watch(score, (s) => {
     if (itemRef.value?.ticker) momentumStore.setScore(itemRef.value.ticker, s)
   }, {immediate: true})
 
-  const signal = computed(() => signalFromScore(combinedScore.value))
+  const signal = computed(() => signalFromScore(score.value))
 
-  return {momentumScore, waveVote, combinedScore, signal}
+  return {score, signal}
 }
 
 // Eagerly computes and publishes scores for a list of items (no wave — fast path).
