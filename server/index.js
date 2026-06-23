@@ -69,8 +69,13 @@ app.use((req, res, next) => {
   const start = Date.now()
   res.on('finish', () => {
     const ms = Date.now() - start
-    const cache = res.getHeader('X-Cache') ? ` [${res.getHeader('X-Cache')}]` : ''
-    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms${cache}`)
+    const xCache = res.getHeader('X-Cache')
+    const cc = res.getHeader('Cache-Control')
+    const ttlMatch = cc && cc.match(/max-age=(\d+)/)
+    const ttl = ttlMatch ? `ttl=${ttlMatch[1]}s` : null
+    const cacheInfo = [xCache, ttl].filter(Boolean).join(' ')
+    const cachePart = cacheInfo ? ` [${cacheInfo}]` : ''
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms${cachePart}`)
   })
   next()
 })
