@@ -113,6 +113,20 @@ onUnmounted(() => {
 const ilsTotal = computed(() => portfolio.totals.find(t => t.currency === 'ILS') ?? null)
 const usdTotal = computed(() => portfolio.totals.find(t => t.currency === 'USD') ?? null)
 const combined = computed(() => portfolio.combinedUsd)
+const combinedCurrency = useStorage('holdings-combined-currency', 'ILS')
+const combinedDisplay = computed(() => {
+  const c = combined.value
+  if (!c) return null
+  if (combinedCurrency.value === 'ILS' && c.ilsToUsd > 0) {
+    return {
+      value: c.value / c.ilsToUsd,
+      pnl: c.pnl / c.ilsToUsd,
+      pnlPercent: c.pnlPercent,
+      currency: 'ILS',
+    }
+  }
+  return { value: c.value, pnl: c.pnl, pnlPercent: c.pnlPercent, currency: 'USD' }
+})
 </script>
 
 <template>
@@ -163,12 +177,18 @@ const combined = computed(() => portfolio.combinedUsd)
           <span class="stat-pct">({{ usePercent(ilsTotal.pnlPercent) }})</span>
         </span>
       </div>
-      <div v-if="combined" class="stat" :class="(usdTotal || ilsTotal) ? 'stat-bordered' : ''">
-        <span class="stat-label text-muted">Combined</span>
-        <span class="stat-value">{{ useCurrency(combined.value, 'USD') }}</span>
-        <span :class="gainLossClass(combined.pnl)" class="stat-pnl">
-          {{ combined.pnl >= 0 ? '+' : '' }}{{ useCurrency(combined.pnl, 'USD') }}
-          <span class="stat-pct">({{ usePercent(combined.pnlPercent) }})</span>
+      <div v-if="combinedDisplay" class="stat" :class="(usdTotal || ilsTotal) ? 'stat-bordered' : ''">
+        <div class="stat-label-row">
+          <span class="stat-label text-muted">Combined</span>
+          <div class="currency-toggle">
+            <button :class="{ active: combinedCurrency === 'ILS' }" @click="combinedCurrency = 'ILS'">₪</button>
+            <button :class="{ active: combinedCurrency === 'USD' }" @click="combinedCurrency = 'USD'">$</button>
+          </div>
+        </div>
+        <span class="stat-value">{{ useCurrency(combinedDisplay.value, combinedDisplay.currency) }}</span>
+        <span :class="gainLossClass(combinedDisplay.pnl)" class="stat-pnl">
+          {{ combinedDisplay.pnl >= 0 ? '+' : '' }}{{ useCurrency(combinedDisplay.pnl, combinedDisplay.currency) }}
+          <span class="stat-pct">({{ usePercent(combinedDisplay.pnlPercent) }})</span>
         </span>
       </div>
     </div>
@@ -327,6 +347,37 @@ const combined = computed(() => portfolio.combinedUsd)
 
 .stat-pct {
   font-size: 0.68rem;
+}
+
+.stat-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.currency-toggle {
+  display: flex;
+  gap: 2px;
+}
+
+.currency-toggle button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  cursor: pointer;
+  line-height: 1.4;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.currency-toggle button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .positions-compact {
