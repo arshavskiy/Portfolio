@@ -1,9 +1,13 @@
 const YahooFinance = require('yahoo-finance2').default
 const crypto = require('crypto')
 const ExtendedQuote = require('../models/ExtendedQuote')
+const QuoteSnapshot = require('../models/QuoteSnapshot')
 const yahooFinance = new YahooFinance()
 
 const quoteCache = new Map()
+// In-flight promise per ticker — callers that arrive while a fetch is already
+// running await the same promise instead of firing a duplicate Yahoo request.
+const quoteInflight = new Map()
 // In-memory mirror of the persisted last-seen extended-hours snapshot per
 // ticker, so the synchronous quote path never waits on the DB. Lazily loaded.
 const extendedSnapshotCache = new Map()
@@ -19,6 +23,47 @@ const HISTORY_CACHE_TTLS = {
   '6mo': 6 * 60 * 60 * 1000,
   '1y': 6 * 60 * 60 * 1000,
   max: 6 * 60 * 60 * 1000,
+}
+
+// Retry wrapper with exponential backoff + jitter. Treats HTTP 429 and
+// network errors as retryable; surfaces the last error after maxAttempts.
+async function withRetry(fn, { maxAttempts = 3, base = 1000 } = {}) {
+  let lastErr
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      return await fn()
+    } catch (err) {
+      lastErr = err
+      const is429 = err?.message?.includes('429') || err?.status === 429 || err?.statusCode === 429
+      const isNetwork = err?.code === 'ECONNRESET' || err?.code === 'ETIMEDOUT' || err?.code === 'ENOTFOUND'
+      if (!is429 && !isNetwork) throw err
+      if (attempt < maxAttempts - 1) {
+        const delay = base * Math.pow(2, attempt) + Math.floor(Math.random() * 500)
+        console.warn(`[yahoo] retryable error (attempt ${attempt + 1}): ${err.message} — waiting ${delay}ms`)
+        await new Promise((r) => setTimeout(r, delay))
+      }
+    }
+  }
+  throw lastErr
+}
+
+// Persist the last good quote to MongoDB so cold starts and 429 errors can
+// serve stale data. Fire-and-forget — never blocks the quote response.
+function persistQuoteSnapshot(ticker, data) {
+  QuoteSnapshot.findOneAndUpdate(
+    { ticker: ticker.toUpperCase() },
+    { data, updatedAt: new Date() },
+    { upsert: true }
+  ).catch((err) => console.error('[quote-snapshot] persist error:', err.message))
+}
+
+async function loadQuoteSnapshot(ticker) {
+  try {
+    const snap = await QuoteSnapshot.findOne({ ticker: ticker.toUpperCase() }).lean()
+    return snap?.data ?? null
+  } catch {
+    return null
+  }
 }
 
 // TASE (.TA) prices from Yahoo are in agorot (1/100 shekel) — divide by 100
@@ -235,54 +280,60 @@ async function getQuote(ticker) {
   const key = ticker.toUpperCase()
   const cached = quoteCache.get(key) || quoteCache.get(ticker)
   if (cached && Date.now() - cached.ts < QUOTE_TTL) return cached.data
-  let result
-  try {
-    result = await yahooFinance.quote(ticker)
-  } catch (error) {
-    if (cached?.data) return cached.data
-    throw error
-  }
-  const f = taFactor(ticker)
-    
-    const live = {
-        postMarketPrice: result.postMarketPrice != null ? result.postMarketPrice / f : null,
-        postMarketChange: result.postMarketChange != null ? result.postMarketChange / f : null,
-        postMarketChangePercent: result.postMarketChangePercent ?? null,
-        postMarketTime: result.postMarketTime ?? null,
-        preMarketPrice: result.preMarketPrice != null ? result.preMarketPrice / f : null,
-        preMarketChange: result.preMarketChange != null ? result.preMarketChange / f : null,
-        preMarketChangePercent: result.preMarketChangePercent ?? null,
-        preMarketTime: result.preMarketTime ?? null,
+
+  // Deduplicate: if a fetch for this ticker is already in flight, await it.
+  if (quoteInflight.has(key)) return quoteInflight.get(key)
+
+  const fetch = (async () => {
+    let result
+    try {
+      result = await withRetry(() => yahooFinance.quote(ticker))
+    } catch (error) {
+      // In-memory stale cache first, then persisted snapshot, then error.
+      if (cached?.data) return cached.data
+      const snap = await loadQuoteSnapshot(key)
+      if (snap) { console.warn(`[quote] serving stale snapshot for ${key}: ${error.message}`); return snap }
+      throw error
+    } finally {
+      quoteInflight.delete(key)
     }
-    
-    // Capture any fresh extended-hours values for later, and pull the last-seen
-    // snapshot so we can expose it when Yahoo has dropped the live fields.
+
+    const f = taFactor(ticker)
+    const live = {
+      postMarketPrice: result.postMarketPrice != null ? result.postMarketPrice / f : null,
+      postMarketChange: result.postMarketChange != null ? result.postMarketChange / f : null,
+      postMarketChangePercent: result.postMarketChangePercent ?? null,
+      postMarketTime: result.postMarketTime ?? null,
+      preMarketPrice: result.preMarketPrice != null ? result.preMarketPrice / f : null,
+      preMarketChange: result.preMarketChange != null ? result.preMarketChange / f : null,
+      preMarketChangePercent: result.preMarketChangePercent ?? null,
+      preMarketTime: result.preMarketTime ?? null,
+    }
+
     saveExtendedSnapshot(ticker, live)
     const snapshot = (await loadExtendedSnapshot(ticker)) || {}
 
-  const data = {
-    ticker: result.symbol,
-    name: result.shortName,
-    price: result.regularMarketPrice / f,
-    previousClose: (result.regularMarketPreviousClose ?? result.previousClose) / f,
-    change: result.regularMarketChange / f,
-    changePercent: result.regularMarketChangePercent,
-    volume: result.regularMarketVolume,
-    avgVolume: result.averageVolume ?? result.averageDailyVolume3Month ?? null,
-    marketCap: result.marketCap != null ? result.marketCap / f : null,
-    dayHigh: result.regularMarketDayHigh / f,
-    dayLow: result.regularMarketDayLow / f,
-    open: result.regularMarketOpen / f,
-    week52High: result.fiftyTwoWeekHigh / f,
-    week52Low: result.fiftyTwoWeekLow / f,
-    pe: result.trailingPE,
-    dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
-    dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
-    marketState: result.marketState || null,
-    regularMarketTime: result.regularMarketTime ?? null,
+    const data = {
+      ticker: result.symbol,
+      name: result.shortName,
+      price: result.regularMarketPrice / f,
+      previousClose: (result.regularMarketPreviousClose ?? result.previousClose) / f,
+      change: result.regularMarketChange / f,
+      changePercent: result.regularMarketChangePercent,
+      volume: result.regularMarketVolume,
+      avgVolume: result.averageVolume ?? result.averageDailyVolume3Month ?? null,
+      marketCap: result.marketCap != null ? result.marketCap / f : null,
+      dayHigh: result.regularMarketDayHigh / f,
+      dayLow: result.regularMarketDayLow / f,
+      open: result.regularMarketOpen / f,
+      week52High: result.fiftyTwoWeekHigh / f,
+      week52Low: result.fiftyTwoWeekLow / f,
+      pe: result.trailingPE,
+      dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
+      dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
+      marketState: result.marketState || null,
+      regularMarketTime: result.regularMarketTime ?? null,
       ...live,
-      // Last-seen extended-hours values, retained across regular hours. Falls back
-      // to live when present so consumers can always read these.
       lastPostMarketPrice: live.postMarketPrice ?? snapshot.postMarketPrice ?? null,
       lastPostMarketChange: live.postMarketChange ?? snapshot.postMarketChange ?? null,
       lastPostMarketChangePercent: live.postMarketChangePercent ?? snapshot.postMarketChangePercent ?? null,
@@ -291,10 +342,15 @@ async function getQuote(ticker) {
       lastPreMarketChange: live.preMarketChange ?? snapshot.preMarketChange ?? null,
       lastPreMarketChangePercent: live.preMarketChangePercent ?? snapshot.preMarketChangePercent ?? null,
       lastPreMarketTime: live.preMarketTime ?? snapshot.preMarketTime ?? null,
-  }
+    }
 
-  quoteCache.set(key, { data, ts: Date.now() })
-  return data
+    quoteCache.set(key, { data, ts: Date.now() })
+    persistQuoteSnapshot(key, data)
+    return data
+  })()
+
+  quoteInflight.set(key, fetch)
+  return fetch
 }
 
 async function getQuotes(tickers) {
@@ -316,7 +372,7 @@ async function getQuotes(tickers) {
 
   if (stale.length > 0) {
     try {
-      const results = await yahooFinance.quote(stale)
+      const results = await withRetry(() => yahooFinance.quote(stale))
       const arr = Array.isArray(results) ? results : [results]
       await Promise.all(arr.map(async (result) => {
         if (!result?.symbol) return
@@ -364,11 +420,14 @@ async function getQuotes(tickers) {
           lastPreMarketChangePercent: live.preMarketChangePercent ?? snapshot.preMarketChangePercent ?? null,
           lastPreMarketTime: live.preMarketTime ?? snapshot.preMarketTime ?? null,
         }
-        quoteCache.set(result.symbol.toUpperCase(), { data, ts: Date.now() })
+        const sym = result.symbol.toUpperCase()
+        quoteCache.set(sym, { data, ts: Date.now() })
+        persistQuoteSnapshot(sym, data)
         fresh.push({ ticker, data })
       }))
     } catch (err) {
       console.error('[getQuotes] batch failed, falling back to individual:', err.message)
+      // getQuote already handles retry + snapshot per ticker
       const fallbacks = await Promise.all(stale.map((t) => getQuote(t).catch(() => null)))
       stale.forEach((t, i) => { if (fallbacks[i]) fresh.push({ ticker: t, data: fallbacks[i] }) })
     }

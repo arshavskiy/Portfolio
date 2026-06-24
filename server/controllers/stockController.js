@@ -109,11 +109,23 @@ exports.getQuote = async (req, res) => {
   }
 }
 
+// Default point caps per range — applied when the caller doesn't pass ?points.
+// Keeps payloads reasonable without requiring every client to specify it.
+const DEFAULT_POINTS = {
+  '1d':  195,  // 5m bars, ~6.5h session
+  '5d':  65,   // 30m bars, 5 sessions × 13 bars
+  '1mo': 30,
+  '3mo': 90,
+  '6mo': 120,
+  '1y':  252,
+  'max': 500,
+}
+
 exports.getHistory = async (req, res) => {
   try {
     const {range = '1mo', points} = req.query
     const cap = Number(points)
-    const pts = Number.isFinite(cap) && cap >= 2 ? Math.floor(cap) : null
+    const pts = Number.isFinite(cap) && cap >= 2 ? Math.floor(cap) : (DEFAULT_POINTS[range] ?? 120)
     const ticker = req.params.ticker.toUpperCase()
     const hit = isHistoryCached(ticker, range)
     const ttl = HISTORY_TTL_SECONDS[range] ?? 21600

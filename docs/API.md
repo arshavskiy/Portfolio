@@ -59,13 +59,13 @@ Return all open positions enriched with live quotes.
 ```
 
 ### POST /portfolio/transaction `🔒`
-Record a buy or sell. A sell fully or partially reduces shares; reaching 0 deletes the position.
+Record a buy, sell, or dividend. A sell fully or partially reduces shares; reaching 0 deletes the position.
 
 **Body**
 ```json
 {
   "ticker": "AAPL",
-  "type": "buy" | "sell",
+  "type": "buy" | "sell" | "dividend",
   "shares": 10,
   "price": 150.00,
   "date": "2024-01-15",
@@ -82,14 +82,48 @@ Fee amounts are stored in the fee profile currency. Server totals that belong to
 
 **Response `201`** — created transaction document with fee/tax fields.
 
+### GET /portfolio/transactions `🔒`
+Paginated list of all transactions for the user.
+
+**Query params**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `ticker` | string | Filter by ticker (case-insensitive) |
+| `type` | `buy` \| `sell` \| `dividend` | Filter by transaction type |
+| `limit` | number | Results per page (default `50`) |
+| `page` | number | Page number (default `1`) |
+
+**Response `200`**
+```json
+{
+  "transactions": [
+    {
+      "_id", "ticker", "type", "shares", "price", "total", "date", "notes",
+      "feeAmount", "taxAmount", "totalWithFees", "netProceeds",
+      "feeProfile": { "name", "buyFee", "sellFee", "capitalGainsTax", "currency" }
+    }
+  ],
+  "total": 42,
+  "page": 1,
+  "pages": 2
+}
+```
+
 ### PUT /portfolio/transaction/:id `🔒`
 Update an existing transaction (same body fields as POST).
+
+**Response `200`** `{ "transaction": { ...updatedFields } }`
 
 ### DELETE /portfolio/transaction/:id `🔒`
 Delete a transaction and recompute the position's avg-cost and shares.
 
+**Response `200`** `{ "message": "Transaction deleted" }`
+
 ### DELETE /portfolio/position/:id `🔒`
 Delete an entire position and all its transactions.
+
+**Response `200`** `{ "message": "Position removed" }`
 
 ### GET /portfolio/history `🔒`
 Portfolio value over time (daily, replayed from transactions).
@@ -108,7 +142,7 @@ Portfolio value over time (daily, replayed from transactions).
 ```
 
 ### GET /portfolio/groups `🔒`
-Return all distinct group tags across the user's positions.
+Return all distinct group tags across the user's positions **and** watchlist items, sorted alphabetically.
 
 **Response `200`** `string[]`
 
@@ -120,11 +154,68 @@ Set the groups array on a position.
 { "groups": ["Tech", "Growth"] }
 ```
 
+### GET /portfolio/realized-gains `🔒`
+Realized capital gains by year, computed using the avg-cost method. Includes dividends per year.
+
+**Query params**
+
+| Param | Type | Description |
+|-------|------|-------------|
+| `year` | number | Filter to a single year |
+
+**Response `200`**
+```json
+{
+  "years": [
+    {
+      "year": 2024,
+      "sells": [
+        {
+          "_id", "ticker", "date", "shares", "price",
+          "proceeds", "costBasis", "avgCostAtSale",
+          "feePaid", "taxPaid", "grossGain", "netGain", "notes"
+        }
+      ],
+      "dividends": [
+        { "_id", "ticker", "date", "isDividend": true, "grossGain", "netGain", "notes" }
+      ],
+      "totalGross": 1234.56,
+      "totalNet": 1100.00,
+      "totalDividends": 200.00
+    }
+  ],
+  "availableYears": [2024, 2023]
+}
+```
+
+### GET /portfolio/dividends/summary `🔒`
+Dividend totals per ticker plus a grand total.
+
+**Response `200`**
+```json
+{
+  "summary": [
+    {
+      "ticker": "AAPL",
+      "total": 123.45,
+      "count": 4,
+      "drip": false,
+      "transactions": [...],
+      "shares": 10,
+      "avgCost": 150.00
+    }
+  ],
+  "grandTotal": 500.00
+}
+```
+
 ---
 
 ## Stocks
 
-### GET /stocks/search?q=
+All `/stocks` routes require authentication (`🔒`).
+
+### GET /stocks/search?q= `🔒`
 Search for tickers (equities only).
 
 **Query**: `q=apple`  
@@ -133,7 +224,7 @@ Search for tickers (equities only).
 [{ "ticker": "AAPL", "name": "Apple Inc.", "exchange": "NASDAQ" }]
 ```
 
-### GET /stocks/quote/:ticker
+### GET /stocks/quote/:ticker `🔒`
 Live quote for a single ticker.
 
 **Response `200`**
@@ -145,7 +236,7 @@ Live quote for a single ticker.
 }
 ```
 
-### GET /stocks/history/:ticker
+### GET /stocks/history/:ticker `🔒`
 OHLCV price history.
 
 **Query params**
@@ -153,12 +244,68 @@ OHLCV price history.
 | Param | Values | Default |
 |-------|--------|---------|
 | `range` | `1d` `5d` `1mo` `3mo` `6mo` `1y` | `1mo` |
+| `points` | number ≥ 2 | — (returns all bars) |
+
+`1d` range returns intraday 5-minute bars. `points` down-samples the result to at most that many data points.
+
+**Response headers**: `X-Cache: HIT | MISS`, `Cache-Control: private, max-age=<ttl>`
 
 **Response `200`**
 ```json
 [{ "date": "2024-01-15", "open", "high", "low", "close", "volume" }]
 ```
-`1d` range returns intraday 5-minute bars.
+
+### GET /stocks/markets `🔒`
+Major market indices with price + sparkline history.
+
+**Query params**
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `group` | `US` `Israel` `Europe` `Crypto` | `US` |
+
+**Response `200`**
+```json
+{
+  "group": "US",
+  "groups": ["US", "Israel", "Europe", "Crypto"],
+  "indices": [
+    {
+      "symbol": "^GSPC", "name": "S&P 500",
+      "price", "change", "changePercent",
+      "history": [{ "date", "close" }]
+    }
+  ]
+}
+```
+
+### GET /stocks/trending `🔒`
+Trending / most-active tickers for a region.
+
+**Query params**
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `group` | `US` `Israel` `Israel Tech` `Crypto` | `US` |
+
+**Response `200`**
+```json
+{
+  "group": "US",
+  "groups": ["US", "Israel", "Israel Tech", "Crypto"],
+  "items": [
+    { "ticker", "name", "price", "change", "changePercent", "currency" }
+  ]
+}
+```
+
+### GET /stocks/fx/ils-to-usd `🔒`
+Current ILS → USD exchange rate (cached).
+
+**Response `200`**
+```json
+{ "ilsToUsd": 0.271 }
+```
 
 ### GET /stocks/news `🔒`
 Return normalized financial news articles.
@@ -236,26 +383,57 @@ All watched stocks with live quotes and sparkline history.
 ```json
 [
   {
-    "_id", "ticker", "companyName", "addedAt",
+    "_id", "ticker", "companyName", "sector", "industry", "addedAt", "groups": ["string"],
     "price", "change", "changePercent", "currency",
     "history": [{ "date", "close" }]
   }
 ]
 ```
 
+### GET /watchlist/item/:ticker `🔒`
+Check whether a specific ticker is in the watchlist and return its metadata.
+
+**Response `200`**
+```json
+{
+  "item": {
+    "_id", "ticker", "companyName", "sector", "industry", "addedAt", "groups": ["string"]
+  }
+}
+```
+`item` is `null` if the ticker is not in the watchlist.
+
 ### POST /watchlist `🔒`
-Add a stock to the watchlist.
+Add a stock to the watchlist. Fetches sector/industry profile automatically.
 
 **Body**
 ```json
 { "ticker": "AAPL", "companyName": "Apple Inc." }
 ```
 
+**Response `201`** — full watchlist document.
+
+**Response `409`** if already in watchlist.
+
 ### POST /watchlist/sync-holdings `🔒`
 Auto-add all current positions to the watchlist (idempotent).
 
+**Response `200`** `{ "synced": 5 }`
+
+### PUT /watchlist/:id/groups `🔒`
+Set the groups array on a watchlist item.
+
+**Body**
+```json
+{ "groups": ["Tech", "Growth"] }
+```
+
+**Response `200`** `{ "_id", "ticker", "groups" }`
+
 ### DELETE /watchlist/:id `🔒`
 Remove a stock from the watchlist.
+
+**Response `200`** `{ "message": "Removed from watchlist" }`
 
 ---
 
@@ -356,4 +534,5 @@ All errors follow:
 | `401` | Missing or invalid JWT |
 | `403` | Forbidden (resource belongs to another user) |
 | `404` | Resource not found |
+| `409` | Conflict (e.g. ticker already in watchlist) |
 | `500` | Internal server error |

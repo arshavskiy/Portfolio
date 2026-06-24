@@ -68,10 +68,14 @@ onMounted(async () => {
 })
 
 async function fetchSparklines() {
-  const points = sparklinePoints(range.value)
+  const r = range.value
+  const points = sparklinePoints(r)
   const entries = await Promise.all(portfolio.positions.map(async (pos) => {
     try {
-      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, range.value, points)]
+      // Use cached data immediately so the UI is not blank while fetching.
+      const cached = historyStore.getEntry(pos.ticker, r, points)
+      if (cached) return [pos.ticker, cached]
+      return [pos.ticker, await historyStore.fetchHistory(pos.ticker, r, points)]
     } catch {
       return null
     }

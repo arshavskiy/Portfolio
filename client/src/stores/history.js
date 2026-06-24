@@ -57,7 +57,10 @@ export const useHistoryStore = defineStore('history', () => {
     const promise = cachedFetch(
       `${CACHE_PREFIX}${key}`,
       ttlForRange(range),
-      () => api.get(`/stocks/history/${encodeURIComponent(ticker)}?range=${encodeURIComponent(range)}`)
+      () => {
+        const url = `/stocks/history/${encodeURIComponent(ticker)}?range=${encodeURIComponent(range)}`
+        return points ? api.get(`${url}&points=${points}`) : api.get(url)
+      }
     )
       .then((data) => {
         cache[key] = {

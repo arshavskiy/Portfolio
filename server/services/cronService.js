@@ -47,14 +47,19 @@ async function checkAlerts() {
 // they say regardless of the host timezone (Railway runs UTC).
 const ET = {timezone: 'America/New_York'}
 
-// Refresh quotes for every held ticker. Each getQuote also persists any fresh
-// extended-hours values (see stockService.saveExtendedSnapshot). getQuote is
-// always live now (no cache), so this just keeps extended-hours snapshots
-// warm — not strictly needed for freshness anymore, but cheap to keep.
+// Refresh quotes for every held ticker in chunks of 10 with a 300ms pause
+// between chunks. Smooths out the Yahoo request spike that a single
+// Promise.all over many tickers would cause at cron fire time.
 async function refreshQuotes(label) {
     const positions = await Position.distinct('ticker')
     if (!positions.length) return
-    await getQuotes(positions)
+    const CHUNK = 10
+    const DELAY = 300
+    for (let i = 0; i < positions.length; i += CHUNK) {
+        const chunk = positions.slice(i, i + CHUNK)
+        await getQuotes(chunk)
+        if (i + CHUNK < positions.length) await new Promise((r) => setTimeout(r, DELAY))
+    }
     console.log(`[cron] Refreshed quotes (${label}) for: ${positions.join(', ')}`)
 }
 

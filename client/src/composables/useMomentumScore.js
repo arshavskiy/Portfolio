@@ -214,8 +214,18 @@ export function useItemMomentum(itemRef, extPercentRef) {
       return
     }
     if (monthlyHistory.value) return
+    const ticker = itemRef.value?.ticker
+    if (!ticker) return
+    // Use already-loaded item history if it's long enough (avoids an extra fetch
+    // when the page already fetched history for this ticker at the current range).
+    const itemHist = itemRef.value?.history
+    if (Array.isArray(itemHist) && itemHist.length >= 10) {
+      monthlyHistory.value = itemHist
+      waveVote.value = detectWave(itemHist)
+      return
+    }
     try {
-      const data = await historyStore.fetchHistory(itemRef.value?.ticker, '1mo', 30)
+      const data = await historyStore.fetchHistory(ticker, '1mo', 30)
       monthlyHistory.value = data
       waveVote.value = detectWave(data)
     } catch {
