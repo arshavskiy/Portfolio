@@ -288,9 +288,14 @@ function draw() {
     parsed.length > 1 &&
     (parsed[parsed.length - 1].date - parsed[0].date) <= (36 * 60 * 60 * 1000)
   )
-  // 5d uses sub-daily bars but spans multiple days — use index scale to collapse weekend gaps
-  const multiDayIntraday = !intraday && props.range === '5d' && parsed.length > 1 &&
+  // 5d uses sub-daily bars spanning multiple days — index scale collapses overnight gaps.
+  // 1d also uses index scale: pre/post-market bars would otherwise squish the regular
+  // session to the left when the time domain extends to 20:00+ ET.
+  const useIndexScale = (intraday && props.range === '1d') || (
+    !intraday && props.range === '5d' && parsed.length > 1 &&
     (parsed[parsed.length - 1].date - parsed[0].date) <= (8 * 24 * 60 * 60 * 1000)
+  )
+  const multiDayIntraday = useIndexScale && props.range === '5d'
 
   const showVolume = intraday && parsed.some((d) => Number.isFinite(d.volume) && d.volume > 0)
   const volumeHeight = showVolume ? 42 : 0
@@ -299,21 +304,21 @@ function draw() {
   const volumeTop = h + volumeGap
   const volumeBottom = volumeTop + volumeHeight
 
-  // For 5d: index-based x scale collapses weekend/overnight gaps
-  const xByIndex = multiDayIntraday
+  // Index-based x scale: bars are evenly spaced regardless of time gaps.
+  const xByIndex = useIndexScale
     ? d3.scaleLinear().domain([0, Math.max(1, parsed.length - 1)]).range([0, w])
     : null
-  const x = multiDayIntraday ? null : d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
+  const x = useIndexScale ? null : d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
 
-  const indexMap = multiDayIntraday ? new Map(parsed.map((d, i) => [d, i])) : null
+  const indexMap = useIndexScale ? new Map(parsed.map((d, i) => [d, i])) : null
 
   function xPos(d) {
-    if (multiDayIntraday) return xByIndex(indexMap.get(d) ?? 0)
+    if (useIndexScale) return xByIndex(indexMap.get(d) ?? 0)
     return x(d.date)
   }
 
   function xPosFromDate(date) {
-    if (multiDayIntraday) {
+    if (useIndexScale) {
       const t = date.getTime()
       const idx = parsed.findIndex(d => d.date.getTime() === t)
       return xByIndex(idx >= 0 ? idx : 0)
@@ -322,7 +327,7 @@ function draw() {
   }
 
   function xInvert(px) {
-    if (multiDayIntraday) {
+    if (useIndexScale) {
       const i = Math.round(xByIndex.invert(px))
       return parsed[Math.max(0, Math.min(i, parsed.length - 1))]
     }
@@ -353,7 +358,7 @@ function draw() {
       segment.points[0].date.getTime(),
       segment.points[segment.points.length - 1].date.getTime(),
     ])
-  const xTickValues = intraday ? buildIntradayTickValues(x, sessionSegments) : null
+  const xTickValues = (intraday && !useIndexScale) ? buildIntradayTickValues(x, sessionSegments) : null
 
   // For 5d index scale: pick one tick per trading day (first bar of each day)
   const multiDayTickData = multiDayIntraday ? (() => {
@@ -366,6 +371,29 @@ function draw() {
         seen.add(day)
         return true
       })
+  })() : null
+
+  // For 1d index scale: tick at session open and close boundaries
+  const intradayIndexTickData = (useIndexScale && props.range === '1d') ? (() => {
+    const ticks = []
+    for (const seg of sessionSegments) {
+      if (seg.type === 'market' && seg.points.length) {
+        const first = seg.points[0]
+        const last = seg.points[seg.points.length - 1]
+        ticks.push({ d: first, i: indexMap.get(first) ?? 0, boundary: true })
+        if (last !== first) ticks.push({ d: last, i: indexMap.get(last) ?? parsed.length - 1, boundary: true })
+      }
+    }
+    // Add a few evenly spaced labels inside the session
+    const allMarket = parsed.map((d, i) => ({ d, i }))
+      .filter(({ d }) => getSessionType(d.date, props.ticker) === 'market')
+    const step = Math.floor(allMarket.length / 3)
+    if (step > 0) {
+      for (let k = step; k < allMarket.length - step / 2; k += step) {
+        ticks.push({ ...allMarket[k], boundary: false })
+      }
+    }
+    return ticks.sort((a, b) => a.i - b.i)
   })() : null
 
   // Grid
@@ -466,6 +494,18 @@ function draw() {
       .attr('fill', '#94a3b8')
       .attr('font-size', '10')
       .text(({ d }) => d3.timeFormat('%b %d')(d.date))
+  } else if (intradayIndexTickData) {
+    // 1d index scale: place HH:MM labels at session open/close + a few interior points
+    xAxisG.selectAll('text')
+      .data(intradayIndexTickData)
+      .enter().append('text')
+      .attr('x', ({ i }) => xByIndex(i))
+      .attr('y', 18)
+      .attr('text-anchor', 'middle')
+      .attr('fill', ({ boundary }) => boundary ? '#e2e8f0' : '#94a3b8')
+      .attr('font-size', ({ boundary }) => boundary ? '11' : '10')
+      .attr('font-weight', ({ boundary }) => boundary ? 700 : 400)
+      .text(({ d }) => d3.timeFormat('%H:%M')(d.date))
   } else {
     xAxisG.call(
       d3.axisBottom(x)
@@ -583,7 +623,7 @@ function draw() {
 
   function nearestPoint(mx) {
     const localX = mx - margin.left
-    if (multiDayIntraday) {
+    if (useIndexScale) {
       const i = Math.round(xByIndex.invert(localX))
       return parsed[Math.max(0, Math.min(i, parsed.length - 1))] ?? null
     }
