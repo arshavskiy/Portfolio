@@ -1,19 +1,17 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useStorage} from '@vueuse/core'
-import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import {useMarketDataStore} from '@/stores/marketData'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
+import MarketMetaList from '@/components/ui/MarketMetaList.vue'
 
 const {openPosition} = useNavigateToPosition()
 const marketData = useMarketDataStore()
 const {marketGroups, marketsByGroup, marketLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-markets-group', 'US')
-const now = ref(new Date())
 const moreOpen = ref(false)
-let timer = null
 
 const groups = computed(() => marketGroups.value)
 const indices = computed(() => marketsByGroup.value[group.value] || [])
@@ -26,16 +24,6 @@ const visibleGroups = computed(() => groups.value.filter((name) => {
 const primaryGroups = computed(() => ['Israel', 'US'].filter((name) => visibleGroups.value.includes(name)))
 const extraGroups = computed(() => visibleGroups.value.filter((name) => !primaryGroups.value.includes(name)))
 const isExtraGroupActive = computed(() => extraGroups.value.includes(group.value))
-const primaryMarketMetas = computed(() =>
-  primaryGroups.value
-    .map((name) => {
-      const market = MARKET_HOURS_BY_GROUP[name]
-      const meta = market ? getMarketHoursState(market, now.value) : null
-      return meta ? {group: name, ...meta} : null
-    })
-    .filter(Boolean)
-)
-
 function selectGroup(g) {
   if (g === group.value) return
   group.value = g
@@ -56,20 +44,12 @@ function pct(n) {
   return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 }
 
-function statusClass(meta) {
-  if (meta.statusTone === 'phase') return 'meta-phase'
-  return meta.statusTone === 'open' ? 'meta-open' : 'meta-closed'
-}
-
 function hasIndexData(idx) {
   return Number.isFinite(idx?.price) || Number.isFinite(idx?.changePercent) || idx?.history?.length
 }
 
 onMounted(() => {
   marketData.fetchMarkets(group.value).catch(() => {})
-  timer = setInterval(() => {
-    now.value = new Date()
-  }, 60000)
 })
 
 watch(group, (nextGroup) => {
@@ -83,9 +63,6 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
   if (fallback) group.value = fallback
 })
 
-onUnmounted(() => {
-  if (timer) clearInterval(timer)
-})
 </script>
 
 <template>
@@ -120,17 +97,7 @@ onUnmounted(() => {
             </div>
           </div>
         </div>
-        <div v-if="primaryMarketMetas.length" class="market-meta-list">
-          <div v-for="meta in primaryMarketMetas" :key="meta.group" :class="{ 'market-meta-break': meta.group === 'US' }" class="market-meta">
-            <span class="meta-group">{{ meta.group }}</span>
-            <span :class="statusClass(meta)" class="meta-status">
-              {{ meta.statusLabel }}
-            </span>
-            <span class="text-muted">{{ meta.nextLabel }}
-            <span class="session text-muted" v-html="meta.sessionLabel" />
-            </span>
-          </div>
-        </div>
+        <MarketMetaList/>
       </div>
     </div>
 
@@ -247,58 +214,6 @@ onUnmounted(() => {
 .market-more-item:hover {
   background: rgba(59, 130, 246, 0.18);
   color: #f8fafc;
-}
-
-.market-meta-list {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.35rem;
-  min-width: min(100%, 340px);
-}
-
-.market-meta {
-  display: grid;
-  grid-template-columns: 38px 64px minmax(96px, 1fr) minmax(120px, auto);
-  align-items: baseline;
-  column-gap: 0.45rem;
-  font-size: 0.68rem;
-  white-space: nowrap;
-}
-
-.market-meta-break {
-  grid-template-columns: 38px 64px minmax(96px, 1fr);
-}
-
-.market-meta-break .session {
-  grid-column: 1 / -1;
-  text-align: left;
-  margin-top: 0.1rem;
-}
-
-.meta-group {
-  font-weight: 700;
-  color: #e2e8f0;
-}
-
-.meta-status {
-  font-weight: 700;
-}
-
-.meta-open {
-  color: var(--neon-green);
-}
-
-.meta-closed {
-  color: var(--neon-red);
-}
-
-.meta-phase {
-  color: #93c5fd;
-}
-
-.session {
-  text-align: right;
 }
 
 .markets-grid {
