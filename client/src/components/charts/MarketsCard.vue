@@ -1,13 +1,13 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {storeToRefs} from 'pinia'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useStorage} from '@vueuse/core'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import {useMarketDataStore} from '@/stores/marketData'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const marketData = useMarketDataStore()
 const {marketGroups, marketsByGroup, marketLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-markets-group', 'US')
@@ -43,7 +43,7 @@ function selectGroup(g) {
 }
 
 function openIndex(idx) {
-  router.push(`/position/${encodeURIComponent(idx.symbol)}`)
+  openPosition(idx.symbol)
 }
 
 function fmt(n) {

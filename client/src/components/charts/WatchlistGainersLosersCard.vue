@@ -1,6 +1,6 @@
 <script setup>
 import {computed, ref} from 'vue'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
 
@@ -9,7 +9,7 @@ const props = defineProps({
   loading: {type: Boolean, default: false},
 })
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const mode = ref('gainers')
 
 const rankedItems = computed(() => {
@@ -32,7 +32,7 @@ const rankedItems = computed(() => {
 })
 
 function openStock(item) {
-  router.push(`/position/${encodeURIComponent(item.ticker)}`)
+  openPosition(item.ticker, item.companyName)
 }
 
 function openWatchlist() {

@@ -1,6 +1,6 @@
 <script setup>
 import {computed, toRef} from 'vue'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {usePercent} from '@/composables/useFormat'
 import {signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
 import {useMomentumStore} from '@/stores/momentum'
@@ -10,7 +10,7 @@ const props = defineProps({
   loading: {type: Boolean, default: false},
 })
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const momentumStore = useMomentumStore()
 
 // Eagerly compute + publish scores for all items so dashboard doesn't need WatchRow.
@@ -58,7 +58,7 @@ const bearish = computed(() =>
           v-for="{item, score} in bullish"
           :key="item.ticker"
           class="momentum-row"
-          @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
+          @click="openPosition(item.ticker)"
         >
           <div class="row-left">
             <span class="ticker">{{ item.ticker }}</span>
@@ -84,7 +84,7 @@ const bearish = computed(() =>
           v-for="{item, score} in bearish"
           :key="item.ticker"
           class="momentum-row"
-          @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
+          @click="openPosition(item.ticker)"
         >
           <div class="row-left">
             <span class="ticker">{{ item.ticker }}</span>

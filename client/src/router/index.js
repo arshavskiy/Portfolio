@@ -7,7 +7,7 @@ const routes = [
   {path: '/about', name: 'About', component: () => import('@/views/AboutView.vue')},
   {
     path: '/',
-    component: () => import('@/layouts/MobileLayout.vue'),
+    component: () => import('@/layouts/AppLayout.vue'),
     children: [
       { path: '', name: 'Dashboard', component: () => import('@/views/DashboardView.vue'), meta: { requiresAuth: true } },
       { path: 'news/article/:id', name: 'NewsArticle', component: () => import('@/views/NewsArticleView.vue'), meta: { requiresAuth: true } },
@@ -21,9 +21,11 @@ const routes = [
         },
       { path: 'watchlist', name: 'Watchlist', component: () => import('@/views/WatchlistView.vue'), meta: { requiresAuth: true } },
       { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
+      { path: 'transactions-alerts', name: 'TransactionsAlerts', component: () => import('@/views/DesktopTransactionsAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'stock/:ticker', redirect: to => `/position/${encodeURIComponent(to.params.ticker)}` },
       { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue'), meta: { requiresAuth: true } },
       { path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue'), meta: { requiresAuth: true } },
+      { path: 'history-alerts', name: 'HistoryAlerts', component: () => import('@/views/DesktopHistoryAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
     ],
   },

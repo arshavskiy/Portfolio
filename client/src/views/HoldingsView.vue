@@ -10,6 +10,8 @@ import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
+import {useBreakpoint} from '@/composables/useBreakpoint'
+import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import Button from 'primevue/button'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import PositionCard from '@/components/ui/PositionCard.vue'
@@ -24,6 +26,16 @@ const toast = useToast()
 const confirm = useConfirm()
 const router = useRouter()
 const portfolio = usePortfolioStore()
+const {isDesktop} = useBreakpoint()
+const desktopFocus = useDesktopFocusStore()
+
+function openStock(pos) {
+  if (isDesktop.value) {
+    desktopFocus.focus(pos.ticker, pos.companyName)
+  } else {
+    router.push(`/position/${pos.ticker}`)
+  }
+}
 const historyStore = useHistoryStore()
 const alerts = useAlertsStore()
 const range = useChartRange()
@@ -213,7 +225,7 @@ const combinedDisplay = computed(() => {
               v-if="compactMode"
               :item="pos"
               @edit-groups="openGroups"
-              @open-stock="$router.push(`/position/${pos.ticker}`)"
+              @open-stock="openStock(pos)"
           />
           <PositionCard
               v-else

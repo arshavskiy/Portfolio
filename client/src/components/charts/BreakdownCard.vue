@@ -1,7 +1,7 @@
 <script setup>
 import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useCurrency} from '@/composables/useFormat'
 
 const props = defineProps({
@@ -9,7 +9,7 @@ const props = defineProps({
   combinedUsd: {type: Object, default: null},
 })
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const svgRef = ref(null)
 
 // Shared categorical palette for allocation slices + legend dots.
@@ -102,7 +102,7 @@ function draw() {
       .on('mouseout', function () {
         d3.select(this).attr('d', arc)
       })
-      .on('click', (_, d) => router.push(`/position/${encodeURIComponent(d.data.ticker)}`))
+      .on('click', (_, d) => openPosition(d.data.ticker))
 
   g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
       .attr('fill', '#94a3b8').attr('font-size', '10').text('Total')
@@ -128,7 +128,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
             v-for="item in legend"
             :key="item.ticker"
             class="legend-item"
-            @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
+            @click="openPosition(item.ticker)"
         >
           <span :style="{ background: item.color }" class="legend-dot"/>
           <span class="legend-name" :title="`${item.name} · ${item.ticker}`">{{ item.name }}</span>
@@ -149,7 +149,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
               v-for="m in movers"
               :key="m.ticker"
               class="mover"
-              @click="router.push(`/position/${encodeURIComponent(m.ticker)}`)"
+              @click="openPosition(m.ticker)"
           >
             <span class="mover-name" :title="`${m.displayName} · ${m.ticker}`">{{ m.displayName }}</span>
             <span :class="m.apiChangePercent >= 0 ? 'up' : 'down'" class="mover-pct">

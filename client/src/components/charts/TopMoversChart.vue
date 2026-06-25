@@ -1,13 +1,13 @@
 <script setup>
 import { ref, watch, onMounted, nextTick } from 'vue'
 import * as d3 from 'd3'
-import { useRouter } from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 
 const props = defineProps({
   positions: { type: Array, default: () => [] },
 })
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const svgRef = ref(null)
 const containerRef = ref(null)
 
@@ -73,7 +73,7 @@ function draw() {
       .attr('fill', (d) => d.apiChangePercent >= 0 ? '#22c55e' : '#ef4444')
     .attr('rx', 3)
     .style('cursor', 'pointer')
-    .on('click', (_, d) => router.push(`/position/${d.ticker}`))
+    .on('click', (_, d) => openPosition(d.ticker))
 
   // Ticker labels
   g.selectAll('.label')
@@ -84,7 +84,7 @@ function draw() {
     .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')
     .text((d) => d.ticker)
     .style('cursor', 'pointer')
-    .on('click', (_, d) => router.push(`/position/${d.ticker}`))
+    .on('click', (_, d) => openPosition(d.ticker))
 
   // Percent labels
   g.selectAll('.pct')

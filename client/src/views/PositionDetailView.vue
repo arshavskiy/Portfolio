@@ -23,12 +23,21 @@ import StockChart from '@/components/charts/StockChart.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
+const props = defineProps({
+  tickerOverride: {type: String, default: null},
+  panelMode: {type: Boolean, default: false},
+})
+
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const historyStore = useHistoryStore()
 
-const ticker = computed(() => decodeURIComponent(route.params.ticker).toUpperCase())
+const ticker = computed(() =>
+  props.tickerOverride
+    ? props.tickerOverride.toUpperCase()
+    : decodeURIComponent(route.params.ticker ?? '').toUpperCase()
+)
 const transactions = ref([])
 const quote = ref(null)
 const currentPrice = ref(null)
@@ -703,9 +712,9 @@ async function toggleWatchlist() {
 </script>
 
 <template>
-  <div class="position-detail">
+  <div class="position-detail" :class="{'panel-mode': panelMode}">
     <Button
-        v-if="previousWatchlistTicker"
+        v-if="!panelMode && previousWatchlistTicker"
         v-tooltip.right="`Previous: ${previousWatchlistTicker}`"
         aria-label="Previous watchlist stock"
         class="watchlist-slide-handle watchlist-slide-handle-left"
@@ -713,7 +722,7 @@ async function toggleWatchlist() {
         @click="openWatchlistTicker(previousWatchlistTicker)"
     />
     <Button
-        v-if="nextWatchlistTicker"
+        v-if="!panelMode && nextWatchlistTicker"
         v-tooltip.left="`Next: ${nextWatchlistTicker}`"
         aria-label="Next watchlist stock"
         class="watchlist-slide-handle watchlist-slide-handle-right"
@@ -721,7 +730,7 @@ async function toggleWatchlist() {
         @click="openWatchlistTicker(nextWatchlistTicker)"
     />
     <header class="page-header">
-      <Button icon="pi pi-arrow-left" rounded text @click="returnToWatchlist"/>
+      <Button v-if="!panelMode" icon="pi pi-arrow-left" rounded text @click="returnToWatchlist"/>
       <div class="header-info">
         <div class="header-title-row">
           <h1 class="gradient-title">{{ ticker }}</h1>
@@ -1293,6 +1302,13 @@ async function toggleWatchlist() {
 <style scoped>
 .position-detail {
   padding: 0.5rem 1rem 2rem;
+}
+
+.position-detail.panel-mode {
+  padding: 0.5rem 0.75rem 2rem;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .page-header {

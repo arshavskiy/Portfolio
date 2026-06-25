@@ -1,13 +1,13 @@
 <script setup>
 import {computed} from 'vue'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 
 const props = defineProps({
   items: {type: Array, default: () => []},
   loading: {type: Boolean, default: false},
 })
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 
 function moverChangePercent(item) {
   return typeof item?.changePercent === 'number' && Number.isFinite(item.changePercent)
@@ -66,7 +66,7 @@ function pct(value) {
 }
 
 function openStock(item) {
-  router.push(`/position/${encodeURIComponent(item.ticker)}`)
+  openPosition(item.ticker, item.companyName)
 }
 </script>
 

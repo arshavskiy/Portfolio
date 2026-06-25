@@ -1,6 +1,6 @@
 <script setup>
 import {computed} from 'vue'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {gainLossClass, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
@@ -11,7 +11,7 @@ const props = defineProps({
   compact: {type: Boolean, default: false},
 })
 const emit = defineEmits(['delete', 'sell', 'edit-groups'])
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const alerts = useAlertsStore()
 
 // Active price alerts on this ticker → drives the bell indicator.
@@ -67,7 +67,7 @@ const extendedChangePercent = computed(() => {
       v-if="compact"
       :class="compactRangePercent >= 0 ? 'neon-row-gain' : 'neon-row-loss'"
       class="compact-row"
-      @click="router.push(`/position/${pos.ticker}`)"
+      @click="openPosition(pos.ticker, pos.companyName)"
   >
     <div class="row-left">
       <span class="ticker">
@@ -126,7 +126,7 @@ const extendedChangePercent = computed(() => {
       :class="pos.pnl >= 0 ? 'neon-card-gain' : 'neon-card-loss'"
       class="position-card"
   >
-    <div class="pos-top" @click="router.push(`/position/${pos.ticker}`)">
+    <div class="pos-top" @click="openPosition(pos.ticker, pos.companyName)">
       <div>
         <span class="ticker">
           {{ pos.ticker }}

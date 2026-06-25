@@ -7,6 +7,8 @@ import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
 import {useMomentumStore} from '@/stores/momentum'
+import {useBreakpoint} from '@/composables/useBreakpoint'
+import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import Button from 'primevue/button'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
@@ -21,6 +23,8 @@ const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
 const momentumStore = useMomentumStore()
 const router = useRouter()
+const {isDesktop} = useBreakpoint()
+const desktopFocus = useDesktopFocusStore()
 const range = useChartRange()
 const showModal = ref(false)
 const showImportModal = ref(false)
@@ -139,6 +143,10 @@ async function restoreScrollPosition() {
 }
 
 function openStock(item) {
+  if (isDesktop.value) {
+    desktopFocus.focus(item.ticker, item.companyName)
+    return
+  }
   saveScrollPosition()
   sessionStorage.setItem(WATCHLIST_TICKER_KEY, item.ticker)
   sessionStorage.setItem(WATCHLIST_RETURN_KEY, '1')

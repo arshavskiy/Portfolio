@@ -1,7 +1,7 @@
 <script setup>
 import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
-import {useRouter} from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useHistoryStore} from '@/stores/history'
 import {usePercent} from '@/composables/useFormat'
 import AppLoader from '@/components/ui/AppLoader.vue'
@@ -11,7 +11,7 @@ const props = defineProps({
   range: {type: String, default: '1mo'}, // dashboard history range (e.g. '1mo', '1wk')
 })
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const historyStore = useHistoryStore()
 const svgRef = ref(null)
 const wrapRef = ref(null)
@@ -129,7 +129,7 @@ function draw() {
         .attr('stroke-width', 1.5)
         .attr('d', line)
         .style('cursor', 'pointer')
-        .on('click', () => router.push(`/position/${encodeURIComponent(s.ticker)}`))
+        .on('click', () => openPosition(s.ticker))
   })
 }
 
@@ -162,7 +162,7 @@ watch(series, () => nextTick(draw), {deep: true})
           v-for="item in legend"
           :key="item.ticker"
           class="legend-item"
-          @click="router.push(`/position/${encodeURIComponent(item.ticker)}`)"
+          @click="openPosition(item.ticker)"
       >
         <span :style="{ background: item.color }" class="legend-dot"/>
         <span class="legend-name" :title="`${item.name} · ${item.ticker}`">{{ item.name }}</span>

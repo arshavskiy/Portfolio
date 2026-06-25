@@ -1,12 +1,12 @@
 <script setup>
 import {computed, onMounted, watch} from 'vue'
 import {storeToRefs} from 'pinia'
-import { useRouter } from 'vue-router'
+import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import { useStorage } from '@vueuse/core'
 import {useMarketDataStore} from '@/stores/marketData'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
-const router = useRouter()
+const {openPosition} = useNavigateToPosition()
 const marketData = useMarketDataStore()
 const {trendingGroups, trendingByGroup, trendingLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-trending-group', 'US')
@@ -20,7 +20,7 @@ function selectGroup(g) {
 }
 
 function openItem(it) {
-  router.push(`/position/${encodeURIComponent(it.symbol)}`)
+  openPosition(it.symbol)
 }
 
 function fmt(n) {
