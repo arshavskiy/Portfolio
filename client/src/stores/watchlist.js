@@ -15,7 +15,7 @@ export const useWatchlistStore = defineStore('watchlist', () => {
   const CACHE_PREFIX = 'watchlist:'
 
   function detailHistoryPoints(range) {
-    return range === '1d' ? 160 : 50
+    return range === '1d' ? 20 : 15
   }
 
   function seedDetailCaches(data, range, savedAt = Date.now()) {

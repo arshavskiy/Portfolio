@@ -393,7 +393,17 @@ function draw() {
         ticks.push({ ...allMarket[k], boundary: false })
       }
     }
-    return ticks.sort((a, b) => a.i - b.i)
+    const sorted = ticks.sort((a, b) => a.i - b.i)
+    // Remove ticks whose pixel positions are within 40px of each other.
+    // Boundary ticks (open/close) take priority since they were added first.
+    const pixelsPerIndex = w / Math.max(1, parsed.length - 1)
+    const kept = []
+    for (const tick of sorted) {
+      const px = tick.i * pixelsPerIndex
+      const tooClose = kept.some(k => Math.abs(k.i * pixelsPerIndex - px) < 40)
+      if (!tooClose) kept.push(tick)
+    }
+    return kept
   })() : null
 
   // Grid

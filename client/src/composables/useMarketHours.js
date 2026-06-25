@@ -319,7 +319,7 @@ export function getMarketHoursState(market, date = new Date()) {
     if (market.key === 'us') {
         if (extendedState?.label === 'Pre') {
             nextLabel = extendedState.isActive
-                ? `Open in ${formatDuration(extendedState.remainingMinutes)}`
+                ? `Regular in ${formatDuration(extendedState.remainingMinutes)}`
                 : `Pre-Market in ${formatDuration(extendedState.untilStartMinutes)}`
             statusLabel = extendedState.isActive ? 'Pre-Market ' : 'Before Trade'
             statusTone = extendedState.isActive ? 'phase' : 'closed'

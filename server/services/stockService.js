@@ -224,6 +224,14 @@ function selectIntradayRows(rows, ticker, now = new Date()) {
     return grouped.get(todayKey)
   }
 
+  // Pre-market: it's a trading day, before first session, and Yahoo already
+  // has pre-market bars for today — show them instead of yesterday's close.
+  const firstSession = state.sessions[0] || null
+  const beforeOpen = firstSession && state.currentMinutes < firstSession.startMinutes
+  if (state.isTradingDay && beforeOpen && grouped.has(todayKey)) {
+    return grouped.get(todayKey)
+  }
+
   const priorKey = [...sortedKeys].reverse().find((key) => key < todayKey)
   if (priorKey) return grouped.get(priorKey)
 
@@ -483,7 +491,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
       period1: fmt(startDate),
       period2: fmt(new Date(endDate.getTime() + 86400000)),
       interval: '30m',
-      includePrePost: false,
+      includePrePost: true,
     })
     const quotes = result?.quotes || []
     const full = quotes
