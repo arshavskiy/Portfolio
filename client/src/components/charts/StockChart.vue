@@ -304,13 +304,44 @@ function draw() {
   const volumeTop = h + volumeGap
   const volumeBottom = volumeTop + volumeHeight
 
-  // Index-based x scale: bars are evenly spaced regardless of time gaps.
-  const xByIndex = useIndexScale
-    ? d3.scaleLinear().domain([0, Math.max(1, parsed.length - 1)]).range([0, w])
-    : null
-  const x = useIndexScale ? null : d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
+  // For 1d: map bars to time-proportional positions within the full trading day
+  // window (pre-market open → after-hours close). This lets the line grow
+  // rightward as new bars arrive instead of always stretching to fill the width.
+  // For 5d: keep simple sequential index scale to collapse overnight gaps.
+  let xByIndex = null
+  let indexMap = null
+  if (useIndexScale) {
+    if (props.range === '1d' && parsed.length) {
+      const market = inferIntradayMarket(props.ticker)
+      const firstDate = parsed[0].date
+      const parts = timeParts(firstDate, market.timezone)
+      const sessions = (market.sessionsByDay[parts.weekday] || []).map((s) => ({
+        startMinutes: toMinutes(s.start),
+        endMinutes: toMinutes(s.end),
+      }))
+      // Full day window: pre-market (4:00 ET / 2h before open) → after-hours end (20:00 ET)
+      const DAY_START_MINUTES = market === INTRADAY_MARKETS.israel
+        ? (sessions[0]?.startMinutes ?? toMinutes('10:00')) - 30
+        : toMinutes('04:00')
+      const DAY_END_MINUTES = market === INTRADAY_MARKETS.israel
+        ? (sessions[0]?.endMinutes ?? toMinutes('17:35')) + 30
+        : toMinutes('20:00')
+      const INTERVAL = 5
+      const totalBars = Math.ceil((DAY_END_MINUTES - DAY_START_MINUTES) / INTERVAL)
 
-  const indexMap = useIndexScale ? new Map(parsed.map((d, i) => [d, i])) : null
+      indexMap = new Map(parsed.map((d) => {
+        const p = timeParts(d.date, market.timezone)
+        const mins = p.hour * 60 + p.minute
+        const idx = Math.round((mins - DAY_START_MINUTES) / INTERVAL)
+        return [d, Math.max(0, Math.min(idx, totalBars - 1))]
+      }))
+      xByIndex = d3.scaleLinear().domain([0, totalBars - 1]).range([0, w])
+    } else {
+      indexMap = new Map(parsed.map((d, i) => [d, i]))
+      xByIndex = d3.scaleLinear().domain([0, Math.max(1, parsed.length - 1)]).range([0, w])
+    }
+  }
+  const x = useIndexScale ? null : d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
 
   function xPos(d) {
     if (useIndexScale) return xByIndex(indexMap.get(d) ?? 0)
@@ -321,15 +352,21 @@ function draw() {
     if (useIndexScale) {
       const t = date.getTime()
       const idx = parsed.findIndex(d => d.date.getTime() === t)
-      return xByIndex(idx >= 0 ? idx : 0)
+      return idx >= 0 ? xByIndex(indexMap.get(parsed[idx]) ?? 0) : 0
     }
     return x(date)
   }
 
   function xInvert(px) {
     if (useIndexScale) {
-      const i = Math.round(xByIndex.invert(px))
-      return parsed[Math.max(0, Math.min(i, parsed.length - 1))]
+      const targetIdx = xByIndex.invert(px)
+      let closest = parsed[0]
+      let minDist = Infinity
+      parsed.forEach((d) => {
+        const dist = Math.abs((indexMap.get(d) ?? 0) - targetIdx)
+        if (dist < minDist) { minDist = dist; closest = d }
+      })
+      return closest
     }
     return null
   }
@@ -649,10 +686,7 @@ function draw() {
 
   function nearestPoint(mx) {
     const localX = mx - margin.left
-    if (useIndexScale) {
-      const i = Math.round(xByIndex.invert(localX))
-      return parsed[Math.max(0, Math.min(i, parsed.length - 1))] ?? null
-    }
+    if (useIndexScale) return xInvert(localX)
     return pickNearestPoint(mx, parsed, x, bisect, margin.left)
   }
 
