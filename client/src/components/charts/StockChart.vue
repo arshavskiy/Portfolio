@@ -467,13 +467,29 @@ function draw() {
         .attr('d', d3.area().x((d) => xPos(d)).y0(h).y1((d) => y(d.close)).curve(d3.curveMonotoneX))
     }
 
-    // Line
-    g.append('path')
-      .datum(parsed)
-      .attr('fill', 'none')
-      .attr('stroke', color)
-      .attr('stroke-width', 1.5)
-      .attr('d', d3.line().x((d) => xPos(d)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
+    // Line — per-segment coloring for pre/post market on 1d
+    if (intraday && sessionSegments.length) {
+      sessionSegments.forEach((segment) => {
+        const segmentColor = segment.type === 'pre'
+          ? SESSION_COLORS.pre
+          : segment.type === 'post'
+            ? SESSION_COLORS.post
+            : color
+        g.append('path')
+          .datum(segment.points)
+          .attr('fill', 'none')
+          .attr('stroke', segmentColor)
+          .attr('stroke-width', 1.5)
+          .attr('d', d3.line().x((d) => xPos(d)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
+      })
+    } else {
+      g.append('path')
+        .datum(parsed)
+        .attr('fill', 'none')
+        .attr('stroke', color)
+        .attr('stroke-width', 1.5)
+        .attr('d', d3.line().x((d) => xPos(d)).y((d) => y(d.close)).curve(d3.curveMonotoneX))
+    }
   }
 
   if (showVolume) {
