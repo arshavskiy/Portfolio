@@ -421,8 +421,9 @@ function draw() {
         if (last !== first) ticks.push({ d: last, i: indexMap.get(last) ?? parsed.length - 1, boundary: true })
       }
     }
-    // Add a few evenly spaced labels inside the session
-    const allMarket = parsed.map((d, i) => ({ d, i }))
+    // Add a few evenly spaced labels inside the session using time-proportional indices
+    const allMarket = parsed
+      .map((d) => ({ d, i: indexMap.get(d) ?? 0 }))
       .filter(({ d }) => getSessionType(d.date, props.ticker) === 'market')
     const step = Math.floor(allMarket.length / 3)
     if (step > 0) {
@@ -433,11 +434,11 @@ function draw() {
     const sorted = ticks.sort((a, b) => a.i - b.i)
     // Remove ticks whose pixel positions are within 40px of each other.
     // Boundary ticks (open/close) take priority since they were added first.
-    const pixelsPerIndex = w / Math.max(1, parsed.length - 1)
+    // Use xByIndex to convert slot index → pixel (accounts for time-proportional scale).
     const kept = []
     for (const tick of sorted) {
-      const px = tick.i * pixelsPerIndex
-      const tooClose = kept.some(k => Math.abs(k.i * pixelsPerIndex - px) < 40)
+      const px = xByIndex(tick.i)
+      const tooClose = kept.some(k => Math.abs(xByIndex(k.i) - px) < 40)
       if (!tooClose) kept.push(tick)
     }
     return kept
