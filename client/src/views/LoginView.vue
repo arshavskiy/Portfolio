@@ -150,7 +150,7 @@ const features = [
     text: 'Organize holdings and watchlist into custom multi-tag groups with group-by views.'
   },
   {
-    icon: 'pi pi-newspaper',
+    icon: 'pi pi-book',
     title: 'For You News',
     text: 'Personalized market stories from your watchlist, with topic feeds and quick scanning.'
   },
@@ -461,12 +461,6 @@ function switchMode(nextMode) {
                 <div class="feature-text text-muted">{{ f.text }}</div>
               </div>
             </div>
-          </div>
-
-          <!-- Desktop preview -->
-          <div class="preview-section">
-            <div class="preview-section-label">Desktop View</div>
-            <img src="/screenshot-desktop.svg" alt="StockFolio desktop dashboard" class="preview-section-img"/>
           </div>
 
           <!-- Import guide -->
