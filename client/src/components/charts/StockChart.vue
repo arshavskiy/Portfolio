@@ -461,7 +461,9 @@ function draw() {
   }
 
   if (props.mode === 'candle') {
-    const bandW = Math.max(1, (w / parsed.length) * 0.6)
+    const bandW = useIndexScale && parsed.length > 1
+      ? Math.max(1, Math.abs(xByIndex(1) - xByIndex(0)) * 0.6)
+      : Math.max(1, (w / parsed.length) * 0.6)
 
     // Wicks
     g.selectAll('.wick')
@@ -531,7 +533,9 @@ function draw() {
   }
 
   if (showVolume) {
-    const bandW = Math.max(1, (w / parsed.length) * (props.mode === 'candle' ? 0.6 : 0.7))
+    const bandW = useIndexScale && parsed.length > 1
+      ? Math.max(1, Math.abs(xByIndex(1) - xByIndex(0)) * (props.mode === 'candle' ? 0.6 : 0.7))
+      : Math.max(1, (w / parsed.length) * (props.mode === 'candle' ? 0.6 : 0.7))
 
     g.selectAll('.volume-bar')
       .data(parsed)

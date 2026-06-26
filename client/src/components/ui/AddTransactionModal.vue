@@ -1,6 +1,5 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue'
-import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
@@ -27,7 +26,6 @@ const props = defineProps({
 })
 const emit = defineEmits(['update:visible', 'hide'])
 
-const router = useRouter()
 const toast = useToast()
 const portfolio = usePortfolioStore()
 const feeStore = useFeeProfileStore()
@@ -123,7 +121,7 @@ const taxAmount = computed(() => {
 
 onMounted(() => { if (!feeStore.profiles.length) feeStore.fetchProfiles() })
 
-watch(() => props.visible, (v) => {
+watch(() => props.visible, async (v) => {
   if (v) {
     ticker.value = props.defaultTicker || ''
     shares.value = null
@@ -134,6 +132,10 @@ watch(() => props.visible, (v) => {
     type.value = props.defaultType === 'sell' ? 'sell' : 'buy'
     selectedFeeProfile.value = defaultFeeProfile()?._id || null
     groupsStore.fetchGroups()
+    if (props.defaultTicker && price.value == null) {
+      await fetchMarketPrice()
+      if (marketPrice.value != null) price.value = marketPrice.value
+    }
   }
 })
 
@@ -225,11 +227,6 @@ function addTypedGroup(event) {
   }
 }
 
-function viewLots() {
-  if (!currentTicker.value) return
-  emit('update:visible', false)
-  router.push(`/position/${encodeURIComponent(currentTicker.value)}`)
-}
 
 async function submit() {
   if (type.value === 'buy') commitPendingGroup() // flush un-Entered group text
@@ -335,11 +332,12 @@ async function submit() {
           <label>
             <span>{{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}</span>
             <button
-                v-if="marketPrice != null && (type === 'sell' || (isCryptoBuy && type === 'buy'))"
+                v-if="marketPrice != null"
                 class="max-link"
                 type="button"
                 @click="useMarketPrice"
             >Market {{ currencySymbol }}{{ marketPrice < 1 ? marketPrice.toFixed(6) : marketPrice.toFixed(2) }}</button>
+            <span v-else-if="fetchingPrice" class="max-link" style="opacity:0.5;cursor:default">Fetching…</span>
           </label>
           <InputNumber v-model="price" mode="currency" :currency="currency" :min="0" :max-fraction-digits="shareDigits"
                        :placeholder="isCryptoBuy && type === 'buy' ? 'Market price' : `${currencySymbol}0.00`" fluid />
@@ -425,19 +423,10 @@ async function submit() {
 
       <div class="action-row">
         <Button
-            v-if="type === 'sell' && currentTicker"
-            icon="pi pi-list"
-            label="Lots"
-            outlined
-            severity="secondary"
-            @click="viewLots"
-        />
-        <Button
             :label="type === 'buy' ? 'Buy' : 'Sell'"
             :loading="loading"
             :severity="type === 'buy' ? 'success' : 'danger'"
             class="submit-btn"
-            outlined
             @click="submit"
         />
       </div>
