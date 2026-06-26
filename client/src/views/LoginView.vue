@@ -60,7 +60,7 @@ function ensureCanonical() {
 }
 
 // ── Animated phone slideshow ──
-const SLIDE_COUNT = 6
+const SLIDE_COUNT = 9
 const slide = ref(0)
 let slideTimer = null
 
@@ -110,29 +110,54 @@ onUnmounted(() => {
 
 const features = [
   {
-    icon: 'pi pi-chart-bar',
+    icon: 'pi pi-chart-line',
     title: 'Live Portfolio',
     text: 'Track holdings, P&L, and value over time across stocks, crypto & global markets.'
   },
   {
     icon: 'pi pi-bell',
     title: 'Price Alerts',
-    text: 'Get push notifications the moment a stock hits your target price.'
+    text: 'Push notifications the moment a stock hits your target — above or below.'
   },
   {
     icon: 'pi pi-globe',
     title: 'Multi-Market',
-    text: 'US, TASE, Europe, Asia and crypto — all in one place, multi-currency.'
+    text: 'US, TASE, crypto and more — all in one place, multi-currency (USD + ILS).'
   },
   {
-    icon: 'pi pi-globe',
+    icon: 'pi pi-chart-bar',
+    title: 'Advanced Charts',
+    text: 'Line & candlestick with pre/after-hours coloring, delta measurement, and volume.'
+  },
+  {
+    icon: 'pi pi-sync',
+    title: 'Rebalancer',
+    text: 'Set target allocations and get a buy/sell action plan to rebalance your portfolio.'
+  },
+  {
+    icon: 'pi pi-percentage',
+    title: 'Fees & Tax',
+    text: 'Fee profiles for broker commissions and capital-gains tax simulation per trade.'
+  },
+  {
+    icon: 'pi pi-dollar',
+    title: 'Dividends & DRIP',
+    text: 'Track cash dividends and reinvested DRIP shares with full lot history.'
+  },
+  {
+    icon: 'pi pi-tags',
+    title: 'Groups',
+    text: 'Organize holdings and watchlist into custom multi-tag groups with group-by views.'
+  },
+  {
+    icon: 'pi pi-newspaper',
     title: 'For You News',
     text: 'Personalized market stories from your watchlist, with topic feeds and quick scanning.'
   },
   {
     icon: 'pi pi-upload',
-    title: 'Import & Group',
-    text: 'Import from Excel/CSV and organize holdings into custom groups.'
+    title: 'Bulk Import',
+    text: 'Import holdings or watchlist from Excel, CSV, or Word — columns auto-detected.'
   },
 ]
 
@@ -344,6 +369,79 @@ function switchMode(nextMode) {
                     </div>
                   </div>
 
+                  <!-- 6 · Rebalancer -->
+                  <div v-show="slide === 6" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Rebalance</span></div>
+                    <div class="mk-rebal-row">
+                      <span class="mk-ticker">AAPL</span>
+                      <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:62%;background:#3b82f6"/><div class="mk-rebal-target" style="left:50%"/></div>
+                      <span class="mk-badge up">+BUY</span>
+                    </div>
+                    <div class="mk-rebal-row">
+                      <span class="mk-ticker">NVDA</span>
+                      <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:28%;background:#3b82f6"/><div class="mk-rebal-target" style="left:35%"/></div>
+                      <span class="mk-badge up">+BUY</span>
+                    </div>
+                    <div class="mk-rebal-row">
+                      <span class="mk-ticker">TSLA</span>
+                      <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:48%;background:#3b82f6"/><div class="mk-rebal-target" style="left:30%"/></div>
+                      <span class="mk-badge down">SELL</span>
+                    </div>
+                    <div class="mk-rebal-note">Target allocations · action plan</div>
+                  </div>
+
+                  <!-- 7 · Stock Chart -->
+                  <div v-show="slide === 7" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">NVDA</span><span class="mk-tabs">1D · line</span></div>
+                    <svg class="mk-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#00ff88" stop-opacity="0.22"/>
+                          <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="url(#chartGrad)"/>
+                      <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="none" stroke="#00ff88" stroke-width="1.5"/>
+                      <!-- pre-market gold segment -->
+                      <path d="M0,55 C10,50 20,45 30,48" fill="none" stroke="#facc15" stroke-width="1.5"/>
+                      <!-- after-hours purple -->
+                      <path d="M180,6 C190,4 195,5 200,4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
+                      <circle cx="200" cy="4" r="2.5" fill="#00ff88"/>
+                    </svg>
+                    <div class="mk-chart-labels">
+                      <span class="mk-clabel" style="color:#facc15">Pre</span>
+                      <span class="mk-clabel" style="color:#00ff88">Market</span>
+                      <span class="mk-clabel" style="color:#a78bfa">After</span>
+                    </div>
+                    <div class="mk-card mk-flat" style="margin-top:4px">
+                      <span class="mk-name">Δ Delta measure</span>
+                      <span class="mk-badge up">+$4.20</span>
+                    </div>
+                  </div>
+
+                  <!-- 8 · Watchlist movers -->
+                  <div v-show="slide === 8" class="slide">
+                    <div class="mk-header"><span class="mk-title gradient-title">Watchlist</span><span class="mk-tabs">Gainers</span></div>
+                    <div class="mk-card mk-gain">
+                      <div class="mk-row">
+                        <div><div class="mk-ticker">META</div><div class="mk-name">Meta Platforms</div></div>
+                        <div class="mk-right"><div class="mk-val">$512.30</div><span class="mk-badge up">+4.2%</span></div>
+                      </div>
+                    </div>
+                    <div class="mk-card mk-gain">
+                      <div class="mk-row">
+                        <div><div class="mk-ticker">AMZN</div><div class="mk-name">Amazon</div></div>
+                        <div class="mk-right"><div class="mk-val">$188.90</div><span class="mk-badge up">+3.8%</span></div>
+                      </div>
+                    </div>
+                    <div class="mk-card mk-loss">
+                      <div class="mk-row">
+                        <div><div class="mk-ticker">INTC</div><div class="mk-name">Intel Corp.</div></div>
+                        <div class="mk-right"><div class="mk-val">$30.14</div><span class="mk-badge down">−2.1%</span></div>
+                      </div>
+                    </div>
+                  </div>
+
                 </div>
 
                   <!-- progress dots -->
@@ -363,6 +461,18 @@ function switchMode(nextMode) {
                 <div class="feature-text text-muted">{{ f.text }}</div>
               </div>
             </div>
+          </div>
+
+          <!-- Desktop preview -->
+          <div class="preview-section">
+            <div class="preview-section-label">Desktop View</div>
+            <img src="/screenshot-desktop.svg" alt="StockFolio desktop dashboard" class="preview-section-img"/>
+          </div>
+
+          <!-- Import guide -->
+          <div class="preview-section">
+            <div class="preview-section-label">Bulk Import — Excel / CSV</div>
+            <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="preview-section-img"/>
           </div>
         </div>
       </section>
@@ -1242,6 +1352,91 @@ function switchMode(nextMode) {
   .landing-main { flex-wrap: wrap; }
   .hero, .auth { flex-basis: 0; }
   .landing-footer { flex-basis: 100%; border-top: 1px solid var(--border); }
+}
+
+/* ── Desktop/Import preview sections ── */
+.preview-section {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-top: 1.5rem;
+}
+
+.preview-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.55rem 1rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.preview-section-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #070707;
+}
+
+/* ── Rebalancer slide ── */
+.mk-rebal-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+}
+
+.mk-rebal-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: #1a1a1a;
+  border-radius: 3px;
+  position: relative;
+}
+
+.mk-rebal-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.mk-rebal-target {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  background: #f59e0b;
+  border-radius: 1px;
+}
+
+.mk-rebal-note {
+  font-size: 0.52rem;
+  color: var(--text-secondary);
+  text-align: center;
+  margin-top: 4px;
+}
+
+/* ── Chart slide ── */
+.mk-chart {
+  width: 100%;
+  height: 60px;
+  display: block;
+}
+
+.mk-chart-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.5rem;
+  font-weight: 700;
+  padding: 0 2px;
+  margin-top: 2px;
+}
+
+.mk-clabel {
+  font-size: 0.5rem;
+  font-weight: 700;
 }
 
 /* ── Footer ── */

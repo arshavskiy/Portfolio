@@ -545,7 +545,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
 async function searchTicker(query) {
   const results = await yahooFinance.search(query)
   return (results.quotes || [])
-      .filter((q) => (q.quoteType === 'EQUITY' || q.quoteType === 'CRYPTOCURRENCY') && q.symbol)
+      .filter((q) => q.symbol && ['EQUITY', 'CRYPTOCURRENCY', 'ETF', 'MUTUALFUND', 'INDEX', 'FUTURE', 'CURRENCY'].includes(q.quoteType))
     .slice(0, 8)
       .map((q) => ({
         ticker: q.symbol,

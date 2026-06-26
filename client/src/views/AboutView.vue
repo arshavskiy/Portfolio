@@ -50,6 +50,18 @@ async function copyAddress() {
       <h1 class="gradient-title">About</h1>
     </header>
 
+    <!-- Desktop screenshot -->
+    <div class="screenshot-card">
+      <div class="screenshot-label">Desktop View</div>
+      <img src="/screenshot-desktop.svg" alt="StockFolio desktop dashboard" class="screenshot-img" />
+    </div>
+
+    <!-- Import guide -->
+    <div class="screenshot-card">
+      <div class="screenshot-label">Import from Excel / CSV</div>
+      <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="screenshot-img" />
+    </div>
+
     <!-- App intro -->
     <div class="intro-card">
       <div class="brand">
@@ -98,6 +110,31 @@ async function copyAddress() {
 </template>
 
 <style scoped>
+.screenshot-card {
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.screenshot-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.6rem 1rem;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+}
+
+.screenshot-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #070707;
+}
+
 .about { padding: 1rem; }
 @media (min-width: 768px) { .about { padding: 1.5rem; max-width: 640px; } }
 

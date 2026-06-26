@@ -1,0 +1,245 @@
+<svg viewBox="0 0 900 420" xmlns="http://www.w3.org/2000/svg" role="img">
+  <title>How to import holdings or watchlist from Excel/CSV</title>
+  <desc>Four-step animated guide: download template, fill it in Excel, upload in StockFolio, confirm import</desc>
+  <defs>
+    <style>
+      .step-label { font-family: system-ui, sans-serif; font-size: 11px; font-weight: 700; fill: #3b82f6; letter-spacing: 0.04em; text-transform: uppercase; }
+      .step-title { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 700; fill: #f1f5f9; }
+      .step-body  { font-family: system-ui, sans-serif; font-size: 11px; fill: #94a3b8; }
+      .mono       { font-family: monospace; font-size: 11px; fill: #00ff88; }
+      .card       { fill: #111; stroke: #222; stroke-width: 1; }
+      .accent-btn { fill: #3b82f6; rx: 6; }
+
+      /* Step 1 download arrow bounce */
+      @keyframes dlBounce {
+        0%,100% { transform: translateY(0); }
+        50%      { transform: translateY(4px); }
+      }
+      .dl-arrow { animation: dlBounce 1.4s ease-in-out infinite; }
+
+      /* Step 2 cell typing */
+      @keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+      .cursor { animation: blink 0.9s step-end infinite; }
+
+      /* Step 3 file upload pulse */
+      @keyframes uploadPulse {
+        0%,100% { opacity: 1; }
+        50%      { opacity: 0.4; }
+      }
+      .upload-pulse { animation: uploadPulse 1.6s ease-in-out infinite; }
+
+      /* Step 4 progress bar */
+      @keyframes progressFill {
+        0%   { width: 0; }
+        80%  { width: 180px; }
+        100% { width: 180px; }
+      }
+      .progress-bar { animation: progressFill 2.4s ease-in-out infinite; }
+
+      /* check marks pop in */
+      @keyframes checkPop {
+        0%,70% { opacity: 0; transform: scale(0.4); }
+        80%    { transform: scale(1.2); opacity: 1; }
+        100%   { transform: scale(1); opacity: 1; }
+      }
+      .check1 { animation: checkPop 2.4s ease-out infinite; animation-delay: 0.4s; }
+      .check2 { animation: checkPop 2.4s ease-out infinite; animation-delay: 0.8s; }
+      .check3 { animation: checkPop 2.4s ease-out infinite; animation-delay: 1.2s; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="420" fill="#070707"/>
+
+  <!-- Title -->
+  <text x="450" y="34" font-family="system-ui,sans-serif" font-size="16" font-weight="800" fill="#f1f5f9" text-anchor="middle">Bulk Import via Excel / CSV</text>
+  <text x="450" y="54" font-family="system-ui,sans-serif" font-size="12" fill="#94a3b8" text-anchor="middle">Import your holdings or watchlist in seconds — no manual entry</text>
+
+  <!-- Connector lines between steps -->
+  <line x1="222" y1="210" x2="228" y2="210" stroke="#222" stroke-width="2"/>
+  <line x1="447" y1="210" x2="453" y2="210" stroke="#222" stroke-width="2"/>
+  <line x1="672" y1="210" x2="678" y2="210" stroke="#222" stroke-width="2"/>
+
+  <!-- ─────────────────── STEP 1: Download Template ─────────────────── -->
+  <rect x="10" y="74" width="210" height="310" rx="14" class="card"/>
+  <!-- Step badge -->
+  <rect x="26" y="88" width="20" height="20" rx="10" fill="#3b82f6"/>
+  <text x="36" y="103" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#fff" text-anchor="middle">1</text>
+  <text x="54" y="103" class="step-label">Download</text>
+
+  <text x="26" y="128" class="step-title">Get the template</text>
+  <text x="26" y="146" class="step-body">Open Import dialog from</text>
+  <text x="26" y="160" class="step-body">Holdings or Watchlist page.</text>
+  <text x="26" y="178" class="step-body">Tap the download link.</text>
+
+  <!-- Template file mockup -->
+  <rect x="30" y="195" width="170" height="130" rx="10" fill="#0d0d0d" stroke="#2a2a2a" stroke-width="1"/>
+  <!-- Excel-style header row -->
+  <rect x="30" y="195" width="170" height="22" rx="10" fill="#1e3a5f"/>
+  <rect x="30" y="207" width="170" height="10" fill="#1e3a5f"/>
+  <text x="42" y="211" font-family="monospace" font-size="9" fill="#93c5fd" font-weight="700">ticker</text>
+  <text x="90" y="211" font-family="monospace" font-size="9" fill="#93c5fd" font-weight="700">shares</text>
+  <text x="138" y="211" font-family="monospace" font-size="9" fill="#93c5fd" font-weight="700">price</text>
+  <!-- Sample rows -->
+  <g font-family="monospace" font-size="9" fill="#94a3b8">
+    <text x="42" y="228">AAPL</text><text x="90" y="228">10</text><text x="138" y="228">172.50</text>
+    <text x="42" y="244">MSFT</text><text x="90" y="244">5</text><text x="138" y="244">410.00</text>
+    <text x="42" y="260">NVDA</text><text x="90" y="260">8</text><text x="138" y="260">121.40</text>
+    <line x1="30" y1="234" x2="200" y2="234" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="30" y1="250" x2="200" y2="250" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="30" y1="266" x2="200" y2="266" stroke="#1a1a1a" stroke-width="1"/>
+  </g>
+
+  <!-- Download button with bouncing arrow -->
+  <rect x="40" y="278" width="140" height="32" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+  <g class="dl-arrow">
+    <text x="115" y="299" font-family="system-ui,sans-serif" font-size="13" fill="#3b82f6" text-anchor="middle">⬇</text>
+  </g>
+  <text x="135" y="299" font-family="system-ui,sans-serif" font-size="11" fill="#3b82f6" font-weight="600">template.xlsx</text>
+
+  <text x="115" y="360" font-family="system-ui,sans-serif" font-size="10" fill="#64748b" text-anchor="middle">.xlsx · .csv · .docx</text>
+
+  <!-- ─────────────────── STEP 2: Fill in Excel ─────────────────── -->
+  <rect x="234" y="74" width="210" height="310" rx="14" class="card"/>
+  <rect x="250" y="88" width="20" height="20" rx="10" fill="#3b82f6"/>
+  <text x="260" y="103" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#fff" text-anchor="middle">2</text>
+  <text x="278" y="103" class="step-label">Fill in</text>
+
+  <text x="250" y="128" class="step-title">Add your positions</text>
+  <text x="250" y="146" class="step-body">Open the file in Excel,</text>
+  <text x="250" y="160" class="step-body">Numbers, or Google Sheets.</text>
+  <text x="250" y="178" class="step-body">Fill ticker, shares, price.</text>
+
+  <!-- Spreadsheet mockup -->
+  <rect x="254" y="195" width="170" height="148" rx="8" fill="#0d0d0d" stroke="#2a2a2a"/>
+  <!-- Column headers A B C -->
+  <rect x="254" y="195" width="170" height="16" rx="8" fill="#161616"/>
+  <rect x="254" y="203" width="170" height="8" fill="#161616"/>
+  <text x="300" y="207" font-family="system-ui,sans-serif" font-size="8" fill="#475569" text-anchor="middle">A</text>
+  <text x="338" y="207" font-family="system-ui,sans-serif" font-size="8" fill="#475569" text-anchor="middle">B</text>
+  <text x="390" y="207" font-family="system-ui,sans-serif" font-size="8" fill="#475569" text-anchor="middle">C</text>
+
+  <!-- Row 1 header -->
+  <rect x="254" y="211" width="170" height="16" fill="#1e3a5f"/>
+  <text x="275" y="223" font-family="monospace" font-size="8" fill="#93c5fd" font-weight="700">ticker</text>
+  <text x="315" y="223" font-family="monospace" font-size="8" fill="#93c5fd" font-weight="700">shares</text>
+  <text x="362" y="223" font-family="monospace" font-size="8" fill="#93c5fd" font-weight="700">price</text>
+
+  <!-- Data rows -->
+  <g font-family="monospace" font-size="9">
+    <rect x="254" y="227" width="170" height="14" fill="transparent"/>
+    <text x="275" y="238" fill="#f1f5f9">AAPL</text><text x="315" y="238" fill="#f1f5f9">10</text><text x="362" y="238" fill="#f1f5f9">189.42</text>
+
+    <rect x="254" y="241" width="170" height="14" fill="#0a0a0a"/>
+    <text x="275" y="252" fill="#f1f5f9">MSFT</text><text x="315" y="252" fill="#f1f5f9">5</text><text x="362" y="252" fill="#f1f5f9">412.18</text>
+
+    <text x="275" y="266" fill="#f1f5f9">NVDA</text><text x="315" y="266" fill="#f1f5f9">8</text><text x="362" y="266" fill="#f1f5f9">124.50</text>
+
+    <rect x="254" y="269" width="170" height="14" fill="#0a0a0a"/>
+    <text x="275" y="280" fill="#f1f5f9">TSLA</text><text x="315" y="280" fill="#f1f5f9">4</text><text x="362" y="280" fill="#f1f5f9">248.30</text>
+
+    <!-- Active cell being typed in -->
+    <rect x="254" y="283" width="170" height="14" fill="transparent"/>
+    <rect x="264" y="284" width="42" height="12" rx="2" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="266" y="294" fill="#f1f5f9">AMZN</text>
+    <text x="306" y="294" fill="#f1f5f9" class="cursor">|</text>
+
+    <line x1="254" y1="241" x2="424" y2="241" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="254" y1="255" x2="424" y2="255" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="254" y1="269" x2="424" y2="269" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="254" y1="283" x2="424" y2="283" stroke="#1a1a1a" stroke-width="1"/>
+
+    <!-- Column dividers -->
+    <line x1="308" y1="211" x2="308" y2="297" stroke="#1a1a1a" stroke-width="1"/>
+    <line x1="350" y1="211" x2="350" y2="297" stroke="#1a1a1a" stroke-width="1"/>
+  </g>
+
+  <text x="339" y="360" font-family="system-ui,sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Save as .xlsx or .csv</text>
+
+  <!-- ─────────────────── STEP 3: Upload ─────────────────── -->
+  <rect x="458" y="74" width="210" height="310" rx="14" class="card"/>
+  <rect x="474" y="88" width="20" height="20" rx="10" fill="#3b82f6"/>
+  <text x="484" y="103" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#fff" text-anchor="middle">3</text>
+  <text x="502" y="103" class="step-label">Upload</text>
+
+  <text x="474" y="128" class="step-title">Drop or tap to upload</text>
+  <text x="474" y="146" class="step-body">Back in StockFolio, open</text>
+  <text x="474" y="160" class="step-body">Import and tap the dropzone.</text>
+  <text x="474" y="178" class="step-body">Choose your saved file.</text>
+
+  <!-- Import dialog mockup -->
+  <rect x="466" y="194" width="186" height="158" rx="10" fill="#0d0d0d" stroke="#2a2a2a"/>
+  <!-- Dialog header -->
+  <rect x="466" y="194" width="186" height="28" rx="10" fill="#161616"/>
+  <rect x="466" y="210" width="186" height="12" fill="#161616"/>
+  <text x="559" y="213" font-family="system-ui,sans-serif" font-size="11" font-weight="700" fill="#f1f5f9" text-anchor="middle">Import Holdings</text>
+  <text x="645" y="212" font-family="system-ui,sans-serif" font-size="14" fill="#94a3b8">×</text>
+
+  <!-- Dropzone -->
+  <rect x="478" y="228" width="162" height="70" rx="8" fill="transparent" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="5,3"/>
+  <text x="559" y="252" font-family="system-ui,sans-serif" font-size="18" fill="#3b82f6" text-anchor="middle" class="upload-pulse">⬆</text>
+  <text x="559" y="270" font-family="system-ui,sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">Tap to choose a file</text>
+  <text x="559" y="284" font-family="system-ui,sans-serif" font-size="9" fill="#475569" text-anchor="middle">.xlsx, .csv, or .docx</text>
+
+  <!-- Template link -->
+  <text x="559" y="310" font-family="system-ui,sans-serif" font-size="10" fill="#3b82f6" text-anchor="middle">⬇ Download template</text>
+
+  <text x="563" y="360" font-family="system-ui,sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Columns auto-detected</text>
+
+  <!-- ─────────────────── STEP 4: Confirm & Import ─────────────────── -->
+  <rect x="682" y="74" width="210" height="310" rx="14" class="card"/>
+  <rect x="698" y="88" width="20" height="20" rx="10" fill="#00c46a"/>
+  <text x="708" y="103" font-family="system-ui,sans-serif" font-size="11" font-weight="800" fill="#fff" text-anchor="middle">4</text>
+  <text x="726" y="103" class="step-label" fill="#00c46a">Done!</text>
+
+  <text x="698" y="128" class="step-title">Review &amp; confirm</text>
+  <text x="698" y="146" class="step-body">StockFolio maps columns</text>
+  <text x="698" y="160" class="step-body">automatically. Preview rows</text>
+  <text x="698" y="178" class="step-body">then tap Import.</text>
+
+  <!-- Preview + progress mockup -->
+  <rect x="690" y="194" width="186" height="158" rx="10" fill="#0d0d0d" stroke="#2a2a2a"/>
+  <rect x="690" y="194" width="186" height="26" rx="10" fill="#161616"/>
+  <rect x="690" y="208" width="186" height="12" fill="#161616"/>
+  <text x="702" y="212" font-family="system-ui,sans-serif" font-size="10" font-weight="600" fill="#f1f5f9">Preview</text>
+  <text x="862" y="212" font-family="system-ui,sans-serif" font-size="10" fill="#00ff88" text-anchor="end">4 of 4 valid</text>
+
+  <!-- Preview rows with animated checks -->
+  <g font-family="system-ui,sans-serif" font-size="11">
+    <text x="704" y="236" fill="#3b82f6" font-weight="700">AAPL</text>
+    <text x="748" y="236" fill="#94a3b8" font-size="10">10 × $189</text>
+    <text x="865" y="236" fill="#00ff88" text-anchor="end" class="check1">✓</text>
+
+    <line x1="690" y1="242" x2="876" y2="242" stroke="#1a1a1a" stroke-width="1"/>
+
+    <text x="704" y="258" fill="#3b82f6" font-weight="700">MSFT</text>
+    <text x="748" y="258" fill="#94a3b8" font-size="10">5 × $412</text>
+    <text x="865" y="258" fill="#00ff88" text-anchor="end" class="check2">✓</text>
+
+    <line x1="690" y1="264" x2="876" y2="264" stroke="#1a1a1a" stroke-width="1"/>
+
+    <text x="704" y="280" fill="#3b82f6" font-weight="700">NVDA</text>
+    <text x="748" y="280" fill="#94a3b8" font-size="10">8 × $124</text>
+    <text x="865" y="280" fill="#00ff88" text-anchor="end" class="check3">✓</text>
+
+    <line x1="690" y1="286" x2="876" y2="286" stroke="#1a1a1a" stroke-width="1"/>
+  </g>
+
+  <!-- Progress bar -->
+  <rect x="700" y="296" width="166" height="6" rx="3" fill="#222"/>
+  <rect x="700" y="296" height="6" rx="3" fill="#3b82f6" class="progress-bar"/>
+
+  <!-- Import button -->
+  <rect x="700" y="310" width="166" height="30" rx="8" fill="#166534" stroke="#00c46a" stroke-width="1"/>
+  <text x="783" y="330" font-family="system-ui,sans-serif" font-size="12" font-weight="700" fill="#00ff88" text-anchor="middle">Import 4 holdings</text>
+
+  <text x="787" y="360" font-family="system-ui,sans-serif" font-size="10" fill="#64748b" text-anchor="middle">Positions added instantly</text>
+
+  <!-- Arrow connectors -->
+  <text x="228" y="215" font-family="system-ui,sans-serif" font-size="16" fill="#1e3a5f" text-anchor="middle">→</text>
+  <text x="453" y="215" font-family="system-ui,sans-serif" font-size="16" fill="#1e3a5f" text-anchor="middle">→</text>
+  <text x="677" y="215" font-family="system-ui,sans-serif" font-size="16" fill="#1e3a5f" text-anchor="middle">→</text>
+
+  <!-- Bottom note -->
+  <text x="450" y="400" font-family="system-ui,sans-serif" font-size="11" fill="#475569" text-anchor="middle">Works for both Holdings and Watchlist · Column headers are auto-detected · Supports Excel, CSV, Word tables</text>
+</svg>
