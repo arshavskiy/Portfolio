@@ -150,14 +150,14 @@ const combinedDisplay = computed(() => {
     <header class="page-header">
       <h1 class="gradient-title">Holdings</h1>
       <div class="header-actions">
-        <Button
-            v-tooltip.bottom="compactMode ? 'Card view' : 'Compact view'"
-            :icon="compactMode ? 'pi pi-bars' : 'pi pi-list'"
-            :outlined="compactMode"
-            size="small"
-            text
-            @click="compactMode = !compactMode"
-        />
+        <!--        <Button-->
+        <!--            v-tooltip.bottom="compactMode ? 'Card view' : 'Compact view'"-->
+        <!--            :icon="compactMode ? 'pi pi-bars' : 'pi pi-list'"-->
+        <!--            :outlined="compactMode"-->
+        <!--            size="small"-->
+        <!--            text-->
+        <!--            @click="compactMode = !compactMode"-->
+        <!--        />-->
         <Button
             v-tooltip.bottom="'Rebalance'"
             icon="pi pi-sliders-h"
