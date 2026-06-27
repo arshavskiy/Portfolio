@@ -21,7 +21,7 @@ function downsample(arr, max) {
     return out
 }
 
-// Reconstruct today's intraday portfolio value from each held ticker's 5m
+// Reconstruct today's intraday portfolio value from each held ticker's 2m
 // bars (same source as the per-stock '1d' chart). Holdings are computed as
 // of "now" by replaying all transactions — fine-grained enough since
 // same-day buys/sells are rare — then valued at each intraday timestamp

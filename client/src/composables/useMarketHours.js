@@ -82,6 +82,27 @@ function toMinutes(value) {
     return (hour * 60) + minute
 }
 
+function marketForTicker(ticker) {
+    const symbol = (ticker || '').toUpperCase()
+    if (/-USD$/.test(symbol)) return MARKET_HOURS_BY_GROUP.Crypto
+    if (/\.TA$/.test(symbol)) return MARKET_HOURS_BY_GROUP.Israel
+    return MARKET_HOURS_BY_GROUP.US
+}
+
+// True when the given timestamp falls inside the ticker's regular trading
+// session (excludes pre/after-market). Crypto is always regular (24/7).
+export function isRegularSessionBar(date, ticker) {
+    const market = marketForTicker(ticker)
+    if (market === MARKET_HOURS_BY_GROUP.Crypto) return true
+
+    const parts = timeParts(new Date(date), market.timezone)
+    if (!market.days.includes(parts.weekday)) return false
+
+    const sessions = market.sessionsByDay?.[parts.weekday] || market.sessions || []
+    const mins = (parts.hour * 60) + parts.minute
+    return sessions.some((s) => mins >= toMinutes(s.start) && mins < toMinutes(s.end))
+}
+
 function formatClock(date, timezone) {
     return new Intl.DateTimeFormat('en-US', {
         timeZone: timezone,

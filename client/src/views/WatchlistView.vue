@@ -9,6 +9,7 @@ import {groupItems} from '@/composables/useGrouping'
 import {useMomentumStore} from '@/stores/momentum'
 import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
+import {exportWatchlistCsv} from '@/composables/useImport'
 import Button from 'primevue/button'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
@@ -52,6 +53,11 @@ const RANGE_LABELS = {
 
 function onImported() {
   watchlist.fetchWatchlist(range.value, {force: true})
+}
+
+function exportCsv() {
+  const tickers = watchlist.items.map((i) => i.ticker).filter(Boolean)
+  if (tickers.length) exportWatchlistCsv(tickers)
 }
 
 const filteredItems = computed(() => {
@@ -207,7 +213,10 @@ function onGroupsSaved() {
   <div class="watchlist safe-bottom">
     <header>
       <div  class="page-header">
-        <h1 class="gradient-title">Watchlist</h1>
+        <h1 class="gradient-title">
+          Watchlist
+          <span v-if="watchlist.items.length" class="count-badge">({{ watchlist.items.length }})</span>
+        </h1>
         <div class="header-actions">
           <Button
               v-tooltip.bottom="'Import from file'"
@@ -215,6 +224,14 @@ function onGroupsSaved() {
               size="small"
               text
               @click="showImportModal = true"
+          />
+          <Button
+              v-if="watchlist.items.length"
+              v-tooltip.bottom="'Download watchlist (CSV)'"
+              icon="pi pi-download"
+              size="small"
+              text
+              @click="exportCsv"
           />
           <Button label="Add" outlined size="small" @click="showModal = true"/>
         </div>
@@ -331,6 +348,16 @@ header {
 
 .page-header h1 {
   font-size: 1.5rem;
+}
+
+.count-badge {
+  -webkit-text-fill-color: var(--text-secondary);
+  color: var(--text-secondary);
+  font-size: 0.65rem;
+  font-weight: 600;
+  font-variant: small-caps;
+  margin-left: 0.35rem;
+  vertical-align: middle;
 }
 
 .header-actions {

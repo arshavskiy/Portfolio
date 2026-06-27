@@ -458,13 +458,13 @@ async function getHistory(ticker, range = '3mo', points = null) {
   const startDate = new Date()
 
   try {
-  // 1d uses chart() with 5m intervals for intraday
+  // 1d uses chart() with 2m intervals for intraday
   if (range === '1d') {
-    startDate.setDate(startDate.getDate() - 7)
+    startDate.setDate(startDate.getDate() - 5)
     const result = await yahooFinance.chart(ticker, {
       period1: fmt(startDate),
       period2: fmt(new Date(endDate.getTime() + 86400000)),
-      interval: '5m',
+      interval: '2m',
       includePrePost: true,
     })
     const f = taFactor(ticker)

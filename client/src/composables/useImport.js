@@ -102,6 +102,21 @@ export function downloadTemplate(mode) {
     XLSX.writeFile(wb, `stockfolio-${mode}-template.xlsx`)
 }
 
+// Export a list of tickers as a CSV in the watchlist template format
+// (single "Ticker" column). Re-importable via the Import Watchlist flow.
+export function exportWatchlistCsv(tickers) {
+    const rows = [['Ticker'], ...tickers.map((t) => [t])]
+    const ws = XLSX.utils.aoa_to_sheet(rows)
+    const csv = XLSX.utils.sheet_to_csv(ws)
+    const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'stockfolio-watchlist.csv'
+    a.click()
+    URL.revokeObjectURL(url)
+}
+
 // Convert parsed rows into normalized records using a field→header map.
 // mode: 'watchlist' (ticker only) | 'holdings' (ticker+shares+price required).
 export function mapRows(rows, map, mode) {

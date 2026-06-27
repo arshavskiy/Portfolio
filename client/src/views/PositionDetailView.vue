@@ -7,7 +7,7 @@ import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
-import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
+import {getMarketHoursState, isRegularSessionBar, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import {buildBreakdown, signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
 import {useMomentumStore} from '@/stores/momentum'
 import Button from 'primevue/button'
@@ -34,9 +34,9 @@ const toast = useToast()
 const historyStore = useHistoryStore()
 
 const ticker = computed(() =>
-  props.tickerOverride
-    ? props.tickerOverride.toUpperCase()
-    : decodeURIComponent(route.params.ticker ?? '').toUpperCase()
+    props.tickerOverride
+        ? props.tickerOverride.toUpperCase()
+        : decodeURIComponent(route.params.ticker ?? '').toUpperCase()
 )
 const transactions = ref([])
 const quote = ref(null)
@@ -152,7 +152,7 @@ async function loadFx() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    const pointsMap = { '1d': 160, '5d': 100, '1mo': 60 }
+    const pointsMap = {'1d': 160, '5d': 100, '1mo': 60}
     const points = pointsMap[selectedRange.value] ?? 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
@@ -377,12 +377,12 @@ const rangeChange = computed(() => {
 // chart history spans yesterday's bars during pre-market, so rangeChange would
 // reflect the wrong day's move.
 const displayedPriceChange = computed(() =>
-  selectedRange.value === '1d' ? quoteChange.value : (rangeChange.value || quoteChange.value)
+    selectedRange.value === '1d' ? quoteChange.value : (rangeChange.value || quoteChange.value)
 )
 const displayedPriceChangeLabel = computed(() =>
-  selectedRange.value !== '1d' && rangeChange.value
-    ? `${RANGE_LABELS[selectedRange.value] || selectedRange.value} range`
-    : 'Today'
+    selectedRange.value !== '1d' && rangeChange.value
+        ? `${RANGE_LABELS[selectedRange.value] || selectedRange.value} range`
+        : 'Today'
 )
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
 const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
@@ -628,6 +628,50 @@ const selectedDelta = computed(() => {
   }
 })
 
+// Low → high of a set of bars, in chronological order so the sign reflects the
+// actual move between the two extremes.
+function lowHighDelta(rows) {
+  const valid = rows.filter((d) => d?.close != null)
+  if (valid.length < 2) return null
+
+  let lo = valid[0]
+  let hi = valid[0]
+  for (const d of valid) {
+    if (d.close < lo.close) lo = d
+    if (d.close > hi.close) hi = d
+  }
+  if (lo === hi) return null
+
+  const [start, end] = new Date(lo.date) <= new Date(hi.date) ? [lo, hi] : [hi, lo]
+  const startPrice = start.close
+  const endPrice = end.close
+  const amount = endPrice - startPrice
+  const percent = startPrice ? (amount / startPrice) * 100 : null
+  const startDate = new Date(start.date)
+  const endDate = new Date(end.date)
+  const hours = Math.abs(endDate - startDate) / 36e5
+
+  return {
+    amount,
+    percent,
+    startPrice,
+    endPrice,
+    startLabel: startDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
+    endLabel: endDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
+    spanLabel: hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
+  }
+}
+
+// Default measurement (low → high) across all loaded bars, incl. pre/after-hours.
+const defaultDelta = computed(() => lowHighDelta(history.value))
+
+// Same low → high measurement restricted to regular trading-hours bars.
+const regularHoursDelta = computed(() =>
+    lowHighDelta(history.value.filter((d) => isRegularSessionBar(d.date, ticker.value)))
+)
+
+const displayedDelta = computed(() => selectedDelta.value ?? defaultDelta.value)
+
 function handleChartSelection(points) {
   selectedChartPoints.value = points
 }
@@ -713,33 +757,35 @@ async function toggleWatchlist() {
 
 <template>
   <div class="position-detail" :class="{'panel-mode': panelMode}">
-    <Button
-        v-if="!panelMode && previousWatchlistTicker"
-        v-tooltip.right="`Previous: ${previousWatchlistTicker}`"
-        aria-label="Previous watchlist stock"
-        class="watchlist-slide-handle watchlist-slide-handle-left"
-        icon="pi pi-angle-left"
-        @click="openWatchlistTicker(previousWatchlistTicker)"
-    />
-    <Button
-        v-if="!panelMode && nextWatchlistTicker"
-        v-tooltip.left="`Next: ${nextWatchlistTicker}`"
-        aria-label="Next watchlist stock"
-        class="watchlist-slide-handle watchlist-slide-handle-right"
-        icon="pi pi-angle-right"
-        @click="openWatchlistTicker(nextWatchlistTicker)"
-    />
+    <!--    <Button-->
+    <!--        v-if="!panelMode && previousWatchlistTicker"-->
+    <!--        v-tooltip.right="`Previous: ${previousWatchlistTicker}`"-->
+    <!--        aria-label="Previous watchlist stock"-->
+    <!--        class="watchlist-slide-handle watchlist-slide-handle-left"-->
+    <!--        icon="pi pi-angle-left"-->
+    <!--        @click="openWatchlistTicker(previousWatchlistTicker)"-->
+    <!--    />-->
+    <!--    <Button-->
+    <!--        v-if="!panelMode && nextWatchlistTicker"-->
+    <!--        v-tooltip.left="`Next: ${nextWatchlistTicker}`"-->
+    <!--        aria-label="Next watchlist stock"-->
+    <!--        class="watchlist-slide-handle watchlist-slide-handle-right"-->
+    <!--        icon="pi pi-angle-right"-->
+    <!--        @click="openWatchlistTicker(nextWatchlistTicker)"-->
+    <!--    />-->
     <header class="page-header">
       <Button v-if="!panelMode" icon="pi pi-arrow-left" rounded text @click="returnToWatchlist"/>
       <div class="header-info">
         <div class="header-title-row">
           <h1 class="gradient-title">{{ ticker }}</h1>
           <span
-            v-if="momentumSignal"
-            :class="momentumSignal.cls"
-            :title="momentumSignal.title"
-            class="momentum-badge"
-          >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{ momentumScore }})</span></span>
+              v-if="momentumSignal"
+              :class="momentumSignal.cls"
+              :title="momentumSignal.title"
+              class="momentum-badge"
+          >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{
+              momentumScore
+            }})</span></span>
         </div>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
       </div>
@@ -787,7 +833,9 @@ async function toggleWatchlist() {
             </span>
             </div>
             <p :class="gainLossClass(displayedPriceChange.amount)" class="price-change">
-              {{ useTickerCurrency(displayedPriceChange.amount, ticker) }} ({{ usePercent(displayedPriceChange.percent) }})
+              {{ useTickerCurrency(displayedPriceChange.amount, ticker) }} ({{
+                usePercent(displayedPriceChange.percent)
+              }})
               <span class="price-change-label">{{ displayedPriceChangeLabel }}</span>
             </p>
             <div v-if="extendedHours" class="extended-row">
@@ -807,18 +855,70 @@ async function toggleWatchlist() {
             <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
           </div>
         </div>
-        <!-- Signal breakdown below price block -->
-        <div v-if="momentumBreakdown.length" class="signal-breakdown">
-          <div class="signal-chips">
-            <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
-              <span class="chip-label">{{ chip.label }}</span>
-              <span class="chip-value">{{ chip.value }}</span>
-            </div>
-          </div>
-        </div>
       </div>
       <div v-else-if="loading" class="quote-summary">
         <div class="price-skeleton"/>
+      </div>
+
+      <StockChart
+          :key="`${ticker}-${selectedRange}-${chartMode}`"
+          :current-price="previousCloseLine"
+          :data="history"
+          :loading="chartLoading"
+          :mode="chartMode"
+          :range="selectedRange"
+          :ticker="ticker"
+          @selection-change="handleChartSelection"
+      />
+
+      <div class="chart-controls">
+        <RangeBar v-model="selectedRange" class="page-range"/>
+        <SelectButton v-model="chartMode" :options="chartModes" size="small"/>
+      </div>
+
+      <div class="chart-measure">
+        <div v-if="regularHoursDelta" class="measure-summary measure-regular">
+          <span class="measure-tag text-muted">Trading hours</span>
+          <span :class="gainLossClass(regularHoursDelta.amount)">
+            {{ useTickerCurrency(regularHoursDelta.amount, ticker) }} ({{ usePercent(regularHoursDelta.percent) }})
+          </span>
+          <span class="text-muted">
+            {{
+              useTickerCurrency(regularHoursDelta.startPrice, ticker)
+            }} to {{ useTickerCurrency(regularHoursDelta.endPrice, ticker) }}
+          </span>
+          <!--          <span class="text-muted">-->
+          <!--            {{ regularHoursDelta.startLabel }} to {{ regularHoursDelta.endLabel }} · {{ regularHoursDelta.spanLabel }}-->
+          <!--          </span>-->
+        </div>
+
+
+        <div v-if="displayedDelta" class="measure-summary">
+        <span class="text-muted measure-hint">
+          {{ selectedDelta ? 'Selected range' : 'Range low → high · tap two points to measure' }}
+        </span>
+          <span :class="gainLossClass(displayedDelta.amount)">
+          {{ useTickerCurrency(displayedDelta.amount, ticker) }} ({{ usePercent(displayedDelta.percent) }})
+        </span>
+          <span class="text-muted">
+          {{
+              useTickerCurrency(displayedDelta.startPrice, ticker)
+            }} to {{ useTickerCurrency(displayedDelta.endPrice, ticker) }}
+        </span>
+          <!--          <span class="text-muted">-->
+          <!--          {{ displayedDelta.startLabel }} to {{ displayedDelta.endLabel }} · {{ displayedDelta.spanLabel }}-->
+          <!--        </span>-->
+        </div>
+      </div>
+
+      <!-- Signal breakdown -->
+      <div v-if="quote && momentumBreakdown.length" class="signal-breakdown">
+        <div class="signal-chips">
+          <div v-for="chip in momentumBreakdown" :key="chip.label" :class="chip.cls" class="signal-chip">
+            <span class="chip-label">{{ chip.label }}</span>
+            <span class="chip-value">{{ chip.value }}</span>
+          </div>
+        </div>
       </div>
 
       <template v-if="summary">
@@ -841,7 +941,8 @@ async function toggleWatchlist() {
         </div>
 
         <!-- Net P&L card (after all fees + tax) -->
-        <div v-if="summary.totalFees > 0 || summary.totalTax > 0 || summary.estimatedTax > 0" :class="gainLossClass(summary.netPnl)"
+        <div v-if="summary.totalFees > 0 || summary.totalTax > 0 || summary.estimatedTax > 0"
+             :class="gainLossClass(summary.netPnl)"
              class="pnl-card net-card">
           <div class="pnl-header">
             <span class="pnl-label text-muted">Net P&L <span class="after-badge">after fees & tax</span></span>
@@ -851,7 +952,9 @@ async function toggleWatchlist() {
           </div>
           <div class="fee-breakdown">
             <div v-for="row in summary.feeRows" :key="row.key" class="fee-row">
-              <span class="text-muted">{{ row.type === 'buy' ? 'Buy' : 'Sell' }} fees {{ row.estimated ? '(default)' : 'paid' }}</span>
+              <span class="text-muted">{{
+                  row.type === 'buy' ? 'Buy' : 'Sell'
+                }} fees {{ row.estimated ? '(default)' : 'paid' }}</span>
               <span class="loss">-{{ useCurrency(row.amount, row.currency) }}</span>
             </div>
             <div v-if="summary.totalTax > 0" class="fee-row">
@@ -891,41 +994,6 @@ async function toggleWatchlist() {
           </div>
         </div>
       </template>
-
-      <div class="chart-controls">
-        <RangeBar v-model="selectedRange" class="page-range"/>
-        <SelectButton v-model="chartMode" :options="chartModes" size="small"/>
-      </div>
-
-      <div class="chart-measure">
-        <div class="text-muted measure-hint">
-          Tap two points on the chart to measure delta.
-        </div>
-        <div v-if="selectedDelta" class="measure-summary">
-        <span :class="gainLossClass(selectedDelta.amount)">
-          {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
-        </span>
-          <span class="text-muted">
-          {{
-              useTickerCurrency(selectedDelta.startPrice, ticker)
-            }} to {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
-        </span>
-          <span class="text-muted">
-          {{ selectedDelta.startLabel }} to {{ selectedDelta.endLabel }} · {{ selectedDelta.spanLabel }}
-        </span>
-        </div>
-      </div>
-
-      <StockChart
-          :key="`${ticker}-${selectedRange}-${chartMode}`"
-          :current-price="previousCloseLine"
-          :data="history"
-          :loading="chartLoading"
-          :mode="chartMode"
-          :range="selectedRange"
-          :ticker="ticker"
-          @selection-change="handleChartSelection"
-      />
 
       <div v-if="quote" class="stats-grid">
         <div
@@ -1166,7 +1234,9 @@ async function toggleWatchlist() {
                 <span>{{ currSymbol }}{{ buySimulation.cost.toFixed(2) }}</span>
               </div>
               <div v-if="buySimulation.buyFee > 0" class="sim-row">
-                <span class="text-muted">Buy fee{{ buySimulation.profileName ? ` · ${buySimulation.profileName}` : '' }}</span>
+                <span class="text-muted">Buy fee{{
+                    buySimulation.profileName ? ` · ${buySimulation.profileName}` : ''
+                  }}</span>
                 <span class="loss">+{{ useCurrency(buySimulation.buyFee, buySimulation.buyFeeCurrency) }}</span>
               </div>
               <div class="sim-row sim-divider">
@@ -1348,13 +1418,42 @@ async function toggleWatchlist() {
 }
 
 
-.sig-max-bull   { background: rgba(0,195,106,0.28); color: #00c36a; box-shadow: 0 0 8px rgba(0,195,106,0.5); }
-.sig-strong-bull { background: rgba(0,195,106,0.18); color: #00c36a; }
-.sig-bull        { background: rgba(0,195,106,0.1);  color: #00c36a; }
-.sig-max-bear    { background: rgba(224,45,74,0.28); color: #e02d4a; box-shadow: 0 0 8px rgba(224,45,74,0.5); }
-.sig-strong-bear { background: rgba(224,45,74,0.18); color: #e02d4a; }
-.sig-bear        { background: rgba(224,45,74,0.1);  color: #e02d4a; }
-.sig-neutral     { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+.sig-max-bull {
+  background: rgba(0, 195, 106, 0.28);
+  color: #00c36a;
+  box-shadow: 0 0 8px rgba(0, 195, 106, 0.5);
+}
+
+.sig-strong-bull {
+  background: rgba(0, 195, 106, 0.18);
+  color: #00c36a;
+}
+
+.sig-bull {
+  background: rgba(0, 195, 106, 0.1);
+  color: #00c36a;
+}
+
+.sig-max-bear {
+  background: rgba(224, 45, 74, 0.28);
+  color: #e02d4a;
+  box-shadow: 0 0 8px rgba(224, 45, 74, 0.5);
+}
+
+.sig-strong-bear {
+  background: rgba(224, 45, 74, 0.18);
+  color: #e02d4a;
+}
+
+.sig-bear {
+  background: rgba(224, 45, 74, 0.1);
+  color: #e02d4a;
+}
+
+.sig-neutral {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-secondary);
+}
 
 .header-actions {
   display: flex;
@@ -1601,9 +1700,17 @@ async function toggleWatchlist() {
 }
 
 @keyframes net-return-border-sweep {
-  0% { background-position: 200% 0; opacity: 0.45; }
-  50% { opacity: 1; }
-  100% { background-position: -200% 0; opacity: 0.45; }
+  0% {
+    background-position: 200% 0;
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    background-position: -200% 0;
+    opacity: 0.45;
+  }
 }
 
 .stats-row {
@@ -1651,6 +1758,19 @@ async function toggleWatchlist() {
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.84rem;
+}
+
+.measure-regular {
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.measure-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .stats-grid {
@@ -2014,16 +2134,25 @@ async function toggleWatchlist() {
   background: rgba(0, 195, 106, 0.08);
   border-color: rgba(0, 195, 106, 0.3);
 }
-.chip-bull .chip-value { color: #00c36a; }
+
+.chip-bull .chip-value {
+  color: #00c36a;
+}
 
 .chip-bear {
   background: rgba(224, 45, 74, 0.08);
   border-color: rgba(224, 45, 74, 0.3);
 }
-.chip-bear .chip-value { color: #e02d4a; }
+
+.chip-bear .chip-value {
+  color: #e02d4a;
+}
 
 .chip-neutral {
   background: rgba(255, 255, 255, 0.03);
 }
-.chip-neutral .chip-value { color: var(--text-secondary); }
+
+.chip-neutral .chip-value {
+  color: var(--text-secondary);
+}
 </style>

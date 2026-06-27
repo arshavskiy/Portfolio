@@ -319,15 +319,22 @@ function draw() {
         startMinutes: toMinutes(s.start),
         endMinutes: toMinutes(s.end),
       }))
-      // Full day window: pre-market (4:00 ET / 2h before open) → after-hours end (20:00 ET)
+      // Full day window: pre-market (4:00 ET) → after-hours close (20:00 ET).
+      // If real bars run past the nominal close (late after-hours prints), extend the
+      // window to the last bar so they don't pile up clamped on the rightmost slot.
       const DAY_START_MINUTES = market === INTRADAY_MARKETS.israel
         ? (sessions[0]?.startMinutes ?? toMinutes('10:00')) - 30
         : toMinutes('04:00')
-      const DAY_END_MINUTES = market === INTRADAY_MARKETS.israel
+      const NOMINAL_END_MINUTES = market === INTRADAY_MARKETS.israel
         ? (sessions[0]?.endMinutes ?? toMinutes('17:35')) + 30
         : toMinutes('20:00')
-      const INTERVAL = 5
-      const totalBars = Math.ceil((DAY_END_MINUTES - DAY_START_MINUTES) / INTERVAL)
+      const lastBarMinutes = parsed.reduce((max, d) => {
+        const p = timeParts(d.date, market.timezone)
+        return Math.max(max, p.hour * 60 + p.minute)
+      }, 0)
+      const DAY_END_MINUTES = Math.max(NOMINAL_END_MINUTES, lastBarMinutes)
+      const INTERVAL = 2
+      const totalBars = Math.ceil((DAY_END_MINUTES - DAY_START_MINUTES) / INTERVAL) + 1
 
       indexMap = new Map(parsed.map((d) => {
         const p = timeParts(d.date, market.timezone)
@@ -343,8 +350,21 @@ function draw() {
   }
   const x = useIndexScale ? null : d3.scaleTime().domain(d3.extent(parsed, (d) => d.date)).range([0, w])
 
+  // Date-keyed slot lookup so points that aren't the original parsed object
+  // reference (e.g. selection markers stored in a Vue ref) still resolve their
+  // index instead of falling back to slot 0 (the left edge).
+  const indexByTime = useIndexScale
+    ? new Map(parsed.map((d) => [d.date.getTime(), indexMap.get(d) ?? 0]))
+    : null
+
+  function slotOf(d) {
+    const direct = indexMap.get(d)
+    if (direct != null) return direct
+    return indexByTime.get(new Date(d.date).getTime()) ?? 0
+  }
+
   function xPos(d) {
-    if (useIndexScale) return xByIndex(indexMap.get(d) ?? 0)
+    if (useIndexScale) return xByIndex(slotOf(d))
     return x(d.date)
   }
 
@@ -359,11 +379,10 @@ function draw() {
 
   function xInvert(px) {
     if (useIndexScale) {
-      const targetIdx = xByIndex.invert(px)
       let closest = parsed[0]
       let minDist = Infinity
       parsed.forEach((d) => {
-        const dist = Math.abs((indexMap.get(d) ?? 0) - targetIdx)
+        const dist = Math.abs(xByIndex(indexMap.get(d) ?? 0) - px)
         if (dist < minDist) { minDist = dist; closest = d }
       })
       return closest
@@ -460,9 +479,25 @@ function draw() {
       .attr('stroke-width', 1)
   }
 
+  // Bar width on the index scale: use the median pixel gap between consecutive
+  // rendered bars, not one nominal time slot. Data points can sit several slots
+  // apart, so a one-slot width leaves big gaps; the consecutive gap fills them.
+  const slotPx = (() => {
+    if (!(useIndexScale && parsed.length > 1)) return null
+    const xs = parsed.map((d) => xByIndex(indexMap.get(d) ?? 0)).sort((a, b) => a - b)
+    const gaps = []
+    for (let i = 1; i < xs.length; i += 1) {
+      const g = xs[i] - xs[i - 1]
+      if (g > 0) gaps.push(g)
+    }
+    if (!gaps.length) return Math.max(2, Math.abs(xByIndex(1) - xByIndex(0)))
+    gaps.sort((a, b) => a - b)
+    return Math.max(2, gaps[Math.floor(gaps.length / 2)])
+  })()
+
   if (props.mode === 'candle') {
-    const bandW = useIndexScale && parsed.length > 1
-      ? Math.max(1, Math.abs(xByIndex(1) - xByIndex(0)) * 0.6)
+    const bandW = useIndexScale && slotPx != null
+      ? Math.max(2, slotPx * 0.85)
       : Math.max(1, (w / parsed.length) * 0.6)
 
     // Wicks
@@ -533,8 +568,8 @@ function draw() {
   }
 
   if (showVolume) {
-    const bandW = useIndexScale && parsed.length > 1
-      ? Math.max(1, Math.abs(xByIndex(1) - xByIndex(0)) * (props.mode === 'candle' ? 0.6 : 0.7))
+    const bandW = useIndexScale && slotPx != null
+      ? Math.max(2, slotPx * 0.85)
       : Math.max(1, (w / parsed.length) * (props.mode === 'candle' ? 0.6 : 0.7))
 
     g.selectAll('.volume-bar')

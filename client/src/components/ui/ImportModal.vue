@@ -26,7 +26,7 @@ const map = ref({})
 const parsing = ref(false)
 const importing = ref(false)
 const progress = ref(0)
-const result = ref(null) // { ok, failed }
+const result = ref(null) // { ok, failed, failures: [{ ticker, reason }] }
 
 const isHoldings = computed(() => props.mode === 'holdings')
 const title = computed(() => (isHoldings.value ? 'Import Holdings' : 'Import Watchlist'))
@@ -98,7 +98,7 @@ async function runImport() {
   importing.value = true
   progress.value = 0
   let ok = 0
-  let failed = 0
+  const failures = []
 
   for (const r of rows) {
     try {
@@ -116,30 +116,35 @@ async function runImport() {
       }
       ok++
     } catch (err) {
-      failed++
-      if (err?.status >= 300) {
-        toast.add({
-          severity: 'error',
-          summary: `Import failed for ${r.ticker}`,
-          detail: err.message || `Request failed (${err.status})`,
-          life: 4000,
-        })
-      }
+      const reason = err?.status === 409
+        ? 'Already in watchlist'
+        : err?.message || `Request failed (${err?.status || '—'})`
+      failures.push({ticker: r.ticker, reason})
     }
-    progress.value = Math.round(((ok + failed) / rows.length) * 100)
+    progress.value = Math.round(((ok + failures.length) / rows.length) * 100)
   }
 
   if (!isHoldings.value) await watchlist.refresh().catch(() => {
   })
   importing.value = false
-  result.value = {ok, failed}
+  result.value = {ok, failed: failures.length, failures}
   toast.add({
-    severity: failed ? 'warn' : 'success',
+    severity: failures.length ? 'warn' : 'success',
     summary: `Imported ${ok} of ${rows.length}`,
-    detail: failed ? `${failed} failed (already present or invalid ticker)` : undefined,
+    detail: failures.length ? `${failures.length} not added — see list below` : undefined,
     life: 3500,
   })
   emit('imported')
+}
+
+async function copyFailures() {
+  const text = result.value?.failures.map((f) => `${f.ticker}\t${f.reason}`).join('\n') || ''
+  try {
+    await navigator.clipboard.writeText(text)
+    toast.add({severity: 'success', summary: 'Copied list', life: 2000})
+  } catch {
+    toast.add({severity: 'warn', summary: 'Copy failed', life: 2000})
+  }
 }
 
 function close() {
@@ -231,6 +236,7 @@ function close() {
         </div>
 
         <Button
+            v-if="!result"
             :disabled="!canImport || importing"
             :label="`Import ${validCount} ${isHoldings ? 'holdings' : 'tickers'}`"
             :loading="importing"
@@ -238,6 +244,31 @@ function close() {
             outlined
             @click="runImport"
         />
+
+        <!-- Result summary -->
+        <div v-if="result" class="result">
+          <div class="result-head">
+            <i class="pi pi-check-circle ok"/>
+            <span>Added {{ result.ok }} of {{ result.ok + result.failed }}</span>
+          </div>
+
+          <div v-if="result.failures.length" class="not-added">
+            <div class="not-added-head">
+              <span><i class="pi pi-exclamation-triangle bad"/> {{ result.failures.length }} not added</span>
+              <button class="link" @click="copyFailures">
+                <i class="pi pi-copy"/> Copy
+              </button>
+            </div>
+            <div class="not-added-list">
+              <div v-for="f in result.failures" :key="f.ticker" class="not-added-row">
+                <span class="p-ticker">{{ f.ticker }}</span>
+                <span class="reason text-muted">{{ f.reason }}</span>
+              </div>
+            </div>
+          </div>
+
+          <Button fluid label="Done" @click="close"/>
+        </div>
       </template>
     </div>
   </Dialog>
@@ -424,5 +455,62 @@ function close() {
   top: -18px;
   font-size: 0.7rem;
   color: var(--text-secondary);
+}
+
+.result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.result-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.result-head .ok {
+  color: var(--neon-green);
+}
+
+.not-added {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.not-added-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.not-added-head .bad {
+  color: var(--neon-red);
+  margin-right: 0.3rem;
+}
+
+.not-added-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.not-added-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+}
+
+.not-added-row .reason {
+  font-size: 0.74rem;
 }
 </style>

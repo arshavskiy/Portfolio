@@ -12,6 +12,8 @@ const feeProfileRoutes = require('./routes/feeProfiles')
 const alertRoutes = require('./routes/alerts')
 const { startCronJobs } = require('./services/cronService')
 const {initPush} = require('./services/pushService')
+const swaggerUi = require('swagger-ui-express')
+const swaggerSpec = require('./swagger')
 
 const app = express()
 
@@ -92,6 +94,9 @@ app.use('/api/stocks', stockRoutes)
 app.use('/api/watchlist', watchlistRoutes)
 app.use('/api/fee-profiles', feeProfileRoutes)
 app.use('/api/alerts', alertRoutes)
+
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { customSiteTitle: 'StockFolio API' }))
+app.get('/api/docs.json', (req, res) => res.json(swaggerSpec))
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
 

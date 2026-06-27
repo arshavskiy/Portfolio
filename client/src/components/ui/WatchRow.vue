@@ -100,9 +100,10 @@ const activeExtended = computed(() => {
   const state = props.item.marketState
   if (/-USD$/u.test(ticker)) return resolveExtendedHours('post') // crypto: no pre-market
   if (state === 'REGULAR') return resolveExtendedHours('pre') // today's gap only, no post
-  const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
-  const d = new Date(nowNy)
-  const minutes = d.getHours() * 60 + d.getMinutes()
+  const nyParts = new Intl.DateTimeFormat('en-US', {timeZone: 'America/New_York', hour: 'numeric', minute: 'numeric', hour12: false}).formatToParts(new Date())
+  const nyH = parseInt(nyParts.find(p => p.type === 'hour').value, 10)
+  const nyM = parseInt(nyParts.find(p => p.type === 'minute').value, 10)
+  const minutes = nyH * 60 + nyM
   const isPreTime = minutes < 9 * 60 + 30
   return resolveExtendedHours(isPreTime ? 'pre' : 'post') ?? resolveExtendedHours(isPreTime ? 'post' : 'pre') ?? null
 })
