@@ -6,7 +6,7 @@ import {useAlertsStore} from '@/stores/alerts'
 import {useTickerCurrency} from '@/composables/useFormat'
 
 const SEEN_KEY = 'alerts-seen-at'
-const POLL_MS = 15 * 60_000
+const POLL_MS = 15 * 60 * 1000
 
 // Surfaces server-triggered alerts as in-app toasts (belt-and-suspenders for
 // when Web Push is unavailable). De-duplicates via a localStorage watermark so

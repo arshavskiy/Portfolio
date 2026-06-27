@@ -28,16 +28,6 @@ function goTransactions() { router.push(isDesktop.value ? '/history-alerts' : '/
 // About
 const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
 const qrCanvas = ref(null)
-const features = [
-  { icon: 'pi pi-chart-line', text: 'Live portfolio tracking with P&L, multi-currency totals, and a value-over-time chart' },
-  { icon: 'pi pi-globe', text: 'Coverage for US stocks, TASE, global markets, and crypto watchlists' },
-  { icon: 'pi pi-money-bill', text: 'Buy/sell lots with fee profiles for broker fees and capital-gains tax simulation' },
-  { icon: 'pi pi-bell', text: 'Price alerts via push notifications, set and monitored per ticker' },
-  { icon: 'pi pi-bolt', text: 'Dashboard cards for top movers, trending symbols, and live market-hours status' },
-  { icon: 'pi pi-clock', text: 'Pre-market and after-hours price changes alongside regular session quotes' },
-  { icon: 'pi pi-tags', text: 'Custom multi-tag groups with group-by views across holdings and watchlist' },
-  { icon: 'pi pi-upload', text: 'Bulk import holdings or watchlist from Excel, CSV, or Word files' },
-]
 
 async function copyAddress() {
   try {
@@ -152,6 +142,11 @@ function logout() {
         <span>Transaction History</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
+      <button class="menu-item" @click="router.push('/about')">
+        <i class="pi pi-info-circle menu-icon"/>
+        <span>About</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
     </div>
 
     <!-- App -->
@@ -180,22 +175,6 @@ function logout() {
 
     <!-- About & Donate -->
     <div class="about-section">
-      <div class="intro-card">
-        <div class="brand">
-          <span class="brand-mark">📈</span>
-          <span class="brand-name gradient-title">StockFolio</span>
-        </div>
-        <p class="tagline text-muted">
-          A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L,
-          price alerts, and a clean dark interface.
-        </p>
-        <ul class="feature-list">
-          <li v-for="f in features" :key="f.text">
-            <i :class="f.icon"/><span>{{ f.text }}</span>
-          </li>
-        </ul>
-      </div>
-
       <div class="donate-card">
         <h2 class="donate-title">Support StockFolio</h2>
         <p class="text-muted donate-sub">StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.</p>
@@ -397,24 +376,14 @@ function logout() {
   }
 }
 
-.intro-card, .donate-card {
+.donate-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.25rem;
   margin-bottom: 1rem;
+  text-align: center;
 }
-
-.brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
-.brand-mark { font-size: 1.5rem; }
-.brand-name { font-size: 1.3rem; font-weight: 800; }
-.tagline { font-size: 0.88rem; line-height: 1.5; margin-bottom: 1rem; }
-
-.feature-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
-.feature-list li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; }
-.feature-list i { color: var(--accent); font-size: 0.85rem; margin-top: 2px; flex-shrink: 0; }
-
-.donate-card { text-align: center; }
 .donate-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; }
 .donate-sub { font-size: 0.82rem; line-height: 1.45; margin-bottom: 1.1rem; }
 

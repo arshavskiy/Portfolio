@@ -791,6 +791,15 @@ function draw() {
 
         dragPreview.value = { index, point: draggedPoint }
         showFocusAt(draggedPoint, true)
+
+        // Emit a live preview so the parent's delta readout updates mid-drag
+        // (without committing to selectedPoints, which would resort/redraw).
+        const base = dragStartPoints.value.length ? [...dragStartPoints.value] : [...selectedPoints.value]
+        base[index] = draggedPoint
+        emit('selection-change', base
+          .map(normalizePoint)
+          .filter(Boolean)
+          .sort((a, b) => new Date(a.date) - new Date(b.date)))
       })
       .on('end', () => {
         if (dragPreview.value?.point) {

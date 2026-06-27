@@ -76,7 +76,7 @@ onMounted(async () => {
   }
   marketTimer = setInterval(() => {
     now.value = new Date()
-  }, 60000)
+  }, 15 * 60000)
 })
 
 async function fetchSparklines() {

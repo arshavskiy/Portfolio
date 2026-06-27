@@ -462,12 +462,6 @@ function switchMode(nextMode) {
               </div>
             </div>
           </div>
-
-          <!-- Import guide -->
-          <div class="preview-section">
-            <div class="preview-section-label">Bulk Import — Excel / CSV</div>
-            <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="preview-section-img"/>
-          </div>
         </div>
       </section>
 
@@ -1349,31 +1343,6 @@ function switchMode(nextMode) {
 }
 
 /* ── Desktop/Import preview sections ── */
-.preview-section {
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  margin-top: 1.5rem;
-}
-
-.preview-section-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 0.55rem 1rem;
-  background: var(--bg-card);
-  border-bottom: 1px solid var(--border);
-}
-
-.preview-section-img {
-  display: block;
-  width: 100%;
-  height: auto;
-  background: #070707;
-}
-
 /* ── Rebalancer slide ── */
 .mk-rebal-row {
   display: flex;
