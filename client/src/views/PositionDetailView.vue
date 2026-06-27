@@ -670,7 +670,11 @@ const regularHoursDelta = computed(() =>
     lowHighDelta(history.value.filter((d) => isRegularSessionBar(d.date, ticker.value)))
 )
 
-const displayedDelta = computed(() => selectedDelta.value ?? defaultDelta.value)
+// Single measure row: selection takes over; otherwise show the trading-hours
+// low → high (falling back to the full range if no regular-session bars exist).
+const measureDelta = computed(() =>
+    selectedDelta.value ?? regularHoursDelta.value ?? defaultDelta.value
+)
 
 function handleChartSelection(points) {
   selectedChartPoints.value = points
@@ -877,37 +881,21 @@ async function toggleWatchlist() {
       </div>
 
       <div class="chart-measure">
-        <div v-if="regularHoursDelta" class="measure-summary measure-regular">
-          <span class="measure-tag text-muted">Trading hours</span>
-          <span :class="gainLossClass(regularHoursDelta.amount)">
-            {{ useTickerCurrency(regularHoursDelta.amount, ticker) }} ({{ usePercent(regularHoursDelta.percent) }})
+        <div v-if="measureDelta" class="measure-summary">
+          <span class="measure-tag text-muted">
+            {{ selectedDelta ? 'Selected range' : 'Trading hours' }}
+          </span>
+          <span :class="gainLossClass(measureDelta.amount)">
+            {{ useTickerCurrency(measureDelta.amount, ticker) }} ({{ usePercent(measureDelta.percent) }})
           </span>
           <span class="text-muted">
             {{
-              useTickerCurrency(regularHoursDelta.startPrice, ticker)
-            }} to {{ useTickerCurrency(regularHoursDelta.endPrice, ticker) }}
+              useTickerCurrency(measureDelta.startPrice, ticker)
+            }} to {{ useTickerCurrency(measureDelta.endPrice, ticker) }}
           </span>
-          <!--          <span class="text-muted">-->
-          <!--            {{ regularHoursDelta.startLabel }} to {{ regularHoursDelta.endLabel }} · {{ regularHoursDelta.spanLabel }}-->
-          <!--          </span>-->
         </div>
-
-
-        <div v-if="displayedDelta" class="measure-summary">
-        <span class="text-muted measure-hint">
-          {{ selectedDelta ? 'Selected range' : 'Range low → high · tap two points to measure' }}
-        </span>
-          <span :class="gainLossClass(displayedDelta.amount)">
-          {{ useTickerCurrency(displayedDelta.amount, ticker) }} ({{ usePercent(displayedDelta.percent) }})
-        </span>
-          <span class="text-muted">
-          {{
-              useTickerCurrency(displayedDelta.startPrice, ticker)
-            }} to {{ useTickerCurrency(displayedDelta.endPrice, ticker) }}
-        </span>
-          <!--          <span class="text-muted">-->
-          <!--          {{ displayedDelta.startLabel }} to {{ displayedDelta.endLabel }} · {{ displayedDelta.spanLabel }}-->
-          <!--        </span>-->
+        <div v-else class="text-muted measure-hint">
+          Tap two points on the chart to measure delta.
         </div>
       </div>
 
@@ -1758,12 +1746,6 @@ async function toggleWatchlist() {
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.84rem;
-}
-
-.measure-regular {
-  padding-bottom: 0.5rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
 }
 
 .measure-tag {
