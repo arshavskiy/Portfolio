@@ -551,7 +551,8 @@ function switchMode(nextMode) {
     <footer class="landing-footer">
       <RouterLink to="/about" class="footer-link">About</RouterLink>
       <span class="footer-sep">·</span>
-      © {{ new Date().getFullYear() }} StockFolio · handcoded.tech. All rights reserved.
+      © {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech" href="//handcoded.tech">
+      handcoded.tech </a>. All rights reserved.
     </footer>
   </div>
 </template>

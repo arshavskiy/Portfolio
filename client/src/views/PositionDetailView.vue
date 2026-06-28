@@ -5,6 +5,7 @@ import {useToast} from 'primevue/usetoast'
 import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
+import {useWatchlistStore} from '@/stores/watchlist'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, isRegularSessionBar, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
@@ -32,6 +33,7 @@ const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 const historyStore = useHistoryStore()
+const watchlistStore = useWatchlistStore()
 
 const ticker = computed(() =>
     props.tickerOverride
@@ -749,11 +751,11 @@ const momentumBreakdown = computed(() => buildBreakdown({
 
 async function toggleWatchlist() {
   if (watchedItem.value) {
-    await api.delete(`/watchlist/${watchedItem.value._id}`)
+    await watchlistStore.removeItem(watchedItem.value._id)
     watchedItem.value = null
     toast.add({severity: 'info', summary: 'Removed from watchlist', life: 2000})
   } else {
-    watchedItem.value = await api.post('/watchlist', {ticker: ticker.value, companyName: quote.value?.name})
+    watchedItem.value = await watchlistStore.addItem(ticker.value, quote.value?.name)
     toast.add({severity: 'success', summary: 'Added to watchlist', life: 2000})
   }
 }

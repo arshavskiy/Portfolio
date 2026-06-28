@@ -62,9 +62,10 @@ export const useWatchlistStore = defineStore('watchlist', () => {
   }
 
   async function addItem(ticker, companyName) {
-    await api.post('/watchlist', {ticker, companyName})
+    const created = await api.post('/watchlist', {ticker, companyName})
     await invalidateClientCachePrefix(CACHE_PREFIX)
     await fetchWatchlist(lastRange, {force: true})
+    return created
   }
 
   // Bulk-add without re-fetching after each item; caller refreshes once at the end.

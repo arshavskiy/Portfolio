@@ -194,7 +194,9 @@ function logout() {
       </div>
     </div>
 
-    <p class="legal text-muted">© {{ new Date().getFullYear() }} StockFolio · handcoded.tech. All rights reserved.</p>
+    <p class="legal text-muted">© {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech"
+                                                                                 href="//handcoded.tech">
+      handcoded.tech </a>. All rights reserved.</p>
 
     <FeeProfilesModal v-model:visible="showFeeProfiles" />
   </div>
