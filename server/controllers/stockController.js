@@ -1,5 +1,6 @@
 const {
   getQuote,
+  getQuotes,
   getHistory,
   isHistoryCached,
   searchTicker,
@@ -104,6 +105,27 @@ exports.getQuote = async (req, res) => {
   try {
     const data = await getQuote(req.params.ticker.toUpperCase())
     res.json(data)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+// Batch-validate tickers against Yahoo. Returns the set of symbols that
+// actually resolve to a quote, so the importer can flag unknown ones.
+exports.validateTickers = async (req, res) => {
+  try {
+    const raw = Array.isArray(req.body?.tickers) ? req.body.tickers : []
+    const tickers = [...new Set(raw.map((t) => String(t || '').trim().toUpperCase()).filter(Boolean))]
+    if (!tickers.length) return res.json({ valid: [] })
+
+    // getQuotes returns an array of quote data (or null) aligned to `tickers`.
+    const quotes = await getQuotes(tickers).catch(() => [])
+    const valid = []
+    quotes.forEach((data, i) => {
+      if (data && data.price != null) valid.push(tickers[i].toUpperCase())
+    })
+
+    res.json({ valid: [...new Set(valid)] })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

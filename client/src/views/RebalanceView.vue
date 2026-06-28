@@ -238,13 +238,11 @@ function formatShares(n) {
 
 .page-header h1 {
   flex: 1;
-  font-size: 1.5rem;
   text-align: center;
 }
 
 .page-loader {
-  display: flex;
-  justify-content: center;
+  min-height: 0;
   padding: 3rem;
 }
 
@@ -437,15 +435,6 @@ function formatShares(n) {
   margin-top: 0.85rem;
   font-size: 0.75rem;
   text-align: center;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
 }
 
 .empty i {

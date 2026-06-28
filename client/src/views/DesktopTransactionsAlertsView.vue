@@ -442,20 +442,8 @@ watch(activeTab, (tab) => {
 .filter-input { flex: 1; }
 .filter-select { width: 130px; }
 
-.page-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 180px;
-}
 
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
-}
+.empty { height: auto; }
 
 .empty i { font-size: 3rem; color: var(--text-secondary); }
 

@@ -452,20 +452,13 @@ watch(range, async (r) => {
 
 .page-loader {
   flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 0;
 }
 
 .empty {
   flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
+  height: auto;
 }
 
 .empty i {

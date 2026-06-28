@@ -205,16 +205,6 @@ h1 {
   margin-top: 1.25rem;
 }
 
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
-  text-align: center;
-}
-
 .empty i {
   font-size: 2.4rem;
 }

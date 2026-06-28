@@ -159,6 +159,7 @@ const combinedDisplay = computed(() => {
         <!--            @click="compactMode = !compactMode"-->
         <!--        />-->
         <Button
+            v-if="portfolio.positions.length"
             v-tooltip.bottom="'Rebalance'"
             icon="pi pi-sliders-h"
             size="small"
@@ -214,7 +215,7 @@ const combinedDisplay = computed(() => {
     <div v-else-if="!portfolio.positions.length" class="empty">
       <i class="pi pi-briefcase"/>
       <p>No holdings yet</p>
-      <Button label="Add Transaction" @click="showModal = true"/>
+      <Button label="Add Transaction" outlined @click="showModal = true"/>
     </div>
 
     <div v-else :class="compactMode ? 'positions-compact' : 'positions-list'">
@@ -260,9 +261,6 @@ const combinedDisplay = computed(() => {
   margin-bottom: 1.5rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-}
 
 .header-actions {
   display: flex;
@@ -285,24 +283,13 @@ const combinedDisplay = computed(() => {
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
-  color: var(--text-secondary);
+  height: calc(100vh - 400px);
 }
 
 .empty i {
   font-size: 3rem;
 }
 
-.page-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 180px;
-}
 
 .positions-list {
   display: flex;

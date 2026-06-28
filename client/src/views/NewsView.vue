@@ -142,9 +142,6 @@ onUnmounted(() => observer?.disconnect())
   margin-bottom: 1rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-}
 
 .page-header p {
   font-size: 0.82rem;
@@ -187,16 +184,6 @@ onUnmounted(() => observer?.disconnect())
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.65rem;
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--text-secondary);
 }
 
 .empty i {

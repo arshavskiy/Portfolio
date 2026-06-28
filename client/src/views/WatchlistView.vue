@@ -346,9 +346,6 @@ header {
   margin-bottom: 1.25rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-}
 
 .count-badge {
   -webkit-text-fill-color: var(--text-secondary);
@@ -379,25 +376,10 @@ header {
   border-bottom: 1px solid rgba(0, 207, 255, 0.18);
 }
 
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 4rem 1rem;
-  color: var(--text-secondary);
-}
-
 .empty i {
   font-size: 3rem;
 }
 
-.page-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 180px;
-}
 
 .watch-list {
   display: flex;

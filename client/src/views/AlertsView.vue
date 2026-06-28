@@ -114,9 +114,6 @@ async function remove(alert) {
   margin-bottom: 1.25rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-}
 
 .push-card {
   display: flex;
@@ -147,16 +144,6 @@ async function remove(alert) {
 
 .push-sub {
   font-size: 0.78rem;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 3rem 1rem;
-  text-align: center;
-  color: var(--text-secondary);
 }
 
 .empty i {

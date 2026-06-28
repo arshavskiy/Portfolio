@@ -1284,7 +1284,7 @@ async function toggleWatchlist() {
       <div v-if="!lots.length" class="empty">
         <i class="pi pi-list"/>
         <p class="text-muted">No transactions yet</p>
-        <Button label="Add Transaction" @click="showModal = true"/>
+        <Button label="Add Transaction" outlined @click="showModal = true"/>
       </div>
 
       <div v-else class="lots-list">
@@ -1927,18 +1927,11 @@ async function toggleWatchlist() {
 }
 
 .page-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 260px;
 }
 
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
+  height: auto;
 }
 
 .empty i {

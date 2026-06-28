@@ -521,7 +521,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
 .filter-input { flex: 1; }
 .filter-select { width: 120px; }
 
-.page-loader { display: flex; justify-content: center; padding: 2rem; }
+.page-loader { min-height: 0; padding: 2rem; }
 
 .tx-list { display: flex; flex-direction: column; }
 

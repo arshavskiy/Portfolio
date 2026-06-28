@@ -141,7 +141,6 @@ async function copyAddress() {
 @media (min-width: 768px) { .about { padding: 1.5rem; max-width: 640px; } }
 
 .page-header { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 1.25rem; }
-.page-header h1 { font-size: 1.5rem; }
 
 .intro-card, .donate-card {
   background: var(--bg-card);

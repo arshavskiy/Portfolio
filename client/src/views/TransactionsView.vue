@@ -340,9 +340,6 @@ watch(activeTab, (tab) => {
   margin-bottom: 1rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-}
 
 /* Tab bar */
 .tab-bar {
@@ -385,20 +382,6 @@ watch(activeTab, (tab) => {
   width: 130px;
 }
 
-.page-loader {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 180px;
-}
-
-.empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 3rem 1rem;
-}
 
 .empty i {
   font-size: 3rem;

@@ -214,7 +214,7 @@ function feeLabel(p) {
 .default-badge { font-size: 0.68rem; background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 6px; }
 .profile-detail { font-size: 0.78rem; }
 .profile-country { font-size: 0.75rem; }
-.empty { padding: 0.5rem 0 1rem; }
+.empty { display: block; height: auto; padding: 0.5rem 0 1rem; }
 .mt { margin-top: 0.5rem; }
 
 .fee-form { display: flex; flex-direction: column; gap: 1rem; }

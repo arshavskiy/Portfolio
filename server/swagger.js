@@ -393,6 +393,25 @@ const spec = swaggerJsdoc({
           responses: { 200: { description: 'Search results', content: { 'application/json': { schema: { type: 'array', items: { type: 'object', properties: { ticker: { type: 'string' }, name: { type: 'string' }, type: { type: 'string' } } } } } } } },
         },
       },
+      '/stocks/validate-tickers': {
+        post: {
+          tags: ['Stocks'],
+          summary: 'Batch-validate ticker symbols — returns those that resolve to a live quote',
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  required: ['tickers'],
+                  properties: { tickers: { type: 'array', items: { type: 'string' }, example: ['AAPL', 'ZZZZZ', 'MSFT'] } },
+                },
+              },
+            },
+          },
+          responses: { 200: { description: 'Valid symbols', content: { 'application/json': { schema: { type: 'object', properties: { valid: { type: 'array', items: { type: 'string' } } } } } } } },
+        },
+      },
       '/stocks/quote/{ticker}': {
         get: {
           tags: ['Stocks'],

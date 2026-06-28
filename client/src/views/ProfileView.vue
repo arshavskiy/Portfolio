@@ -240,10 +240,6 @@ function logout() {
   margin-bottom: 1rem;
 }
 
-.page-header h1 {
-  font-size: 1.5rem;
-}
-
 /* Identity */
 .profile-card {
   display: flex;

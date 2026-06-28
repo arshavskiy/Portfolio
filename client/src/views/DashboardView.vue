@@ -316,7 +316,7 @@ onUnmounted(() => {
 .pnl-val { font-weight: 500; }
 .day-pnl { font-size: 0.78rem; }
 
-.empty { padding: 2rem 0; font-size: 0.9rem; text-align: center; }
+.empty { display: block; height: auto; padding: 2rem 0; font-size: 0.9rem; text-align: center; }
 
 /* ── Responsive: tile stock cards + roomier totals on wide screens ── */
 @media (min-width: 768px) {

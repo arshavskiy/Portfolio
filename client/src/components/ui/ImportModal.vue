@@ -1,8 +1,9 @@
 <script setup>
-import {computed, ref} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useWatchlistStore} from '@/stores/watchlist'
+import api from '@/composables/useApi'
 import {autoMap, downloadTemplate, mapRows, parseFile} from '@/composables/useImport'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
@@ -52,11 +53,47 @@ const headerOptions = computed(() => [
   ...headers.value.map((h) => ({label: h, value: h})),
 ])
 
-const mappedRows = computed(() => mapRows(rawRows.value, map.value, props.mode))
+// Live ticker existence check. `validSet` = symbols Yahoo resolved; null means
+// "not yet checked" (don't flag anything until we have an answer).
+const validating = ref(false)
+const validSet = ref(null) // Set<string> of UPPERCASE tickers, or null
+
+const baseRows = computed(() => mapRows(rawRows.value, map.value, props.mode))
+
+// Layer existence results on top of the format check: a well-formed ticker that
+// Yahoo doesn't recognize becomes invalid so it's skipped on import.
+const mappedRows = computed(() =>
+    baseRows.value.map((r) => {
+      if (!r.valid || validSet.value == null) return r
+      if (validSet.value.has(r.ticker.toUpperCase())) return r
+      return {...r, valid: false, unknown: true, error: 'Unknown ticker — not found'}
+    })
+)
+
 const validCount = computed(() => mappedRows.value.filter((r) => r.valid).length)
 const canImport = computed(() =>
-    validCount.value > 0 && fields.value.filter((f) => f.required).every((f) => map.value[f.key])
+    !validating.value &&
+    validCount.value > 0 &&
+    fields.value.filter((f) => f.required).every((f) => map.value[f.key])
 )
+
+// Whenever the ticker mapping or parsed rows change, re-verify existence.
+watch([() => map.value.ticker, rawRows], () => validateTickers(), {immediate: false})
+
+async function validateTickers() {
+  validSet.value = null
+  const tickers = [...new Set(baseRows.value.filter((r) => r.valid).map((r) => r.ticker.toUpperCase()))]
+  if (!tickers.length) return
+  validating.value = true
+  try {
+    const {valid} = await api.post('/stocks/validate-tickers', {tickers})
+    validSet.value = new Set((valid || []).map((t) => t.toUpperCase()))
+  } catch {
+    validSet.value = null // on error, don't block — fall back to format-only
+  } finally {
+    validating.value = false
+  }
+}
 
 function reset() {
   fileName.value = ''
@@ -65,6 +102,8 @@ function reset() {
   map.value = {}
   progress.value = 0
   result.value = null
+  validSet.value = null
+  validating.value = false
 }
 
 function pickFile() {
@@ -208,11 +247,14 @@ function close() {
         <div class="preview">
           <div class="preview-head">
             <span>Preview</span>
-            <span class="text-muted">{{ validCount }} of {{ mappedRows.length }} valid</span>
+            <span class="text-muted">
+              <template v-if="validating">checking tickers…</template>
+              <template v-else>{{ validCount }} of {{ mappedRows.length }} valid</template>
+            </span>
           </div>
           <div class="preview-list">
             <div
-                v-for="(r, i) in mappedRows.slice(0, 50)"
+                v-for="(r, i) in mappedRows"
                 :key="i"
                 :class="{ invalid: !r.valid }"
                 class="preview-row"
@@ -222,11 +264,11 @@ function close() {
                 {{ r.shares ?? '?' }} × {{ r.price ?? '?' }}
               </span>
               <span v-if="r.groups?.length" class="p-groups text-muted">{{ r.groups.join(', ') }}</span>
-              <i v-if="r.valid" class="pi pi-check ok"/>
+              <i v-if="validating && r.valid !== false" class="pi pi-spin pi-spinner text-muted"/>
+              <i v-else-if="r.valid" class="pi pi-check ok"/>
               <i v-else :title="r.error" class="pi pi-times bad"/>
             </div>
           </div>
-          <p v-if="mappedRows.length > 50" class="text-muted more">+{{ mappedRows.length - 50 }} more…</p>
         </div>
 
         <!-- Progress -->
@@ -238,8 +280,8 @@ function close() {
         <Button
             v-if="!result"
             :disabled="!canImport || importing"
-            :label="`Import ${validCount} ${isHoldings ? 'holdings' : 'tickers'}`"
-            :loading="importing"
+            :label="validating ? 'Checking tickers…' : `Import ${validCount} ${isHoldings ? 'holdings' : 'tickers'}`"
+            :loading="importing || validating"
             fluid
             outlined
             @click="runImport"
