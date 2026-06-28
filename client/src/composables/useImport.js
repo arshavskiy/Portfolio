@@ -91,10 +91,10 @@ export function downloadTemplate(mode) {
             ['POLI.TA', 100, 1850, '2026-03-10', 'Israel'],
         ]
         : [
-            ['Ticker', 'Company'],
-            ['GOOGL', 'Alphabet'],
-            ['TSLA', 'Tesla'],
-            ['TEVA.TA', 'Teva'],
+            ['Ticker'],
+            ['GOOGL'],
+            ['TSLA'],
+            ['TEVA.TA'],
         ]
     const ws = XLSX.utils.aoa_to_sheet(data)
     const wb = XLSX.utils.book_new()
