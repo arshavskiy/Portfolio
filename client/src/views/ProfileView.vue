@@ -370,7 +370,6 @@ function logout() {
 @media (min-width: 1024px) {
   .about-section {
     display: grid;
-    grid-template-columns: 1fr 1fr;
     gap: 1.5rem;
     align-items: start;
   }
