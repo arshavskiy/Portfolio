@@ -10,6 +10,7 @@ const props = defineProps({
   range: { type: String, default: '3mo' },
   ticker: { type: String, default: '' },
   currentPrice: { type: Number, default: null },
+  persistentRangeSelection: {type: Boolean, default: false},
 })
 
 const emit = defineEmits(['selection-change'])
@@ -18,10 +19,9 @@ const svgRef = ref(null)
 const containerRef = ref(null)
 const selectedPoints = ref([])
 const hasSelections = computed(() => selectedPoints.value.length > 0)
-const draggingSelection = ref(false)
+const activeDragPoints = ref({})
+const draggingSelection = computed(() => Object.keys(activeDragPoints.value).length > 0)
 const suppressClickUntil = ref(0)
-const dragPreview = ref(null)
-const dragStartPoints = ref([])
 const dragPreviewPill = ref(null)
 
 function normalizePoint(d) {
@@ -184,11 +184,71 @@ function setSelectedPoints(points) {
   emit('selection-change', points.map(normalizePoint).filter(Boolean))
 }
 
+function previewSelectionPoints(points = selectedPoints.value) {
+  const merged = [...points]
+
+  Object.entries(activeDragPoints.value).forEach(([index, point]) => {
+    const numericIndex = Number(index)
+    if (Number.isInteger(numericIndex) && point) merged[numericIndex] = point
+  })
+
+  return merged
+      .filter(Boolean)
+      .filter((point, index, items) => index === items.findIndex((item) => item.date.getTime() === point.date.getTime()))
+      .sort((a, b) => a.date - b.date)
+}
+
+function pointTime(point) {
+  const time = new Date(point?.date).getTime()
+  return Number.isFinite(time) ? time : null
+}
+
+function nearestParsedPointByTime(parsed, targetTime) {
+  if (!parsed.length || !Number.isFinite(targetTime)) return null
+
+  return parsed.reduce((best, point) => {
+    if (!best) return point
+    const pointDistance = Math.abs(point.date.getTime() - targetTime)
+    const bestDistance = Math.abs(best.date.getTime() - targetTime)
+    return pointDistance < bestDistance ? point : best
+  }, null)
+}
+
+function defaultSelectionPoints(parsed) {
+  if (parsed.length < 2) return []
+  return [parsed[0], parsed[parsed.length - 1]]
+}
+
+function syncSelectedPointsWithParsed(parsed) {
+  if (!props.persistentRangeSelection) return
+  if (parsed.length < 2) {
+    if (selectedPoints.value.length) setSelectedPoints([])
+    return
+  }
+
+  const synced = selectedPoints.value
+      .map((point) => nearestParsedPointByTime(parsed, pointTime(point)))
+      .filter(Boolean)
+      .filter((point, index, items) => index === items.findIndex((item) => item.date.getTime() === point.date.getTime()))
+      .sort((a, b) => a.date - b.date)
+
+  const nextPoints = synced.length === 2 ? synced : defaultSelectionPoints(parsed)
+  const currentTimes = selectedPoints.value.map(pointTime)
+  const nextTimes = nextPoints.map((point) => point.date.getTime())
+  const changed = currentTimes.length !== nextTimes.length || currentTimes.some((time, index) => time !== nextTimes[index])
+
+  if (changed) setSelectedPoints(nextPoints)
+}
+
 function clearSelectedPoints() {
-  dragPreview.value = null
-  dragStartPoints.value = []
+  activeDragPoints.value = {}
   dragPreviewPill.value = null
-  setSelectedPoints([])
+  if (props.persistentRangeSelection) {
+    const parsed = props.data.map((d) => ({...d, date: new Date(d.date)}))
+    setSelectedPoints(defaultSelectionPoints(parsed))
+  } else {
+    setSelectedPoints([])
+  }
   nextTick(draw)
 }
 
@@ -255,8 +315,8 @@ function pickNearestPoint(mx, parsed, x, bisect, marginLeft) {
 function eventClientX(eventLike) {
   if (!eventLike) return null
   if (Number.isFinite(eventLike.clientX)) return eventLike.clientX
-  if (eventLike.touches?.length && Number.isFinite(eventLike.touches[0]?.clientX)) return eventLike.touches[0].clientX
   if (eventLike.changedTouches?.length && Number.isFinite(eventLike.changedTouches[0]?.clientX)) return eventLike.changedTouches[0].clientX
+  if (eventLike.touches?.length && Number.isFinite(eventLike.touches[0]?.clientX)) return eventLike.touches[0].clientX
   return null
 }
 
@@ -284,6 +344,7 @@ function draw() {
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
   const parsed = props.data.map((d) => ({ ...d, date: new Date(d.date) }))
+  syncSelectedPointsWithParsed(parsed)
   const intraday = props.range === '1d' || (
     parsed.length > 1 &&
     (parsed[parsed.length - 1].date - parsed[0].date) <= (36 * 60 * 60 * 1000)
@@ -773,13 +834,17 @@ function draw() {
   }
 
   const selectionLayer = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
+  let renderSelections = () => {
+  }
   function selectionDrag(index, point) {
     return d3.drag()
       .on('start', () => {
-        draggingSelection.value = true
-        dragStartPoints.value = [...selectedPoints.value]
-        dragPreview.value = { index, point }
+        activeDragPoints.value = {
+          ...activeDragPoints.value,
+          [index]: point,
+        }
         showFocusAt(point, true)
+        renderSelections()
       })
       .on('drag', (event) => {
         const source = event?.sourceEvent ?? event
@@ -789,40 +854,34 @@ function draw() {
           : null
         if (!draggedPoint) return
 
-        dragPreview.value = { index, point: draggedPoint }
+        activeDragPoints.value = {
+          ...activeDragPoints.value,
+          [index]: draggedPoint,
+        }
         showFocusAt(draggedPoint, true)
+        renderSelections()
 
-        // Emit a live preview so the parent's delta readout updates mid-drag
-        // (without committing to selectedPoints, which would resort/redraw).
-        const base = dragStartPoints.value.length ? [...dragStartPoints.value] : [...selectedPoints.value]
-        base[index] = draggedPoint
-        emit('selection-change', base
+        emit('selection-change', previewSelectionPoints()
           .map(normalizePoint)
-          .filter(Boolean)
-          .sort((a, b) => new Date(a.date) - new Date(b.date)))
+            .filter(Boolean))
       })
       .on('end', () => {
-        if (dragPreview.value?.point) {
-          const next = dragStartPoints.value.length
-            ? [...dragStartPoints.value]
-            : [...selectedPoints.value]
-          next[index] = dragPreview.value.point
-          setSelectedPoints(next.sort((a, b) => new Date(a.date) - new Date(b.date)))
-          nextTick(draw)
-        }
-        dragPreview.value = null
-        dragStartPoints.value = []
+        const next = previewSelectionPoints()
+        setSelectedPoints(next)
+        const updatedActiveDragPoints = {...activeDragPoints.value}
+        delete updatedActiveDragPoints[index]
+        activeDragPoints.value = updatedActiveDragPoints
+        renderSelections()
         dragPreviewPill.value = null
         suppressClickUntil.value = Date.now() + 250
-        draggingSelection.value = false
         focus.style('display', 'none')
       })
   }
 
-  const renderSelections = () => {
+  renderSelections = () => {
     selectionLayer.selectAll('*').remove()
 
-    selectedPoints.value.forEach((point, index) => {
+    previewSelectionPoints().forEach((point, index) => {
       const cx = xPos(point)
       const cy = y(point.close)
       const stroke = index === 0 ? '#e2e8f0' : '#cbd5e1'
@@ -898,10 +957,9 @@ function draw() {
 onMounted(() => nextTick(draw))
 watch(() => [props.data, props.loading, props.mode, props.range, props.currentPrice], () => nextTick(draw))
 watch(() => props.data, () => {
-  dragPreview.value = null
-  dragStartPoints.value = []
+  activeDragPoints.value = {}
   dragPreviewPill.value = null
-  setSelectedPoints([])
+  if (!props.persistentRangeSelection) setSelectedPoints([])
 }, { deep: true })
 
 const ro = new ResizeObserver(() => nextTick(draw))
@@ -916,7 +974,8 @@ onUnmounted(() => ro.disconnect())
       class="clear-selection"
       type="button"
       @click="clearSelectedPoints"
-    >Clear</button>
+    >{{ persistentRangeSelection ? 'Reset' : 'Clear' }}
+    </button>
     <div
       v-if="dragPreviewPill"
       class="drag-preview-pill"

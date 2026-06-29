@@ -973,6 +973,7 @@ async function toggleWatchlist() {
           :data="history"
           :loading="chartLoading"
           :mode="chartMode"
+          :persistent-range-selection="true"
           :range="selectedRange"
           :ticker="ticker"
           @selection-change="handleChartSelection"
@@ -998,7 +999,7 @@ async function toggleWatchlist() {
           </span>
         </div>
         <div v-else class="text-muted measure-hint">
-          Tap two points on the chart to measure delta.
+          Drag either range marker to update the selected delta.
         </div>
       </div>
 

@@ -316,6 +316,7 @@ const combinedDisplay = computed(() => {
 }
 
 .stat-bordered {
+  position: relative;
   border-left: 1px solid var(--border);
   padding-left: 0.75rem;
 }
