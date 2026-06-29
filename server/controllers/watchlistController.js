@@ -22,7 +22,7 @@ function normalizeGroups(groups) {
 exports.getWatchlist = async (req, res) => {
   try {
       const range = ['1d', '5d', '1mo', '3mo', '6mo', '1y'].includes(req.query.range) ? req.query.range : '1mo'
-      const detailPoints = range === '1d' ? 20 : 15
+      const detailPoints = range === '1d' ? 60 : 50
     const items = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 })
     if (!items.length) return res.json([])
 
