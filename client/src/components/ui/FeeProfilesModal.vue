@@ -1,7 +1,8 @@
 <script setup>
-import {onMounted, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
+import {useCurrency} from '@/composables/useFormat'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -15,6 +16,19 @@ const emit = defineEmits(['update:visible'])
 const toast = useToast()
 const store = useFeeProfileStore()
 
+const BUILTIN_FEE_PROFILES = [
+  {
+    _id: 'builtin:blink-plus',
+    builtin: true,
+    name: 'בלינק Plus',
+    currency: 'USD',
+    buyFee: {type: 'perShare', value: 0.01, minFee: 1.5},
+    sellFee: {type: 'perShare', value: 0.01, minFee: 1.5},
+    capitalGainsTax: 25,
+    monthlyUsage: {transactions: 10, shares: 1000},
+  },
+]
+
 // ⓘ tooltip explanations, see project_info_tooltip_pattern
 const INFO = {
   buyFee: 'Commission your broker charges when you buy. Percent of trade value, or a flat amount per order.',
@@ -26,6 +40,10 @@ const INFO = {
 
 const editing = ref(null)
 const form = ref(defaultForm())
+const visibleProfiles = computed(() => [
+  ...BUILTIN_FEE_PROFILES,
+  ...store.profiles,
+])
 
 function defaultForm() {
   return {
@@ -41,6 +59,7 @@ onMounted(() => { if (!store.profiles.length) store.fetchProfiles() })
 
 function openNew() { editing.value = 'new'; form.value = defaultForm() }
 function openEdit(p) {
+  if (p.builtin) return
   editing.value = p
   form.value = {
     name: p.name,
@@ -87,6 +106,7 @@ async function save() {
 }
 
 async function remove(p) {
+  if (p.builtin) return
   try {
     await store.deleteProfile(p._id)
     toast.add({ severity: 'success', summary: 'Deleted', life: 2000 })
@@ -97,13 +117,28 @@ async function remove(p) {
 
 function feeLabel(p) {
   const buy = p.buyFee?.value
-    ? `Buy ${p.buyFee.type === 'percent' ? formatFeePercent(p.buyFee.value) : p.buyFee.value}`
+    ? `Buy ${formatFeeRule(p.buyFee, p.currency || 'USD')}`
     : null
   const sell = p.sellFee?.value
-    ? `Sell ${p.sellFee.type === 'percent' ? formatFeePercent(p.sellFee.value) : p.sellFee.value}`
+    ? `Sell ${formatFeeRule(p.sellFee, p.currency || 'USD')}`
     : null
+  const usage = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : null
   const tax = p.capitalGainsTax ? `Tax ${formatPercentValue(p.capitalGainsTax)}%` : null
-  return [buy, sell, tax].filter(Boolean).join(' · ') || 'No fees'
+  return [buy, sell, usage, tax].filter(Boolean).join(' · ') || 'No fees'
+}
+
+function formatFeeRule(rule, currency = 'USD') {
+  if (!rule?.value) return '0'
+  if (rule.type === 'percent') return formatFeePercent(rule.value)
+  if (rule.type === 'perShare') return `${useCurrency(rule.value, currency)} / share`
+  return useCurrency(rule.value, currency)
+}
+
+function formatMonthlyUsage(usage) {
+  const parts = []
+  if (usage.transactions) parts.push(`${usage.transactions} tx/mo`)
+  if (usage.shares) parts.push(`${usage.shares.toLocaleString()} shares/mo`)
+  return parts.join(' or ')
 }
 </script>
 
@@ -119,19 +154,20 @@ function feeLabel(p) {
     <!-- Profile list -->
     <div v-if="!editing">
       <div v-if="store.loading" class="text-muted">Loading...</div>
-      <div v-else-if="!store.profiles.length" class="empty">
+      <div v-else-if="!visibleProfiles.length" class="empty">
         <p class="text-muted">No fee profiles yet. Add one to track brokerage costs.</p>
       </div>
       <div v-else class="profile-list">
-        <div v-for="p in store.profiles" :key="p._id" class="profile-row">
+        <div v-for="p in visibleProfiles" :key="p._id" class="profile-row" :class="{ preset: p.builtin }">
           <div class="profile-info" @click="openEdit(p)">
             <span class="profile-name">
               {{ p.name }}
+              <span v-if="p.builtin" class="preset-badge">Preset</span>
               <span v-if="p.isDefault" class="default-badge">Default</span>
             </span>
             <span class="profile-detail text-muted">{{ feeLabel(p) }}</span>
           </div>
-          <div class="profile-actions">
+          <div v-if="!p.builtin" class="profile-actions">
             <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(p)" />
             <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(p)" />
           </div>
@@ -217,10 +253,12 @@ function feeLabel(p) {
 <style scoped>
 .profile-list { display: flex; flex-direction: column; margin-bottom: 1rem; }
 .profile-row { display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.profile-row.preset .profile-info { cursor: default; }
 .profile-info { flex: 1; display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
 .profile-actions { display: flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem; }
 .profile-name { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
 .default-badge { font-size: 0.68rem; background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 6px; }
+.preset-badge { font-size: 0.68rem; background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; }
 .profile-detail { font-size: 0.78rem; }
 .profile-country { font-size: 0.75rem; }
 .empty { display: block; height: auto; padding: 0.5rem 0 1rem; }

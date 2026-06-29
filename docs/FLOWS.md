@@ -23,9 +23,9 @@
 
 ### Buying a Stock
 1. User opens **Add Transaction** modal (buy mode)
-2. Ticker search calls `GET /stocks/search?q=` → user selects result
-3. Price pre-filled from `GET /stocks/quote/:ticker` (live)
-4. Optional: select a Fee Profile → preview fee/tax costs
+2. If the modal was opened from a ticker/position context, the ticker is displayed in a disabled fixed-ticker field; otherwise ticker search calls `GET /stocks/search?q=` and the selected market suffix is applied.
+3. Price pre-filled from `GET /stocks/quote/:ticker` (live). Price input uses compact currency formatting, so whole prices do not force `.00` while decimals remain allowed.
+4. Optional: select a Fee Profile or built-in preset → preview fee/tax costs
 5. Submit → `POST /portfolio/transaction` (`type: "buy"`)
 6. Server:
    - Computes fee + tax via fee profile if provided
@@ -34,14 +34,15 @@
 7. `portfolioStore.fetchPortfolio()` refreshes — new card appears in Holdings
 
 ### Selling a Stock (Full or Partial)
-1. From `HoldingsView` → "Sell" button on a `PositionCard`
-2. Modal opens in sell mode, pre-filled with position ticker
-3. User enters shares to sell (validated ≤ current shares)
-4. Submit → `POST /portfolio/transaction` (`type: "sell"`)
-5. Server:
+1. From a ticker/position context, user opens the **Add Transaction** modal in sell mode
+2. Modal opens with a disabled fixed ticker, current price when available, and max-share cap
+3. User enters shares to sell (validated ≤ current shares), uses **Max**, or uses **Sell all at market price**
+4. Client sell simulator shows gross proceeds, sell fee, estimated capital-gains tax, net proceeds, cost basis, proportional buy-fee basis, and net profit/loss when position basis is available
+5. Submit → `POST /portfolio/transaction` (`type: "sell"`)
+6. Server:
    - Reduces position shares; if shares reach 0, deletes the `Position` doc
    - Records capital gains tax if fee profile set
-6. Store refresh removes or updates card
+7. Store refresh removes or updates card
 
 ### Editing / Deleting a Transaction
 - `TransactionsView` lists all transactions
@@ -171,19 +172,28 @@
 ## 7. Fee Profiles
 
 ### Setup
-1. Profile → Fee Profiles → create profile with country, buy/sell fee %, flat fee, capital gains tax %
-2. First profile becomes default; can switch default via PUT
-3. Profiles available in transaction modal dropdown
+1. Profile → Fee Profiles shows both user-created profiles and read-only built-in presets.
+2. Built-in presets are shown with a `Preset` badge and no edit/delete controls.
+3. User can create profiles with buy/sell fee type, fee value, minimum fee, capital gains tax %, and default status.
+4. First user-created profile becomes default; can switch default via PUT.
+5. Profiles and presets are available in the transaction modal dropdown.
+
+### Built-in Presets
+- `בלינק Plus`: USD preset, buy/sell fee of `$0.01` per share with `$1.50` minimum per transaction, `25%` capital-gains tax, and a documented monthly usage allowance of `10 tx/mo or 1,000 shares/mo`.
+- Built-ins use stable IDs such as `builtin:blink-plus`; when selected, the server resolves the preset before calculating fees.
+- Built-ins are not saved as user `FeeProfile` documents and are not editable from the Fee Profiles modal.
 
 ### Fee Calculation (Server)
 On each buy/sell transaction:
 - If `feeProfileId` is provided, that profile is used.
+- If `feeProfileId` starts with `builtin:`, the matching built-in preset is used.
 - If `feeProfileId` is omitted, the user's default fee profile is applied. USD tickers can fall back to an ILS default profile.
 - If `feeProfileId` is explicitly `null`, no fee profile is applied.
-- `buyFee.percent` is applied to total, plus `buyFee.flat` -> `feeAmount`.
+- Supported fee rule types are `percent` (trade total × value), `flat` (fixed value), and `perShare` (shares × value). `minFee` is enforced after the raw fee is calculated.
 - On sell: `sellFee` is calculated the same; capital gains = `(salePrice - avgCost) x shares x capitalGainsTax%`.
 - `feeAmount` is stored in the fee profile currency. `totalWithFees` and `netProceeds` convert the fee to the transaction currency before adding/subtracting it.
 - Transaction stored with `feeProfile`, `feeAmount`, `taxAmount`, `totalWithFees`, `netProceeds`.
+  - Built-in preset transactions store the calculated fee/tax amounts, but `feeProfile` remains `null` because no user profile document exists.
 
 ### Position Fee/Tax Display (Client)
 - Position detail totals use stored transaction fees when present.
@@ -192,6 +202,12 @@ On each buy/sell transaction:
 - `totalTax` is realized tax already saved on sell transactions.
 - `estimatedTax` is the configured capital-gains tax estimate if the remaining position were sold now.
 - Net P&L and net return include all buy/sell fees, realized tax, and estimated tax if sold now.
+
+### Dividend Estimates
+- Quote normalization derives `dividendRate` from Yahoo trailing annual dividend data when present, and can derive a rate from dividend yield × price when only yield is present.
+- Position detail computes currently open lots by replaying buys, sells, and DRIP dividend transactions; sells consume older lots first for holding-time calculations.
+- `Held div total` = annual dividend per share × currently held shares × share-weighted holding years.
+- Dividend after-tax rows apply the active/default capital-gains tax rate as a display estimate.
 
 ---
 
