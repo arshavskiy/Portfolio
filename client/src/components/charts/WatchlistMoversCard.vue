@@ -74,7 +74,7 @@ function openStock(item) {
   <section v-if="loading || hasMovers" class="movers-card">
     <div class="movers-head">
       <h2 class="card-title">Top Movers</h2>
-      <span class="text-muted head-note">From your watchlist</span>
+      <RouterLink :to="{ name: 'Watchlist' }" class="text-muted head-note head-link">From your watchlist</RouterLink>
     </div>
 
     <div v-if="loading && !hasMovers" class="movers-chart skeleton-chart">
@@ -150,6 +150,16 @@ function openStock(item) {
 
 .head-note {
   font-size: 0.72rem;
+}
+
+.head-link {
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  cursor: pointer;
+}
+
+.head-link:hover {
+  color: var(--accent);
 }
 
 .movers-chart {

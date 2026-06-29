@@ -16,6 +16,7 @@ import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
+import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 
 const props = defineProps({
   visible: Boolean,
@@ -30,6 +31,7 @@ const toast = useToast()
 const portfolio = usePortfolioStore()
 const feeStore = useFeeProfileStore()
 const groupsStore = useGroupsStore()
+const showFeeModal = ref(false)
 const {suffix: marketSuffix, selected: selectedMarket, applyTo, searchQuery} = useMarketSuffix('tx-add-market')
 
 const type = ref('buy')
@@ -330,7 +332,7 @@ async function submit() {
         </div>
         <div class="field">
           <label>
-            <span>{{ isCryptoBuy ? 'Price per coin' : 'Price per share' }}</span>
+            <span>{{ isCryptoBuy ? 'Price/coin' : 'Price/share' }}</span>
             <button
                 v-if="marketPrice != null"
                 class="max-link"
@@ -381,14 +383,24 @@ async function submit() {
       </div>
 
       <div class="field">
-        <label>Brokerage fee</label>
+        <label><span>Brokerage fee <i v-tooltip.focus.top="'Apply a saved fee profile to include your broker\'s commission (and capital-gains tax on sells) in the total.'" tabindex="0" class="pi pi-info-circle info-icon"/></span></label>
         <Select
+          v-if="feeStore.profiles.length"
           v-model="selectedFeeProfile"
           :options="feeOptions"
           option-label="label"
           option-value="value"
           placeholder="No fee"
           fluid
+        />
+        <Button
+          v-else
+          icon="pi pi-plus"
+          label="Create fee profile"
+          severity="secondary"
+          outlined
+          fluid
+          @click="showFeeModal = true"
         />
       </div>
 
@@ -432,6 +444,8 @@ async function submit() {
       </div>
     </div>
   </Dialog>
+
+  <FeeProfilesModal v-model:visible="showFeeModal" />
 </template>
 
 <style scoped>
@@ -504,6 +518,8 @@ async function submit() {
 .total-row { display: flex; flex-direction: column; gap: 4px; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
 .total-line { display: flex; justify-content: space-between; }
 .fee-line { font-size: 0.82rem; }
+.info-icon { font-size: 0.72rem; opacity: 0.55; cursor: pointer; }
+.info-icon:hover, .info-icon:focus { opacity: 1; color: var(--accent); outline: none; }
 .total-final { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; font-weight: 600; }
 .total-amount { font-size: 1.05rem; }
 

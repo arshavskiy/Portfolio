@@ -193,7 +193,7 @@ function confirmDelete() {
       </div>
 
       <div class="actions">
-        <Button :disabled="loading" icon="pi pi-trash" label="Delete" outlined severity="danger"
+        <Button :disabled="loading" icon="pi pi-trash" label="Delete" severity="danger"
                 @click="confirmDelete"/>
         <Button :loading="loading" class="save-btn" label="Save changes" outlined @click="save"/>
       </div>

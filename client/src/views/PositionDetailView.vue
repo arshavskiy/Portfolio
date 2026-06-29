@@ -481,6 +481,22 @@ const extendedHoursChangeText = computed(() => {
   if (extendedHours.value.change == null && extendedHours.value.changePercent == null) return ''
   return `${useTickerCurrency(extendedHours.value.change, ticker.value)} (${usePercent(extendedHours.value.changePercent)})`
 })
+// Short plain-language explanations for the stock-data table metrics. Keyed by
+// the visible label; rendered as an ⓘ tooltip next to each stat.
+const STAT_INFO = {
+  'Open': 'The price at which the stock started trading when the market opened today.',
+  'Day High': "The highest price the stock has traded at so far during today's session.",
+  'Day Low': "The lowest price the stock has traded at so far during today's session.",
+  'Volume': 'Number of shares traded today. Higher volume means more activity and liquidity.',
+  'Mkt Cap': 'Market capitalization — total value of all shares (price × shares outstanding).',
+  'P/E': 'Price-to-earnings ratio — share price divided by earnings per share. A rough valuation gauge.',
+  '52W High': 'The highest price the stock reached over the past 52 weeks.',
+  '52W Low': 'The lowest price the stock reached over the past 52 weeks.',
+  'Div Yield': 'Annual dividend as a percentage of the current share price.',
+  'Div / Share': 'The dividend paid per share over the last year.',
+  'Annual div total': 'Estimated yearly dividend for your position (dividend per share × shares held).',
+}
+
 const extendedHoursStats = computed(() => {
   if (!extendedHours.value) return []
   return [
@@ -995,43 +1011,43 @@ async function toggleWatchlist() {
           <span :class="row.valueClass">{{ row.value }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">Open</span>
+          <span class="text-muted stat-label-info">Open <i v-tooltip.focus.top="STAT_INFO['Open']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">Day High</span>
+          <span class="text-muted stat-label-info">Day High <i v-tooltip.focus.top="STAT_INFO['Day High']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">Day Low</span>
+          <span class="text-muted stat-label-info">Day Low <i v-tooltip.focus.top="STAT_INFO['Day Low']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">Volume</span>
+          <span class="text-muted stat-label-info">Volume <i v-tooltip.focus.top="STAT_INFO['Volume']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">Mkt Cap</span>
+          <span class="text-muted stat-label-info">Mkt Cap <i v-tooltip.focus.top="STAT_INFO['Mkt Cap']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">P/E</span>
+          <span class="text-muted stat-label-info">P/E <i v-tooltip.focus.top="STAT_INFO['P/E']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">52W High</span>
+          <span class="text-muted stat-label-info">52W High <i v-tooltip.focus.top="STAT_INFO['52W High']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted">52W Low</span>
+          <span class="text-muted stat-label-info">52W Low <i v-tooltip.focus.top="STAT_INFO['52W Low']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
         </div>
         <div v-if="quote.dividendYield" class="stat">
-          <span class="text-muted">Div Yield</span>
+          <span class="text-muted stat-label-info">Div Yield <i v-tooltip.focus.top="STAT_INFO['Div Yield']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span class="div-yield-val">{{ (quote.dividendYield * 100).toFixed(2) }}%</span>
         </div>
         <div v-if="quote.dividendRate" class="stat">
-          <span class="text-muted">Div / Share</span>
+          <span class="text-muted stat-label-info">Div / Share <i v-tooltip.focus.top="STAT_INFO['Div / Share']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.dividendRate, ticker) }}</span>
         </div>
         <div v-if="quote.dividendRate && summary?.taxRate" class="stat">
@@ -1041,7 +1057,7 @@ async function toggleWatchlist() {
             }}</span>
         </div>
         <div v-if="quote.dividendRate && summary" class="stat">
-          <span class="text-muted">Annual div total</span>
+          <span class="text-muted stat-label-info">Annual div total <i v-tooltip.focus.top="STAT_INFO['Annual div total']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span class="div-yield-val">{{ useTickerCurrency(quote.dividendRate * summary.shares, ticker) }}</span>
         </div>
         <div v-if="quote.dividendRate && summary?.taxRate" class="stat">
@@ -1284,7 +1300,7 @@ async function toggleWatchlist() {
       <div v-if="!lots.length" class="empty">
         <i class="pi pi-list"/>
         <p class="text-muted">No transactions yet</p>
-        <Button label="Add Transaction" outlined @click="showModal = true"/>
+        <Button label="Add Transaction" @click="showModal = true"/>
       </div>
 
       <div v-else class="lots-list">
@@ -1782,6 +1798,29 @@ async function toggleWatchlist() {
 
 .stat-extended {
   background: rgba(168, 85, 247, 0.08);
+}
+
+.stat-label-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.info-icon {
+  font-size: 0.72rem;
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.info-icon:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.info-icon:focus {
+  opacity: 1;
+  color: var(--accent);
+  outline: none;
 }
 
 .stat:nth-last-child(-n+2) {

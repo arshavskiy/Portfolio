@@ -15,6 +15,15 @@ const emit = defineEmits(['update:visible'])
 const toast = useToast()
 const store = useFeeProfileStore()
 
+// ⓘ tooltip explanations, see project_info_tooltip_pattern
+const INFO = {
+  buyFee: 'Commission your broker charges when you buy. Percent of trade value, or a flat amount per order.',
+  sellFee: 'Commission your broker charges when you sell. Percent of trade value, or a flat amount per order.',
+  minBuyFee: 'Minimum buy commission charged even when the percentage fee would be lower.',
+  minSellFee: 'Minimum sell commission charged even when the percentage fee would be lower.',
+  capitalGainsTax: 'Tax rate applied to your profit when you sell at a gain. E.g. 25% in Israel.',
+}
+
 const editing = ref(null)
 const form = ref(defaultForm())
 
@@ -128,7 +137,7 @@ function feeLabel(p) {
           </div>
         </div>
       </div>
-      <Button class="mt" fluid icon="pi pi-plus" label="Add Profile" outlined @click="openNew"/>
+      <Button class="mt" fluid icon="pi pi-plus" label="Add Profile" @click="openNew"/>
     </div>
 
     <!-- Edit / Create form -->
@@ -145,7 +154,7 @@ function feeLabel(p) {
 
       <!-- Buy fee -->
       <div class="fee-section">
-        <p class="fee-section-title">Buy Fee</p>
+        <p class="fee-section-title">Buy Fee <i v-tooltip.focus.top="INFO.buyFee" tabindex="0" class="pi pi-info-circle info-icon"/></p>
         <div class="fields-row">
           <div class="field">
             <label>Type</label>
@@ -159,14 +168,14 @@ function feeLabel(p) {
           </div>
         </div>
         <div class="field">
-          <label>Min buy fee</label>
+          <label>Min buy fee <i v-tooltip.focus.top="INFO.minBuyFee" tabindex="0" class="pi pi-info-circle info-icon"/></label>
           <InputNumber v-model="form.buyFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
         </div>
       </div>
 
       <!-- Sell fee -->
       <div class="fee-section">
-        <p class="fee-section-title">Sell Fee</p>
+        <p class="fee-section-title">Sell Fee <i v-tooltip.focus.top="INFO.sellFee" tabindex="0" class="pi pi-info-circle info-icon"/></p>
         <div class="fields-row">
           <div class="field">
             <label>Type</label>
@@ -180,14 +189,14 @@ function feeLabel(p) {
           </div>
         </div>
         <div class="field">
-          <label>Min sell fee</label>
+          <label>Min sell fee <i v-tooltip.focus.top="INFO.minSellFee" tabindex="0" class="pi pi-info-circle info-icon"/></label>
           <InputNumber v-model="form.sellFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
         </div>
       </div>
 
       <!-- Capital gains tax -->
       <div class="fee-section">
-        <p class="fee-section-title">Capital Gains Tax</p>
+        <p class="fee-section-title">Capital Gains Tax <i v-tooltip.focus.top="INFO.capitalGainsTax" tabindex="0" class="pi pi-info-circle info-icon"/></p>
         <div class="field">
           <label>Tax rate % <span class="text-muted">(applied to profit on sell)</span></label>
           <InputNumber v-model="form.capitalGainsTax" :min="0" :max="100" :max-fraction-digits="3"
@@ -200,7 +209,7 @@ function feeLabel(p) {
         <ToggleSwitch v-model="form.isDefault" />
       </div>
 
-      <Button fluid label="Save" outlined @click="save"/>
+      <Button fluid label="Save" @click="save"/>
     </div>
   </Dialog>
 </template>
@@ -219,11 +228,13 @@ function feeLabel(p) {
 
 .fee-form { display: flex; flex-direction: column; gap: 1rem; }
 .form-header { display: flex; align-items: center; gap: 0.5rem; }
-.form-title { font-weight: 600; font-size: 1rem; }
+.form-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
 .fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
 .field { display: flex; flex-direction: column; gap: 0.4rem; }
 .field label { font-size: 0.82rem; color: var(--text-secondary); }
 .field-hint { font-size: 0.72rem; }
+.info-icon { font-size: 0.72rem; opacity: 0.55; cursor: pointer; }
+.info-icon:hover, .info-icon:focus { opacity: 1; color: var(--accent); outline: none; }
 .fee-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
 .fee-section-title { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
 .field-row-inline { display: flex; justify-content: space-between; align-items: center; }

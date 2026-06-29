@@ -167,7 +167,6 @@ function logout() {
       class="sign-out-btn"
       label="Sign Out"
       severity="danger"
-      outlined
       fluid
       icon="pi pi-sign-out"
       @click="logout"

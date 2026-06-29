@@ -146,7 +146,6 @@ watch(activeTab, (tab) => {
           v-if="activeTab === 'history'"
           :disabled="!filtered.length"
           icon="pi pi-download"
-          label="CSV"
           outlined
           size="small"
           @click="exportCSV"

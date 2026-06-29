@@ -104,7 +104,7 @@ async function save() {
         />
         <span class="text-muted hint">Type to create a new group or pick an existing one</span>
       </div>
-      <Button :loading="loading" fluid label="Save" outlined @click="save"/>
+      <Button :loading="loading" fluid label="Save" @click="save"/>
     </div>
   </Dialog>
 </template>

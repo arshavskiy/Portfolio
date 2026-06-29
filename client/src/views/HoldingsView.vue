@@ -215,7 +215,7 @@ const combinedDisplay = computed(() => {
     <div v-else-if="!portfolio.positions.length" class="empty">
       <i class="pi pi-briefcase"/>
       <p>No holdings yet</p>
-      <Button label="Add Transaction" outlined @click="showModal = true"/>
+      <Button label="Add Transaction" @click="showModal = true"/>
     </div>
 
     <div v-else :class="compactMode ? 'positions-compact' : 'positions-list'">

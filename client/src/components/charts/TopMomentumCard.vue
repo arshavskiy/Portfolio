@@ -39,15 +39,11 @@ const bearish = computed(() =>
 </script>
 
 <template>
-  <div class="momentum-card">
+  <div v-if="loading || bullish.length || bearish.length" class="momentum-card">
     <h2 class="section-title">Top Momentum</h2>
 
     <div v-if="loading" class="momentum-loading">
       <div v-for="n in 4" :key="n" class="momentum-skeleton"/>
-    </div>
-
-    <div v-else-if="!bullish.length && !bearish.length" class="momentum-empty text-muted">
-      No momentum signals available
     </div>
 
     <div v-else class="momentum-cols">

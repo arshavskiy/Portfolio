@@ -481,13 +481,12 @@ function switchMode(nextMode) {
               <Password inputId="login-password" v-model="password" :feedback="false" autocomplete="current-password" fluid placeholder="Password" required toggleMask/>
             </div>
             <Button
-              :disabled="!loginEnabled || loading"
+              :disabled="loading"
               :loading="loading"
               class="login-button"
               fluid
-              icon="pi pi-arrow-right"
               iconPos="right"
-              label="Sign In to StockFolio"
+              label="Sign In"
               type="submit"
             />
           </form>
@@ -1202,7 +1201,6 @@ function switchMode(nextMode) {
 
 :deep(.login-button) {
   margin-top: 0.25rem;
-  min-height: 3.25rem;
   border: 0;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #fff;
