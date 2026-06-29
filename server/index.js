@@ -2,7 +2,6 @@ require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
-const rateLimit = require('express-rate-limit')
 
 const authRoutes = require('./routes/auth')
 const portfolioRoutes = require('./routes/portfolio')
@@ -81,12 +80,6 @@ app.use((req, res, next) => {
   })
   next()
 })
-
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  skip: () => process.env.NODE_ENV !== 'production',
-}))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/portfolio', portfolioRoutes)

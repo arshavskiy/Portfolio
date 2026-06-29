@@ -11,6 +11,7 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import {installAnalytics} from './composables/useAnalytics'
+import {installClientErrorLogging} from './composables/useClientErrors'
 
 const app = createApp(App)
 
@@ -28,6 +29,7 @@ app.use(PrimeVue, {
   },
 })
 app.use(ToastService)
+installClientErrorLogging(app)
 app.use(ConfirmationService)
 app.directive('tooltip', Tooltip)
 
