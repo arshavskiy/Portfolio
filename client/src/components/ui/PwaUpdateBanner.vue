@@ -10,6 +10,13 @@ function hasServiceWorker() {
   return typeof window !== 'undefined' && 'serviceWorker' in navigator
 }
 
+function isInstalledPwa() {
+  return window.matchMedia('(display-mode: fullscreen)').matches ||
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.navigator.standalone === true
+}
+
 function requestReload() {
   refreshing = true
   window.location.reload()
@@ -30,7 +37,7 @@ function watchInstallingWorker(worker) {
 }
 
 async function checkForUpdate() {
-  if (!hasServiceWorker()) return
+  if (!hasServiceWorker() || !isInstalledPwa()) return
   try {
     const registration = await navigator.serviceWorker.ready
     await registration.update()
@@ -43,7 +50,7 @@ function onVisibilityChange() {
 }
 
 onMounted(async () => {
-  if (!hasServiceWorker()) return
+  if (!hasServiceWorker() || !isInstalledPwa()) return
 
   const hadController = Boolean(navigator.serviceWorker.controller)
   navigator.serviceWorker.addEventListener('controllerchange', () => {

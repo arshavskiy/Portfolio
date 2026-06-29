@@ -147,6 +147,11 @@ function logout() {
         <span>About</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
+      <button class="menu-item" @click="router.push('/disclaimer')">
+        <i class="pi pi-shield menu-icon"/>
+        <span>Financial Disclaimer</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
     </div>
 
     <!-- App -->
@@ -193,9 +198,11 @@ function logout() {
       </div>
     </div>
 
-    <p class="legal text-muted">© {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech"
+    <p class="legal text-muted">
+      © {{ new Date().getFullYear() }} StockFolio · <RouterLink to="/disclaimer">Disclaimer</RouterLink> · <a alt="www.handcoded.tech"
                                                                                  href="//handcoded.tech">
-      handcoded.tech </a>. All rights reserved.</p>
+      handcoded.tech </a>. All rights reserved.
+    </p>
 
     <FeeProfilesModal v-model:visible="showFeeProfiles" />
   </div>

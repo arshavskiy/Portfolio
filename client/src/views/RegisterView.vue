@@ -151,6 +151,10 @@ async function submit() {
                 label="Create StockFolio Account"
                 type="submit"
             />
+            <p class="disclaimer-note text-muted">
+              By creating an account, you acknowledge that StockFolio is an informational portfolio tool, not financial advice, and that investing involves risk.
+              <RouterLink to="/disclaimer">Read the disclaimer</RouterLink>
+            </p>
           </form>
 
           <p class="auth-footer">
@@ -383,6 +387,18 @@ async function submit() {
   text-decoration: underline;
   text-underline-offset: 0.18em;
   text-decoration-thickness: 0.08em;
+}
+
+.disclaimer-note {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin-top: -0.15rem;
+}
+
+.disclaimer-note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 @media (min-width: 900px) {

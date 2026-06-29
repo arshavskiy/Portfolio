@@ -536,6 +536,10 @@ function switchMode(nextMode) {
               label="Create StockFolio Account"
               type="submit"
             />
+            <p class="disclaimer-note text-muted">
+              By creating an account, you acknowledge that StockFolio is an informational portfolio tool, not financial advice, and that investing involves risk.
+              <RouterLink to="/disclaimer">Read the disclaimer</RouterLink>
+            </p>
           </form>
 
           <p class="auth-footer">
@@ -549,6 +553,8 @@ function switchMode(nextMode) {
     <!-- Footer -->
     <footer class="landing-footer">
       <RouterLink to="/about" class="footer-link">About</RouterLink>
+      <span class="footer-sep">·</span>
+      <RouterLink to="/disclaimer" class="footer-link">Disclaimer</RouterLink>
       <span class="footer-sep">·</span>
       © {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech" href="//handcoded.tech">
       handcoded.tech </a>. All rights reserved.
@@ -1300,6 +1306,18 @@ function switchMode(nextMode) {
   text-decoration-thickness: 0.08em;
   cursor: pointer;
   font: inherit;
+}
+
+.disclaimer-note {
+  font-size: 0.76rem;
+  line-height: 1.45;
+  margin-top: -0.15rem;
+}
+
+.disclaimer-note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
 }
 
 /* ── Desktop: side-by-side split ── */
