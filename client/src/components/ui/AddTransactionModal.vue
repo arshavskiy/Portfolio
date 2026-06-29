@@ -17,6 +17,7 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
+import {notifyError} from '@/composables/useApiError'
 
 const props = defineProps({
   visible: Boolean,
@@ -263,7 +264,7 @@ async function submit() {
     emit('update:visible', false)
     emit('hide')
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 })
+    notifyError(toast, err)
   } finally {
     loading.value = false
   }

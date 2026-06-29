@@ -49,10 +49,35 @@ async function fetchRequest(method, path, body) {
     const error = new Error(message || `Request failed (${res.status})`)
     error.status = res.status
     error.responseData = data
+
+    // 429: don't surface to the user — log to console and flag as silent so
+    // callers' catch blocks can skip the toast.
+    if (res.status === 429) {
+      error.silent = true
+      console.warn(`[api] 429 Too many requests — ${method} ${path} (suppressed)`)
+    }
+
+    reportError({ status: res.status, message: error.message, method, path })
     throw error
   }
 
   return data
+}
+
+// Fire-and-forget error reporting to the server's ErrorLog. Uses raw fetch
+// (not `request`) so a failure here can never recurse into more reporting.
+function reportError(info) {
+  try {
+    const headers = { 'Content-Type': 'application/json' }
+    const token = getToken()
+    if (token) headers['Authorization'] = `Bearer ${token}`
+    fetch(`${BASE}/errors`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ ...info, source: 'client' }),
+      keepalive: true,
+    }).catch(() => {})
+  } catch {}
 }
 
 async function request(method, path, body) {

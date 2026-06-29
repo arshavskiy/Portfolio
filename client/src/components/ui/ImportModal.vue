@@ -283,7 +283,6 @@ function close() {
             :label="validating ? 'Checking tickers…' : `Import ${validCount} ${isHoldings ? 'holdings' : 'tickers'}`"
             :loading="importing || validating"
             fluid
-            outlined
             @click="runImport"
         />
 

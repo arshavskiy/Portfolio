@@ -6,6 +6,7 @@ import {useAuthStore} from '@/stores/auth'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import {notifyError} from '@/composables/useApiError'
 
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const router = useRouter()
@@ -167,7 +168,7 @@ async function submit() {
     await auth.login(email.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Login failed', detail: err.message, life: 3000})
+    notifyError(toast, err, 'Login failed')
   } finally {
     loading.value = false
   }
@@ -189,7 +190,7 @@ async function register() {
     await auth.register(name.value, email.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
+    notifyError(toast, err, 'Registration failed')
   } finally {
     loading.value = false
   }

@@ -6,6 +6,7 @@ import {useAuthStore} from '@/stores/auth'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import {notifyError} from '@/composables/useApiError'
 
 const router = useRouter()
 const toast = useToast()
@@ -55,7 +56,7 @@ async function submit() {
     await auth.register(name.value, email.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
+    notifyError(toast, err, 'Registration failed')
   } finally {
     loading.value = false
   }

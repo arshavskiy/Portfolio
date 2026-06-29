@@ -10,6 +10,7 @@ const stockRoutes = require('./routes/stocks')
 const watchlistRoutes = require('./routes/watchlist')
 const feeProfileRoutes = require('./routes/feeProfiles')
 const alertRoutes = require('./routes/alerts')
+const errorRoutes = require('./routes/errors')
 const { startCronJobs } = require('./services/cronService')
 const {initPush} = require('./services/pushService')
 const swaggerUi = require('swagger-ui-express')
@@ -81,6 +82,10 @@ app.use((req, res, next) => {
   })
   next()
 })
+
+// Error logging is mounted before the rate limiter so client error reports
+// (including 429s) are never themselves throttled.
+app.use('/api/errors', errorRoutes)
 
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,

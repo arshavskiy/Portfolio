@@ -588,6 +588,44 @@ const spec = swaggerJsdoc({
           responses: { 200: { description: 'OK', content: { 'application/json': { schema: { type: 'object', properties: { status: { type: 'string', example: 'ok' } } } } } } },
         },
       },
+      '/errors': {
+        get: {
+          tags: [],
+          summary: 'List logged errors (admin only)',
+          parameters: [
+            { name: 'status', in: 'query', schema: { type: 'integer' }, description: 'Filter by HTTP status' },
+            { name: 'limit', in: 'query', schema: { type: 'integer', default: 200 } },
+          ],
+          responses: {
+            200: { description: 'Error log entries', content: { 'application/json': { schema: { type: 'object', properties: { errors: { type: 'array', items: { type: 'object' } }, count: { type: 'integer' } } } } } },
+            403: { description: 'Admin only', content: { 'application/json': { schema: { $ref: '#/components/schemas/Error' } } } },
+          },
+        },
+        post: {
+          tags: [],
+          summary: 'Log a client (or server) error to the ErrorLog collection',
+          security: [],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    status: { type: 'integer', example: 429 },
+                    message: { type: 'string', example: 'Too many requests, please try again later' },
+                    method: { type: 'string', example: 'GET' },
+                    path: { type: 'string', example: '/watchlist' },
+                    source: { type: 'string', enum: ['client', 'server'], example: 'client' },
+                    meta: { type: 'object', nullable: true },
+                  },
+                },
+              },
+            },
+          },
+          responses: { 204: { description: 'Logged (no content)' } },
+        },
+      },
     },
   },
   apis: [],

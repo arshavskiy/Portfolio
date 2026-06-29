@@ -27,6 +27,7 @@ const routes = [
       { path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'history-alerts', name: 'HistoryAlerts', component: () => import('@/views/DesktopHistoryAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'profile', name: 'Profile', component: () => import('@/views/ProfileView.vue'), meta: { requiresAuth: true } },
+      { path: 'errors', name: 'ErrorLog', component: () => import('@/views/ErrorLogView.vue'), meta: { requiresAuth: true } },
     ],
   },
   { path: '/:pathMatch(.*)*', redirect: '/' },

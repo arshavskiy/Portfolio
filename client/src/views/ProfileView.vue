@@ -25,6 +25,13 @@ const { isFullscreen, supported: fsSupported, toggle: toggleFullscreen } = useFu
 function goAlerts() { router.push(isDesktop.value ? '/history-alerts' : '/alerts') }
 function goTransactions() { router.push(isDesktop.value ? '/history-alerts' : '/transactions') }
 
+const adminEmails = (import.meta.env.VITE_ADMIN_EMAILS || '')
+    .split(',').map((e) => e.trim().toLowerCase()).filter(Boolean)
+const isAdmin = computed(() => {
+  const email = auth.user?.email?.toLowerCase()
+  return !!email && adminEmails.includes(email)
+})
+
 // About
 const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
 const qrCanvas = ref(null)
@@ -159,6 +166,11 @@ function logout() {
       <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
         <i class="pi pi-window-maximize menu-icon"/>
         <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
+      <button v-if="isAdmin" class="menu-item" @click="router.push('/errors')">
+        <i class="pi pi-exclamation-triangle menu-icon"/>
+        <span>Error Log</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
     </div>

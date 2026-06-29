@@ -10,6 +10,7 @@ import DatePicker from 'primevue/datepicker'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import api from '@/composables/useApi'
+import {notifyError} from '@/composables/useApiError'
 
 const props = defineProps({
   visible: Boolean,
@@ -84,7 +85,7 @@ async function submit() {
     emit('update:visible', false)
     emit('saved')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Error', detail: err.message, life: 3000})
+    notifyError(toast, err)
   } finally {
     loading.value = false
   }

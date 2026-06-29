@@ -6,6 +6,7 @@ import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrenc
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
 import {useWatchlistStore} from '@/stores/watchlist'
+import {notifyError} from '@/composables/useApiError'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, isRegularSessionBar, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
@@ -129,7 +130,7 @@ async function fetchLots() {
     const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker.value)}&limit=500`)
     transactions.value = data.transactions.sort((a, b) => new Date(a.date) - new Date(b.date))
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000})
+    notifyError(toast, err, 'Failed to load')
   }
 }
 
@@ -158,7 +159,7 @@ async function loadHistory() {
     const points = pointsMap[selectedRange.value] ?? 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000})
+    notifyError(toast, err, 'Failed to load chart')
     history.value = []
   } finally {
     chartLoading.value = false

@@ -4,6 +4,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useConfirm} from 'primevue/useconfirm'
 import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useSafeToast} from '@/composables/useSafeToast'
+import {notifyError} from '@/composables/useApiError'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useHistoryStore} from '@/stores/history'
 import {usePortfolioStore} from '@/stores/portfolio'
@@ -184,7 +185,7 @@ async function loadQuote() {
   try {
     quote.value = await fetchCachedQuote(ticker.value)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to refresh', detail: err.message, life: 2000})
+    notifyError(toast, err, 'Failed to refresh', 2000)
   }
 }
 
@@ -202,7 +203,7 @@ async function loadHistory() {
     const points = selectedRange.value === '1d' ? 160 : 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000})
+    notifyError(toast, err, 'Failed to load chart')
   } finally {
     chartLoading.value = false
   }
