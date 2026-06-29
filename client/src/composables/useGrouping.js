@@ -62,10 +62,19 @@ function changeValueOf(item) {
     return typeof item?.changePercent === 'number' ? item.changePercent : null
 }
 
+function calculateExtendedChangePercent(price, change) {
+    if (price == null || change == null) return null
+    const previous = price - change
+    if (!Number.isFinite(previous) || previous === 0) return null
+    return (change / previous) * 100
+}
+
 function preValueOf(item) {
     const values = [
         item?.preMarketChangePercent,
+        calculateExtendedChangePercent(item?.preMarketPrice, item?.preMarketChange),
         item?.lastPreMarketChangePercent,
+        calculateExtendedChangePercent(item?.lastPreMarketPrice, item?.lastPreMarketChange),
     ]
     return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
 }
@@ -73,7 +82,9 @@ function preValueOf(item) {
 function postValueOf(item) {
     const values = [
         item?.postMarketChangePercent,
+        calculateExtendedChangePercent(item?.postMarketPrice, item?.postMarketChange),
         item?.lastPostMarketChangePercent,
+        calculateExtendedChangePercent(item?.lastPostMarketPrice, item?.lastPostMarketChange),
     ]
     return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
 }
@@ -97,12 +108,16 @@ function dayWeight(pct) {
     return 0
 }
 
-function activeExtValueOf(item) {
-    const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
+function activeExtValueOf(item, date = new Date()) {
+    const ticker = String(item?.ticker || '')
+    const state = item?.marketState
+    if (/-USD$/u.test(ticker)) return postValueOf(item)
+    if (state === 'REGULAR') return preValueOf(item)
+
+    const nowNy = date.toLocaleString('en-US', {timeZone: 'America/New_York'})
     const d = new Date(nowNy)
     const minutes = d.getHours() * 60 + d.getMinutes()
     const isPreTime = minutes < 9 * 60 + 30
-    // Mirror WatchRow: pre before 09:30, post after
     return isPreTime
         ? (preValueOf(item) ?? postValueOf(item))
         : (postValueOf(item) ?? preValueOf(item))
@@ -188,29 +203,16 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
     
     if (mode === 'pre' || mode === 'post' || mode === 'extended') {
         const sign = changeDirection === 'up' ? -1 : 1
-        // 'extended' picks pre vs post based on current time: pre before/during open, post after
-        let valueOf
-        if (mode === 'extended') {
-            const usMarket = {
-                days: [1, 2, 3, 4, 5],
-                sessions: [{start: '09:30', end: '16:00'}],
-                timezone: 'America/New_York'
-            }
-            const nowNy = new Date().toLocaleString('en-US', {timeZone: 'America/New_York'})
-            const d = new Date(nowNy)
-            const minutes = d.getHours() * 60 + d.getMinutes()
-            const isPreTime = minutes < 9 * 60 + 30
-            valueOf = isPreTime ? preValueOf : postValueOf
-        } else {
-            valueOf = mode === 'pre' ? preValueOf : postValueOf
-        }
-        const sortedItems = [...items].sort((a, b) => {
+        const valueOf = mode === 'extended'
+            ? (item) => activeExtValueOf(item, date)
+            : (mode === 'pre' ? preValueOf : postValueOf)
+        const sortedItems = items
+            .filter((item) => valueOf(item) != null)
+            .sort((a, b) => {
             const aChange = valueOf(a)
             const bChange = valueOf(b)
-            if (aChange == null && bChange == null) return 0
-            if (aChange == null) return 1
-            if (bChange == null) return -1
-            return (bChange - aChange) * sign
+            const diff = (bChange - aChange) * sign
+            return diff !== 0 ? diff : itemSortKey(a).localeCompare(itemSortKey(b))
         })
         return [{group: null, items: sortedItems}]
     }

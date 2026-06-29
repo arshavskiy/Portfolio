@@ -108,6 +108,13 @@ const activeExtended = computed(() => {
   return resolveExtendedHours(isPreTime ? 'pre' : 'post') ?? resolveExtendedHours(isPreTime ? 'post' : 'pre') ?? null
 })
 
+const hasVisibleExtended = computed(() =>
+  activeExtended.value != null && (
+    activeExtended.value.price != null ||
+    activeExtended.value.percent != null
+  )
+)
+
 // ── Signal / momentum ────────────────────────────────────────────────────────
 
 const extPercentRef = computed(() => activeExtended.value?.percent ?? null)
@@ -149,12 +156,12 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
     </div>
 
     <div class="row-right">
-      <div v-if="activeExtended" :title="activeExtended.label" class="extended-combined">
-        <span v-if="activeExtended.price" :class="activeExtended.label.startsWith('Pre') ? 'gold' : 'purple'"
+      <div v-if="hasVisibleExtended" :title="activeExtended.label" class="extended-combined">
+        <span v-if="activeExtended.price != null" :class="activeExtended.label.startsWith('Pre') ? 'gold' : 'purple'"
               class="ext-price">{{
             useTickerCurrency(activeExtended.price, item.ticker)
           }}</span>
-        <span class="ext-bottom">
+        <span v-if="activeExtended.percent != null" class="ext-bottom">
 <!--          <i class="pi pi-sun ext-icon"/>-->
           <span :class="activeExtended.percent >= 0 ? 'extended-gain' : 'extended-loss'"
                 class="ext-val">{{ usePercent(activeExtended.percent) }}</span>
