@@ -10,11 +10,13 @@ import './style.css'
 
 import App from './App.vue'
 import router from './router'
+import {installAnalytics} from './composables/useAnalytics'
 
 const app = createApp(App)
 
 app.use(createPinia())
 app.use(router)
+installAnalytics(router)
 app.use(PrimeVue, {
   theme: {
     preset: Aura,

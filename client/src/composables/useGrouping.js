@@ -5,7 +5,7 @@
 // multiple tags appears under EACH of its groups, plus an "Ungrouped" bucket
 // for stocks with no tags.
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from './useMarketHours.js'
-import {useMomentumStore} from '@/stores/momentum.js'
+import {useMomentumStore} from '../stores/momentum.js'
 
 function marketOf(ticker) {
     const t = ticker.toUpperCase()
