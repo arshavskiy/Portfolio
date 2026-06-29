@@ -154,7 +154,7 @@ async function loadFx() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    const pointsMap = {'1d': 100, '5d': 100, '1mo': 60}
+    const pointsMap = {'1d': 160, '5d': 160, '1mo': 100}
     const points = pointsMap[selectedRange.value] ?? 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
