@@ -91,8 +91,8 @@ User
  │
  ├── ──< FeeProfile (user ref)
  │        ├── name, country, currency
- │        ├── buyFee: { percent, flat }
- │        ├── sellFee: { percent, flat }
+ │        ├── buyFee: { type: percent|flat|perShare, value, minFee }
+ │        ├── sellFee: { type: percent|flat|perShare, value, minFee }
  │        ├── capitalGainsTax
  │        └── isDefault
  │
@@ -121,7 +121,7 @@ groupsStore    → distinct group tags
 ```
 
 ### Composables
-- **`useApi`** — all HTTP calls go through here; injects Bearer token automatically
+- **`useApi`** — all HTTP calls go through here; injects Bearer token automatically, clears auth on 401, and logs only 5xx/429 API failures to the console so expected 4xx validation responses stay user-facing without noisy error logs
 - **`useFormat`** — number/currency formatting; detects ILS vs USD from ticker suffix
 - **`useGrouping`** — pure function, groups any `items[]` by market or custom tag
 - **`useChartRange`** — shared range-tab state (`1d`/`5d`/`1mo`/`6mo`/`1y`) used by `RangeBar`
@@ -161,6 +161,12 @@ Client HTTP request
 
 ### Extended-Hours Quotes
 `stockService` quotes carry Yahoo's pre/post-market fields through unchanged: `preMarketPrice`, `preMarketChange`, `preMarketChangePercent`, `postMarketPrice`, `postMarketChange`, `postMarketChangePercent`. `portfolioController` and `watchlistController` attach these alongside the regular `change`/`changePercent` per position/watchlist item. The client falls back to the extended-hours percent when the market is closed and a pre/post value is present (see `useMarketHours.js` for session-state detection used to decide which figure to show).
+
+### Yahoo Resilience
+`stockService` wraps Yahoo calls with retry/backoff for HTTP 429 and transient network errors. Last-good quote snapshots are persisted in MongoDB so cold starts or Yahoo throttling can serve stale quote data instead of failing the whole portfolio/watchlist request.
+
+### Fee Profile Presets
+`feeProfileController` owns read-only built-in profiles with stable IDs such as `builtin:blink-plus`. `portfolioController` resolves those IDs before fee calculation, but does not store them in `Transaction.feeProfile` because they are not user-owned MongoDB documents. The calculated `feeAmount`, `taxAmount`, `totalWithFees`, and `netProceeds` are still stored on the transaction.
 
 ### Background Jobs (cronService)
 Two cron schedules registered at startup:
@@ -230,6 +236,14 @@ Configured via `vite-plugin-pwa` in `vite.config.js` (`strategies: injectManifes
 
 ### Fullscreen
 - `composables/usePwa.js` (`useFullscreen`) wraps the Fullscreen API with `webkit` fallbacks — `enter`/`exit`/`toggle` plus reactive `isFullscreen` synced to `fullscreenchange`.
+
+---
+
+## Analytics & Client Errors
+
+- `composables/useAnalytics.js` installs Google Analytics page-view tracking only in production, only when `VITE_GA_MEASUREMENT_ID` is set, and not when browser Do Not Track is enabled. Router navigation sends explicit `page_view` events.
+- `composables/useClientErrors.js` centralizes client error logging: Vue errors, window errors, unhandled promise rejections, and suppressed PrimeVue error toasts are logged with `[StockFolio]` context.
+- Error toasts are suppressed globally; validation feedback should use warn/info/success toasts, while unexpected errors should go to the browser console.
 
 ---
 

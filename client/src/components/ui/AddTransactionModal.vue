@@ -18,12 +18,28 @@ import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 
+const BUILTIN_FEE_PROFILES = [
+  {
+    _id: 'builtin:blink-plus',
+    builtin: true,
+    name: 'בלינק Plus',
+    currency: 'USD',
+    buyFee: {type: 'perShare', value: 0.01, minFee: 1.5},
+    sellFee: {type: 'perShare', value: 0.01, minFee: 1.5},
+    capitalGainsTax: 25,
+    monthlyUsage: {transactions: 10, shares: 1000},
+  },
+]
+
 const props = defineProps({
   visible: Boolean,
   defaultTicker: { type: String, default: '' },
   defaultType: {type: String, default: 'buy'},     // 'buy' | 'sell'
   defaultPrice: {type: Number, default: null},      // prefill price (e.g. current price for a sell)
   maxShares: {type: Number, default: null},         // cap shares when selling a known position
+  avgCost: {type: Number, default: null},           // current position average cost for sell simulation
+  totalCost: {type: Number, default: null},         // current position cost basis for sell simulation
+  totalBuyFees: {type: Number, default: 0},         // current position buy fees for sell simulation
 })
 const emit = defineEmits(['update:visible', 'hide'])
 
@@ -53,6 +69,7 @@ const currentTicker = computed(() => {
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
   return (raw || '').split(' — ')[0].trim().toUpperCase()
 })
+const hasFixedTicker = computed(() => Boolean(props.defaultTicker))
 const txCurrency = computed(() => {
   if (currentTicker.value) return tickerCurrency(currentTicker.value)
   return marketSuffix.value === '.TA' ? 'ILS' : 'USD'
@@ -68,7 +85,10 @@ function defaultFeeProfile() {
   return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
 }
 
-const matchingProfiles = computed(() => feeStore.profiles)
+const matchingProfiles = computed(() => [
+  ...BUILTIN_FEE_PROFILES,
+  ...feeStore.profiles,
+])
 
 function formatFeePercent(value) {
   const num = Number(value)
@@ -83,25 +103,45 @@ function formatTaxPercent(value) {
 }
 
 const feeOptions = computed(() => [
-  { label: 'No fee', value: null },
+  { label: 'No fee', detail: '', value: null },
   ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
-    const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : fee.value) : '0%'
-    const taxStr = p.capitalGainsTax ? ` · Tax ${formatTaxPercent(p.capitalGainsTax)}` : ''
-    return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id, profile: p }
+    const feeStr = formatFeeRule(fee, p.currency || currency.value)
+    const minStr = fee?.minFee ? ` min ${useCurrency(fee.minFee, p.currency || currency.value)}` : ''
+    const usageStr = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : ''
+    const taxStr = p.capitalGainsTax ? `Tax ${formatTaxPercent(p.capitalGainsTax)}` : ''
+    const presetStr = p.builtin ? 'Preset' : ''
+    const detail = [feeStr + minStr, usageStr, taxStr].filter(Boolean).join(' · ')
+    return { label: p.name, detail, meta: presetStr, value: p._id, profile: p }
   }),
 ])
 
+function formatMonthlyUsage(usage) {
+  const parts = []
+  if (usage.transactions) parts.push(`${usage.transactions} tx/mo`)
+  if (usage.shares) parts.push(`${usage.shares.toLocaleString()} shares/mo`)
+  return parts.join(' or ')
+}
+
+function formatFeeRule(rule, profileCurrency = currency.value) {
+  if (!rule?.value) return '0'
+  if (rule.type === 'percent') return formatFeePercent(rule.value)
+  if (rule.type === 'perShare') return `${useCurrency(rule.value, profileCurrency)} / share`
+  return useCurrency(rule.value, profileCurrency)
+}
+
 function calcFee(rule, total) {
   if (!rule || !rule.value) return 0
-  let fee = rule.type === 'percent' ? total * rule.value : rule.value
+  let fee = rule.value
+  if (rule.type === 'percent') fee = total * rule.value
+  if (rule.type === 'perShare') fee = (shares.value || 0) * rule.value
   if (rule.minFee && fee < rule.minFee) fee = rule.minFee
   return Math.round(fee * 100) / 100
 }
 
 const selectedProfile = computed(() => {
   if (!selectedFeeProfile.value) return null
-  return feeStore.profiles.find((p) => p._id === selectedFeeProfile.value) || null
+  return matchingProfiles.value.find((p) => p._id === selectedFeeProfile.value) || null
 })
 
 const feeAmount = computed(() => {
@@ -112,14 +152,45 @@ const feeAmount = computed(() => {
 })
 const feeCurrency = computed(() => txCurrency.value)
 
-// Capital gains tax estimate (sell only) — uses a placeholder avg cost of 0 if unknown
-const taxAmount = computed(() => {
-  if (type.value !== 'sell' || !selectedProfile.value?.capitalGainsTax) return 0
-  if (!shares.value || !price.value) return 0
-  // Frontend can't know avgCost here — show estimated tax on full proceeds as worst case
-  // Server will compute exact tax using real avgCost
-  return 0
+const sellSimulation = computed(() => {
+  if (type.value !== 'sell' || !shares.value || !price.value) return null
+
+  const grossProceeds = shares.value * price.value
+  const taxRate = selectedProfile.value?.capitalGainsTax || 0
+  const costBasis = Number.isFinite(props.avgCost)
+      ? props.avgCost * shares.value
+      : Number.isFinite(props.totalCost) && props.maxShares > 0
+          ? props.totalCost * (shares.value / props.maxShares)
+          : null
+  const buyFeesBasis = props.maxShares > 0
+      ? (props.totalBuyFees || 0) * (shares.value / props.maxShares)
+      : 0
+  const gain = costBasis != null ? grossProceeds - costBasis : null
+  const tax = gain != null && gain > 0 && taxRate > 0
+      ? Math.round(gain * taxRate / 100 * 100) / 100
+      : 0
+  const netProceeds = grossProceeds - feeAmount.value - tax
+  const invested = costBasis != null ? costBasis + buyFeesBasis : null
+  const netProfit = invested != null ? netProceeds - invested : null
+  const netProfitPct = invested > 0 && netProfit != null ? (netProfit / invested) * 100 : null
+
+  return {
+    grossProceeds,
+    sellFee: feeAmount.value,
+    taxRate,
+    tax,
+    netProceeds,
+    costBasis,
+    buyFeesBasis,
+    netProfit,
+    netProfitPct,
+    profileName: selectedProfile.value?.name || null,
+  }
 })
+
+function fmt(value) {
+  return value >= 0 ? '+' : ''
+}
 
 onMounted(() => { if (!feeStore.profiles.length) feeStore.fetchProfiles() })
 
@@ -165,6 +236,17 @@ async function fetchMarketPrice() {
 
 function useMarketPrice() {
   if (marketPrice.value != null) price.value = marketPrice.value
+}
+
+function formatCompactPrice(value) {
+  if (value == null) return ''
+  const maximumFractionDigits = value < 1 ? 6 : shareDigits.value
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency.value,
+    minimumFractionDigits: 0,
+    maximumFractionDigits,
+  }).format(value)
 }
 
 async function sellAllAtMarket() {
@@ -233,7 +315,8 @@ function addTypedGroup(event) {
 async function submit() {
   if (type.value === 'buy') commitPendingGroup() // flush un-Entered group text
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
-  const t = applyTo((raw || '').split(' — ')[0].trim().toUpperCase())
+  const symbol = (raw || '').split(' — ')[0].trim().toUpperCase()
+  const t = hasFixedTicker.value ? symbol : applyTo(symbol)
 
   // Crypto buy with no price → fall back to the live market price.
   let effectivePrice = price.value
@@ -263,7 +346,13 @@ async function submit() {
     emit('update:visible', false)
     emit('hide')
   } catch (err) {
-    toast.add({ severity: 'error', summary: 'Error', detail: err.message, life: 3000 })
+    const handledValidation = err.status >= 400 && err.status < 500
+    toast.add({
+      severity: handledValidation ? 'warn' : 'error',
+      summary: handledValidation ? err.message : 'Error',
+      detail: handledValidation ? undefined : err.message,
+      life: 3000,
+    })
   } finally {
     loading.value = false
   }
@@ -283,7 +372,7 @@ async function submit() {
       <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select"/>
 
       <!-- Market selector -->
-      <div class="field">
+      <div v-if="!hasFixedTicker" class="field">
         <label>Market</label>
         <div class="market-grid">
           <button
@@ -300,7 +389,14 @@ async function submit() {
 
       <div class="field">
         <label>{{ isCryptoBuy ? 'Coin' : 'Ticker' }}</label>
+        <InputText
+          v-if="hasFixedTicker"
+          :model-value="currentTicker"
+          disabled
+          fluid
+        />
         <AutoComplete
+          v-else
           v-model="ticker"
           :suggestions="suggestions"
           @complete="searchTicker"
@@ -309,7 +405,7 @@ async function submit() {
           :delay="300"
           fluid
         />
-        <span v-if="marketSuffix" class="suffix-hint">
+        <span v-if="marketSuffix && !hasFixedTicker" class="suffix-hint">
           Suffix <code>{{ marketSuffix }}</code> will be appended automatically
         </span>
       </div>
@@ -338,11 +434,12 @@ async function submit() {
                 class="max-link"
                 type="button"
                 @click="useMarketPrice"
-            >Market {{ currencySymbol }}{{ marketPrice < 1 ? marketPrice.toFixed(6) : marketPrice.toFixed(2) }}</button>
+            >Market {{ formatCompactPrice(marketPrice) }}</button>
             <span v-else-if="fetchingPrice" class="max-link" style="opacity:0.5;cursor:default">Fetching…</span>
           </label>
-          <InputNumber v-model="price" mode="currency" :currency="currency" :min="0" :max-fraction-digits="shareDigits"
-                       :placeholder="isCryptoBuy && type === 'buy' ? 'Market price' : `${currencySymbol}0.00`" fluid />
+          <InputNumber v-model="price" mode="currency" :currency="currency" :min="0" :min-fraction-digits="0"
+                       :max-fraction-digits="shareDigits"
+                       :placeholder="isCryptoBuy && type === 'buy' ? 'Market price' : `${currencySymbol}0`" fluid />
           <span v-if="isCryptoBuy && type === 'buy' && !price" class="suffix-hint">
             Leave empty to buy at the current market price
           </span>
@@ -385,14 +482,30 @@ async function submit() {
       <div class="field">
         <label><span>Brokerage fee <i v-tooltip.focus.top="'Apply a saved fee profile to include your broker\'s commission (and capital-gains tax on sells) in the total.'" tabindex="0" class="pi pi-info-circle info-icon"/></span></label>
         <Select
-          v-if="feeStore.profiles.length"
+          v-if="feeOptions.length > 1"
           v-model="selectedFeeProfile"
           :options="feeOptions"
           option-label="label"
           option-value="value"
           placeholder="No fee"
+          panel-class="fee-select-panel"
           fluid
-        />
+        >
+          <template #value="{ value, placeholder }">
+            <span class="fee-selected">
+              {{ feeOptions.find((option) => option.value === value)?.label || placeholder }}
+            </span>
+          </template>
+          <template #option="{ option }">
+            <div class="fee-option">
+              <div class="fee-option-title">
+                <span>{{ option.label }}</span>
+                <span v-if="option.meta" class="fee-option-meta">{{ option.meta }}</span>
+              </div>
+              <div v-if="option.detail" class="fee-option-detail">{{ option.detail }}</div>
+            </div>
+          </template>
+        </Select>
         <Button
           v-else
           icon="pi pi-plus"
@@ -410,25 +523,72 @@ async function submit() {
       </div>
 
       <div class="total-row">
-        <div class="total-line">
+        <div v-if="type === 'buy'" class="total-line">
           <span class="text-muted">Subtotal</span>
           <span>{{ currencySymbol }}{{ ((shares || 0) * (price || 0)).toFixed(2) }}</span>
         </div>
-        <div v-if="feeAmount > 0" class="total-line fee-line">
-          <span class="text-muted">{{ type === 'buy' ? 'Buy' : 'Sell' }} fee</span>
-          <span class="loss">{{ type === 'buy' ? '+' : '-' }}{{ useCurrency(feeAmount, feeCurrency) }}</span>
+        <div v-if="type === 'buy' && feeAmount > 0" class="total-line fee-line">
+          <span class="text-muted">Buy fee</span>
+          <span class="loss">+{{ useCurrency(feeAmount, feeCurrency) }}</span>
         </div>
-        <div v-if="type === 'sell' && selectedProfile?.capitalGainsTax" class="total-line fee-line">
-          <span class="text-muted">Capital gains tax ({{ formatTaxPercent(selectedProfile.capitalGainsTax) }})</span>
-          <span class="loss">calculated on profit at sell</span>
-        </div>
-        <div class="total-line total-final">
-          <span>{{ type === 'buy' ? 'Total cost' : 'Net proceeds' }}</span>
+        <div v-if="type === 'buy'" class="total-line total-final">
+          <span>Total cost</span>
           <span class="total-amount">
-            {{ currencySymbol }}{{ type === 'buy'
-              ? ((((shares || 0) * (price || 0)) + feeAmount).toFixed(2))
-              : ((((shares || 0) * (price || 0)) - feeAmount).toFixed(2)) }}
-            <span v-if="type === 'sell' && selectedProfile?.capitalGainsTax" class="text-muted" style="font-size:0.75rem"> (before tax)</span>
+            {{ currencySymbol }}{{ ((((shares || 0) * (price || 0)) + feeAmount).toFixed(2)) }}
+          </span>
+        </div>
+
+        <template v-else-if="sellSimulation">
+          <div class="total-line">
+            <span class="text-muted">Gross proceeds</span>
+            <span>{{ useCurrency(sellSimulation.grossProceeds, currency) }}</span>
+          </div>
+          <div v-if="sellSimulation.sellFee > 0" class="total-line fee-line">
+            <span class="text-muted">Sell fee{{ sellSimulation.profileName ? ` · ${sellSimulation.profileName}` : '' }}</span>
+            <span class="loss">-{{ useCurrency(sellSimulation.sellFee, feeCurrency) }}</span>
+          </div>
+          <div v-if="sellSimulation.tax > 0" class="total-line fee-line">
+            <span class="text-muted">Capital gains tax ({{ formatTaxPercent(sellSimulation.taxRate) }})</span>
+            <span class="loss">-{{ useCurrency(sellSimulation.tax, currency) }}</span>
+          </div>
+          <div v-else-if="sellSimulation.taxRate > 0" class="total-line fee-line">
+            <span class="text-muted">Capital gains tax ({{ formatTaxPercent(sellSimulation.taxRate) }})</span>
+            <span class="text-muted">No taxable gain</span>
+          </div>
+          <div class="total-line total-final">
+            <span>Net proceeds</span>
+            <span class="total-amount">{{ useCurrency(sellSimulation.netProceeds, currency) }}</span>
+          </div>
+          <div v-if="sellSimulation.costBasis != null" class="total-line fee-line">
+            <span class="text-muted">Cost basis</span>
+            <span>{{ useCurrency(sellSimulation.costBasis, currency) }}</span>
+          </div>
+          <div v-if="sellSimulation.buyFeesBasis > 0" class="total-line fee-line">
+            <span class="text-muted">Buy fees basis</span>
+            <span>{{ useCurrency(sellSimulation.buyFeesBasis, currency) }}</span>
+          </div>
+          <div
+              v-if="sellSimulation.netProfit != null"
+              :class="sellSimulation.netProfit >= 0 ? 'gain' : 'loss'"
+              class="total-line sell-profit"
+          >
+            <span>Net profit / loss</span>
+            <span>
+              {{ fmt(sellSimulation.netProfit) }}{{ useCurrency(Math.abs(sellSimulation.netProfit), currency) }}
+              <template v-if="sellSimulation.netProfitPct != null">
+                ({{ fmt(sellSimulation.netProfitPct) }}{{ sellSimulation.netProfitPct.toFixed(2) }}%)
+              </template>
+            </span>
+          </div>
+          <div v-else-if="sellSimulation.taxRate > 0" class="total-hint text-muted">
+            Tax will be finalized by the server using your exact cost basis.
+          </div>
+        </template>
+
+        <div v-else class="total-line total-final">
+          <span>Net proceeds</span>
+          <span class="total-amount">
+            {{ currencySymbol }}{{ ((((shares || 0) * (price || 0)) - feeAmount).toFixed(2)) }}
           </span>
         </div>
       </div>
@@ -515,9 +675,61 @@ async function submit() {
 .hint {
   font-size: 0.72rem;
 }
+
+.fee-selected {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fee-option {
+  max-width: min(340px, calc(100vw - 3rem));
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.fee-option-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+
+.fee-option-meta {
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  color: var(--text-secondary);
+  font-size: 0.66rem;
+  font-weight: 600;
+}
+
+.fee-option-detail {
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  line-height: 1.25;
+}
+
+:global(.fee-select-panel) {
+  max-width: min(360px, calc(100vw - 2rem));
+}
+
+:global(.fee-select-panel .p-select-option) {
+  white-space: normal;
+}
+
 .total-row { display: flex; flex-direction: column; gap: 4px; padding: 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.04); font-size: 0.9rem; }
 .total-line { display: flex; justify-content: space-between; }
 .fee-line { font-size: 0.82rem; }
+.sell-profit { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; font-weight: 700; }
+.sell-profit span:last-child { text-align: right; }
+.total-hint { font-size: 0.76rem; text-align: center; }
 .info-icon { font-size: 0.72rem; opacity: 0.55; cursor: pointer; }
 .info-icon:hover, .info-icon:focus { opacity: 1; color: var(--accent); outline: none; }
 .total-final { border-top: 1px solid var(--border); padding-top: 6px; margin-top: 2px; font-weight: 600; }

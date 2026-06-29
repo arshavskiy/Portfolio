@@ -14,7 +14,7 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - `client/src/stores/`: Pinia stores for auth, portfolio, watchlist, and fee profiles.
 - `client/src/composables/`: shared API and formatting helpers.
 - `server/`: Express API.
-- `server/index.js`: API entry point, MongoDB connection, CORS, rate limiting, and route registration.
+- `server/index.js`: API entry point, MongoDB connection, CORS, request logging, and route registration.
 - `server/routes/`: API route definitions.
 - `server/controllers/`: request handlers and portfolio calculations.
 - `server/models/`: Mongoose models for users, positions, transactions, watchlists, and fee profiles.
@@ -25,7 +25,9 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - JWT authentication with persisted frontend session state.
 - Portfolio positions with average cost, current quote, P&L, and multi-currency totals.
 - Transaction lots with buy/sell fees, tax amounts, net proceeds, and running average cost.
-- Fee profiles for broker fees and capital gains tax simulation.
+- Buy/sell transaction modal with fixed-ticker mode, compact price input, market-price quick fill, sell-all action, and sell proceeds/profit simulation.
+- Fee profiles for broker fees and capital gains tax simulation, including built-in read-only presets such as `בלינק Plus`.
+- Dividend tracking with per-share annual dividend estimates, after-tax estimates, and share-weighted holding-time prorating for currently held shares.
 - Watchlist and stock detail pages with quote/history data.
 - Custom stock groups (multi-tag) with a group-by toggle on Dashboard, Holdings, and Watchlist.
 - Price alerts via Web Push (VAPID), one-shot trigger, in-app toast notifications.
@@ -39,6 +41,8 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - Financial news provider chain: Marketaux first, Finnhub second, Yahoo Finance search fallback.
 - TASE `.TA` support, including agorot-to-shekel normalization.
 - PWA support through `vite-plugin-pwa` (injectManifest, Web Push handling in custom service worker).
+- Financial disclaimer route linked from login/profile.
+- Google Analytics page-view tracking in production when configured.
 
 ## Local Development
 
@@ -83,6 +87,7 @@ Frontend variables are documented in `client/.env.example`:
 
 - `VITE_API_URL`: deployed backend URL, usually the Railway service URL.
 - `VITE_API_PROXY_TARGET`: local dev proxy target.
+- `VITE_GA_MEASUREMENT_ID`: optional Google Analytics measurement ID; tracking runs only in production and respects browser Do Not Track.
 
 ## Deployment
 
@@ -124,11 +129,12 @@ Bulk import (holdings/watchlist from spreadsheet files) is parsed client-side vi
 
 ## Verification
 
-Current automated testing is not configured. Use these checks before deployment:
+Use these checks before deployment:
 
 ```bash
+cd client && npm test
 cd client && npm run build
-cd server && node --check index.js
+cd server && npm test
 ```
 
-Manually verify login/register, adding transactions, opening holdings lots, watchlist changes, News topic switching/infinite scroll, and CORS from the deployed Vercel URL.
+Manually verify login/register, adding transactions, opening holdings lots, sell simulation, watchlist changes, News topic switching/infinite scroll, and CORS from the deployed Vercel URL.

@@ -146,6 +146,9 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
         <span>{{ useTickerCurrency(rangeStartPrice, item.ticker) }}</span>
         <span>{{ useTickerCurrency(rangeEndPrice, item.ticker) }}</span>
       </div>
+    </div>
+
+    <div class="row-right">
       <div v-if="activeExtended" :title="activeExtended.label" class="extended-combined">
         <span v-if="activeExtended.price" :class="activeExtended.label.startsWith('Pre') ? 'gold' : 'purple'"
               class="ext-price">{{
@@ -157,9 +160,6 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
                 class="ext-val">{{ usePercent(activeExtended.percent) }}</span>
         </span>
       </div>
-    </div>
-
-    <div class="row-right">
       <span class="price-line">
         <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
         <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>
@@ -288,6 +288,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
 }
 
 .row-right {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -360,8 +361,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
 
 .extended-combined {
   position: absolute;
-  top: -3px;
-  left: 110px;
+  right: 65px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;

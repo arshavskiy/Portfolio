@@ -7,7 +7,7 @@ const FeeProfile = require('../models/FeeProfile')
 // feeAmount stays in profile currency; totalWithFees/netProceeds convert it first.
 const Watchlist = require('../models/Watchlist')
 const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd} = require('../services/stockService')
-const { computeTransactionCosts } = require('./feeProfileController')
+const { computeTransactionCosts, getBuiltInFeeProfile } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 
 // Recompute a position's shares + avg cost by replaying all of its transactions
@@ -220,7 +220,8 @@ exports.addTransaction = async (req, res) => {
     let feeAmountForTotals = 0
     let taxAmount = 0
     if (feeProfileId) {
-      feeProfile = await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
+      feeProfile = getBuiltInFeeProfile(feeProfileId) ||
+        await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
     } else if (feeProfileId === undefined) {
       feeProfile = await findDefaultFeeProfile(req.user._id, tickerCurrency(ticker))
     }
@@ -246,7 +247,7 @@ exports.addTransaction = async (req, res) => {
         date,
         notes,
         drip: type === 'dividend' ? Boolean(drip) : undefined,
-      feeProfile: feeProfile?._id || null,
+        feeProfile: feeProfile?.builtin ? null : feeProfile?._id || null,
       feeAmount,
       taxAmount,
         totalWithFees: type === 'buy' ? total + feeAmountForTotals : (type === 'sell' ? total - feeAmountForTotals : total),
@@ -357,7 +358,8 @@ exports.updateTransaction = async (req, res) => {
     let feeAmountForTotals = 0
     let taxAmount = 0
     if (feeProfileId) {
-      feeProfile = await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
+      feeProfile = getBuiltInFeeProfile(feeProfileId) ||
+        await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
     } else if (feeProfileId === undefined) {
       feeProfile = await findDefaultFeeProfile(req.user._id, tickerCurrency(tx.ticker))
     }
@@ -376,7 +378,7 @@ exports.updateTransaction = async (req, res) => {
     tx.total = total
     tx.date = date || tx.date
     tx.notes = notes
-    tx.feeProfile = feeProfile?._id || null
+    tx.feeProfile = feeProfile?.builtin ? null : feeProfile?._id || null
     tx.feeAmount = feeAmount
     tx.taxAmount = taxAmount
     tx.totalWithFees = tx.type === 'buy' ? total + feeAmountForTotals : total - feeAmountForTotals

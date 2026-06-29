@@ -170,6 +170,44 @@ const dividendTxs = computed(() =>
     transactions.value.filter((tx) => tx.type === 'dividend').sort((a, b) => new Date(b.date) - new Date(a.date))
 )
 const totalDividends = computed(() => dividendTxs.value.reduce((s, d) => s + (d.total || 0), 0))
+const holdingLots = computed(() => {
+  const openLots = []
+  const ordered = [...transactions.value].sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  for (const tx of ordered) {
+    if (tx.type === 'buy') {
+      if (tx.shares > 0) openLots.push({shares: tx.shares, date: tx.date})
+    } else if (tx.type === 'sell') {
+      let remaining = tx.shares || 0
+      while (remaining > 0 && openLots.length) {
+        const lot = openLots[0]
+        const consumed = Math.min(lot.shares, remaining)
+        lot.shares -= consumed
+        remaining -= consumed
+        if (lot.shares <= 0) openLots.shift()
+      }
+    } else if (tx.type === 'dividend' && tx.drip && tx.shares > 0) {
+      openLots.push({shares: tx.shares, date: tx.date})
+    }
+  }
+
+  return openLots
+})
+const weightedHoldingMs = computed(() => {
+  const lots = holdingLots.value
+  const totalShares = lots.reduce((sum, lot) => sum + lot.shares, 0)
+  if (totalShares <= 0) return null
+
+  const nowMs = now.value.getTime()
+  const weightedMs = lots.reduce((sum, lot) => {
+    const lotMs = new Date(lot.date).getTime()
+    if (!Number.isFinite(lotMs) || lotMs > nowMs) return sum
+    return sum + ((nowMs - lotMs) * lot.shares)
+  }, 0)
+
+  return weightedMs / totalShares
+})
+const holdingTimeLabel = computed(() => weightedHoldingMs.value != null ? formatDurationMs(weightedHoldingMs.value) : '')
 
 // Running weighted average per lot
 const lots = computed(() => {
@@ -267,6 +305,18 @@ function formatDate(d) {
   return new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})
 }
 
+function formatDurationMs(value) {
+  if (!Number.isFinite(value) || value < 0) return ''
+  const totalDays = Math.floor(value / 86400000)
+  const years = Math.floor(totalDays / 365)
+  const months = Math.floor((totalDays % 365) / 30)
+  const days = totalDays - (years * 365) - (months * 30)
+  if (years > 0) return `${years}y${months > 0 ? ` ${months}m` : ''}`
+  if (months > 0) return `${months}m${days > 0 ? ` ${days}d` : ''}`
+  if (days > 0) return `${days}d`
+  return 'Today'
+}
+
 function fmt(val) {
   return val >= 0 ? '+' : ''
 }
@@ -275,6 +325,19 @@ function formatTaxPercent(value) {
   const num = Number(value)
   if (!Number.isFinite(num)) return '0%'
   return `${num.toFixed(3).replace(/(\.\d*?[1-9])0+$/u, '$1').replace(/\.0+$/u, '')}%`
+}
+
+function formatDividendCurrency(value) {
+  if (value == null) return '—'
+  const abs = Math.abs(value)
+  const maxFractionDigits = abs > 0 && abs < 0.01 ? 6 : abs < 1 ? 4 : 2
+  const minimumFractionDigits = abs > 0 && abs < 0.01 ? 4 : 2
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: tickerCurr.value,
+    minimumFractionDigits,
+    maximumFractionDigits: maxFractionDigits,
+  }).format(value)
 }
 
 const tickerCurr = computed(() => ticker.value.endsWith('.TA') ? 'ILS' : 'USD')
@@ -361,6 +424,27 @@ const quoteChange = computed(() => ({
   amount: quote.value?.change ?? null,
   percent: quote.value?.changePercent ?? null,
 }))
+const normalizedDividendYield = computed(() => {
+  const value = quote.value?.dividendYield
+  if (!Number.isFinite(value) || value <= 0) return null
+  return value > 1 ? value / 100 : value
+})
+const annualDividendRate = computed(() => {
+  if (quote.value?.dividendRate > 0) return quote.value.dividendRate
+  if (normalizedDividendYield.value && quote.value?.price > 0) return normalizedDividendYield.value * quote.value.price
+  return null
+})
+const annualDividendTotal = computed(() =>
+    annualDividendRate.value != null && summary.value ? annualDividendRate.value * summary.value.shares : null
+)
+const holdingYearFraction = computed(() =>
+    weightedHoldingMs.value != null ? weightedHoldingMs.value / (365 * 86400000) : null
+)
+const heldDividendTotal = computed(() =>
+    annualDividendTotal.value != null && holdingYearFraction.value != null
+        ? annualDividendTotal.value * holdingYearFraction.value
+        : null
+)
 const rangeChange = computed(() => {
   const rows = history.value.filter((row) => Number.isFinite(row?.close))
   if (rows.length < 2) return null
@@ -494,7 +578,8 @@ const STAT_INFO = {
   '52W Low': 'The lowest price the stock reached over the past 52 weeks.',
   'Div Yield': 'Annual dividend as a percentage of the current share price.',
   'Div / Share': 'The dividend paid per share over the last year.',
-  'Annual div total': 'Estimated yearly dividend for your position (dividend per share × shares held).',
+  'Held div total': 'Estimated dividend for the currently held shares, prorated by their share-weighted holding time.',
+  'Avg holding time': 'Share-weighted holding time for the currently held shares. Sells consume older lots first.',
 }
 
 const extendedHoursStats = computed(() => {
@@ -901,7 +986,7 @@ async function toggleWatchlist() {
       <div class="chart-measure">
         <div v-if="measureDelta" class="measure-summary">
           <span class="measure-tag text-muted">
-            {{ selectedDelta ? 'Selected range' : 'Trading hours' }}
+            {{ selectedDelta ? 'Selected range' : 'Min Max in Trading hours' }}
           </span>
           <span :class="gainLossClass(measureDelta.amount)">
             {{ useTickerCurrency(measureDelta.amount, ticker) }} ({{ usePercent(measureDelta.percent) }})
@@ -1042,101 +1127,36 @@ async function toggleWatchlist() {
           <span class="text-muted stat-label-info">52W Low <i v-tooltip.focus.top="STAT_INFO['52W Low']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
           <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
         </div>
-        <div v-if="quote.dividendYield" class="stat">
+        <div v-if="normalizedDividendYield" class="stat">
           <span class="text-muted stat-label-info">Div Yield <i v-tooltip.focus.top="STAT_INFO['Div Yield']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
-          <span class="div-yield-val">{{ (quote.dividendYield * 100).toFixed(2) }}%</span>
+          <span class="div-yield-val">{{ (normalizedDividendYield * 100).toFixed(3).replace(/\.?0+$/, '') }}%</span>
         </div>
-        <div v-if="quote.dividendRate" class="stat">
+        <div v-if="annualDividendRate" class="stat">
           <span class="text-muted stat-label-info">Div / Share <i v-tooltip.focus.top="STAT_INFO['Div / Share']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
-          <span>{{ useTickerCurrency(quote.dividendRate, ticker) }}</span>
+          <span>{{ formatDividendCurrency(annualDividendRate) }}</span>
         </div>
-        <div v-if="quote.dividendRate && summary?.taxRate" class="stat">
+        <div v-if="annualDividendRate && summary?.taxRate" class="stat">
           <span class="text-muted">Div after tax ({{ formatTaxPercent(summary.taxRate) }})</span>
           <span class="div-yield-val">{{
-              useTickerCurrency(quote.dividendRate * (1 - summary.taxRate / 100), ticker)
+              formatDividendCurrency(annualDividendRate * (1 - summary.taxRate / 100))
             }}</span>
         </div>
-        <div v-if="quote.dividendRate && summary" class="stat">
-          <span class="text-muted stat-label-info">Annual div total <i v-tooltip.focus.top="STAT_INFO['Annual div total']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
-          <span class="div-yield-val">{{ useTickerCurrency(quote.dividendRate * summary.shares, ticker) }}</span>
+        <div v-if="heldDividendTotal != null" class="stat">
+          <span class="text-muted stat-label-info">Held div total <i v-tooltip.focus.top="STAT_INFO['Held div total']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="div-yield-val">{{ formatDividendCurrency(heldDividendTotal) }}</span>
         </div>
-        <div v-if="quote.dividendRate && summary?.taxRate" class="stat">
-          <span class="text-muted">Annual div after tax</span>
+        <div v-if="summary && holdingTimeLabel" class="stat">
+          <span class="text-muted stat-label-info">Avg holding time <i v-tooltip.focus.top="STAT_INFO['Avg holding time']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span>{{ holdingTimeLabel }}</span>
+        </div>
+        <div v-if="heldDividendTotal != null && summary?.taxRate" class="stat">
+          <span class="text-muted">Held div after tax</span>
           <span class="div-yield-val">{{
-              useTickerCurrency(quote.dividendRate * summary.shares * (1 - summary.taxRate / 100), ticker)
+              formatDividendCurrency(heldDividendTotal * (1 - summary.taxRate / 100))
             }}</span>
         </div>
       </div>
 
-      <!-- Sell Simulator -->
-      <div v-if="summary" class="sim-wrap">
-        <button class="sim-toggle" @click="showSimulator = !showSimulator">
-          <i class="pi pi-calculator"/>
-          Sell Simulator
-          <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
-        </button>
-
-        <div v-if="showSimulator" class="sim-body">
-          <div class="sim-inputs">
-            <div class="sim-field">
-              <label>Sell price per share</label>
-              <InputNumber
-                  v-model="simPrice"
-                  :currency="tickerCurr"
-                  :max-fraction-digits="4"
-                  :min="0.001"
-                  fluid
-                  mode="currency"
-              />
-            </div>
-            <div class="sim-field">
-              <label>Fee profile</label>
-              <Select
-                  v-model="simFeeProfileId"
-                  :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
-                  fluid
-                  option-label="label"
-                  option-value="value"
-              />
-            </div>
-          </div>
-
-          <div class="sim-results">
-            <template v-if="simulation">
-              <div class="sim-row">
-                <span class="text-muted">Gross proceeds</span>
-                <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
-              </div>
-              <div v-if="simulation.sellFee > 0" class="sim-row">
-                <span class="text-muted">Sell fee{{
-                    simulation.profileName ? ` · ${simulation.profileName}` : ''
-                  }}</span>
-                <span class="loss">-{{ useCurrency(simulation.sellFee, simulation.sellFeeCurrency) }}</span>
-              </div>
-              <div v-if="simulation.tax > 0" class="sim-row">
-                <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
-                <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
-              </div>
-              <div class="sim-row sim-divider">
-                <span>Net proceeds</span>
-                <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
-              </div>
-              <div :class="gainLossClass(simulation.netProfit)" class="sim-row sim-profit">
-                <span>Net profit / loss</span>
-                <div class="sim-profit-right">
-                  <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{
-                      simulation.netProfitPct.toFixed(2)
-                    }}%</span>
-                  <span>{{ fmt(simulation.netProfit) }}{{ currSymbol }}{{
-                      Math.abs(simulation.netProfit).toFixed(2)
-                    }}</span>
-                </div>
-              </div>
-            </template>
-            <span v-else class="sim-placeholder text-muted">Enter a sell price to see results</span>
-          </div>
-        </div>
-      </div>
 
       <!-- Buy Simulator -->
       <div class="sim-wrap">
@@ -1271,11 +1291,84 @@ async function toggleWatchlist() {
         </div>
       </div>
 
+      <!-- Sell Simulator -->
+      <div v-if="summary" class="sim-wrap">
+        <button class="sim-toggle" @click="showSimulator = !showSimulator">
+          <i class="pi pi-calculator"/>
+          Sell Simulator
+          <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
+        </button>
+
+        <div v-if="showSimulator" class="sim-body">
+          <div class="sim-inputs">
+            <div class="sim-field">
+              <label>Sell price per share</label>
+              <InputNumber
+                  v-model="simPrice"
+                  :currency="tickerCurr"
+                  :max-fraction-digits="4"
+                  :min="0.001"
+                  fluid
+                  mode="currency"
+              />
+            </div>
+            <div class="sim-field">
+              <label>Fee profile</label>
+              <Select
+                  v-model="simFeeProfileId"
+                  :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
+                  fluid
+                  option-label="label"
+                  option-value="value"
+              />
+            </div>
+          </div>
+
+          <div class="sim-results">
+            <template v-if="simulation">
+              <div class="sim-row">
+                <span class="text-muted">Gross proceeds</span>
+                <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
+              </div>
+              <div v-if="simulation.sellFee > 0" class="sim-row">
+                <span class="text-muted">Sell fee{{
+                    simulation.profileName ? ` · ${simulation.profileName}` : ''
+                  }}</span>
+                <span class="loss">-{{ useCurrency(simulation.sellFee, simulation.sellFeeCurrency) }}</span>
+              </div>
+              <div v-if="simulation.tax > 0" class="sim-row">
+                <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
+                <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
+              </div>
+              <div class="sim-row sim-divider">
+                <span>Net proceeds</span>
+                <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
+              </div>
+              <div :class="gainLossClass(simulation.netProfit)" class="sim-row sim-profit">
+                <span>Net profit / loss</span>
+                <div class="sim-profit-right">
+                  <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{
+                      simulation.netProfitPct.toFixed(2)
+                    }}%</span>
+                  <span>{{ fmt(simulation.netProfit) }}{{ currSymbol }}{{
+                      Math.abs(simulation.netProfit).toFixed(2)
+                    }}</span>
+                </div>
+              </div>
+            </template>
+            <span v-else class="sim-placeholder text-muted">Enter a sell price to see results</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">
         <div class="dividends-header">
           <h2 class="section-title">Dividends</h2>
-          <span class="div-total gain">Total {{ useTickerCurrency(totalDividends, ticker) }}</span>
+          <div class="dividends-summary">
+            <span v-if="holdingTimeLabel" class="text-muted">Avg held {{ holdingTimeLabel }}</span>
+            <span class="div-total gain">Total {{ useTickerCurrency(totalDividends, ticker) }}</span>
+          </div>
         </div>
         <div v-for="d in dividendTxs" :key="d._id" class="lot-row">
           <div class="lot-left">
@@ -1353,6 +1446,9 @@ async function toggleWatchlist() {
         :default-ticker="ticker"
         :default-price="currentPrice"
         :max-shares="summary?.shares ?? null"
+        :avg-cost="summary?.avgCost ?? null"
+        :total-cost="summary?.totalCost ?? null"
+        :total-buy-fees="summary?.totalBuyFees ?? 0"
         @hide="fetchLots"
     />
 
@@ -2077,7 +2173,17 @@ async function toggleWatchlist() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   margin-bottom: 0.5rem;
+}
+
+.dividends-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  font-size: 0.78rem;
+  text-align: right;
 }
 
 .div-total {
