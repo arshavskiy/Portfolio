@@ -77,7 +77,6 @@ Record a buy, sell, or dividend. A sell fully or partially reduces shares; reach
 - Omitted field: server applies the user's default fee profile when one exists.
 - `"feeProfileId": null`: explicit no-fee transaction.
 - ObjectId value: server applies that specific profile.
-- Built-in value such as `"builtin:blink-plus"`: server applies the read-only built-in preset.
 
 Fee amounts are stored in the fee profile currency. Server totals that belong to the transaction, such as `totalWithFees` and `netProceeds`, convert mixed-currency fees into the ticker transaction currency first.
 
@@ -496,36 +495,20 @@ Delete an alert.
 ## Fee Profiles
 
 ### GET /fee-profiles `🔒`
-All saved fee profiles for the current user. Read-only built-in presets are injected client-side and can also be selected in transaction requests by stable IDs such as `builtin:blink-plus`.
+All fee profiles for the current user.
 
 **Response `200`**
 ```json
 [
   {
     "_id", "name", "country", "currency",
-    "buyFee": { "type": "percent", "value": 0.001, "minFee": 0 },
-    "sellFee": { "type": "percent", "value": 0.001, "minFee": 0 },
+    "buyFee": { "percent": 0.1, "flat": 0 },
+    "sellFee": { "percent": 0.1, "flat": 0 },
     "capitalGainsTax": 25,
     "isDefault": true
   }
 ]
 ```
-
-Fee rule types:
-
-| Type | Calculation |
-|------|-------------|
-| `percent` | `trade total * value` |
-| `flat` | fixed `value` |
-| `perShare` | `shares * value` |
-
-`minFee` is applied after the raw fee is calculated.
-
-Built-in preset currently available:
-
-| ID | Name | Fee | Tax | Monthly usage |
-|----|------|-----|-----|---------------|
-| `builtin:blink-plus` | `בלינק Plus` | `$0.01/share`, `$1.50` minimum | `25%` | `10 tx/mo or 1,000 shares/mo` |
 
 ### POST /fee-profiles `🔒`
 Create a fee profile. First profile becomes default automatically.

@@ -50,13 +50,11 @@ async function fetchRequest(method, path, body) {
     const error = new Error(message || `Request failed (${res.status})`)
     error.status = res.status
     error.responseData = data
-    if (res.status >= 500 || res.status === 429) {
-      logClientError(error, 'API request failed', {
-        method,
-        path,
-        status: res.status,
-      })
-    }
+    logClientError(error, 'API request failed', {
+      method,
+      path,
+      status: res.status,
+    })
     throw error
   }
 

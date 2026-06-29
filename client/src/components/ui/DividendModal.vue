@@ -30,7 +30,6 @@ const notes = ref('')
 const drip = ref(false)
 const loading = ref(false)
 
-const hasFixedTicker = computed(() => Boolean(props.defaultTicker))
 const currency = computed(() => tickerCurrency(ticker.value))
 const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
 
@@ -104,13 +103,7 @@ async function submit() {
     <div class="div-form">
       <div class="field">
         <label>Ticker</label>
-        <InputText
-            v-model="ticker"
-            :disabled="hasFixedTicker"
-            :placeholder="defaultTicker || 'AAPL'"
-            fluid
-            style="text-transform:uppercase"
-        />
+        <InputText v-model="ticker" :placeholder="defaultTicker || 'AAPL'" fluid style="text-transform:uppercase"/>
       </div>
 
       <div class="field">
@@ -153,7 +146,7 @@ async function submit() {
         <InputText v-model="notes" fluid placeholder="Q2 2025 dividend"/>
       </div>
 
-      <Button :loading="loading" label="Log Dividend" severity="success" @click="submit"/>
+      <Button :loading="loading" label="Log Dividend" outlined severity="success" @click="submit"/>
     </div>
   </Dialog>
 </template>

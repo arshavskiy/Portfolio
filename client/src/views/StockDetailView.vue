@@ -460,8 +460,6 @@ function handleChartSelection(points) {
         :default-price="heldPosition?.currentPrice ?? quote?.price ?? null"
         :default-ticker="ticker"
         :max-shares="heldPosition?.shares ?? null"
-        :avg-cost="heldPosition?.avgCost ?? null"
-        :total-cost="heldPosition?.cost ?? null"
         default-type="sell"
         @hide="ensurePortfolioLoaded"
     />

@@ -5,14 +5,11 @@ StockFolio is a mobile-first portfolio tracker for stocks, crypto, and global ma
 ## Features
 
 - Live portfolio dashboard with P&L, multi-currency totals, market indices, trending tickers, and a personalized For You news preview.
-- Holdings, transactions, average-cost tracking, fee profiles, built-in broker fee presets, and capital gains tax simulation.
-- Buy/sell modal with fixed-ticker mode, compact price input, market-price quick fill, and sell proceeds/profit simulation.
-- Dividend estimates with share-weighted holding-time prorating for currently held shares.
+- Holdings, transactions, average-cost tracking, fee profiles, and capital gains tax simulation.
 - Watchlist-driven News page with For You, Markets, Tech, Financials, Crypto, Energy, Israel, and Positive topic feeds.
 - Marketaux-first financial news integration with Finnhub and Yahoo Finance fallbacks.
 - Infinite scroll news feed with normalized article cards, summaries, source labels, dates, and ticker tags.
 - Price alerts with optional Web Push notifications.
-- Financial disclaimer page and optional production Google Analytics page-view tracking.
 - PWA support for installable mobile use.
 
 ## Project Layout

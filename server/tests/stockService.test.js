@@ -9,23 +9,18 @@ jest.mock('yahoo-finance2', () => {
     quoteSummary: jest.fn(),
     trendingSymbols: jest.fn(),
   }
-  return { default: class { constructor() { return mock } }, __mock: mock }
+  return { default: class { constructor() { return mock } } }
 }, { virtual: true })
 
 jest.mock('../models/ExtendedQuote', () => ({
   findOne: jest.fn().mockResolvedValue(null),
   findOneAndUpdate: jest.fn().mockResolvedValue(null),
-  updateOne: jest.fn().mockResolvedValue(null),
 }))
 
 jest.mock('../models/QuoteSnapshot', () => ({
   findOne: jest.fn().mockResolvedValue(null),
   findOneAndUpdate: jest.fn().mockResolvedValue(null),
 }))
-
-const yf = require('yahoo-finance2')
-const yahooMock = yf.__mock
-const { getQuote } = require('../services/stockService')
 
 // ── downsample ────────────────────────────────────────────────────────────────
 
@@ -130,31 +125,5 @@ describe('withRetry', () => {
     const fn = jest.fn().mockRejectedValue(err)
     await expect(withRetry(fn, { maxAttempts: 3, base: 1 })).rejects.toThrow('429')
     expect(fn).toHaveBeenCalledTimes(3)
-  })
-})
-
-describe('getQuote dividend normalization', () => {
-  beforeEach(() => {
-    yahooMock.quote.mockReset()
-  })
-
-  test('derives USD annual dividend rate from Yahoo percent yield when rate is missing', async () => {
-    yahooMock.quote.mockResolvedValue({
-      symbol: 'SCHD',
-      shortName: 'Schwab US Dividend Equity ETF',
-      regularMarketPrice: 32,
-      regularMarketPreviousClose: 31,
-      regularMarketChange: 1,
-      regularMarketChangePercent: 3.2258,
-      regularMarketVolume: 1000,
-      trailingAnnualDividendRate: 0,
-      trailingAnnualDividendYield: 0,
-      dividendYield: 3.25,
-    })
-
-    const quote = await getQuote('SCHD')
-
-    expect(quote.dividendYield).toBeCloseTo(0.0325)
-    expect(quote.dividendRate).toBeCloseTo(1.04)
   })
 })

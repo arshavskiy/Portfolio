@@ -86,21 +86,6 @@ function cleanProfileValue(value) {
   return normalized || null
 }
 
-function positiveNumber(value) {
-  return Number.isFinite(value) && value > 0 ? value : null
-}
-
-function normalizeDividendData(result, price) {
-  const trailingYield = positiveNumber(result.trailingAnnualDividendYield)
-  const quotedYield = positiveNumber(result.dividendYield)
-  const dividendYield = trailingYield ?? (quotedYield != null ? quotedYield / 100 : null)
-  const dividendRate = positiveNumber(result.trailingAnnualDividendRate)
-    ?? positiveNumber(result.dividendRate)
-    ?? (dividendYield != null && positiveNumber(price) ? dividendYield * price : null)
-
-  return {dividendRate, dividendYield}
-}
-
 // Cache by ticker+range only — points is applied after fetch so all callers
 // with different point counts share one cached Yahoo request.
 function historyCacheKey(ticker, range = '3mo') {
@@ -336,12 +321,10 @@ async function getQuote(ticker) {
     saveExtendedSnapshot(ticker, live)
     const snapshot = (await loadExtendedSnapshot(ticker)) || {}
 
-    const price = result.regularMarketPrice / f
-    const dividend = normalizeDividendData(result, price)
     const data = {
       ticker: result.symbol,
       name: result.shortName,
-      price,
+      price: result.regularMarketPrice / f,
       previousClose: (result.regularMarketPreviousClose ?? result.previousClose) / f,
       change: result.regularMarketChange / f,
       changePercent: result.regularMarketChangePercent,
@@ -354,8 +337,8 @@ async function getQuote(ticker) {
       week52High: result.fiftyTwoWeekHigh / f,
       week52Low: result.fiftyTwoWeekLow / f,
       pe: result.trailingPE,
-      dividendRate: dividend.dividendRate,
-      dividendYield: dividend.dividendYield,
+      dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
+      dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
       marketState: result.marketState || null,
       regularMarketTime: result.regularMarketTime ?? null,
       ...live,
@@ -415,12 +398,10 @@ async function getQuotes(tickers) {
         }
         saveExtendedSnapshot(ticker, live)
         const snapshot = (await loadExtendedSnapshot(ticker)) || {}
-        const price = result.regularMarketPrice / f
-        const dividend = normalizeDividendData(result, price)
         const data = {
           ticker: result.symbol,
           name: result.shortName,
-          price,
+          price: result.regularMarketPrice / f,
           previousClose: (result.regularMarketPreviousClose ?? result.previousClose) / f,
           change: result.regularMarketChange / f,
           changePercent: result.regularMarketChangePercent,
@@ -433,8 +414,8 @@ async function getQuotes(tickers) {
           week52High: result.fiftyTwoWeekHigh / f,
           week52Low: result.fiftyTwoWeekLow / f,
           pe: result.trailingPE,
-          dividendRate: dividend.dividendRate,
-          dividendYield: dividend.dividendYield,
+          dividendRate: result.trailingAnnualDividendRate ?? result.dividendRate ?? null,
+          dividendYield: result.trailingAnnualDividendYield ?? result.dividendYield ?? null,
           marketState: result.marketState || null,
           regularMarketTime: result.regularMarketTime ?? null,
           ...live,
