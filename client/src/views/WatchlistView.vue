@@ -33,7 +33,6 @@ const showModal = ref(false)
 const showImportModal = ref(false)
 const showGroupModal = ref(false)
 const groupItem = ref(null)
-const listScrollRef = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'market')
 const changeDirection = useStorage('watchlist-change-direction', 'down')
 const searchQuery = ref('')
@@ -113,7 +112,7 @@ const visibleOrderedItems = computed(() => {
 })
 
 function scrollContainer() {
-  return listScrollRef.value || document.querySelector('.main-content') || document.scrollingElement || document.documentElement
+  return document.querySelector('.main-content') || document.scrollingElement || document.documentElement
 }
 
 function saveScrollPosition() {
@@ -278,12 +277,7 @@ function onGroupsSaved() {
       <p>No matches in your watchlist</p>
     </div>
 
-    <div
-        v-else
-        ref="listScrollRef"
-        class="watch-list-shell"
-        :class="{ loading: rangeLoading }"
-    >
+    <div v-else class="watch-list-shell" :class="{ loading: rangeLoading }">
       <div v-if="rangeLoading" class="watch-list-loader">
         <AppLoader/>
       </div>
@@ -316,6 +310,12 @@ function onGroupsSaved() {
 
 <style scoped>
 .watchlist {
+  height: calc(100dvh - 75px - env(safe-area-inset-top, 0px));
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 1rem;
 }
 
@@ -332,9 +332,9 @@ function onGroupsSaved() {
 }
 
 header {
-  position: sticky;
-  top: 0;
-  z-index: 5;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
   background: var(--bg-primary);
   margin: -1rem -1rem 0;
   padding: 1rem 1rem 0.75rem;
@@ -403,8 +403,29 @@ header {
 }
 
 .watch-list-shell {
+  flex: 1;
   position: relative;
-  min-height: 180px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -1rem;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .watch-list-shell {
+    margin: 0 -1.5rem;
+    padding: 0 1.5rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .watch-list-shell {
+    margin: 0 -2rem;
+    padding: 0 2rem;
+  }
 }
 
 .watch-list-shell.loading .watch-list {
