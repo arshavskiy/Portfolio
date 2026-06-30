@@ -155,6 +155,32 @@ test('pre and post grouping treat rows without usable extended values as neutral
   assert.deepEqual(postSection.items.map((item) => item.ticker), ['HAS-PRE', 'NO-EXT', 'HAS-POST'])
 })
 
+test('pre and post grouping ignore stale last-seen extended values and treat them as zero', () => {
+    const staleItems = [
+        {
+            ticker: 'LIVE-POST',
+            postMarketChangePercent: -2,
+        },
+        {
+            ticker: 'STALE-LAST',
+            lastPostMarketChangePercent: 7,
+            lastPostMarketTime: '2026-06-15T12:00:00Z',
+        },
+        {
+            ticker: 'ZERO-ROW',
+            changePercent: 4,
+        },
+    ]
+    
+    const [section] = groupItems(staleItems, 'post', new Date('2026-06-17T12:00:00Z'), 'down')
+    
+    assert.deepEqual(section.items.map((item) => item.ticker), [
+        'STALE-LAST',
+        'ZERO-ROW',
+        'LIVE-POST',
+    ])
+})
+
 test('group mode sorts items within each group ascending by ticker', () => {
   const groupedItems = [
     {ticker: 'ZETA', groups: ['Alpha']},

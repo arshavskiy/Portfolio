@@ -69,24 +69,41 @@ function calculateExtendedChangePercent(price, change) {
     return (change / previous) * 100
 }
 
-function preValueOf(item) {
-    const values = [
-        item?.preMarketChangePercent,
-        calculateExtendedChangePercent(item?.preMarketPrice, item?.preMarketChange),
-        item?.lastPreMarketChangePercent,
-        calculateExtendedChangePercent(item?.lastPreMarketPrice, item?.lastPreMarketChange),
-    ]
-    return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
+function isRecentSnapshot(timeValue, date = new Date()) {
+    if (!timeValue) return false
+    return date.getTime() - new Date(timeValue).getTime() < 20 * 60 * 60 * 1000
 }
 
-function postValueOf(item) {
-    const values = [
-        item?.postMarketChangePercent,
-        calculateExtendedChangePercent(item?.postMarketPrice, item?.postMarketChange),
-        item?.lastPostMarketChangePercent,
-        calculateExtendedChangePercent(item?.lastPostMarketPrice, item?.lastPostMarketChange),
-    ]
-    return values.find((value) => typeof value === 'number' && Number.isFinite(value)) ?? null
+function resolveExtendedPercent(item, kind, date = new Date()) {
+    const isPost = kind === 'post'
+    const percentKey = isPost ? 'postMarketChangePercent' : 'preMarketChangePercent'
+    const priceKey = isPost ? 'postMarketPrice' : 'preMarketPrice'
+    const changeKey = isPost ? 'postMarketChange' : 'preMarketChange'
+    const lastPercentKey = isPost ? 'lastPostMarketChangePercent' : 'lastPreMarketChangePercent'
+    const lastPriceKey = isPost ? 'lastPostMarketPrice' : 'lastPreMarketPrice'
+    const lastChangeKey = isPost ? 'lastPostMarketChange' : 'lastPreMarketChange'
+    const lastTimeKey = isPost ? 'lastPostMarketTime' : 'lastPreMarketTime'
+    
+    if (item?.[priceKey] != null || item?.[changeKey] != null || item?.[percentKey] != null) {
+        return item?.[percentKey] ?? calculateExtendedChangePercent(item?.[priceKey], item?.[changeKey])
+    }
+    
+    if (
+        isRecentSnapshot(item?.[lastTimeKey], date) &&
+        (item?.[lastPriceKey] != null || item?.[lastChangeKey] != null || item?.[lastPercentKey] != null)
+    ) {
+        return item?.[lastPercentKey] ?? calculateExtendedChangePercent(item?.[lastPriceKey], item?.[lastChangeKey])
+    }
+    
+    return null
+}
+
+function preValueOf(item, date = new Date()) {
+    return resolveExtendedPercent(item, 'pre', date)
+}
+
+function postValueOf(item, date = new Date()) {
+    return resolveExtendedPercent(item, 'post', date)
 }
 
 function extWeight(pct) {
@@ -111,16 +128,16 @@ function dayWeight(pct) {
 function activeExtValueOf(item, date = new Date()) {
     const ticker = String(item?.ticker || '')
     const state = item?.marketState
-    if (/-USD$/u.test(ticker)) return postValueOf(item)
-    if (state === 'REGULAR') return preValueOf(item)
+    if (/-USD$/u.test(ticker)) return postValueOf(item, date)
+    if (state === 'REGULAR') return preValueOf(item, date)
 
     const nowNy = date.toLocaleString('en-US', {timeZone: 'America/New_York'})
     const d = new Date(nowNy)
     const minutes = d.getHours() * 60 + d.getMinutes()
     const isPreTime = minutes < 9 * 60 + 30
     return isPreTime
-        ? (preValueOf(item) ?? postValueOf(item))
-        : (postValueOf(item) ?? preValueOf(item))
+        ? (preValueOf(item, date) ?? postValueOf(item, date))
+        : (postValueOf(item, date) ?? preValueOf(item, date))
 }
 
 export function momentumScoreOf(item) {
@@ -205,7 +222,9 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         const sign = changeDirection === 'up' ? -1 : 1
         const valueOf = mode === 'extended'
             ? (item) => activeExtValueOf(item, date)
-            : (mode === 'pre' ? preValueOf : postValueOf)
+            : (mode === 'pre'
+                ? (item) => preValueOf(item, date)
+                : (item) => postValueOf(item, date))
         const sortedItems = [...items].sort((a, b) => {
             const aChange = valueOf(a) ?? 0
             const bChange = valueOf(b) ?? 0

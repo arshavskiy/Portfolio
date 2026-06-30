@@ -4,6 +4,7 @@ import {useStorage} from '@vueuse/core'
 import {onBeforeRouteLeave, useRouter} from 'vue-router'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
+import {usePortfolioStore} from '@/stores/portfolio'
 import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
 import {useMomentumStore} from '@/stores/momentum'
@@ -22,6 +23,7 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
+const portfolio = usePortfolioStore()
 const momentumStore = useMomentumStore()
 const router = useRouter()
 const {isDesktop} = useBreakpoint()
@@ -31,6 +33,7 @@ const showModal = ref(false)
 const showImportModal = ref(false)
 const showGroupModal = ref(false)
 const groupItem = ref(null)
+const listScrollRef = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'market')
 const changeDirection = useStorage('watchlist-change-direction', 'down')
 const searchQuery = ref('')
@@ -62,8 +65,13 @@ function exportCsv() {
 
 const filteredItems = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
-  if (!q) return watchlist.items
-  return watchlist.items.filter((item) =>
+  const heldTickers = new Set(portfolio.positions.map((position) => String(position.ticker || '').toUpperCase()))
+  const items = watchlist.items.map((item) => ({
+    ...item,
+    isHeld: heldTickers.has(String(item.ticker || '').toUpperCase()),
+  }))
+  if (!q) return items
+  return items.filter((item) =>
       item.ticker.toLowerCase().includes(q) || item.companyName?.toLowerCase().includes(q)
   )
 })
@@ -105,7 +113,7 @@ const visibleOrderedItems = computed(() => {
 })
 
 function scrollContainer() {
-  return document.querySelector('.main-content') || document.scrollingElement || document.documentElement
+  return listScrollRef.value || document.querySelector('.main-content') || document.scrollingElement || document.documentElement
 }
 
 function saveScrollPosition() {
@@ -162,6 +170,7 @@ function openStock(item) {
 
 onMounted(() => {
   alerts.fetchAlerts()
+  if (!portfolio.positions.length && !portfolio.loading) portfolio.fetchPortfolio().catch(() => {})
   watchlist.fetchWatchlist(range.value).finally(() => {
     restoreScrollPosition().catch(() => {
     })
@@ -269,7 +278,12 @@ function onGroupsSaved() {
       <p>No matches in your watchlist</p>
     </div>
 
-    <div v-else class="watch-list-shell" :class="{ loading: rangeLoading }">
+    <div
+        v-else
+        ref="listScrollRef"
+        class="watch-list-shell"
+        :class="{ loading: rangeLoading }"
+    >
       <div v-if="rangeLoading" class="watch-list-loader">
         <AppLoader/>
       </div>
@@ -280,6 +294,7 @@ function onGroupsSaved() {
               v-for="item in section.items"
               :key="`${section.group ?? ''}-${item._id}`"
               :data-watchlist-ticker="item.ticker"
+              :highlight-held="item.isHeld"
               :item="item"
               @edit-groups="openGroups"
               @open-stock="openStock"

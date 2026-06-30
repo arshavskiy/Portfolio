@@ -7,6 +7,7 @@ import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const props = defineProps({
   item: {type: Object, required: true},
+  highlightHeld: {type: Boolean, default: false},
 })
 const emit = defineEmits(['edit-groups', 'open-stock'])
 const alerts = useAlertsStore()
@@ -109,10 +110,7 @@ const activeExtended = computed(() => {
 })
 
 const hasVisibleExtended = computed(() =>
-  activeExtended.value != null && (
-    activeExtended.value.price != null ||
-    activeExtended.value.percent != null
-  )
+    activeExtended.value?.percent != null
 )
 
 // ── Signal / momentum ────────────────────────────────────────────────────────
@@ -122,7 +120,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
 </script>
 
 <template>
-  <div class="watch-row" @click="emit('open-stock', item)">
+  <div :class="{ 'watch-row-held': highlightHeld }" class="watch-row" @click="emit('open-stock', item)">
     <div class="row-left">
       <span class="ticker">
         {{ item.ticker }}
@@ -169,7 +167,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
       </div>
       <span class="price-line">
         <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
-        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>
+        <!--        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>-->
       </span>
       <span v-if="isStaleQuote" class="badge badge-stale">No trade today</span>
       <span v-else :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
@@ -188,6 +186,13 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
   gap: 0.5rem;
   cursor: pointer;
   transition: background 0.15s;
+}
+
+.watch-row-held {
+  border-left: 3px solid var(--neon-blue);
+  padding-left: 7px;
+  position: relative;
+  left: -8px;
 }
 
 .watch-row:active {
@@ -233,7 +238,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  width: 120px;
+  width: 110px;
 }
 
 .group-tags {
@@ -341,9 +346,9 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
 .badge {
   font-size: 0.75rem;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px 4px;
   border-radius: 5px;
-  min-width: 64px;
+  min-width: 60px;
   text-align: center;
 }
 
@@ -377,6 +382,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
   border-radius: 5px;
   padding: 2px 5px;
   pointer-events: none;
+  background-color: var(--bg-primary);
 }
 
 .ext-price {
