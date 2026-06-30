@@ -6,6 +6,7 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 const props = defineProps({
   data: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  markerPoints: { type: Array, default: () => [] },
   mode: { type: String, default: 'line' }, // 'line' | 'candle'
   range: { type: String, default: '3mo' },
   ticker: { type: String, default: '' },
@@ -377,6 +378,18 @@ function draw() {
     return x(date)
   }
 
+  function resolveMarkerPoint(point) {
+    if (!point?.date) return null
+    const time = new Date(point.date).getTime()
+    const matched = parsed.find((d) => d.date.getTime() === time)
+    if (!matched || !Number.isFinite(matched.close)) return null
+    return {
+      ...matched,
+      markerLabel: point.label,
+      markerTone: point.tone,
+    }
+  }
+
   function xInvert(px) {
     if (useIndexScale) {
       let closest = parsed[0]
@@ -721,6 +734,26 @@ function draw() {
       .text(badge.text)
   })
 
+  const markerLayer = g.append('g')
+  props.markerPoints
+    .map(resolveMarkerPoint)
+    .filter(Boolean)
+    .forEach((point) => {
+      const cx = xPos(point)
+      const cy = y(point.close)
+      const isHigh = point.markerTone === 'high'
+      const stroke = isHigh ? '#f59e0b' : '#38bdf8'
+      const fill = '#0f172a'
+
+      markerLayer.append('circle')
+        .attr('cx', cx)
+        .attr('cy', cy)
+        .attr('r', 4.5)
+        .attr('fill', fill)
+        .attr('stroke', stroke)
+        .attr('stroke-width', 2)
+    })
+
   // Crosshair + selection
   const bisect = d3.bisector((d) => d.date).left
 
@@ -896,7 +929,7 @@ function draw() {
 }
 
 onMounted(() => nextTick(draw))
-watch(() => [props.data, props.loading, props.mode, props.range, props.currentPrice], () => nextTick(draw))
+watch(() => [props.data, props.loading, props.markerPoints, props.mode, props.range, props.currentPrice], () => nextTick(draw))
 watch(() => props.data, () => {
   dragPreview.value = null
   dragStartPoints.value = []

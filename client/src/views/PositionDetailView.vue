@@ -15,7 +15,6 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
-import SelectButton from 'primevue/selectbutton'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AlertModal from '@/components/ui/AlertModal.vue'
 import DividendModal from '@/components/ui/DividendModal.vue'
@@ -73,7 +72,6 @@ const ilsToUsd = ref(null)
 const now = ref(new Date())
 const selectedRange = ref('1d')
 const chartMode = ref('line')
-const chartModes = ['line', 'candle']
 const watchlistNavTickers = ref([])
 let refreshTimer = null
 let pageRequestId = 0
@@ -759,6 +757,14 @@ function lowHighDelta(rows) {
     percent,
     startPrice,
     endPrice,
+    startPoint: {
+      date: start.date,
+      close: start.close,
+    },
+    endPoint: {
+      date: end.date,
+      close: end.close,
+    },
     startLabel: startDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
     endLabel: endDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
     spanLabel: hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
@@ -778,6 +784,39 @@ const regularHoursDelta = computed(() =>
 const measureDelta = computed(() =>
     selectedDelta.value ?? regularHoursDelta.value ?? defaultDelta.value
 )
+
+const measureLabel = computed(() => {
+  if (selectedDelta.value) return 'Selected range'
+  if (!measureDelta.value) return 'Low to high'
+  return measureDelta.value.amount < 0 ? 'High to low' : 'Low to high'
+})
+
+const measureMarkerPoints = computed(() => {
+  if (selectedDelta.value || !measureDelta.value?.startPoint || !measureDelta.value?.endPoint) return []
+
+  const isDownMove = measureDelta.value.amount < 0
+  return [
+    {
+      ...measureDelta.value.startPoint,
+      label: isDownMove ? 'High' : 'Low',
+      tone: isDownMove ? 'high' : 'low',
+    },
+    {
+      ...measureDelta.value.endPoint,
+      label: isDownMove ? 'Low' : 'High',
+      tone: isDownMove ? 'low' : 'high',
+    },
+  ]
+})
+
+const measureEndpointClasses = computed(() => {
+  if (!measureDelta.value) return { start: '', end: '' }
+  const isDownMove = measureDelta.value.amount < 0
+  return {
+    start: isDownMove ? 'measure-high' : 'measure-low',
+    end: isDownMove ? 'measure-low' : 'measure-high',
+  }
+})
 
 function handleChartSelection(points) {
   selectedChartPoints.value = points
@@ -972,6 +1011,7 @@ async function toggleWatchlist() {
           :current-price="previousCloseLine"
           :data="history"
           :loading="chartLoading"
+          :marker-points="measureMarkerPoints"
           :mode="chartMode"
           :persistent-range-selection="true"
           :range="selectedRange"
@@ -980,22 +1020,46 @@ async function toggleWatchlist() {
       />
 
       <div class="chart-controls">
-        <RangeBar v-model="selectedRange" class="page-range"/>
-        <SelectButton v-model="chartMode" :options="chartModes" size="small"/>
+        <RangeBar v-model="selectedRange" class="page-range">
+          <template #append>
+            <button
+              class="chart-mode-btn"
+              :class="{ active: chartMode === 'line' }"
+              title="Line chart"
+              type="button"
+              @click="chartMode = 'line'"
+            >
+              <i class="pi pi-chart-line"/>
+            </button>
+            <button
+              class="chart-mode-btn"
+              :class="{ active: chartMode === 'candle' }"
+              title="Candlestick chart"
+              type="button"
+              @click="chartMode = 'candle'"
+            >
+              <i class="pi pi-chart-bar"/>
+            </button>
+          </template>
+        </RangeBar>
       </div>
 
       <div class="chart-measure">
         <div v-if="measureDelta" class="measure-summary">
           <span class="measure-tag text-muted">
-            {{ selectedDelta ? 'Selected range' : 'Min Max in Trading hours' }}
+            {{ measureLabel }}
           </span>
           <span :class="gainLossClass(measureDelta.amount)">
             {{ useTickerCurrency(measureDelta.amount, ticker) }} ({{ usePercent(measureDelta.percent) }})
           </span>
           <span class="text-muted">
-            {{
-              useTickerCurrency(measureDelta.startPrice, ticker)
-            }} to {{ useTickerCurrency(measureDelta.endPrice, ticker) }}
+            <span :class="measureEndpointClasses.start">
+              {{ useTickerCurrency(measureDelta.startPrice, ticker) }}
+            </span>
+            <span> to </span>
+            <span :class="measureEndpointClasses.end">
+              {{ useTickerCurrency(measureDelta.endPrice, ticker) }}
+            </span>
           </span>
         </div>
         <div v-else class="text-muted measure-hint">
@@ -1847,6 +1911,27 @@ async function toggleWatchlist() {
   margin-bottom: 0.75rem;
 }
 
+.chart-mode-btn {
+  min-width: 34px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 0 0.55rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chart-mode-btn:active {
+  background: rgba(255,255,255,0.05);
+}
+
+.chart-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
+}
+
 .chart-measure {
   margin-bottom: 0.75rem;
 }
@@ -1868,6 +1953,14 @@ async function toggleWatchlist() {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.measure-low {
+  color: #38bdf8;
+}
+
+.measure-high {
+  color: #f59e0b;
 }
 
 .stats-grid {

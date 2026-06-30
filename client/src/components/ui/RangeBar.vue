@@ -43,6 +43,9 @@ const OPTIONS = [
       :title="opt.title"
       @click="range = opt.value"
     >{{ opt.label }}</button>
+    <div v-if="$slots.append" class="range-bar-append">
+      <slot name="append"/>
+    </div>
   </div>
 </template>
 
@@ -77,5 +80,14 @@ const OPTIONS = [
 .range-btn.active {
   background: var(--accent);
   color: #fff;
+}
+
+.range-bar-append {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  margin-left: 2px;
+  padding-left: 2px;
+  border-left: 1px solid var(--border);
 }
 </style>

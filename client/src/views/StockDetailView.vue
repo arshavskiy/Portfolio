@@ -11,7 +11,6 @@ import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 import Button from 'primevue/button'
-import SelectButton from 'primevue/selectbutton'
 import StockChart from '@/components/charts/StockChart.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
@@ -39,7 +38,6 @@ const now = ref(new Date())
 
 const selectedRange = ref('1d')
 const chartMode = ref('line')
-const chartModes = ['line', 'candle']
 
 let refreshTimer = null
 const heldPosition = computed(() => portfolio.positions.find((pos) => pos.ticker === ticker.value) || null)
@@ -385,8 +383,28 @@ function handleChartSelection(points) {
     </div>
 
     <div class="chart-controls">
-      <RangeBar v-model="selectedRange" class="page-range" />
-      <SelectButton v-model="chartMode" :options="chartModes" size="small"/>
+      <RangeBar v-model="selectedRange" class="page-range">
+        <template #append>
+          <button
+            class="chart-mode-btn"
+            :class="{ active: chartMode === 'line' }"
+            title="Line chart"
+            type="button"
+            @click="chartMode = 'line'"
+          >
+            <i class="pi pi-chart-line"/>
+          </button>
+          <button
+            class="chart-mode-btn"
+            :class="{ active: chartMode === 'candle' }"
+            title="Candlestick chart"
+            type="button"
+            @click="chartMode = 'candle'"
+          >
+            <i class="pi pi-chart-bar"/>
+          </button>
+        </template>
+      </RangeBar>
     </div>
 
     <div class="chart-measure">
@@ -592,6 +610,27 @@ function handleChartSelection(points) {
 
 .chart-controls {
   margin-bottom: 0.75rem;
+}
+
+.chart-mode-btn {
+  min-width: 34px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  padding: 0 0.55rem;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chart-mode-btn:active {
+  background: rgba(255,255,255,0.05);
+}
+
+.chart-mode-btn.active {
+  background: var(--accent);
+  color: #fff;
 }
 
 .chart-measure {
