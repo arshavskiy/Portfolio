@@ -206,11 +206,9 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         const valueOf = mode === 'extended'
             ? (item) => activeExtValueOf(item, date)
             : (mode === 'pre' ? preValueOf : postValueOf)
-        const sortedItems = items
-            .filter((item) => valueOf(item) != null)
-            .sort((a, b) => {
-            const aChange = valueOf(a)
-            const bChange = valueOf(b)
+        const sortedItems = [...items].sort((a, b) => {
+            const aChange = valueOf(a) ?? 0
+            const bChange = valueOf(b) ?? 0
             const diff = (bChange - aChange) * sign
             return diff !== 0 ? diff : itemSortKey(a).localeCompare(itemSortKey(b))
         })

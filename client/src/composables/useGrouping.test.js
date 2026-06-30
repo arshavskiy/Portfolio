@@ -49,11 +49,13 @@ test('pre and post grouping sort by their own extended-hours values', () => {
 
   assert.deepEqual(preSection.items.map((item) => item.ticker), [
     'API-WINNER',
+    'NO-HISTORY',
     'RANGE-WINNER',
   ])
 
   assert.deepEqual(postSection.items.map((item) => item.ticker), [
     'RANGE-WINNER',
+    'NO-HISTORY',
     'API-WINNER',
   ])
 })
@@ -86,11 +88,15 @@ test('pre and post grouping derive extended percent from price and change when p
   assert.deepEqual(preSection.items.map((item) => item.ticker), [
     'PRE-DERIVED',
     'PRE-EXPLICIT',
+    'POST-DERIVED',
+    'POST-EXPLICIT',
   ])
 
   assert.deepEqual(postSection.items.map((item) => item.ticker), [
     'POST-DERIVED',
     'POST-EXPLICIT',
+    'PRE-DERIVED',
+    'PRE-EXPLICIT',
   ])
 })
 
@@ -125,7 +131,7 @@ test('extended grouping follows the same active session choice as the watch row'
   ])
 })
 
-test('pre and post grouping filter out rows without usable extended values', () => {
+test('pre and post grouping treat rows without usable extended values as neutral zero', () => {
   const filteredItems = [
     {
       ticker: 'HAS-PRE',
@@ -145,8 +151,8 @@ test('pre and post grouping filter out rows without usable extended values', () 
   const [preSection] = groupItems(filteredItems, 'pre', new Date('2026-06-17T12:00:00Z'), 'down')
   const [postSection] = groupItems(filteredItems, 'post', new Date('2026-06-17T12:00:00Z'), 'down')
 
-  assert.deepEqual(preSection.items.map((item) => item.ticker), ['HAS-PRE'])
-  assert.deepEqual(postSection.items.map((item) => item.ticker), ['HAS-POST'])
+  assert.deepEqual(preSection.items.map((item) => item.ticker), ['HAS-PRE', 'HAS-POST', 'NO-EXT'])
+  assert.deepEqual(postSection.items.map((item) => item.ticker), ['HAS-PRE', 'NO-EXT', 'HAS-POST'])
 })
 
 test('group mode sorts items within each group ascending by ticker', () => {
