@@ -221,10 +221,16 @@ function onGroupsSaved() {
   <div class="watchlist safe-bottom">
     <header>
       <div  class="page-header">
-        <h1 class="gradient-title">
-          Watchlist
-          <span v-if="watchlist.items.length" class="count-badge">({{ watchlist.items.length }})</span>
-        </h1>
+        <div class="page-heading">
+          <h1 class="gradient-title">
+            Watchlist
+            <span v-if="watchlist.items.length" class="count-badge">({{ watchlist.items.length }})</span>
+          </h1>
+          <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
+            <i :class="watchlist.cacheMeta?.stale ? 'pi pi-wifi-slash' : (watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync')"/>
+            <span>{{ cacheStatusText }}</span>
+          </div>
+        </div>
         <div class="header-actions">
           <Button
               v-tooltip.bottom="'Import from file'"
@@ -247,17 +253,13 @@ function onGroupsSaved() {
 
       <WatchlistSearch v-model="searchQuery"/>
 
-      <div>
+      <div class="watch-list-controls">
         <RangeBar class="page-range"/>
         <div v-if="rangeLoading" class="range-loading-indicator">
           <AppLoader/>
           <span>Loading {{ rangeLabel }} data</span>
         </div>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
-        <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
-          <i :class="watchlist.cacheMeta?.stale ? 'pi pi-wifi-slash' : (watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync')"/>
-          <span>{{ cacheStatusText }}</span>
-        </div>
       </div>
 
 
@@ -337,7 +339,7 @@ header {
   flex-shrink: 0;
   background: var(--bg-primary);
   margin: -1rem -1rem 0;
-  padding: 1rem 1rem 0.75rem;
+  padding: 1rem 1rem 0;
 }
 
 @media (min-width: 768px) {
@@ -357,8 +359,15 @@ header {
 .page-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1.25rem;
+}
+
+.page-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
 }
 
 
@@ -399,7 +408,6 @@ header {
 .watch-list {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--border);
 }
 
 .watch-list-shell {
@@ -490,9 +498,6 @@ header {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-top: -0.5rem;
-  margin-bottom: 0.85rem;
-  padding: 0 0.1rem;
   color: var(--text-secondary);
   font-size: 0.72rem;
   font-weight: 600;
