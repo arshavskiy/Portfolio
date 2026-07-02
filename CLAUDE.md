@@ -29,7 +29,10 @@ cd client && npm run dev   # Vite on :5173
 - **Avg-cost method**: position `avgCost` is always the weighted average of all buys. On sell, the avg cost is used to compute gain/loss. `recomputePosition()` in `portfolioController` replays all transactions.
 - **Transaction types**: `buy`, `sell`, `dividend` (dividend can be DRIP = reinvested)
 - **Fee profiles**: percent + flat fee per side (buy/sell) + capital gains tax rate. Applied at transaction time. Stored in profile currency; converted to transaction currency for `totalWithFees` / `netProceeds`.
-- **Groups / tags**: positions and watchlist items both have a `groups: string[]`. `GET /portfolio/groups` returns the union of both. Used for grouping on all 3 main pages.
+- **Groups / tags**: positions and watchlist items both have a `groups: string[]`. `GET /portfolio/groups` returns the union of both. Used for grouping on the Dashboard and Watchlist pages.
+- **Watchlist = holdings hub**: the standalone Holdings page was removed. Watchlist is the single place to manage both watched and held stocks — held rows show a neon-blue accent, a briefcase filter shows holdings-only, and the header carries Add-transaction / Import-holdings / Rebalance actions. `/holdings` redirects to `/watchlist`. Portfolio totals (USD / ILS / combined) live on the Dashboard via `PortfolioStatsCard`.
+- **Watchlist first paint**: `GET /watchlist/skeleton` returns items straight from the DB (no quotes/history) so rows render instantly; the full `GET /watchlist` enrichment replaces them when it lands.
+- **What's New modal**: `data/changelog.js` is the source of truth (newest entry first). `useWhatsNew.js` gates on a `changelog-seen-version` localStorage key and shows `WhatsNewModal` on load when the top version is newer than last seen. Add a new entry per release to trigger it. Force-open for previewing with the `?changelog` query param.
 - **Quote freshness**: Yahoo Finance quotes are cached in-memory (server) with a 5-min TTL. A 90-second client-side TTL controls batch re-fetch on the watchlist. The `X-Cache` header on `/stocks/history` indicates server cache state.
 - **No-trade-today badge**: shown when the market is closed and the quote's `regularMarketTime` is not from today.
 - **Signal breakdown**: momentum score shown as chip breakdown. Always visible on position page, shown in tooltip on watchlist.
@@ -38,12 +41,13 @@ cd client && npm run dev   # Vite on :5173
 ```
 Portfolio/
 ├── client/src/
-│   ├── views/          # Route pages (Dashboard, Watchlist, Holdings, PositionDetail, ...)
+│   ├── views/          # Route pages (Dashboard, Watchlist, PositionDetail, ...)
+│   ├── data/           # Static app data (changelog.js)
 │   ├── components/
-│   │   ├── ui/         # WatchRow, GroupModeBar, AddTransactionModal, FeeProfilesModal, ...
+│   │   ├── ui/         # WatchRow, PortfolioStatsCard, WhatsNewModal, GroupModeBar, AddTransactionModal, ...
 │   │   └── charts/     # D3 wrappers (StockChart, AllocationChart, MarketsCard, ...)
 │   ├── stores/         # Pinia: auth, portfolio, watchlist, alerts, history, feeProfiles, groups, momentum
-│   ├── composables/    # useApi, useFormat, useGrouping, useChartRange, useMarketHours,
+│   ├── composables/    # useApi, useFormat, useGrouping, useChartRange, useMarketHours, useWhatsNew,
 │   │                   # useMarketSuffix, useMomentumScore, useImport, usePush, usePwa, useAlertNotifier
 │   ├── router/index.js
 │   ├── sw.js           # Workbox service worker

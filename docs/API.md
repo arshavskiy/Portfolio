@@ -391,6 +391,19 @@ All watched stocks with live quotes and sparkline history.
 ]
 ```
 
+### GET /watchlist/skeleton `🔒`
+Watchlist items straight from the DB — no quotes, no history. Fast first paint; the client renders these rows immediately while `GET /watchlist` loads.
+
+**Response `200`**
+```json
+[
+  {
+    "_id", "ticker", "companyName", "sector", "industry", "addedAt",
+    "history": [], "groups": ["string"]
+  }
+]
+```
+
 ### GET /watchlist/item/:ticker `🔒`
 Check whether a specific ticker is in the watchlist and return its metadata.
 

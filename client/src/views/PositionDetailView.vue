@@ -1625,7 +1625,6 @@ async function toggleWatchlist() {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.125rem;
 }
 
 .watchlist-slide-handle {

@@ -284,7 +284,7 @@ function confirmDelete() {
     accept: async () => {
       await portfolio.deletePosition(heldPosition.value._id)
       toast.add({severity: 'success', summary: 'Removed', life: 2000})
-      router.push('/holdings')
+      router.push('/watchlist')
     },
   })
 }
@@ -507,7 +507,6 @@ function handleChartSelection(points) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 0.125rem;
   flex-wrap: wrap;
 }
 

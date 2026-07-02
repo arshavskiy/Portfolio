@@ -351,6 +351,13 @@ const spec = swaggerJsdoc({
           },
         },
       },
+      '/watchlist/skeleton': {
+        get: {
+          tags: ['Watchlist'],
+          summary: 'Get watchlist items without quotes or history (fast first paint)',
+          responses: { 200: { description: 'Watchlist items from DB only', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/WatchlistItem' } } } } } },
+        },
+      },
       '/watchlist/item/{ticker}': {
         get: {
           tags: ['Watchlist'],

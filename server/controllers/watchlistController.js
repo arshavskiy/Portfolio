@@ -55,6 +55,24 @@ exports.getWatchlist = async (req, res) => {
   }
 }
 
+exports.getWatchlistSkeleton = async (req, res) => {
+  try {
+    const items = await Watchlist.find({user: req.user._id}).sort({addedAt: -1}).lean()
+    res.json(items.map((item) => ({
+      _id: item._id,
+      ticker: item.ticker,
+      companyName: item.companyName,
+      sector: item.sector || null,
+      industry: item.industry || null,
+      addedAt: item.addedAt,
+      history: [],
+      groups: normalizeGroups(item.groups || []),
+    })))
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
 exports.getWatchlistItem = async (req, res) => {
     try {
         const ticker = req.params.ticker.toUpperCase()

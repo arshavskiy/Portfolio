@@ -29,6 +29,18 @@ export const useWatchlistStore = defineStore('watchlist', () => {
     })
   }
 
+  // First paint: show tickers/company names from the DB immediately while the
+  // slow quote+history enrichment loads. Never overwrites enriched data.
+  async function fetchSkeleton(range) {
+    try {
+      const data = await api.get('/watchlist/skeleton')
+      if (lastRange === range && !items.value.length && data.length) {
+        items.value = data
+      }
+    } catch {
+    }
+  }
+
   // Cache watchlist responses briefly per chart range, while still allowing
   // mutation flows to force a fresh load. Concurrent calls for the same range
   // dedupe onto a single in-flight request instead of double-fetching.
@@ -37,7 +49,10 @@ export const useWatchlistStore = defineStore('watchlist', () => {
     const force = Boolean(options.force)
 
     const hadData = items.value.length > 0
-    if (!hadData) loading.value = true
+    if (!hadData) {
+      loading.value = true
+      fetchSkeleton(range)
+    }
 
     try {
       let responseSavedAt = Date.now()

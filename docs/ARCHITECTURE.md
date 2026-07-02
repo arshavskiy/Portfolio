@@ -104,6 +104,12 @@ User
 
 ## Client Architecture
 
+### Pages
+- **Dashboard** (`/`) — markets overview, watchlist movers, top momentum, allocation breakdown, portfolio value over time, and portfolio totals (`PortfolioStatsCard`: USD / ILS / combined, with a one-tap ₪↔$ currency toggle persisted to `holdings-combined-currency`)
+- **Watchlist** (`/watchlist`) — the hub for both watched and held stocks. Held rows carry a neon-blue accent; a briefcase toggle filters to holdings-only (persisted via `watchlist-held-only`). The header exposes Add-transaction, Import (watchlist **or** holdings), Rebalance, Export CSV, and Add-to-watchlist. The former standalone Holdings page was removed; `/holdings` redirects here.
+- **PositionDetail** (`/position/:ticker`), **Transactions**, **Alerts**, **News**, **Rebalance**, **Profile** — supporting pages
+- **What's New** — `WhatsNewModal` mounts once in `AppLayout` and pops on load after a release (see below); not a route
+
 ### State Management (Pinia Stores)
 Each store follows the same pattern:
 - State: reactive refs (`ref([])`, `ref(false)`)
@@ -131,6 +137,7 @@ groupsStore    → distinct group tags
 - **`usePush`** — Web Push subscription lifecycle, reactive state
 - **`usePwa`** — install-prompt/update lifecycle for the PWA
 - **`useAlertNotifier`** — background polling for triggered alerts → toast
+- **`useWhatsNew`** — changelog modal gate: compares the newest `data/changelog.js` version against the `changelog-seen-version` localStorage key, shows `WhatsNewModal` with unseen entries on load, and marks the version seen on dismiss (see [What's New](#whats-new-changelog))
 
 ### Routing & Guards
 - All authenticated routes nested under `MobileLayout`
@@ -158,6 +165,8 @@ Client HTTP request
 | Quote cache | `stockService` in-memory (node-cache) | 5 min | Yahoo Finance quotes per ticker |
 | FX rate | `stockService` in-memory | 1 hr | ILS→USD exchange rate |
 | History cache | `historyStore` (client, reactive Map) | 5 min | Stock price history per ticker+range |
+
+**Watchlist first paint**: `GET /watchlist/skeleton` returns items straight from Mongo (no quotes/history, one query) so the list renders instantly on load; the `watchlistStore` swaps in the full enriched `GET /watchlist` response when it arrives. Skeleton rows show `—` for price/percent and a neutral signal until enrichment lands.
 
 ### Extended-Hours Quotes
 `stockService` quotes carry Yahoo's pre/post-market fields through unchanged: `preMarketPrice`, `preMarketChange`, `preMarketChangePercent`, `postMarketPrice`, `postMarketChange`, `postMarketChangePercent`. `portfolioController` and `watchlistController` attach these alongside the regular `change`/`changePercent` per position/watchlist item. The client falls back to the extended-hours percent when the market is closed and a pre/post value is present (see `useMarketHours.js` for session-state detection used to decide which figure to show).
@@ -238,6 +247,18 @@ Configured via `vite-plugin-pwa` in `vite.config.js` (`strategies: injectManifes
 - `composables/usePwa.js` (`useFullscreen`) wraps the Fullscreen API with `webkit` fallbacks — `enter`/`exit`/`toggle` plus reactive `isFullscreen` synced to `fullscreenchange`.
 
 ---
+
+## What's New (Changelog)
+
+A "what's new" modal shows the release notes on the first load after each deploy.
+
+- **Source of truth**: `client/src/data/changelog.js` exports `changelog` (an array of `{ version, date, title, changes[] }`, newest first) and `currentVersion` (the top entry's `version`). Adding a new entry is what triggers the modal on the next load — no build/git wiring.
+- **Gate** (`composables/useWhatsNew.js`): stores the last acknowledged version in the `changelog-seen-version` localStorage key. On mount (`AppLayout.onMounted → checkForUpdates()`):
+  - First-ever load (`seen === null`) → silently seed the current version, no modal (don't greet brand-new users with a changelog)
+  - `seen !== currentVersion` → open `WhatsNewModal` with every entry newer than `seen`
+  - `dismiss()` writes `currentVersion` to the seen key
+- **Force / preview**: append `?changelog` to any URL to force-open the full changelog regardless of seen state; `dismiss()` strips the param via `history.replaceState` so it doesn't re-fire.
+- **PWA caveat**: since the SW is `registerType: 'autoUpdate'`, a tab left open across a deploy only picks up the new changelog after the SW reloads it. Fresh loads and PWA relaunches show it immediately.
 
 ## Analytics & Client Errors
 

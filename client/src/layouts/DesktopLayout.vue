@@ -9,12 +9,11 @@ const route = useRoute()
 const focus = useDesktopFocusStore()
 
 const isDashboard = computed(() => route.path === '/')
-const PANEL_ROUTES = ['/holdings', '/watchlist']
+const PANEL_ROUTES = ['/watchlist']
 const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)))
 
 const navItems = [
   {name: 'Dashboard',    to: '/',             icon: 'pi pi-chart-bar'},
-  {name: 'Holdings',     to: '/holdings',     icon: 'pi pi-briefcase'},
   {name: 'Watchlist',    to: '/watchlist',    icon: 'pi pi-eye'},
   {name: 'History & Alerts',  to: '/history-alerts', icon: 'pi pi-list'},
   {name: 'News',           to: '/news',            icon: 'pi pi-globe'},

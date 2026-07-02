@@ -2,6 +2,7 @@ const router = require('express').Router()
 const auth = require('../middleware/auth')
 const {
     getWatchlist,
+    getWatchlistSkeleton,
     getWatchlistItem,
     addToWatchlist,
     removeFromWatchlist,
@@ -11,6 +12,7 @@ const {
 
 router.use(auth)
 router.get('/', getWatchlist)
+router.get('/skeleton', getWatchlistSkeleton)
 router.get('/item/:ticker', getWatchlistItem)
 router.post('/', addToWatchlist)
 router.post('/sync-holdings', syncHoldings)

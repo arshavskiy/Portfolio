@@ -12,7 +12,9 @@ import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import {exportWatchlistCsv} from '@/composables/useImport'
 import Button from 'primevue/button'
+import Menu from 'primevue/menu'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
+import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import WatchRow from '@/components/ui/WatchRow.vue'
 import WatchlistSearch from '@/components/ui/WatchlistSearch.vue'
@@ -31,11 +33,33 @@ const desktopFocus = useDesktopFocusStore()
 const range = useChartRange()
 const showModal = ref(false)
 const showImportModal = ref(false)
+const showTxModal = ref(false)
+const importMode = ref('watchlist')
+const importMenu = ref(null)
+const importMenuItems = [
+  {
+    label: 'Import watchlist',
+    icon: 'pi pi-eye',
+    command: () => {
+      importMode.value = 'watchlist'
+      showImportModal.value = true
+    },
+  },
+  {
+    label: 'Import holdings',
+    icon: 'pi pi-briefcase',
+    command: () => {
+      importMode.value = 'holdings'
+      showImportModal.value = true
+    },
+  },
+]
 const showGroupModal = ref(false)
 const groupItem = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'market')
 const changeDirection = useStorage('watchlist-change-direction', 'down')
 const searchQuery = ref('')
+const heldOnly = useStorage('watchlist-held-only', false)
 const now = ref(new Date())
 const rangeLoading = ref(false)
 let marketTimer = null
@@ -55,6 +79,7 @@ const RANGE_LABELS = {
 
 function onImported() {
   watchlist.fetchWatchlist(range.value, {force: true})
+  if (importMode.value === 'holdings') portfolio.fetchPortfolio().catch(() => {})
 }
 
 function exportCsv() {
@@ -62,13 +87,19 @@ function exportCsv() {
   if (tickers.length) exportWatchlistCsv(tickers)
 }
 
+const heldCount = computed(() => {
+  const heldTickers = new Set(portfolio.positions.map((position) => String(position.ticker || '').toUpperCase()))
+  return watchlist.items.filter((item) => heldTickers.has(String(item.ticker || '').toUpperCase())).length
+})
+
 const filteredItems = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
   const heldTickers = new Set(portfolio.positions.map((position) => String(position.ticker || '').toUpperCase()))
-  const items = watchlist.items.map((item) => ({
+  let items = watchlist.items.map((item) => ({
     ...item,
     isHeld: heldTickers.has(String(item.ticker || '').toUpperCase()),
   }))
+  if (heldOnly.value) items = items.filter((item) => item.isHeld)
   if (!q) return items
   return items.filter((item) =>
       item.ticker.toLowerCase().includes(q) || item.companyName?.toLowerCase().includes(q)
@@ -81,6 +112,8 @@ const grouped = computed(() => {
   return groupItems(filteredItems.value, groupMode.value, now.value, changeDirection.value)
 })
 const initialLoading = computed(() => watchlist.loading && !watchlist.items.length)
+// Skeleton rows are visible but quotes are still being fetched.
+const quotesLoading = computed(() => watchlist.loading && watchlist.items.length > 0)
 const rangeLabel = computed(() => RANGE_LABELS[range.value] || range.value)
 const cacheStatusText = computed(() => {
   const meta = watchlist.cacheMeta
@@ -228,17 +261,37 @@ function onGroupsSaved() {
           </h1>
           <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
             <i :class="watchlist.cacheMeta?.stale ? 'pi pi-wifi-slash' : (watchlist.cacheMeta?.cached ? 'pi pi-database' : 'pi pi-sync')"/>
-            <span>{{ cacheStatusText }}</span>
+
+            <span>{{ cacheStatusText }}  </span>
+
           </div>
         </div>
         <div class="header-actions">
+          <Button
+              v-if="heldCount"
+              v-tooltip.bottom="heldOnly ? 'Show all' : 'Show holdings only'"
+              :outlined="!heldOnly"
+              class="held-filter-btn"
+              icon="pi pi-briefcase"
+              size="small"
+              @click="heldOnly = !heldOnly"
+          />
+          <Button
+              v-if="portfolio.positions.length"
+              v-tooltip.bottom="'Rebalance'"
+              icon="pi pi-sliders-h"
+              size="small"
+              text
+              @click="router.push('/rebalance')"
+          />
           <Button
               v-tooltip.bottom="'Import from file'"
               icon="pi pi-upload"
               size="small"
               text
-              @click="showImportModal = true"
+              @click="importMenu.toggle($event)"
           />
+          <Menu ref="importMenu" :model="importMenuItems" popup/>
           <Button
               v-if="watchlist.items.length"
               v-tooltip.bottom="'Download watchlist (CSV)'"
@@ -247,7 +300,18 @@ function onGroupsSaved() {
               text
               @click="exportCsv"
           />
-          <Button label="Add" outlined size="small" @click="showModal = true"/>
+          <Button
+              v-tooltip.bottom="'Add transaction'"
+              icon="pi pi-dollar"
+              size="small"
+              text
+              @click="showTxModal = true"
+          />
+          <Button v-tooltip.bottom="'Add to watchlist'"
+                  icon="pi pi-eye"
+                  size="small"
+                  text
+                  @click="showModal = true"/>
         </div>
       </div>
 
@@ -255,7 +319,7 @@ function onGroupsSaved() {
 
       <div class="watch-list-controls">
         <RangeBar class="page-range"/>
-        <div v-if="rangeLoading" class="range-loading-indicator">
+        <div v-if="rangeLoading || quotesLoading" class="range-loading-indicator">
           <AppLoader/>
           <span>Loading {{ rangeLabel }} data</span>
         </div>
@@ -300,7 +364,8 @@ function onGroupsSaved() {
     </div>
 
     <AddWatchlistModal v-model:visible="showModal"/>
-    <ImportModal v-model:visible="showImportModal" mode="watchlist" @imported="onImported"/>
+    <AddTransactionModal v-model:visible="showTxModal"/>
+    <ImportModal v-model:visible="showImportModal" :mode="importMode" @imported="onImported"/>
     <GroupEditModal
         v-model:visible="showGroupModal"
         :item="groupItem"
@@ -377,14 +442,16 @@ header {
   font-size: 0.65rem;
   font-weight: 600;
   font-variant: small-caps;
-  margin-left: 0.35rem;
-  vertical-align: middle;
+  vertical-align: baseline;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+}
+
+.held-filter-btn :deep(.pi-briefcase) {
+  color: #fbbf24;
 }
 
 .market-header {

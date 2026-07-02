@@ -100,7 +100,7 @@ function formatShares(n) {
 <template>
   <div class="rebalance safe-bottom">
     <header class="page-header">
-      <Button icon="pi pi-arrow-left" rounded text @click="router.push('/holdings')"/>
+      <Button icon="pi pi-arrow-left" rounded text @click="router.push('/watchlist')"/>
       <h1 class="gradient-title">Rebalance</h1>
       <div/>
     </header>
@@ -212,7 +212,7 @@ function formatShares(n) {
     <div v-else class="empty">
       <i class="pi pi-briefcase"/>
       <p class="text-muted">No holdings to rebalance</p>
-      <Button label="Add Transaction" @click="router.push('/holdings')"/>
+      <Button label="Add Transaction" @click="router.push('/watchlist')"/>
     </div>
   </div>
 </template>

@@ -13,7 +13,7 @@ const routes = [
       { path: '', name: 'Dashboard', component: () => import('@/views/DashboardView.vue'), meta: { requiresAuth: true } },
       { path: 'news/article/:id', name: 'NewsArticle', component: () => import('@/views/NewsArticleView.vue'), meta: { requiresAuth: true } },
       { path: 'news', name: 'News', component: () => import('@/views/NewsView.vue'), meta: { requiresAuth: true } },
-      { path: 'holdings', name: 'Holdings', component: () => import('@/views/HoldingsView.vue'), meta: { requiresAuth: true } },
+      { path: 'holdings', redirect: '/watchlist' },
         {
             path: 'rebalance',
             name: 'Rebalance',

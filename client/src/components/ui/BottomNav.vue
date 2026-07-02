@@ -5,7 +5,6 @@ const route = useRoute()
 
 const tabs = [
   { name: 'Dashboard', to: '/', icon: 'pi pi-chart-bar', label: 'Dashboard' },
-  { name: 'Holdings', to: '/holdings', icon: 'pi pi-briefcase', label: 'Holdings' },
   { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist' },
   { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History' },
   {name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News'},
@@ -63,10 +62,12 @@ function isActive(tab) {
 .nav-items {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
   height: 100%;
 }
 .nav-item {
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;

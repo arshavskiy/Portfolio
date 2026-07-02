@@ -2,6 +2,7 @@
 import {defineAsyncComponent, onMounted, onUnmounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
+import PortfolioStatsCard from '@/components/ui/PortfolioStatsCard.vue'
 
 const BreakdownCard         = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
@@ -73,6 +74,9 @@ onUnmounted(() => {
     </div>
 
     <template v-else>
+    <!-- Portfolio totals (USD / ILS / combined) -->
+    <PortfolioStatsCard />
+
     <!-- Global markets overview -->
     <MarketsCard />
 
