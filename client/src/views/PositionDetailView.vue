@@ -785,13 +785,9 @@ const measureDelta = computed(() =>
     selectedDelta.value ?? regularHoursDelta.value ?? defaultDelta.value
 )
 
-const measureLabel = computed(() => {
-  if (selectedDelta.value) return 'Selected range'
-  if (!measureDelta.value) return 'Low to high'
-  return measureDelta.value.amount < 0 ? 'High to low' : 'Low to high'
-})
-
 const measureMarkerPoints = computed(() => {
+  // High/low markers only make sense on the intraday (1d) chart.
+  if (selectedRange.value !== '1d') return []
   if (selectedDelta.value || !measureDelta.value?.startPoint || !measureDelta.value?.endPoint) return []
 
   const isDownMove = measureDelta.value.amount < 0
@@ -807,15 +803,6 @@ const measureMarkerPoints = computed(() => {
       tone: isDownMove ? 'low' : 'high',
     },
   ]
-})
-
-const measureEndpointClasses = computed(() => {
-  if (!measureDelta.value) return { start: '', end: '' }
-  const isDownMove = measureDelta.value.amount < 0
-  return {
-    start: isDownMove ? 'measure-high' : 'measure-low',
-    end: isDownMove ? 'measure-low' : 'measure-high',
-  }
 })
 
 function handleChartSelection(points) {
@@ -1042,30 +1029,6 @@ async function toggleWatchlist() {
             </button>
           </template>
         </RangeBar>
-      </div>
-
-      <div class="chart-measure">
-        <div v-if="measureDelta" class="measure-summary">
-          <span class="measure-tag text-muted">
-            {{ measureLabel }}
-          </span>
-          <span :class="gainLossClass(measureDelta.amount)">
-<!--            {{ useTickerCurrency(measureDelta.amount, ticker) }}-->
-            {{ usePercent(measureDelta.percent) }} /
-          </span>
-          <span class="text-muted">
-            <span :class="measureEndpointClasses.start">
-              {{ useTickerCurrency(measureDelta.startPrice, ticker) }}
-            </span>
-            <span> to </span>
-            <span :class="measureEndpointClasses.end">
-              {{ useTickerCurrency(measureDelta.endPrice, ticker) }}
-            </span>
-          </span>
-        </div>
-        <div v-else class="text-muted measure-hint">
-          Drag either range marker to update the selected delta.
-        </div>
       </div>
 
       <!-- Signal breakdown -->
@@ -1930,37 +1893,6 @@ async function toggleWatchlist() {
 .chart-mode-btn.active {
   background: var(--accent);
   color: #fff;
-}
-
-.chart-measure {
-  margin-bottom: 0.75rem;
-}
-
-.measure-hint {
-  font-size: 0.78rem;
-  margin-bottom: 0.3rem;
-}
-
-.measure-summary {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 0.84rem;
-}
-
-.measure-tag {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.measure-low {
-  color: #38bdf8;
-}
-
-.measure-high {
-  color: #f59e0b;
 }
 
 .stats-grid {
