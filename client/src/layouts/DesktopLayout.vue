@@ -4,6 +4,7 @@ import {useRoute} from 'vue-router'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import PositionDetailView from '@/views/PositionDetailView.vue'
 import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
+import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
 
 const route = useRoute()
 const focus = useDesktopFocusStore()
@@ -52,7 +53,11 @@ function isActive(item) {
     <!-- Holdings/Watchlist: main col + right position panel -->
     <template v-else-if="showPanel">
       <main class="main-col">
-        <RouterView/>
+        <RouterView v-slot="{ Component, route: r }">
+          <ErrorBoundary :key="r.fullPath">
+            <component :is="Component"/>
+          </ErrorBoundary>
+        </RouterView>
       </main>
       <aside class="right-col">
         <div v-if="!focus.ticker" class="right-empty">
@@ -70,7 +75,11 @@ function isActive(item) {
 
     <!-- All other routes: full-width, no panel -->
     <main v-else class="main-col">
-      <RouterView/>
+      <RouterView v-slot="{ Component, route: r }">
+        <ErrorBoundary :key="r.fullPath">
+          <component :is="Component"/>
+        </ErrorBoundary>
+      </RouterView>
     </main>
   </div>
 </template>

@@ -1,5 +1,6 @@
 <script setup>
 import BottomNav from '@/components/ui/BottomNav.vue'
+import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
 </script>
 
 <template>
@@ -7,7 +8,11 @@ import BottomNav from '@/components/ui/BottomNav.vue'
     <BottomNav/>
     <main class="main-content">
       <div class="content-inner">
-        <RouterView/>
+        <RouterView v-slot="{ Component, route }">
+          <ErrorBoundary :key="route.fullPath">
+            <component :is="Component"/>
+          </ErrorBoundary>
+        </RouterView>
       </div>
     </main>
   </div>
