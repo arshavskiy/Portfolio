@@ -9,6 +9,14 @@ const model = defineModel({type: String, required: true})
 const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
 const directionalModes = new Set(['change', 'pre', 'post', 'extended', 'momentum'])
 const validModes = new Set(GROUP_MODES.map((opt) => opt.value))
+const MODE_ICONS = {
+  market: 'pi pi-globe',
+  change: 'pi pi-chart-line',
+  extended: 'pi pi-clock',
+  momentum: 'pi pi-bolt',
+  industry: 'pi pi-building',
+  group: 'pi pi-tags',
+}
 
 watch(model, (value) => {
   if (!validModes.has(value)) model.value = 'market'
@@ -23,6 +31,15 @@ function onTap(value) {
   if (value !== model.value) changeDirection.value = 'down'
   model.value = value
 }
+
+function labelFor(opt) {
+  return opt.title || (directionalModes.has(opt.value) ? `${opt.label} (click again to flip)` : `Group by ${opt.label}`)
+}
+
+function iconFor(opt) {
+  if (opt.value === 'momentum' && model.value === opt.value && changeDirection.value === 'up') return 'pi pi-bolt'
+  return MODE_ICONS[opt.value] || 'pi pi-circle'
+}
 </script>
 
 <template>
@@ -36,12 +53,13 @@ function onTap(value) {
         'btn-momentum': opt.value === 'momentum',
         'btn-momentum-bear': opt.value === 'momentum' && model === opt.value && changeDirection === 'up',
       }"
-      :title="opt.title || (directionalModes.has(opt.value) ? `${opt.label} (click again to flip)` : `Group by ${opt.label}`)"
+      :aria-label="labelFor(opt)"
+      :title="labelFor(opt)"
       @click="onTap(opt.value)"
     >
-      <span>{{ opt.value === 'momentum' && model === opt.value && changeDirection === 'up' ? '▼' : opt.label }}</span>
+      <i :class="iconFor(opt)" class="mode-icon"/>
       <i
-          v-if="directionalModes.has(opt.value) && opt.value !== 'momentum' && model === opt.value"
+          v-if="directionalModes.has(opt.value) && model === opt.value"
         :class="changeDirection === 'up' ? 'pi pi-arrow-down' : 'pi pi-arrow-up'"
         class="change-dir-icon"
       />
@@ -51,8 +69,11 @@ function onTap(value) {
 
 <style scoped>
 .group-bar {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 2px;
+  width: 100%;
+  min-width: 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -61,15 +82,19 @@ function onTap(value) {
 
 .group-btn {
   position: relative;
-  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
   background: none;
   border: none;
   color: var(--text-secondary);
   border-radius: 6px;
-  padding: 5px 12px 5px 4px;
+  height: 28px;
+  padding: 0;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
@@ -83,12 +108,17 @@ function onTap(value) {
   color: #fff;
 }
 
+.mode-icon {
+  font-size: 0.82rem;
+  line-height: 1;
+}
+
 .change-dir-icon {
   position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.55rem;
+  right: 2px;
+  bottom: 2px;
+  font-size: 0.44rem;
+  line-height: 1;
 }
 
 .btn-momentum {
