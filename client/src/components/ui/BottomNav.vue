@@ -8,7 +8,7 @@ const tabs = [
   { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist' },
   { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History' },
   {name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News'},
-  { name: 'Profile', to: '/profile', icon: 'pi pi-user', label: 'Profile' },
+  { name: 'Account', to: '/account', icon: 'pi pi-user', label: 'Account' },
   // Desktop sidebar has room for an extra item; hidden on the mobile bottom bar.
   { name: 'About', to: '/about', icon: 'pi pi-info-circle', label: 'About', desktopOnly: true },
 ]

@@ -89,7 +89,7 @@ function logout() {
 <template>
   <div class="profile safe-bottom">
     <header class="page-header">
-      <h1 class="gradient-title">Profile</h1>
+      <h1 class="gradient-title">Account</h1>
     </header>
 
     <!-- Identity card -->

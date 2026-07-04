@@ -17,7 +17,7 @@ const navItems = [
   {name: 'Watchlist',    to: '/watchlist',    icon: 'pi pi-eye'},
   {name: 'History & Alerts',  to: '/history-alerts', icon: 'pi pi-list'},
   {name: 'News',           to: '/news',            icon: 'pi pi-globe'},
-  {name: 'Profile',        to: '/profile',         icon: 'pi pi-user'},
+  {name: 'Account',        to: '/account',         icon: 'pi pi-user'},
 ]
 
 function isActive(item) {
