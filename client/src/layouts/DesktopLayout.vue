@@ -115,10 +115,8 @@ function isActive(item) {
 .brand-icon { font-size: 1.4rem; }
 
 .brand-name {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
-  font-family: 'Space Grotesk', sans-serif;
   text-align: center;
   width: 100%;
   background: linear-gradient(135deg, #00cfff 0%, #a855f7 40%, #ff3366 70%, #00cfff 100%);

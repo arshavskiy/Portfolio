@@ -218,8 +218,6 @@ function logout() {
 @media (min-width: 768px) {
   .profile {
     padding: 2rem;
-    max-width: 800px;
-    margin: 0 auto;
   }
 }
 
@@ -231,7 +229,6 @@ function logout() {
     column-gap: 1.5rem;
     align-items: start;
     padding: 2rem 2.5rem;
-    max-width: 1100px;
   }
 
   .page-header    { grid-column: 1 / -1; }
