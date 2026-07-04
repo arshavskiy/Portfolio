@@ -109,8 +109,10 @@ const activeExtended = computed(() => {
   return resolveExtendedHours(isPreTime ? 'pre' : 'post') ?? resolveExtendedHours(isPreTime ? 'post' : 'pre') ?? null
 })
 
+// Don't show a Pre/Post block on stale ("No trade today") rows — the extended
+// data is from a previous session and would contradict the badge.
 const hasVisibleExtended = computed(() =>
-    activeExtended.value?.percent != null
+    !isStaleQuote.value && activeExtended.value?.percent != null
 )
 
 // ── Signal / momentum ────────────────────────────────────────────────────────
@@ -120,7 +122,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
 </script>
 
 <template>
-  <div :class="{ 'watch-row-held': highlightHeld }" class="watch-row" @click="emit('open-stock', item)">
+  <div :class="{ 'watch-row-held': highlightHeld, 'watch-row-stale': item.stale }" class="watch-row" @click="emit('open-stock', item)">
     <div class="row-left">
       <span class="ticker">
         {{ item.ticker }}
@@ -169,7 +171,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
         <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
         <!--        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>-->
       </span>
-      <span v-if="isStaleQuote" class="badge badge-stale">No trade today</span>
+      <span v-if="isStaleQuote" class="badge badge-stale">No trade</span>
       <span v-else :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
@@ -197,6 +199,18 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
 
 .watch-row:active {
   background: rgba(255, 255, 255, 0.03);
+}
+
+/* Stale rows show last-known data while fresh quotes load — pulse the data
+   columns (price/chart) to signal they're refreshing; keep ticker crisp. */
+.watch-row-stale .row-chart,
+.watch-row-stale .row-right {
+  animation: watch-row-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes watch-row-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
 }
 
 .row-left {
