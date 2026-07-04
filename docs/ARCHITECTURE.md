@@ -43,6 +43,7 @@ Portfolio/
 │   │   │   ├── useMarketSuffix.js
 │   │   │   ├── useMarketHours.js
 │   │   │   ├── useImport.js
+│   │   │   ├── useTour.js
 │   │   │   ├── usePush.js
 │   │   │   ├── usePwa.js
 │   │   │   └── useAlertNotifier.js
@@ -108,6 +109,7 @@ User
 - **Dashboard** (`/`) — markets overview, watchlist movers, top momentum, allocation breakdown, portfolio value over time, and portfolio totals (`PortfolioStatsCard`: USD / ILS / combined, with a one-tap ₪↔$ currency toggle persisted to `holdings-combined-currency`)
 - **Watchlist** (`/watchlist`) — the hub for both watched and held stocks. Held rows carry a neon-blue accent; a briefcase toggle filters to holdings-only (persisted via `watchlist-held-only`). The header exposes Add-transaction, Import (watchlist **or** holdings), Rebalance, Export CSV, and Add-to-watchlist. The former standalone Holdings page was removed; `/holdings` redirects here.
 - **PositionDetail** (`/position/:ticker`), **Transactions**, **Alerts**, **News**, **Rebalance**, **Profile** — supporting pages
+- **Guided Tour** — `driver.js` walkthrough mounted from `AppLayout`, replayable from Account or by URL parameter; not a route
 - **What's New** — `WhatsNewModal` mounts once in `AppLayout` and pops on load after a release (see below); not a route
 
 ### State Management (Pinia Stores)
@@ -137,6 +139,7 @@ groupsStore    → distinct group tags
 - **`usePush`** — Web Push subscription lifecycle, reactive state
 - **`usePwa`** — install-prompt/update lifecycle for the PWA
 - **`useAlertNotifier`** — background polling for triggered alerts → toast
+- **`useTour`** — guided walkthrough orchestration using `driver.js`: gates first-run display with `stockfolio-tour-seen`, filters steps to anchors present on the current viewport, moves from Dashboard Top Movers into Position details, and supports manual replay via Account or `?tour`
 - **`useWhatsNew`** — changelog modal gate: compares the newest `data/changelog.js` version against the `changelog-seen-version` localStorage key, shows `WhatsNewModal` with unseen entries on load, and marks the version seen on dismiss (see [What's New](#whats-new-changelog))
 
 ### Routing & Guards
@@ -259,6 +262,17 @@ A "what's new" modal shows the release notes on the first load after each deploy
   - `dismiss()` writes `currentVersion` to the seen key
 - **Force / preview**: append `?changelog` to any URL to force-open the full changelog regardless of seen state; `dismiss()` strips the param via `history.replaceState` so it doesn't re-fire.
 - **PWA caveat**: since the SW is `registerType: 'autoUpdate'`, a tab left open across a deploy only picks up the new changelog after the SW reloads it. Fresh loads and PWA relaunches show it immediately.
+
+## Guided Tour
+
+The guided tour introduces the primary portfolio workflow after login.
+
+- **Source of truth**: `client/src/composables/useTour.js` defines the tour steps and navigation handoffs. `client/src/assets/tour.css` contains the `driver.js` theme overrides and highlighted-element styling.
+- **Flow**: starts on Dashboard, highlights navigation and portfolio context, focuses the first available Top Movers item, opens that ticker into the Position page, explains overview/chart controls and the two-click chart range measurement, then continues through Watchlist actions including Import.
+- **Gate**: the first completed or closed tour writes `stockfolio-tour-seen` to localStorage so the walkthrough does not auto-open repeatedly.
+- **Replay**: Account exposes a Start Tour action that clears the seen flag and launches the tour again.
+- **URL parameter**: append `?tour` to any authenticated app URL to force the tour to run, for example `/watchlist?tour` or `/?tour`. The parameter bypasses the seen flag and is removed with `history.replaceState` after launch so refreshes do not keep retriggering it.
+- **What's New interaction**: `AppLayout` waits for `WhatsNewModal` to close before auto-starting the tour. A forced `?tour` launch still runs after that modal is dismissed.
 
 ## Analytics & Client Errors
 
