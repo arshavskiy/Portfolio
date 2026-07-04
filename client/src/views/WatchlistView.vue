@@ -102,7 +102,7 @@ const filteredItems = computed(() => {
   if (heldOnly.value) items = items.filter((item) => item.isHeld)
   if (!q) return items
   return items.filter((item) =>
-      item.ticker.toLowerCase().includes(q) || item.companyName?.toLowerCase().includes(q)
+      item.ticker?.toLowerCase().includes(q) || item.companyName?.toLowerCase().includes(q)
   )
 })
 
@@ -135,8 +135,8 @@ const visibleOrderedItems = computed(() => {
   const items = []
   for (const section of grouped.value) {
     for (const item of section.items) {
-      const key = item.ticker.toUpperCase()
-      if (seen.has(key)) continue
+      const key = String(item.ticker || '').toUpperCase()
+      if (!key || seen.has(key)) continue
       seen.add(key)
       items.push(item)
     }

@@ -10,7 +10,7 @@ const props = defineProps({
 const svgRef = ref(null)
 
 function draw() {
-  if (!svgRef.value || !props.data.length) return
+  if (!svgRef.value || !Array.isArray(props.data) || !props.data.length) return
   const svg = d3.select(svgRef.value)
   svg.selectAll('*').remove()
 
@@ -25,9 +25,11 @@ function draw() {
     : (lastClose ?? 0) >= (firstClose ?? 0)
   const color = isWin ? '#00ff88' : '#ff3366'
 
-  const x = d3.scaleLinear().domain([0, props.data.length - 1]).range([0, W])
   const yMin = d3.min(props.data, d => d.close)
   const yMax = d3.max(props.data, d => d.close)
+  // No usable numeric closes → nothing to plot (avoids NaN scale domains).
+  if (yMin == null || yMax == null) return
+  const x = d3.scaleLinear().domain([0, props.data.length - 1]).range([0, W])
   const yPad = (yMax - yMin) * 0.1 || 1
   const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([H - 2, 2])
 
@@ -55,8 +57,17 @@ function draw() {
     .attr('d', line)
 }
 
-onMounted(() => nextTick(draw))
-watch(() => props.data, () => nextTick(draw), { deep: true })
+// Never let a rendering error propagate up and blank the parent row.
+function safeDraw() {
+  try {
+    draw()
+  } catch (e) {
+    console.error('[StockFolio] Sparkline draw failed', e)
+  }
+}
+
+onMounted(() => nextTick(safeDraw))
+watch(() => props.data, () => nextTick(safeDraw), {deep: true})
 </script>
 
 <template>

@@ -8,7 +8,7 @@ import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from './useMarketHours.js'
 import {useMomentumStore} from '../stores/momentum.js'
 
 function marketOf(ticker) {
-    const t = ticker.toUpperCase()
+    const t = String(ticker || '').toUpperCase()
     if (/-USD$/.test(t)) return 'Crypto'
     if (t.endsWith('.TA')) return 'TASE'
     return 'US'
