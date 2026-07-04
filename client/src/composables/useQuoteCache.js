@@ -1,5 +1,5 @@
 import api from '@/composables/useApi'
-import {cachedFetch, invalidateClientCacheKey, setClientCacheEntry} from '@/composables/useClientCache'
+import {cachedFetch, invalidateClientCacheKey, readClientCacheEntry, setClientCacheEntry} from '@/composables/useClientCache'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
 
 const CACHE_PREFIX = 'quote:'
@@ -30,6 +30,12 @@ export function fetchCachedQuote(ticker, options = {}) {
     () => api.get(`/stocks/quote/${encodeURIComponent(normalized)}`),
     options
   )
+}
+
+// Last-known quote (ignores TTL) for hydrating skeleton rows on first paint.
+export function readCachedQuote(ticker) {
+  if (!ticker) return Promise.resolve(null)
+  return readClientCacheEntry(quoteCacheKey(ticker.toUpperCase()))
 }
 
 export function seedQuoteCache(ticker, quote, savedAt) {

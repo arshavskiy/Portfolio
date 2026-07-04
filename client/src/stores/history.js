@@ -1,7 +1,7 @@
 import {defineStore} from 'pinia'
 import {reactive} from 'vue'
 import api from '@/composables/useApi'
-import {cachedFetch, invalidateClientCachePrefix, setClientCacheEntry} from '@/composables/useClientCache'
+import {cachedFetch, invalidateClientCachePrefix, readClientCacheEntry, setClientCacheEntry} from '@/composables/useClientCache'
 
 const CACHE_PREFIX = 'history:'
 
@@ -82,6 +82,17 @@ export const useHistoryStore = defineStore('history', () => {
     return promise.then(data => downsample(data, points))
   }
 
+  // Last-known history (ignores TTL, reads IndexedDB on cold load) for hydrating
+  // skeleton sparklines on first paint.
+  async function readCachedHistory(ticker, range = '1mo', points) {
+    if (!ticker) return null
+    const key = makeKey(ticker, range)
+    const mem = cache[key]?.data
+    if (Array.isArray(mem)) return downsample(mem, points)
+    const stored = await readClientCacheEntry(`${CACHE_PREFIX}${key}`)
+    return Array.isArray(stored?.data) ? downsample(stored.data, points) : null
+  }
+
   async function seedHistory(ticker, range = '1mo', points, data, savedAt = Date.now()) {
     if (!ticker || !Array.isArray(data)) return null
     const key = makeKey(ticker, range)
@@ -98,5 +109,5 @@ export const useHistoryStore = defineStore('history', () => {
     invalidateClientCachePrefix(CACHE_PREFIX).catch(() => {})
   }
 
-  return { fetchHistory, seedHistory, getEntry, isLoading, clearHistory }
+  return { fetchHistory, seedHistory, readCachedHistory, getEntry, isLoading, clearHistory }
 })

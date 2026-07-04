@@ -98,6 +98,16 @@ export async function cachedFetch(key, ttlMs, fetcher, {force = false, allowStal
   return request
 }
 
+// Read a cached entry (memory first, then IndexedDB) without a TTL check.
+// Returns {data, savedAt} or null — used to hydrate first paint from last-known data.
+export async function readClientCacheEntry(key) {
+  const memory = memoryCache.get(key)
+  if (memory) return memory
+  const stored = await readPersistentEntry(key)
+  if (stored) memoryCache.set(key, stored)
+  return stored
+}
+
 export async function setClientCacheEntry(key, data, savedAt = Date.now()) {
   const entry = {key, data, savedAt}
   memoryCache.set(key, entry)

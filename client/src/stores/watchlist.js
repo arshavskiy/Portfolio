@@ -2,7 +2,7 @@ import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import api from '@/composables/useApi'
 import {cachedFetch, invalidateClientCachePrefix} from '@/composables/useClientCache'
-import {seedQuoteCache} from '@/composables/useQuoteCache'
+import {readCachedQuote, seedQuoteCache} from '@/composables/useQuoteCache'
 import {useHistoryStore} from '@/stores/history'
 
 export const useWatchlistStore = defineStore('watchlist', () => {
@@ -29,13 +29,34 @@ export const useWatchlistStore = defineStore('watchlist', () => {
     })
   }
 
+  // Hydrate a skeleton row with its last-known cached quote + history so first
+  // paint shows real numbers (dimmed with a shimmer) instead of blank rows.
+  // `stale: true` flags the row until the fresh enrichment replaces it.
+  async function hydrateFromCache(item, range) {
+    const points = detailHistoryPoints(range)
+    const [quoteEntry, history] = await Promise.all([
+      readCachedQuote(item.ticker).catch(() => null),
+      historyStore.readCachedHistory(item.ticker, range, points).catch(() => null),
+    ])
+    const quote = quoteEntry?.data
+    if (!quote && !history) return item
+    return {
+      ...item,
+      ...(quote || {}),
+      history: history || item.history || [],
+      stale: true,
+    }
+  }
+
   // First paint: show tickers/company names from the DB immediately while the
-  // slow quote+history enrichment loads. Never overwrites enriched data.
+  // slow quote+history enrichment loads, hydrating each row with the last-known
+  // cached quote/history. Never overwrites enriched data.
   async function fetchSkeleton(range) {
     try {
       const data = await api.get('/watchlist/skeleton')
-      if (lastRange === range && !items.value.length && data.length) {
-        items.value = data
+      const hydrated = await Promise.all(data.map((item) => hydrateFromCache(item, range)))
+      if (lastRange === range && !items.value.length && hydrated.length) {
+        items.value = hydrated
       }
     } catch {
     }
