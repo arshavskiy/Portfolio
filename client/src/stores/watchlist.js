@@ -99,6 +99,8 @@ export const useWatchlistStore = defineStore('watchlist', () => {
   }
 
   async function removeItem(id) {
+    // Synthetic held-only rows have no watchlist doc to delete; ignore them.
+    if (typeof id === 'string' && id.startsWith('held:')) return
     await api.delete(`/watchlist/${id}`)
     await invalidateClientCachePrefix(CACHE_PREFIX)
     items.value = items.value.filter((i) => i._id !== id)

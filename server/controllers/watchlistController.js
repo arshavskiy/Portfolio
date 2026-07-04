@@ -19,11 +19,44 @@ function normalizeGroups(groups) {
   return out
 }
 
+// Any held position that has no matching Watchlist doc is surfaced as a
+// synthetic held row so holdings can never go invisible on the watchlist page.
+// `synthetic: true` flags these to the client (no doc to remove, position drives it).
+async function heldOnlyRows(userId, watchedTickers) {
+  const positions = await Position.find({user: userId}).lean()
+  const seen = new Set(watchedTickers.map((t) => String(t).toUpperCase()))
+  return positions
+    .filter((p) => !seen.has(String(p.ticker).toUpperCase()))
+    .map((p) => ({
+      _id: `held:${p._id}`,
+      ticker: p.ticker,
+      companyName: p.companyName || p.ticker,
+      sector: p.sector || null,
+      industry: p.industry || null,
+      addedAt: p.createdAt || p.updatedAt || null,
+      groups: normalizeGroups(p.groups || []),
+      synthetic: true,
+    }))
+}
+
 exports.getWatchlist = async (req, res) => {
   try {
       const range = ['1d', '5d', '1mo', '3mo', '6mo', '1y'].includes(req.query.range) ? req.query.range : '1mo'
       const detailPoints = range === '1d' ? 60 : 50
-    const items = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 })
+    const watched = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 })
+    const held = await heldOnlyRows(req.user._id, watched.map((i) => i.ticker))
+    const items = [
+      ...watched.map((i) => ({
+        _id: i._id,
+        ticker: i.ticker,
+        companyName: i.companyName,
+        sector: i.sector || null,
+        industry: i.industry || null,
+        addedAt: i.addedAt,
+        groups: normalizeGroups(i.groups || []),
+      })),
+      ...held,
+    ]
     if (!items.length) return res.json([])
 
     const tickers = items.map((i) => i.ticker)
@@ -38,15 +71,9 @@ exports.getWatchlist = async (req, res) => {
           historyMap[t] = histories[i]
       })
     const enriched = items.map((item) => ({
-      _id: item._id,
-      ticker: item.ticker,
-      companyName: item.companyName,
-      sector: item.sector || null,
-      industry: item.industry || null,
-      addedAt: item.addedAt,
+      ...item,
       ...(quoteMap[item.ticker] || {}),
       history: historyMap[item.ticker] || [],
-      groups: normalizeGroups(item.groups || []),
     }))
 
     res.json(enriched)
@@ -57,17 +84,21 @@ exports.getWatchlist = async (req, res) => {
 
 exports.getWatchlistSkeleton = async (req, res) => {
   try {
-    const items = await Watchlist.find({user: req.user._id}).sort({addedAt: -1}).lean()
-    res.json(items.map((item) => ({
-      _id: item._id,
-      ticker: item.ticker,
-      companyName: item.companyName,
-      sector: item.sector || null,
-      industry: item.industry || null,
-      addedAt: item.addedAt,
-      history: [],
-      groups: normalizeGroups(item.groups || []),
-    })))
+    const watched = await Watchlist.find({user: req.user._id}).sort({addedAt: -1}).lean()
+    const held = await heldOnlyRows(req.user._id, watched.map((i) => i.ticker))
+    const rows = [
+      ...watched.map((item) => ({
+        _id: item._id,
+        ticker: item.ticker,
+        companyName: item.companyName,
+        sector: item.sector || null,
+        industry: item.industry || null,
+        addedAt: item.addedAt,
+        groups: normalizeGroups(item.groups || []),
+      })),
+      ...held,
+    ].map((item) => ({...item, history: []}))
+    res.json(rows)
   } catch (err) {
     res.status(500).json({message: err.message})
   }

@@ -252,7 +252,7 @@ watch(() => route.params.ticker, (t) => {
 })
 
 async function toggleWatchlist() {
-  const existing = watchlist.items.find((i) => i.ticker === ticker.value)
+  const existing = watchlist.items.find((i) => i.ticker === ticker.value && !i.synthetic)
   if (existing) {
     await watchlist.removeItem(existing._id)
     toast.add({severity: 'info', summary: 'Removed from watchlist', life: 2000})
@@ -262,7 +262,7 @@ async function toggleWatchlist() {
   }
 }
 
-const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value)
+const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value && !i.synthetic)
 
 function openLots() {
   if (!heldPosition.value) return
