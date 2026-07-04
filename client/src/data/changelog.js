@@ -2,6 +2,17 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.04.1',
+    date: 'Jul 4, 2026',
+    title: 'Guided tour and chart range help',
+    changes: [
+      'New guided tour walks through Dashboard, clickable Top Movers, Position details, and Watchlist tools',
+      'Account now has a Start Tour option for replaying the walkthrough anytime',
+      'Position charts now explain how to click two points to measure a custom range',
+      'Chart range help can be dismissed permanently with the X button',
+    ],
+  },
+  {
     version: '2026.07.04',
     date: 'Jul 4, 2026',
     title: 'Holdings always in view, snappier watchlist',
