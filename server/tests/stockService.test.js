@@ -1,16 +1,27 @@
 // Tests for pure utility functions and cache behavior in stockService.
 // Yahoo Finance calls are mocked — no network access.
 
+// Delegate each instance method to a shared jest mock, so new YahooFinance()
+// always returns an instance whose methods are the mocks — no network access,
+// regardless of how the runtime resolves the default export (a fragile
+// constructor mock leaked to the real client under CI's Node/OS).
+const mockYahoo = {
+  quote: jest.fn(),
+  chart: jest.fn(),
+  search: jest.fn(),
+  quoteSummary: jest.fn(),
+  trendingSymbols: jest.fn(),
+}
 jest.mock('yahoo-finance2', () => {
-  const mock = {
-    quote: jest.fn(),
-    chart: jest.fn(),
-    search: jest.fn(),
-    quoteSummary: jest.fn(),
-    trendingSymbols: jest.fn(),
+  class MockYahooFinance {
+    quote(...args) { return mockYahoo.quote(...args) }
+    chart(...args) { return mockYahoo.chart(...args) }
+    search(...args) { return mockYahoo.search(...args) }
+    quoteSummary(...args) { return mockYahoo.quoteSummary(...args) }
+    trendingSymbols(...args) { return mockYahoo.trendingSymbols(...args) }
   }
-  return { default: class { constructor() { return mock } }, __mock: mock }
-}, { virtual: true })
+  return { __esModule: true, default: MockYahooFinance }
+})
 
 jest.mock('../models/ExtendedQuote', () => ({
   findOne: jest.fn().mockResolvedValue(null),
@@ -23,8 +34,7 @@ jest.mock('../models/QuoteSnapshot', () => ({
   findOneAndUpdate: jest.fn().mockResolvedValue(null),
 }))
 
-const yf = require('yahoo-finance2')
-const yahooMock = yf.__mock
+const yahooMock = mockYahoo
 const { getQuote } = require('../services/stockService')
 
 // ── downsample ────────────────────────────────────────────────────────────────

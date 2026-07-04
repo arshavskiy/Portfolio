@@ -1,12 +1,21 @@
+// Replace the whole yahoo-finance2 module with a class stub whose methods are
+// jest mocks. Instantiating (new YahooFinance()) and calling .search both route
+// through these mocks, so nothing ever reaches the network — regardless of how
+// the runtime resolves the default export (Node/OS differences bit us in CI when
+// the constructor mock leaked through to the real client).
+const mockSearch = jest.fn()
 jest.mock('yahoo-finance2', () => {
-  const mockSearch = jest.fn()
-  return { default: jest.fn(() => ({ search: mockSearch })), __mockSearch: mockSearch }
+  class MockYahooFinance {
+    search(...args) { return mockSearch(...args) }
+    quote() { return Promise.resolve(null) }
+    chart() { return Promise.resolve({ quotes: [] }) }
+    quoteSummary() { return Promise.resolve({}) }
+    trendingSymbols() { return Promise.resolve({ quotes: [] }) }
+  }
+  return { __esModule: true, default: MockYahooFinance }
 })
 jest.mock('../models/ExtendedQuote', () => ({ findOne: jest.fn(), updateOne: jest.fn() }))
 jest.mock('../models/QuoteSnapshot', () => ({ findOneAndUpdate: jest.fn(), findOne: jest.fn() }))
-
-const yf = require('yahoo-finance2')
-const mockSearch = yf.__mockSearch
 
 // Load after mocks are set up
 const { searchTicker } = require('../services/stockService')
