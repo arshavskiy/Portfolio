@@ -10,6 +10,8 @@ export const changelog = [
       'Account now has a Start Tour option for replaying the walkthrough anytime',
       'Position charts now explain how to click two points to measure a custom range',
       'Chart range help can be dismissed permanently with the X button',
+      'Desktop position panels now include the same chart range measuring tools',
+      'Dragging chart range markers now keeps the vertical dotted guide in sync',
       'Stocks you own now always show on the Watchlist — even if you never added them',
       'Watchlist rows appear with your last-seen prices and charts instantly, then refresh',
       'Cleaner closed-market rows — no stale pre/post numbers, shorter "No trade" tag',

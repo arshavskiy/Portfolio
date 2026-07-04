@@ -787,7 +787,7 @@ function draw() {
       if (!draggingSelection.value) dragPreviewPill.value = null
     })
 
-  const focus = g.append('g').style('display', 'none')
+  const focus = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`).style('display', 'none')
   focus.append('line').attr('y1', 0).attr('y2', showVolume ? volumeBottom : h)
     .attr('stroke', '#94a3b8').attr('stroke-dasharray', '3,3').attr('stroke-width', 1)
   focus.append('circle').attr('r', 4).attr('fill', color).attr('stroke', '#0f172a').attr('stroke-width', 2)
@@ -823,7 +823,6 @@ function draw() {
         if (!draggedPoint) return
 
         dragPreview.value = {index, point: draggedPoint}
-        showFocusAt(draggedPoint, true)
 
         // Emit a live preview so the parent's delta readout updates mid-drag
         // (without committing to selectedPoints, which would resort/redraw).
@@ -833,6 +832,8 @@ function draw() {
           .map(normalizePoint)
             .filter(Boolean)
             .sort((a, b) => new Date(a.date) - new Date(b.date)))
+        renderSelections()
+        showFocusAt(draggedPoint, true)
       })
       .on('end', () => {
         if (dragPreview.value?.point) {
@@ -855,7 +856,13 @@ function draw() {
   const renderSelections = () => {
     selectionLayer.selectAll('*').remove()
 
-    selectedPoints.value.forEach((point, index) => {
+    const visiblePoints = (() => {
+      const points = dragStartPoints.value.length ? [...dragStartPoints.value] : [...selectedPoints.value]
+      if (dragPreview.value?.point) points[dragPreview.value.index] = dragPreview.value.point
+      return points.filter(Boolean)
+    })()
+
+    visiblePoints.forEach((point, index) => {
       const cx = xPos(point)
       const cy = y(point.close)
       const stroke = index === 0 ? '#e2e8f0' : '#cbd5e1'
