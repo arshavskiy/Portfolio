@@ -1050,7 +1050,8 @@ async function toggleWatchlist() {
             {{ measureLabel }}
           </span>
           <span :class="gainLossClass(measureDelta.amount)">
-            {{ useTickerCurrency(measureDelta.amount, ticker) }} ({{ usePercent(measureDelta.percent) }})
+<!--            {{ useTickerCurrency(measureDelta.amount, ticker) }}-->
+            {{ usePercent(measureDelta.percent) }} /
           </span>
           <span class="text-muted">
             <span :class="measureEndpointClasses.start">
@@ -1942,7 +1943,7 @@ async function toggleWatchlist() {
 
 .measure-summary {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 0.2rem;
   font-size: 0.84rem;
 }
