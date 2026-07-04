@@ -4,11 +4,11 @@ import {useRoute} from 'vue-router'
 const route = useRoute()
 
 const tabs = [
-  { name: 'Dashboard', to: '/', icon: 'pi pi-chart-bar', label: 'Dashboard' },
-  { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist' },
-  { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History' },
-  {name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News'},
-  { name: 'Account', to: '/account', icon: 'pi pi-user', label: 'Account' },
+  { name: 'Dashboard', to: '/', icon: 'pi pi-chart-bar', label: 'Dashboard', tourKey: 'dashboard' },
+  { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist', tourKey: 'watchlist' },
+  { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History', tourKey: 'history' },
+  {name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News', tourKey: 'news'},
+  { name: 'Account', to: '/account', icon: 'pi pi-user', label: 'Account', tourKey: 'account' },
   // Desktop sidebar has room for an extra item; hidden on the mobile bottom bar.
   { name: 'About', to: '/about', icon: 'pi pi-info-circle', label: 'About', desktopOnly: true },
 ]
@@ -31,6 +31,7 @@ function isActive(tab) {
           :key="tab.name"
           :class="{ active: isActive(tab), 'desktop-only': tab.desktopOnly }"
           :to="tab.to"
+          :data-tour="tab.tourKey ? `nav-${tab.tourKey}` : null"
           class="nav-item"
       >
         <i :class="tab.icon"/>

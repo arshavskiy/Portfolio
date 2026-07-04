@@ -39,6 +39,7 @@ function isActive(item) {
             :key="item.name"
             :to="item.to"
             :class="{active: isActive(item)}"
+            :data-tour="`nav-${item.name.split(' ')[0].toLowerCase()}`"
             class="sidebar-item"
         >
           <i :class="item.icon"/>

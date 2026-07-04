@@ -266,12 +266,13 @@ function onGroupsSaved() {
 
           </div>
         </div>
-        <div class="header-actions">
+        <div class="header-actions" data-tour="wl-actions">
           <Button
               v-if="heldCount"
               v-tooltip.bottom="heldOnly ? 'Show all' : 'Show holdings only'"
               :outlined="!heldOnly"
               class="held-filter-btn"
+              data-tour="wl-held-filter"
               icon="pi pi-briefcase"
               size="small"
               @click="heldOnly = !heldOnly"
@@ -284,13 +285,15 @@ function onGroupsSaved() {
               text
               @click="router.push('/rebalance')"
           />
-          <Button
-              v-tooltip.bottom="'Import from file'"
-              icon="pi pi-upload"
-              size="small"
-              text
-              @click="importMenu.toggle($event)"
-          />
+          <span class="tour-action-anchor" data-tour="wl-import">
+            <Button
+                v-tooltip.bottom="'Import from file'"
+                icon="pi pi-upload"
+                size="small"
+                text
+                @click="importMenu.toggle($event)"
+            />
+          </span>
           <Menu ref="importMenu" :model="importMenuItems" popup/>
           <Button
               v-if="watchlist.items.length"
@@ -302,12 +305,14 @@ function onGroupsSaved() {
           />
           <Button
               v-tooltip.bottom="'Add transaction'"
+              data-tour="wl-add-transaction"
               icon="pi pi-dollar"
               size="small"
               text
               @click="showTxModal = true"
           />
           <Button v-tooltip.bottom="'Add to watchlist'"
+                  data-tour="wl-add-watchlist"
                   icon="pi pi-eye"
                   size="small"
                   text
@@ -318,12 +323,12 @@ function onGroupsSaved() {
       <WatchlistSearch v-model="searchQuery"/>
 
       <div class="watch-list-controls">
-        <RangeBar class="page-range"/>
+        <RangeBar class="page-range" data-tour="wl-range"/>
         <div v-if="rangeLoading || quotesLoading" class="range-loading-indicator">
           <AppLoader/>
           <span>Loading {{ rangeLabel }} data</span>
         </div>
-        <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode"/>
+        <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode" data-tour="wl-group"/>
       </div>
 
 
@@ -348,11 +353,12 @@ function onGroupsSaved() {
         <AppLoader/>
       </div>
       <div class="watch-list">
-        <template v-for="section in grouped" :key="section.group ?? '_all'">
+        <template v-for="(section, sIdx) in grouped" :key="section.group ?? '_all'">
           <div v-if="section.group" class="market-header">{{ section.group }}</div>
           <WatchRow
-              v-for="item in section.items"
+              v-for="(item, iIdx) in section.items"
               :key="`${section.group ?? ''}-${item._id}`"
+              :data-tour="sIdx === 0 && iIdx === 0 ? 'wl-row' : null"
               :data-watchlist-ticker="item.ticker"
               :highlight-held="item.isHeld"
               :item="item"
@@ -448,6 +454,10 @@ header {
 .header-actions {
   display: flex;
   align-items: center;
+}
+
+.tour-action-anchor {
+  display: inline-flex;
 }
 
 .held-filter-btn :deep(.pi-briefcase) {

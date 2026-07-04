@@ -271,13 +271,15 @@ watch(range, async (r) => {
         <div class="wl-header-row">
           <h2 class="gradient-title wl-title">Watchlist</h2>
           <div class="wl-actions">
-            <Button
-                v-tooltip.bottom="'Import from file'"
-                icon="pi pi-upload"
-                size="small"
-                text
-                @click="showImportModal = true"
-            />
+            <span class="tour-action-anchor" data-tour="wl-import">
+              <Button
+                  v-tooltip.bottom="'Import from file'"
+                  icon="pi pi-upload"
+                  size="small"
+                  text
+                  @click="showImportModal = true"
+              />
+            </span>
             <Button label="Add" outlined size="small" @click="showModal = true"/>
           </div>
         </div>
@@ -429,6 +431,10 @@ watch(range, async (r) => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.tour-action-anchor {
+  display: inline-flex;
 }
 
 .wl-range {

@@ -36,6 +36,15 @@ const moverPairs = computed(() =>
     loser: losers.value[index] || null,
   }))
 )
+
+const tourMoverTicker = computed(() => gainers.value[0]?.ticker || losers.value[0]?.ticker || null)
+
+function tourAttrs(item) {
+  return item?.ticker === tourMoverTicker.value
+    ? {'data-tour': 'dash-mover', 'data-tour-ticker': item.ticker}
+    : {}
+}
+
 const maxGain = computed(() => Math.max(
   ...gainers.value.map((item) => Math.abs(moverChangePercent(item))),
   1
@@ -87,6 +96,7 @@ function openStock(item) {
         <div v-for="(pair, index) in moverPairs" :key="index" class="mover-pair">
           <button
               v-if="pair.gainer"
+              v-bind="tourAttrs(pair.gainer)"
               class="mover-half mover-up"
               type="button"
               @click="openStock(pair.gainer)"
@@ -101,6 +111,7 @@ function openStock(item) {
 
           <button
               v-if="pair.loser"
+              v-bind="tourAttrs(pair.loser)"
               class="mover-half mover-down"
               type="button"
               @click="openStock(pair.loser)"

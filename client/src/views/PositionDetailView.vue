@@ -78,6 +78,7 @@ let pageRequestId = 0
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
 const WATCHLIST_RETURN_KEY = 'watchlist-return-from-position'
 const WATCHLIST_NAV_KEY = 'watchlist-filtered-tickers'
+const CHART_SELECTION_HELP_KEY = 'position-chart-selection-help-dismissed'
 const RANGE_LABELS = {
   '1d': '1D',
   '5d': '5D',
@@ -85,6 +86,7 @@ const RANGE_LABELS = {
   '6mo': '6M',
   '1y': '1Y',
 }
+const chartSelectionHelpDismissed = ref(localStorage.getItem(CHART_SELECTION_HELP_KEY) === '1')
 
 onMounted(async () => {
   loadWatchlistNavContext()
@@ -785,9 +787,13 @@ const measureDelta = computed(() =>
     selectedDelta.value ?? regularHoursDelta.value ?? defaultDelta.value
 )
 
+const measureLabel = computed(() => {
+  if (selectedDelta.value) return 'Selected range'
+  if (!measureDelta.value) return 'Low to high'
+  return measureDelta.value.amount < 0 ? 'High to low' : 'Low to high'
+})
+
 const measureMarkerPoints = computed(() => {
-  // High/low markers only make sense on the intraday (1d) chart.
-  if (selectedRange.value !== '1d') return []
   if (selectedDelta.value || !measureDelta.value?.startPoint || !measureDelta.value?.endPoint) return []
 
   const isDownMove = measureDelta.value.amount < 0
@@ -805,8 +811,22 @@ const measureMarkerPoints = computed(() => {
   ]
 })
 
+const measureEndpointClasses = computed(() => {
+  if (!measureDelta.value) return { start: '', end: '' }
+  const isDownMove = measureDelta.value.amount < 0
+  return {
+    start: isDownMove ? 'measure-high' : 'measure-low',
+    end: isDownMove ? 'measure-low' : 'measure-high',
+  }
+})
+
 function handleChartSelection(points) {
   selectedChartPoints.value = points
+}
+
+function dismissChartSelectionHelp() {
+  chartSelectionHelpDismissed.value = true
+  localStorage.setItem(CHART_SELECTION_HELP_KEY, '1')
 }
 
 function loadWatchlistNavContext() {
@@ -906,7 +926,7 @@ async function toggleWatchlist() {
     <!--        icon="pi pi-angle-right"-->
     <!--        @click="openWatchlistTicker(nextWatchlistTicker)"-->
     <!--    />-->
-    <header class="page-header">
+    <header class="page-header" data-tour="pos-header">
       <Button v-if="!panelMode" icon="pi pi-arrow-left" rounded text @click="returnToWatchlist"/>
       <div class="header-info">
         <div class="header-title-row">
@@ -923,7 +943,7 @@ async function toggleWatchlist() {
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
       </div>
       <div class="header-actions">
-        <Button icon="pi pi-plus" rounded text @click="showModal = true"/>
+        <Button data-tour="pos-add-transaction" icon="pi pi-plus" rounded text @click="showModal = true"/>
         <Button
             v-if="summary"
             v-tooltip.bottom="'Log dividend'"
@@ -956,7 +976,7 @@ async function toggleWatchlist() {
     </div>
 
     <template v-else>
-      <div v-if="quote" class="quote-summary">
+      <div v-if="quote" class="quote-summary" data-tour="pos-overview">
         <div class="price-row">
           <div class="price-main">
             <div class="current-price">
@@ -994,6 +1014,7 @@ async function toggleWatchlist() {
       </div>
 
       <StockChart
+          data-tour="pos-chart"
           :key="`${ticker}-${selectedRange}-${chartMode}`"
           :current-price="previousCloseLine"
           :data="history"
@@ -1007,11 +1028,12 @@ async function toggleWatchlist() {
       />
 
       <div class="chart-controls">
-        <RangeBar v-model="selectedRange" class="page-range">
+        <RangeBar v-model="selectedRange" class="page-range" data-tour="pos-range">
           <template #append>
             <button
               class="chart-mode-btn"
               :class="{ active: chartMode === 'line' }"
+              data-tour="pos-chart-line"
               title="Line chart"
               type="button"
               @click="chartMode = 'line'"
@@ -1021,6 +1043,7 @@ async function toggleWatchlist() {
             <button
               class="chart-mode-btn"
               :class="{ active: chartMode === 'candle' }"
+              data-tour="pos-chart-candle"
               title="Candlestick chart"
               type="button"
               @click="chartMode = 'candle'"
@@ -1029,6 +1052,36 @@ async function toggleWatchlist() {
             </button>
           </template>
         </RangeBar>
+      </div>
+
+      <div class="chart-measure">
+        <div v-if="measureDelta" class="measure-summary">
+          <span class="measure-tag text-muted">
+            {{ measureLabel }}
+          </span>
+          <span :class="gainLossClass(measureDelta.amount)">
+<!--            {{ useTickerCurrency(measureDelta.amount, ticker) }}-->
+            {{ usePercent(measureDelta.percent) }} /
+          </span>
+          <span class="text-muted">
+            <span :class="measureEndpointClasses.start">
+              {{ useTickerCurrency(measureDelta.startPrice, ticker) }}
+            </span>
+            <span> to </span>
+            <span :class="measureEndpointClasses.end">
+              {{ useTickerCurrency(measureDelta.endPrice, ticker) }}
+            </span>
+          </span>
+        </div>
+        <div v-else class="text-muted measure-hint">
+          Drag either range marker to update the selected delta.
+        </div>
+      </div>
+      <div v-if="!chartSelectionHelpDismissed" class="chart-selection-help text-muted">
+        <button class="chart-selection-help-close" aria-label="Dismiss chart range help" type="button" @click="dismissChartSelectionHelp">
+          <i class="pi pi-times"/>
+        </button>
+        <p>Click the chart once to set the range start, then click a second point to measure that custom range. Drag either marker to fine-tune it.</p>
       </div>
 
       <!-- Signal breakdown -->
@@ -1893,6 +1946,89 @@ async function toggleWatchlist() {
 .chart-mode-btn.active {
   background: var(--accent);
   color: #fff;
+}
+
+.chart-measure {
+  margin-bottom: 0.75rem;
+}
+
+.measure-hint {
+  font-size: 0.78rem;
+  margin-bottom: 0.3rem;
+}
+
+.measure-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.84rem;
+}
+
+.measure-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.measure-low {
+  color: #38bdf8;
+}
+
+.measure-high {
+  color: #f59e0b;
+}
+
+.chart-selection-help {
+  position: relative;
+  margin: -0.35rem 0 0.9rem;
+  padding: 0.55rem 2.25rem 0.55rem 0.7rem;
+  border: 1px solid rgba(0, 207, 255, 0.38);
+  border-radius: 10px;
+  background: rgba(0, 207, 255, 0.05);
+  font-size: 0.76rem;
+  line-height: 1.35;
+  animation: chart-help-pulse 1.8s ease-in-out infinite;
+}
+
+.chart-selection-help p {
+  margin: 0;
+}
+
+.chart-selection-help-close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.68);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.chart-selection-help-close i {
+  font-size: 0.65rem;
+}
+
+.chart-selection-help-close:hover {
+  color: var(--text-primary);
+  border-color: rgba(0, 207, 255, 0.6);
+}
+
+@keyframes chart-help-pulse {
+  0%, 100% {
+    border-color: rgba(0, 207, 255, 0.32);
+    box-shadow: 0 0 0 rgba(0, 207, 255, 0);
+  }
+  50% {
+    border-color: rgba(0, 207, 255, 0.82);
+    box-shadow: 0 0 16px rgba(0, 207, 255, 0.14);
+  }
 }
 
 .stats-grid {

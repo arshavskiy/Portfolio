@@ -6,6 +6,7 @@ import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import {useFullscreen, usePwaInstall} from '@/composables/usePwa'
 import {useBreakpoint} from '@/composables/useBreakpoint'
+import {useTour} from '@/composables/useTour'
 import {useToast} from 'primevue/usetoast'
 import QRCode from 'qrcode'
 import Button from 'primevue/button'
@@ -21,9 +22,14 @@ const showFeeProfiles = ref(false)
 const {isDesktop} = useBreakpoint()
 const { canInstall, installed, isIos, promptInstall } = usePwaInstall()
 const { isFullscreen, supported: fsSupported, toggle: toggleFullscreen } = useFullscreen()
+const {startTour, resetTour} = useTour()
 
 function goAlerts() { router.push(isDesktop.value ? '/history-alerts' : '/alerts') }
 function goTransactions() { router.push(isDesktop.value ? '/history-alerts' : '/transactions') }
+function replayTour() {
+  resetTour()
+  startTour()
+}
 
 // About
 const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
@@ -137,11 +143,11 @@ function logout() {
         <span>Price Alerts</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
-      <button class="menu-item" @click="goTransactions">
-        <i class="pi pi-history menu-icon"/>
-        <span>Transaction History</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
+<!--      <button class="menu-item" @click="goTransactions">-->
+<!--        <i class="pi pi-history menu-icon"/>-->
+<!--        <span>Transaction History</span>-->
+<!--        <i class="pi pi-chevron-right text-muted" />-->
+<!--      </button>-->
       <button class="menu-item" @click="router.push('/about')">
         <i class="pi pi-info-circle menu-icon"/>
         <span>About</span>
@@ -164,6 +170,11 @@ function logout() {
       <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
         <i class="pi pi-window-maximize menu-icon"/>
         <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
+        <i class="pi pi-chevron-right text-muted" />
+      </button>
+      <button class="menu-item" @click="replayTour">
+        <i class="pi pi-compass menu-icon"/>
+        <span>Start Tour</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
     </div>
