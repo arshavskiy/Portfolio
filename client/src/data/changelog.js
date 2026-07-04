@@ -2,6 +2,19 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.04',
+    date: 'Jul 4, 2026',
+    title: 'Holdings always in view, snappier watchlist',
+    changes: [
+      'Stocks you own now always show on the Watchlist — even if you never added them',
+      'Watchlist rows appear with your last-seen prices and charts instantly, then refresh',
+      'Cleaner closed-market rows — no stale pre/post numbers, shorter "No trade" tag',
+      'Renamed Profile to Account',
+      'Fixed notification pop-ups spilling past the edge on phones',
+      'More compact chart measure readout',
+    ],
+  },
+  {
     version: '2026.07.02',
     date: 'Jul 2, 2026',
     title: 'Watchlist is now home base',
