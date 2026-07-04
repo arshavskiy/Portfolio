@@ -1,0 +1,36 @@
+#!/bin/sh
+# Fold `Changelog:` trailers from commits being pushed to master into today's
+# changelog entry. If the changelog is updated, the push is aborted so you can
+# commit the change and push again (a pre-push hook can't add to the commits it
+# is already pushing).
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+
+remote="$1"
+z40=0000000000000000000000000000000000000000
+
+while read local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/master|refs/heads/main) ;;
+    *) continue ;;
+  esac
+
+  # Deleting a branch — nothing to scan.
+  [ "$local_sha" = "$z40" ] && continue
+
+  if [ "$remote_sha" = "$z40" ]; then
+    # New branch on remote: scan commits not already anywhere on the remote.
+    first=$(git rev-list "$local_sha" --not --remotes="$remote" | tail -n 1)
+    [ -n "$first" ] && range="$first^..$local_sha" || range="$local_sha"
+  else
+    range="$remote_sha..$local_sha"
+  fi
+
+  node scripts/update-changelog.js "$range"
+  status=$?
+  if [ "$status" -eq 2 ]; then
+    exit 1
+  fi
+done
+
+exit 0
