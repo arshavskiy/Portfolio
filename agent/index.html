@@ -1,124 +1,124 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>StockFolio Marketing Agent</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>StockFolio Marketing Agent</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="shell">
+<main class="shell">
     <header class="hero">
-      <div>
-        <p class="eyebrow">StockFolio Marketing Agent</p>
-        <h1>Find communities, tailor the post, publish manually.</h1>
-        <p class="subtle">
-          This tool prepares outreach for investing and crypto communities without logging in,
-          scraping private pages, or auto-posting to Facebook.
-        </p>
-      </div>
-      <div class="hero-actions">
-        <button id="discoverBtn" type="button">Run discovery</button>
-        <button id="copyOpenBtn" class="primary" type="button">Copy post & open target</button>
-        <button id="copyBtn" type="button">Copy post</button>
-      </div>
+        <div>
+            <p class="eyebrow">StockFolio Marketing Agent</p>
+            <h1>Find communities, tailor the post, publish manually.</h1>
+            <p class="subtle">
+                This tool prepares outreach for investing and crypto communities without logging in,
+                scraping private pages, or auto-posting to Facebook.
+            </p>
+        </div>
+        <div class="hero-actions">
+            <button id="discoverBtn" type="button">Run discovery</button>
+            <button id="copyOpenBtn" class="primary" type="button">Copy post & open target</button>
+            <button id="copyBtn" type="button">Copy post</button>
+        </div>
     </header>
 
     <section class="controls">
-      <label>
-        <span>Platform</span>
-        <select id="platformFilter">
-          <option value="all">All platforms</option>
-          <option value="facebook">Facebook</option>
-          <option value="reddit">Reddit</option>
-          <option value="telegram">Telegram</option>
-          <option value="discord">Discord</option>
-          <option value="x">X / Twitter</option>
-          <option value="forum">Forums</option>
-        </select>
-      </label>
+        <label>
+            <span>Platform</span>
+            <select id="platformFilter">
+                <option value="all">All platforms</option>
+                <option value="facebook">Facebook</option>
+                <option value="reddit">Reddit</option>
+                <option value="telegram">Telegram</option>
+                <option value="discord">Discord</option>
+                <option value="x">X / Twitter</option>
+                <option value="forum">Forums</option>
+            </select>
+        </label>
 
-      <label>
-        <span>Language</span>
-        <select id="languageFilter">
-          <option value="all">All languages</option>
-          <option value="en">English</option>
-          <option value="he">Hebrew</option>
-        </select>
-      </label>
+        <label>
+            <span>Language</span>
+            <select id="languageFilter">
+                <option value="all">All languages</option>
+                <option value="en">English</option>
+                <option value="he">Hebrew</option>
+            </select>
+        </label>
 
-      <label>
-        <span>Post angle</span>
-        <select id="angleSelect">
-          <option value="feedback">Ask for feedback</option>
-          <option value="portfolio">Portfolio tracking workflow</option>
-          <option value="crypto">Crypto watchlist angle</option>
-          <option value="alerts">Price alerts angle</option>
-        </select>
-      </label>
+        <label>
+            <span>Post angle</span>
+            <select id="angleSelect">
+                <option value="feedback">Ask for feedback</option>
+                <option value="portfolio">Portfolio tracking workflow</option>
+                <option value="crypto">Crypto watchlist angle</option>
+                <option value="alerts">Price alerts angle</option>
+            </select>
+        </label>
 
-      <label class="check">
-        <input id="hideRestricted" type="checkbox">
-        <span>Hide restricted communities</span>
-      </label>
+        <label class="check">
+            <input id="hideRestricted" type="checkbox">
+            <span>Hide restricted communities</span>
+        </label>
     </section>
 
     <div id="agentStatus" class="agent-status">
-      Local mode. Start the server with <code>npm start</code> to enable saved targets and discovery.
+        Local mode. Start the server with <code>npm start</code> to enable saved targets and discovery.
     </div>
 
     <section class="workspace">
-      <aside>
-        <div class="section-head">
-          <h2>Targets</h2>
-          <span id="targetCount">0</span>
-        </div>
-        <div id="targetList" class="target-list"></div>
-      </aside>
+        <aside>
+            <div class="section-head">
+                <h2>Targets</h2>
+                <span id="targetCount">0</span>
+            </div>
+            <div id="targetList" class="target-list"></div>
+        </aside>
 
-      <section class="detail">
-        <div class="section-head">
-          <h2 id="targetName">Select a target</h2>
-          <span id="scoreBadge" class="score">0</span>
-        </div>
+        <section class="detail">
+            <div class="section-head">
+                <h2 id="targetName">Select a target</h2>
+                <span id="scoreBadge" class="score">0</span>
+            </div>
 
-        <div class="metrics">
-          <div><strong id="membersMetric">0</strong><span>Members</span></div>
-          <div><strong id="activityMetric">0</strong><span>Activity</span></div>
-          <div><strong id="relevanceMetric">0</strong><span>Relevance</span></div>
-          <div><strong id="policyMetric">-</strong><span>Posting</span></div>
-        </div>
+            <div class="metrics">
+                <div><strong id="membersMetric">0</strong><span>Members</span></div>
+                <div><strong id="activityMetric">0</strong><span>Activity</span></div>
+                <div><strong id="relevanceMetric">0</strong><span>Relevance</span></div>
+                <div><strong id="policyMetric">-</strong><span>Posting</span></div>
+            </div>
 
-        <p id="targetNotes" class="notes"></p>
+            <p id="targetNotes" class="notes"></p>
 
-        <div class="composer">
-          <label for="basePost">Base message</label>
-          <textarea id="basePost" rows="8">I built StockFolio, a portfolio tracker for stocks, ETFs, and crypto.
+            <div class="composer">
+                <label for="basePost">Base message</label>
+                <textarea id="basePost" rows="8">
+            I built StockFolio, a portfolio tracker for stocks, ETFs, and crypto.
+            It is focused on practical portfolio work: live P&amp;L, watchlists, price alerts, transaction history, market news, and crypto tracking in one clean dashboard.
+            I would appreciate feedback from investors who actively track their portfolio:
+            https://stockfolio.handcoded.tech
+          </textarea>
+            </div>
 
-It is focused on practical portfolio work: live P&amp;L, watchlists, price alerts, transaction history, market news, and crypto tracking in one clean dashboard.
+            <div class="preview">
+                <div class="preview-head">
+                    <span>Ready to publish</span>
+                    <button id="openBtn" type="button">Open target</button>
+                </div>
+                <pre id="postPreview"></pre>
+            </div>
 
-I would appreciate feedback from investors who actively track their portfolio:
-https://stockfolio.app</textarea>
-        </div>
-
-        <div class="preview">
-          <div class="preview-head">
-            <span>Ready to publish</span>
-            <button id="openBtn" type="button">Open target</button>
-          </div>
-          <pre id="postPreview"></pre>
-        </div>
-
-        <div class="discovery">
-          <h3>Discovery searches</h3>
-          <div id="searchLinks" class="search-links"></div>
-        </div>
-      </section>
+            <div class="discovery">
+                <h3>Discovery searches</h3>
+                <div id="searchLinks" class="search-links"></div>
+            </div>
+        </section>
     </section>
-  </main>
+</main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

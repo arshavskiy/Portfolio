@@ -140,6 +140,9 @@ const visibleOrderedItems = computed(() => {
   return items
 })
 
+const firstPositionItem = computed(() => portfolioPositions.value.find((position) => position?.ticker))
+const defaultFocusItem = computed(() => visibleOrderedItems.value[0] || firstPositionItem.value || null)
+
 function scrollContainer() {
   return document.querySelector('.watchlist-col') || document.scrollingElement || document.documentElement
 }
@@ -179,6 +182,13 @@ function openStock(item) {
   desktopFocus.focus(item.ticker, item.companyName)
 }
 
+function focusDefaultTicker() {
+  if (desktopFocus.ticker) return
+  const item = defaultFocusItem.value
+  if (!item?.ticker) return
+  desktopFocus.focus(item.ticker, item.companyName || item.name || '')
+}
+
 function openGroups(item) {
   groupItem.value = item
   showGroupModal.value = true
@@ -204,6 +214,8 @@ watch(range, async (r) => {
     if (requestId === rangeRequestId) rangeLoading.value = false
   }
 })
+
+watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
 </script>
 
 <template>
