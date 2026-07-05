@@ -153,7 +153,6 @@ watch(activeTab, (tab) => {
       <Button
           v-else-if="activeTab === 'gains' && visibleYears.length"
           icon="pi pi-download"
-          label="CSV"
           outlined
           size="small"
           @click="exportGainsCSV"

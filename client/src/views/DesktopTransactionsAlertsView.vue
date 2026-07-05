@@ -176,7 +176,6 @@ watch(activeTab, (tab) => {
             v-if="activeTab === 'history'"
             :disabled="!filtered.length"
             icon="pi pi-download"
-            label="CSV"
             outlined
             size="small"
             @click="exportCSV"
@@ -184,7 +183,6 @@ watch(activeTab, (tab) => {
         <Button
             v-else-if="activeTab === 'gains' && visibleYears.length"
             icon="pi pi-download"
-            label="CSV"
             outlined
             size="small"
             @click="exportGainsCSV"
