@@ -13,6 +13,10 @@ export const changelog = [
       'Added Sign in with Google as an alternative to email/password',
       'Fixed Realized Gains list not refreshing after editing or deleting a row',
       'Redesigned desktop Account page with a proper two-column layout',
+      'Removed the "CSV" label from download buttons in History and Realized Gains tabs',
+      'Watchlist group-by icons now turn green or red to match gainers/losers-first direction',
+      'Added tap-to-explain tooltips on the Watchlist group-by buttons',
+      'Dashboard loading spinner now matches the style used elsewhere in the app',
     ],
   },
   {

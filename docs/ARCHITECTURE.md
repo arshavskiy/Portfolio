@@ -6,11 +6,11 @@
 
 | Layer | Technology |
 |-------|-----------|
-| Client | Vue 3, Pinia, Vue Router, PrimeVue, D3.js, Vite |
+| Client | Vue 3, Pinia, Vue Router, PrimeVue, D3.js, Tailwind CSS, Vite |
 | Server | Node.js, Express.js |
 | Database | MongoDB Atlas (Mongoose ODM) |
 | External Data | Yahoo Finance (via `yahoo-finance2`) |
-| Auth | JWT (jsonwebtoken) + bcrypt |
+| Auth | JWT (jsonwebtoken) + bcrypt, Google Sign-In (google-auth-library) |
 | Push | Web Push API + VAPID (web-push library) |
 | Background Jobs | node-cron |
 | PWA | Workbox (injectManifest) |
@@ -276,7 +276,7 @@ The guided tour introduces the primary portfolio workflow after login.
 
 ## Analytics & Client Errors
 
-- `composables/useAnalytics.js` installs Google Analytics page-view tracking only in production, only when `VITE_GA_MEASUREMENT_ID` is set, and not when browser Do Not Track is enabled. Router navigation sends explicit `page_view` events.
+- `composables/useAnalytics.js` installs Google Analytics page-view tracking only in production, only when `VITE_GA_MEASUREMENT_ID` is set, and not when browser Do Not Track is enabled. Router navigation sends explicit `page_view` events. `trackEvent(name, params)` sends custom events (ticker selects, nav clicks, watchlist/alert/dividend/fee-profile/transaction modal submits, watchlist search) under the same gating.
 - `composables/useClientErrors.js` centralizes client error logging: Vue errors, window errors, unhandled promise rejections, and suppressed PrimeVue error toasts are logged with `[StockFolio]` context.
 - Error toasts are suppressed globally; validation feedback should use warn/info/success toasts, while unexpected errors should go to the browser console.
 
@@ -295,9 +295,11 @@ VAPID_PRIVATE_KEY=...
 VAPID_SUBJECT=mailto:...
 CORS_ORIGINS=http://localhost:5173
 CLIENT_URL=http://localhost:5173
+GOOGLE_CLIENT_ID=...apps.googleusercontent.com
 ```
 
 ### Client (`client/.env`)
 ```
 VITE_API_URL=http://localhost:3000/api
+VITE_GOOGLE_CLIENT_ID=...apps.googleusercontent.com
 ```

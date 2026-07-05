@@ -1,6 +1,7 @@
 import {defineConfig, loadEnv} from 'vite'
 import vue from '@vitejs/plugin-vue'
 import {VitePWA} from 'vite-plugin-pwa'
+import tailwindcss from '@tailwindcss/vite'
 import {fileURLToPath, URL} from 'node:url'
 import {resolveApiProxyTarget} from './src/config/api.js'
 
@@ -14,6 +15,7 @@ export default defineConfig(({ mode }) => {
     },
     plugins: [
       vue(),
+      tailwindcss(),
       VitePWA({
       registerType: 'autoUpdate',
         strategies: 'injectManifest',

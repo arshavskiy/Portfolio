@@ -1,5 +1,5 @@
 <script setup>
-import {watch} from 'vue'
+import {ref, watch} from 'vue'
 import {GROUP_MODES} from '@/composables/useGrouping'
 
 const model = defineModel({type: String, required: true})
@@ -18,11 +18,32 @@ const MODE_ICONS = {
   group: 'pi pi-tags',
 }
 
+const MODE_EXPLANATIONS = {
+  market: 'Market',
+  change: "Today's change",
+  extended: 'Pre/post change',
+  momentum: 'Momentum',
+  industry: 'Industry',
+  group: 'Your tags',
+}
+
+const SEEN_KEY = 'group-mode-tooltips-seen'
+const seenModes = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]'))
+const allSeen = ref(seenModes.size >= GROUP_MODES.length)
+
+function markSeen(value) {
+  if (allSeen.value || seenModes.has(value)) return
+  seenModes.add(value)
+  localStorage.setItem(SEEN_KEY, JSON.stringify([...seenModes]))
+  if (seenModes.size >= GROUP_MODES.length) allSeen.value = true
+}
+
 watch(model, (value) => {
   if (!validModes.has(value)) model.value = 'market'
 }, {immediate: true})
 
 function onTap(value) {
+  markSeen(value)
   if (directionalModes.has(value) && model.value === value) {
     changeDirection.value = changeDirection.value === 'down' ? 'up' : 'down'
     return
@@ -51,10 +72,11 @@ function iconFor(opt) {
       :class="{
         active: model === opt.value,
         'btn-momentum': opt.value === 'momentum',
-        'btn-momentum-bear': opt.value === 'momentum' && model === opt.value && changeDirection === 'up',
+        'btn-directional-bull': directionalModes.has(opt.value) && model === opt.value && changeDirection === 'down',
+        'btn-directional-bear': directionalModes.has(opt.value) && model === opt.value && changeDirection === 'up',
       }"
+      v-tooltip.focus.bottom="allSeen ? null : MODE_EXPLANATIONS[opt.value]"
       :aria-label="labelFor(opt)"
-      :title="labelFor(opt)"
       @click="onTap(opt.value)"
     >
       <i :class="iconFor(opt)" class="mode-icon"/>
@@ -125,12 +147,12 @@ function iconFor(opt) {
   color: #00c36a;
 }
 
-.btn-momentum.active {
+.btn-directional-bull.active {
   background: rgba(0, 195, 106, 0.2);
   color: #00c36a;
 }
 
-.btn-momentum-bear.active {
+.btn-directional-bear.active {
   background: rgba(224, 45, 74, 0.2);
   color: #e02d4a;
 }

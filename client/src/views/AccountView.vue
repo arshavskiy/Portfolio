@@ -102,16 +102,26 @@ function logout() {
       <div class="main-col">
         <!-- Identity card -->
         <div class="profile-card">
-          <Avatar
-              :label="(auth.user?.name || auth.user?.email || '?').charAt(0).toUpperCase()"
-            size="xlarge"
-            class="avatar"
-          />
+<!--          <Avatar-->
+<!--              :label="(auth.user?.name || auth.user?.email || '?').charAt(0).toUpperCase()"-->
+<!--            size="xlarge"-->
+<!--            class="avatar"-->
+<!--          />-->
           <div class="profile-info">
             <p class="profile-name">{{ auth.user?.name || 'Account' }}</p>
             <p class="profile-email text-muted">{{ auth.user?.email || '—' }}</p>
             <p v-if="memberSince" class="member-since text-muted">Member since {{ memberSince }}</p>
           </div>
+          <div class="flex justify-between">
+            <Button
+                class="sign-out-btn w-[100px]"
+                label="Sign Out"
+                severity="danger"
+                @click="logout"
+
+            />
+          </div>
+
         </div>
 
         <!-- Portfolio snapshot -->
@@ -177,15 +187,6 @@ function logout() {
             </button>
           </div>
         </div>
-
-        <Button
-          class="sign-out-btn"
-          label="Sign Out"
-          severity="danger"
-          fluid
-          icon="pi pi-sign-out"
-          @click="logout"
-        />
 
         <p class="legal text-muted main-legal">
           © {{ new Date().getFullYear() }} StockFolio · <RouterLink to="/disclaimer">Disclaimer</RouterLink> · <a alt="www.handcoded.tech"
@@ -280,6 +281,10 @@ function logout() {
   border: 1px solid var(--border);
   border-radius: 16px;
   margin-bottom: 0.75rem;
+}
+
+.profile-card > *:last-child {
+  margin-left: auto;
 }
 
 .avatar {

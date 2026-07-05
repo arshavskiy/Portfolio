@@ -3,6 +3,7 @@ import {defineAsyncComponent, onMounted, onUnmounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
 import PortfolioStatsCard from '@/components/ui/PortfolioStatsCard.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const BreakdownCard         = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
@@ -70,7 +71,7 @@ onUnmounted(() => {
 
     <!-- Full-page loader until all data is ready -->
     <div v-if="!ready" class="dash-loader">
-      <div class="dash-skeleton" v-for="n in 5" :key="n" />
+      <AppLoader/>
     </div>
 
     <template v-else>
@@ -180,28 +181,10 @@ onUnmounted(() => {
 
 .dash-loader {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.dash-skeleton {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  height: 120px;
-  background: linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.04) 50%, var(--bg-card) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-.dash-skeleton:first-child { height: 80px; }
-.dash-skeleton:nth-child(2) { height: 160px; }
-.dash-skeleton:nth-child(3) { height: 100px; }
-
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  margin-top: 140px;
 }
 
 .dash-header {
