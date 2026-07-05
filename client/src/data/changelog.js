@@ -2,6 +2,14 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.06',
+    date: 'Jul 6, 2026',
+    title: 'Watchlist fixes',
+    changes: [
+      'No-trade rows in the Watchlist show the colored gain/loss pill again, alongside the "No trade" tag',
+    ],
+  },
+  {
     version: '2026.07.05',
     date: 'Jul 5, 2026',
     title: 'Analytics improvements',

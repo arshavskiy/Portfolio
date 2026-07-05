@@ -170,7 +170,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
         <!--        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>-->
       </span>
       <span v-if="isStaleQuote" class="badge badge-stale">No trade</span>
-      <span v-else :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
+      <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
     </div>
