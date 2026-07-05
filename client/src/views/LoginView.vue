@@ -225,10 +225,18 @@ function renderGoogleButtons() {
     callback: handleGoogleCredential,
   })
   if (googleButtonLogin.value) {
-    window.google.accounts.id.renderButton(googleButtonLogin.value, {theme: 'filled_black', size: 'large', width: '100%'})
+    window.google.accounts.id.renderButton(googleButtonLogin.value, {
+      theme: 'filled_blue',
+      size: 'large',
+      width: '100%'
+    })
   }
   if (googleButtonRegister.value) {
-    window.google.accounts.id.renderButton(googleButtonRegister.value, {theme: 'filled_black', size: 'large', width: '100%'})
+    window.google.accounts.id.renderButton(googleButtonRegister.value, {
+      theme: 'filled_blue',
+      size: 'large',
+      width: '100%'
+    })
   }
 }
 
