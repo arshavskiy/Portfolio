@@ -99,14 +99,19 @@ const visibleYears = computed(() => {
   return years.filter((y) => y.year === selectedYear.value)
 })
 
-async function fetchGains() {
-  if (gainsData.value) return   // already loaded
+async function fetchGains(force = false) {
+  if (gainsData.value && !force) return   // already loaded
   loadingGains.value = true
   try {
     gainsData.value = await api.get('/portfolio/realized-gains')
   } finally {
     loadingGains.value = false
   }
+}
+
+function onTransactionSaved() {
+  fetchTransactions()
+  fetchGains(true)
 }
 
 function exportGainsCSV() {
@@ -315,7 +320,7 @@ watch(activeTab, (tab) => {
     <EditTransactionModal
         v-model:visible="showEdit"
         :transaction="editTx"
-        @saved="fetchTransactions"
+        @saved="onTransactionSaved"
     />
   </div>
 </template>
