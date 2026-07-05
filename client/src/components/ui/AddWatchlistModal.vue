@@ -4,6 +4,7 @@ import {useToast} from 'primevue/usetoast'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {MARKETS, useMarketSuffix} from '@/composables/useMarketSuffix'
 import api from '@/composables/useApi'
+import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
@@ -43,6 +44,7 @@ async function submit() {
   try {
     await watchlist.addItem(t, name)
     toast.add({ severity: 'success', summary: `${t} added to watchlist`, life: 2000 })
+    trackEvent('add_watchlist_item', {ticker: t})
     emit('update:visible', false)
   } catch (err) {
     toast.add({ severity: 'error', summary: err.message, life: 3000 })

@@ -5,6 +5,7 @@ import {useConfirm} from 'primevue/useconfirm'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {isCrypto, tickerCurrency} from '@/composables/useFormat'
 import api from '@/composables/useApi'
+import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
@@ -98,6 +99,7 @@ async function save() {
       feeProfileId: selectedFeeProfile.value ?? null,
     })
     toast.add({ severity: 'success', summary: 'Transaction updated', life: 2000 })
+    trackEvent('edit_transaction', {ticker: ticker.value})
     emit('update:visible', false)
     emit('saved')
   } catch (err) {

@@ -1,7 +1,12 @@
 <script setup>
 import {useRoute} from 'vue-router'
+import {trackEvent} from '@/composables/useAnalytics'
 
 const route = useRoute()
+
+function trackNav(tab) {
+  trackEvent('nav_click', {nav_item: tab.name})
+}
 
 const tabs = [
   { name: 'Dashboard', to: '/', icon: 'pi pi-chart-bar', label: 'Dashboard', tourKey: 'dashboard' },
@@ -33,6 +38,7 @@ function isActive(tab) {
           :to="tab.to"
           :data-tour="tab.tourKey ? `nav-${tab.tourKey}` : null"
           class="nav-item"
+          @click="trackNav(tab)"
       >
         <i :class="tab.icon"/>
         <span>{{ tab.label }}</span>

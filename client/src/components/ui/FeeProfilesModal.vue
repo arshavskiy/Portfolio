@@ -3,6 +3,7 @@ import {computed, onMounted, ref} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useCurrency} from '@/composables/useFormat'
+import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -95,9 +96,11 @@ async function save() {
     if (editing.value === 'new') {
       await store.createProfile(form.value)
       toast.add({ severity: 'success', summary: 'Fee profile created', life: 2000 })
+      trackEvent('create_fee_profile', {})
     } else {
       await store.updateProfile(editing.value._id, form.value)
       toast.add({ severity: 'success', summary: 'Updated', life: 2000 })
+      trackEvent('update_fee_profile', {})
     }
     closeEdit()
   } catch (err) {

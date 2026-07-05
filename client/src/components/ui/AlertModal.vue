@@ -4,6 +4,7 @@ import {useToast} from 'primevue/usetoast'
 import {useAlertsStore} from '@/stores/alerts'
 import {usePush} from '@/composables/usePush'
 import {useTickerCurrency} from '@/composables/useFormat'
+import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
@@ -75,9 +76,11 @@ async function submit() {
     if (editingAlert.value) {
       await alerts.updateAlert(editingAlert.value._id, {ticker: props.ticker, condition: condition.value, target: target.value})
       toast.add({severity: 'success', summary: `Alert updated for ${props.ticker}`, life: 2000})
+      trackEvent('update_alert', {ticker: props.ticker})
     } else {
       await alerts.createAlert({ticker: props.ticker, condition: condition.value, target: target.value})
       toast.add({severity: 'success', summary: `Alert set for ${props.ticker}`, life: 2000})
+      trackEvent('create_alert', {ticker: props.ticker})
     }
     emit('update:visible', false)
   } catch (err) {

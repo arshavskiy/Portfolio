@@ -3,6 +3,7 @@ import {ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useWatchlistStore} from '@/stores/watchlist'
 import api from '@/composables/useApi'
+import {trackEvent} from '@/composables/useAnalytics'
 
 const props = defineProps({
   modelValue: {type: String, default: ''}, // filters the existing watchlist as you type
@@ -52,6 +53,7 @@ async function add(result) {
   try {
     await watchlist.addItem(result.ticker, result.name)
     toast.add({severity: 'success', summary: `${result.ticker} added to watchlist`, life: 2000})
+    trackEvent('add_watchlist_item', {ticker: result.ticker, source: 'search'})
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
   } finally {
@@ -75,6 +77,7 @@ function clear() {
           placeholder="Filter watchlist or search to add…"
           type="text"
           @input="emit('update:modelValue', $event.target.value)"
+          @blur="modelValue && trackEvent('search_watchlist', {query: modelValue})"
       >
       <button v-if="modelValue" class="clear-btn" @click="clear">
         <i class="pi pi-times"/>

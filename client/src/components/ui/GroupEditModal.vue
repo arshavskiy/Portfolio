@@ -2,6 +2,7 @@
 import {ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useGroupsStore} from '@/stores/groups'
+import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
@@ -68,6 +69,7 @@ async function save() {
       await groupsStore.updatePositionGroups(props.item._id, groups.value)
     }
     toast.add({severity: 'success', summary: 'Groups updated', life: 2000})
+    trackEvent('update_groups', {ticker: props.item.ticker})
     emit('update:visible', false)
     emit('saved', {ticker: props.item.ticker, groups: groups.value})
   } catch (err) {

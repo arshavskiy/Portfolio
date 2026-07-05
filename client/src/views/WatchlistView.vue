@@ -11,6 +11,7 @@ import {useMomentumStore} from '@/stores/momentum'
 import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import {exportWatchlistCsv} from '@/composables/useImport'
+import {trackEvent} from '@/composables/useAnalytics'
 import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
@@ -189,6 +190,7 @@ async function restoreScrollPosition() {
 }
 
 function openStock(item) {
+  trackEvent('select_ticker', {ticker: item.ticker})
   if (isDesktop.value) {
     desktopFocus.focus(item.ticker, item.companyName)
     return

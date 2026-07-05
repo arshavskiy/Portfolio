@@ -2,12 +2,17 @@
 import {computed} from 'vue'
 import {useRoute} from 'vue-router'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
+import {trackEvent} from '@/composables/useAnalytics'
 import PositionDetailView from '@/views/PositionDetailView.vue'
 import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
 import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
 
 const route = useRoute()
 const focus = useDesktopFocusStore()
+
+function trackNav(item) {
+  trackEvent('nav_click', {nav_item: item.name})
+}
 
 const isDashboard = computed(() => route.path === '/')
 const PANEL_ROUTES = ['/watchlist']
@@ -41,6 +46,7 @@ function isActive(item) {
             :class="{active: isActive(item)}"
             :data-tour="`nav-${item.name.split(' ')[0].toLowerCase()}`"
             class="sidebar-item"
+            @click="trackNav(item)"
         >
           <i :class="item.icon"/>
           <span class="sidebar-label">{{ item.name }}</span>

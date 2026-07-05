@@ -10,6 +10,7 @@ import {useChartRange} from '@/composables/useChartRange'
 import {groupItems} from '@/composables/useGrouping'
 import {useMomentumStore} from '@/stores/momentum'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
+import {trackEvent} from '@/composables/useAnalytics'
 import PositionDetailView from '@/views/PositionDetailView.vue'
 import Button from 'primevue/button'
 import WatchRow from '@/components/ui/WatchRow.vue'
@@ -174,6 +175,7 @@ async function restoreScrollPosition() {
 }
 
 function openStock(item) {
+  trackEvent('select_ticker', {ticker: item.ticker})
   desktopFocus.focus(item.ticker, item.companyName)
 }
 

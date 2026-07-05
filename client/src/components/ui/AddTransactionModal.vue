@@ -8,6 +8,7 @@ import {tickerCurrency, useCurrency} from '@/composables/useFormat'
 import {MARKETS, useMarketSuffix} from '@/composables/useMarketSuffix'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
+import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import InputNumber from 'primevue/inputnumber'
 import InputText from 'primevue/inputtext'
@@ -343,6 +344,7 @@ async function submit() {
       groups: type.value === 'buy' && groups.value.length ? groups.value : undefined,
     })
     toast.add({ severity: 'success', summary: `${type.value === 'buy' ? 'Bought' : 'Sold'} ${t}`, life: 2000 })
+    trackEvent('add_transaction', {ticker: t, transaction_type: type.value})
     emit('update:visible', false)
     emit('hide')
   } catch (err) {
@@ -400,7 +402,7 @@ async function submit() {
           v-model="ticker"
           :suggestions="suggestions"
           @complete="searchTicker"
-          @item-select="(e) => { ticker = e.value.split(' — ')[0].trim() }"
+          @item-select="(e) => { ticker = e.value.split(' — ')[0].trim(); trackEvent('select_ticker', {ticker: ticker, source: 'add_transaction_search'}) }"
           :placeholder="selectedMarket.placeholder"
           :delay="300"
           fluid

@@ -32,6 +32,11 @@ export function trackPageView(path, title = document.title) {
   })
 }
 
+export function trackEvent(name, params = {}) {
+  if (!analyticsEnabled() || typeof window.gtag !== 'function') return
+  window.gtag('event', name, params)
+}
+
 export function installAnalytics(router) {
   if (!analyticsEnabled() || initialized) return
   initialized = true

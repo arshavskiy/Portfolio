@@ -10,6 +10,7 @@ import DatePicker from 'primevue/datepicker'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import api from '@/composables/useApi'
+import {trackEvent} from '@/composables/useAnalytics'
 
 const props = defineProps({
   visible: Boolean,
@@ -82,6 +83,7 @@ async function submit() {
     })
     await portfolio.fetchPortfolio()
     toast.add({severity: 'success', summary: `Dividend logged for ${ticker.value.toUpperCase()}`, life: 2000})
+    trackEvent('log_dividend', {ticker: ticker.value.toUpperCase(), drip: drip.value})
     emit('update:visible', false)
     emit('saved')
   } catch (err) {
