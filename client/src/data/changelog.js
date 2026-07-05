@@ -2,6 +2,14 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.05',
+    date: 'Jul 5, 2026',
+    title: 'Analytics improvements',
+    changes: [
+      'Improved usage analytics to help us understand which features matter most',
+    ],
+  },
+  {
     version: '2026.07.04',
     date: 'Jul 4, 2026',
     title: 'Holdings always in view, snappier watchlist Guided tour and chart range help',
