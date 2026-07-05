@@ -271,9 +271,7 @@ watch(currentTicker, (t) => {
 
 async function searchTicker(event) {
   const raw = event.query?.trim() || ''
-  // If the user typed a crypto pair directly (e.g. BTC-USD), search it as-is;
-  // otherwise apply the selected market chip's suffix.
-  const q = /-USD$/i.test(raw) ? raw : searchQuery(raw)
+  const q = searchQuery(raw)
   if (!q) {
     suggestions.value = [];
     return

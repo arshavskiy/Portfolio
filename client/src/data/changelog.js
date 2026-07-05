@@ -9,6 +9,7 @@ export const changelog = [
       'Improved usage analytics to help us understand which features matter most',
       'Fixed duplicate price bubble showing while dragging the chart range selector',
       'Realized Gains rows are now tappable to edit or delete the underlying sell/dividend',
+      'Fixed crypto ticker search not finding results while typing',
     ],
   },
   {

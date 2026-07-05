@@ -25,6 +25,10 @@ export function useMarketSuffix(storageKey = 'add-market-suffix') {
     }
     
     function searchQuery(raw) {
+        // Crypto suffix is applied on submit (applyTo), not on the search
+        // query itself — appending "-USD" to a partial ticker (e.g. "sol")
+        // breaks Yahoo's search matching before the user finishes typing.
+        if (suffix.value === '-USD') return raw
         const stripped = suffix.value && raw.toUpperCase().endsWith(suffix.value.toUpperCase())
             ? raw.slice(0, -suffix.value.length)
             : raw
