@@ -812,7 +812,7 @@ function draw() {
         draggingSelection.value = true
         dragStartPoints.value = [...selectedPoints.value]
         dragPreview.value = {index, point}
-        showFocusAt(point, true)
+        showFocusAt(point, false)
       })
       .on('drag', (event) => {
         const source = event?.sourceEvent ?? event
@@ -833,7 +833,7 @@ function draw() {
             .filter(Boolean)
             .sort((a, b) => new Date(a.date) - new Date(b.date)))
         renderSelections()
-        showFocusAt(draggedPoint, true)
+        showFocusAt(draggedPoint, false)
       })
       .on('end', () => {
         if (dragPreview.value?.point) {

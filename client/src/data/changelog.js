@@ -7,6 +7,7 @@ export const changelog = [
     title: 'Analytics improvements',
     changes: [
       'Improved usage analytics to help us understand which features matter most',
+      'Fixed duplicate price bubble showing while dragging the chart range selector',
     ],
   },
   {
