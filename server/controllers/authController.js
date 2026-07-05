@@ -9,19 +9,24 @@ function signToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })
 }
 
+const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body
-    if (!name || !email || !password)
+    const {name, password} = req.body
+    const identifier = (req.body.identifier || req.body.email || '').trim().toLowerCase()
+    if (!name || !identifier || !password)
       return res.status(400).json({ message: 'All fields required' })
       if (!PASSWORD_RULE.test(password)) {
           return res.status(400).json({message: 'Password must be at least 8 characters and include a number and a special character'})
       }
-
-    const exists = await User.findOne({ email })
-    if (exists) return res.status(409).json({ message: 'Email already registered' })
-
-    const user = await User.create({ name, email, password })
+    
+    const isEmail = EMAIL_RULE.test(identifier)
+    const query = isEmail ? {email: identifier} : {username: identifier}
+    const exists = await User.findOne(query)
+    if (exists) return res.status(409).json({message: isEmail ? 'Email already registered' : 'Username already taken'})
+    
+    const user = await User.create({name, password, ...query})
     const token = signToken(user._id)
     res.status(201).json({ token, user })
   } catch (err) {
@@ -31,11 +36,12 @@ exports.register = async (req, res) => {
 
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body
-    if (!email || !password)
-      return res.status(400).json({ message: 'Email and password required' })
-
-    const user = await User.findOne({ email })
+    const {password} = req.body
+    const identifier = (req.body.identifier || req.body.email || '').trim().toLowerCase()
+    if (!identifier || !password)
+      return res.status(400).json({message: 'Email/username and password required'})
+    
+    const user = await User.findOne({$or: [{email: identifier}, {username: identifier}]})
     if (!user || !(await user.comparePassword(password)))
       return res.status(401).json({ message: 'Invalid credentials' })
 

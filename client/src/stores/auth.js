@@ -14,15 +14,15 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem('token', t)
     localStorage.setItem('user', JSON.stringify(u))
   }
-
-  async function login(email, password) {
-    const data = await api.post('/auth/login', { email, password })
+    
+    async function login(identifier, password) {
+        const data = await api.post('/auth/login', {identifier, password})
     setAuth(data.token, data.user)
     return data
   }
-
-  async function register(name, email, password) {
-    const data = await api.post('/auth/register', { name, email, password })
+    
+    async function register(name, identifier, password) {
+        const data = await api.post('/auth/register', {name, identifier, password})
     setAuth(data.token, data.user)
     return data
   }

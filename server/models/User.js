@@ -5,7 +5,8 @@ const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
-    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+      email: {type: String, unique: true, sparse: true, lowercase: true, trim: true},
+      username: {type: String, unique: true, sparse: true, lowercase: true, trim: true},
       password: {
           type: String,
           required: function () { return !this.googleId },
@@ -22,6 +23,12 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+
+userSchema.pre('validate', function () {
+    if (!this.email && !this.username) {
+        this.invalidate('email', 'Either email or username is required')
+    }
+})
 
 userSchema.pre('save', async function () {
   if (!this.isModified('password') || !this.password) return

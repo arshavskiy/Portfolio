@@ -14,7 +14,7 @@ const auth = useAuthStore()
 
 const mode = ref('login')
 const name = ref('')
-const email = ref('')
+const identifier = ref('')
 const password = ref('')
 const loading = ref(false)
 const googleButtonLogin = ref(null)
@@ -24,9 +24,9 @@ const pageTitle = 'StockFolio Login | Track Stocks, Crypto, and Global Markets'
 const pageDescription = 'Sign in to StockFolio to track your portfolio, monitor live market moves, manage price alerts, and follow stocks, crypto, and global markets in one place.'
 const pageUrl = '/login'
 const passwordValid = computed(() => PASSWORD_RULE.test(password.value))
-const loginEnabled = computed(() => email.value.trim() && password.value)
+const loginEnabled = computed(() => identifier.value.trim() && password.value)
 const registerEnabled = computed(() =>
-  name.value.trim() && email.value.trim() && password.value && passwordValid.value
+    name.value.trim() && identifier.value.trim() && password.value && passwordValid.value
 )
 
 const previousHead = {
@@ -169,7 +169,7 @@ const features = [
 async function submit() {
   loading.value = true
   try {
-    await auth.login(email.value, password.value)
+    await auth.login(identifier.value, password.value)
     router.push('/')
   } catch (err) {
     toast.add({severity: 'error', summary: 'Login failed', detail: err.message, life: 3000})
@@ -191,7 +191,7 @@ async function register() {
 
   loading.value = true
   try {
-    await auth.register(name.value, email.value, password.value)
+    await auth.register(name.value, identifier.value, password.value)
     router.push('/')
   } catch (err) {
     toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
@@ -530,8 +530,9 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
           <form class="auth-form" @submit.prevent="submit">
             <div class="field">
-              <label for="login-email">Email</label>
-              <InputText id="login-email" v-model="email" autocomplete="email" fluid placeholder="you@example.com" required type="email"/>
+              <label for="login-email">Email or Username</label>
+              <InputText id="login-email" v-model="identifier" autocomplete="username" fluid
+                         placeholder="you@example.com or username" required/>
             </div>
             <div class="field">
               <label for="login-password">Password</label>
@@ -563,14 +564,21 @@ watch(mode, () => nextTick(renderGoogleButtons))
           <h2 class="auth-heading">Create your account</h2>
           <p class="auth-subheading text-muted">Start tracking your portfolio</p>
 
+          <template v-if="GOOGLE_CLIENT_ID">
+            <p class="google-hint text-muted">Skip the form — sign up with Google, no email required</p>
+            <div ref="googleButtonRegister" class="google-button"/>
+            <div class="auth-divider"><span>or sign up with email or username</span></div>
+          </template>
+
           <form class="auth-form" @submit.prevent="register">
             <div class="field">
               <label for="inline-register-name">Name</label>
               <InputText id="inline-register-name" v-model="name" autocomplete="name" fluid placeholder="Your name" required />
             </div>
             <div class="field">
-              <label for="inline-register-email">Email</label>
-              <InputText id="inline-register-email" v-model="email" autocomplete="email" fluid placeholder="you@example.com" required type="email" />
+              <label for="inline-register-email">Email or Username</label>
+              <InputText id="inline-register-email" v-model="identifier" autocomplete="username" fluid
+                         placeholder="you@example.com or username" required/>
             </div>
             <div class="field">
               <label for="inline-register-password">Password</label>
@@ -603,11 +611,6 @@ watch(mode, () => nextTick(renderGoogleButtons))
               <RouterLink to="/disclaimer">Read the disclaimer</RouterLink>
             </p>
           </form>
-
-          <template v-if="GOOGLE_CLIENT_ID">
-            <div class="auth-divider"><span>or</span></div>
-            <div ref="googleButtonRegister" class="google-button"/>
-          </template>
 
           <p class="auth-footer">
             Already have an account?
@@ -1366,6 +1369,12 @@ watch(mode, () => nextTick(renderGoogleButtons))
 .google-button {
   display: flex;
   justify-content: center;
+}
+
+.google-hint {
+  text-align: center;
+  font-size: 0.82rem;
+  margin-bottom: 0.75rem;
 }
 
 .auth-footer {

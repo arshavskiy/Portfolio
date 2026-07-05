@@ -12,13 +12,13 @@ const toast = useToast()
 const auth = useAuthStore()
 
 const name = ref('')
-const email = ref('')
+const identifier = ref('')
 const password = ref('')
 const loading = ref(false)
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const passwordValid = computed(() => PASSWORD_RULE.test(password.value))
 const submitEnabled = computed(() =>
-    name.value.trim() && email.value.trim() && password.value && passwordValid.value
+    name.value.trim() && identifier.value.trim() && password.value && passwordValid.value
 )
 
 const features = [
@@ -52,7 +52,7 @@ async function submit() {
 
   loading.value = true
   try {
-    await auth.register(name.value, email.value, password.value)
+    await auth.register(name.value, identifier.value, password.value)
     router.push('/')
   } catch (err) {
     toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
@@ -121,9 +121,10 @@ async function submit() {
               <InputText id="register-name" v-model="name" autocomplete="name" fluid placeholder="Your name" required/>
             </div>
             <div class="field">
-              <label for="register-email">Email</label>
-              <InputText id="register-email" v-model="email" autocomplete="email" fluid placeholder="you@example.com"
-                         required type="email"/>
+              <label for="register-email">Email or Username</label>
+              <InputText id="register-email" v-model="identifier" autocomplete="username" fluid
+                         placeholder="you@example.com or username"
+                         required/>
             </div>
             <div class="field">
               <label for="register-password">Password</label>

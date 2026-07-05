@@ -75,7 +75,8 @@ const memberSince = computed(() => {
 })
 
 onMounted(async () => {
-  if (!auth.user?.name || !auth.user?.email) auth.fetchMe().catch(() => {})
+  if (!auth.user?.name || (!auth.user?.email && !auth.user?.username)) auth.fetchMe().catch(() => {
+  })
   if (!portfolio.positions.length) portfolio.fetchPortfolio().catch(() => {})
   if (qrCanvas.value) {
     try {
@@ -109,7 +110,8 @@ function logout() {
 <!--          />-->
           <div class="profile-info">
             <p class="profile-name">{{ auth.user?.name || 'Account' }}</p>
-            <p class="profile-email text-muted">{{ auth.user?.email || '—' }}</p>
+            <p class="profile-email text-muted">
+              {{ auth.user?.email || (auth.user?.username ? '@' + auth.user.username : '—') }}</p>
             <p v-if="memberSince" class="member-since text-muted">Member since {{ memberSince }}</p>
           </div>
           <div class="flex justify-between">
