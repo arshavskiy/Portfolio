@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /alerts
+Disallow: /history-alerts
+Disallow: /news
+Disallow: /position/
+Disallow: /rebalance
+Disallow: /transactions
+Disallow: /transactions-alerts
+Disallow: /watchlist
+
+Sitemap: https://stockfolio.handcoded.tech/sitemap.xml

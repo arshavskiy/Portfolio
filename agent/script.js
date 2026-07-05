@@ -209,7 +209,11 @@ function createPost(community) {
   if (!community) return ''
 
   const audience = community.language === 'he'
-    ? 'היי, בניתי את StockFolio ואשמח לפידבק מאנשים שמנהלים תיק השקעות או עוקבים אחרי מניות וקריפטו.'
+    ? 'היי, בניתי את StockFolio ואשמח לפידבק מאנשים שמנהלים תיק השקעות או עוקבים אחרי מניות וקריפטו.\n' +
+      'פיתחתי אתר חדש שמאפשר לנהל ולעקוב אחרי תיקי השקעות במקום אחד, עם דגש על ממשק מהיר ונוח.\n' +
+      'האתר עדיין בפיתוח, ולכן כל פידבק יתקבל בברכה!\n' +
+      'https://stockfolio.handcoded.tech\n' +
+      'אשמח לשמוע מה דעתכם ומה הייתם רוצים לראות בהמשך.'
     : `Hi ${community.name}, I am looking for feedback from people who actively track their investments.`
 
   const angle = {
