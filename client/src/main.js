@@ -15,6 +15,7 @@ import {installClientErrorLogging} from './composables/useClientErrors'
 
 const app = createApp(App)
 
+console.log('env:', import.meta.env);
 app.use(createPinia())
 app.use(router)
 installAnalytics(router)

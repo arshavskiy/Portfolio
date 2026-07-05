@@ -3,12 +3,16 @@ const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID
 let initialized = false
 
 function analyticsEnabled() {
-  return Boolean(
+  let loadGA = Boolean(
     import.meta.env.PROD &&
     GA_MEASUREMENT_ID &&
     typeof window !== 'undefined' &&
     navigator.doNotTrack !== '1'
   )
+  console.log('Analytics env:', import.meta.env.PROD)
+  console.log('Analytics GA_MEASUREMENT_ID:', GA_MEASUREMENT_ID)
+  console.log('Analytics enabled:', loadGA)
+  return loadGA;
 }
 
 function loadGtagScript() {
