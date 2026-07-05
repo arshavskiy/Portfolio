@@ -1,0 +1,56 @@
+[
+  {
+    "label": "Facebook Israeli investors",
+    "platform": "facebook",
+    "language": "he",
+    "query": "site:facebook.com/groups Israeli investors stocks"
+  },
+  {
+    "label": "Facebook crypto Israel",
+    "platform": "facebook",
+    "language": "he",
+    "query": "site:facebook.com/groups crypto Israel"
+  },
+  {
+    "label": "Reddit investing communities",
+    "platform": "reddit",
+    "language": "en",
+    "query": "site:reddit.com/r investing stocks portfolio tracker"
+  },
+  {
+    "label": "Reddit crypto communities",
+    "platform": "reddit",
+    "language": "en",
+    "query": "site:reddit.com/r crypto portfolio tracker"
+  },
+  {
+    "label": "Telegram crypto groups",
+    "platform": "telegram",
+    "language": "en",
+    "query": "site:t.me crypto investing group"
+  },
+  {
+    "label": "Discord investing servers",
+    "platform": "discord",
+    "language": "en",
+    "query": "investing discord server stocks crypto"
+  },
+  {
+    "label": "Investing forums",
+    "platform": "forum",
+    "language": "en",
+    "query": "investing forum stocks portfolio tracker"
+  },
+  {
+    "label": "Hebrew investing forums",
+    "platform": "forum",
+    "language": "he",
+    "query": "פורום השקעות מניות קריפטו"
+  },
+  {
+    "label": "X investing conversations",
+    "platform": "x",
+    "language": "en",
+    "query": "stock portfolio tracker investing community"
+  }
+]

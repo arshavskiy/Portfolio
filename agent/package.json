@@ -1,0 +1,9 @@
+{
+  "name": "stockfolio-marketing-agent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "discover": "node scripts/discover.js"
+  }
+}
