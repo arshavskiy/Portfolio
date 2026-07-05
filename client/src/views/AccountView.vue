@@ -98,122 +98,123 @@ function logout() {
       <h1 class="gradient-title">Account</h1>
     </header>
 
-    <!-- Identity card -->
-    <div class="profile-card">
-      <Avatar
-          :label="(auth.user?.name || auth.user?.email || '?').charAt(0).toUpperCase()"
-        size="xlarge"
-        class="avatar"
-      />
-      <div class="profile-info">
-        <p class="profile-name">{{ auth.user?.name || 'Account' }}</p>
-        <p class="profile-email text-muted">{{ auth.user?.email || '—' }}</p>
-        <p v-if="memberSince" class="member-since text-muted">Member since {{ memberSince }}</p>
-      </div>
-    </div>
-
-    <!-- Portfolio snapshot -->
-    <div v-if="summary" class="stats-card">
-      <div class="stat">
-        <span class="stat-label text-muted">Net Worth</span>
-        <span class="stat-value">{{ useCurrency(summary.value, 'USD') }}</span>
-      </div>
-      <div class="stat">
-        <span class="stat-label text-muted">Total P&L</span>
-        <span :class="gainLossClass(summary.pnl)" class="stat-value">
-          {{ summary.pnl >= 0 ? '+' : '' }}{{ useCurrency(summary.pnl, 'USD') }}
-          <span class="stat-pct">({{ usePercent(summary.pnlPercent) }})</span>
-        </span>
-      </div>
-      <div class="stat">
-        <span class="stat-label text-muted">Holdings</span>
-        <span class="stat-value">{{ positionCount }}</span>
-      </div>
-    </div>
-
-    <!-- Menu -->
-    <div class="menu-list">
-      <button class="menu-item" @click="showFeeProfiles = true">
-        <i class="pi pi-percentage menu-icon"/>
-        <span>Fee Profiles</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-      <button class="menu-item" @click="goAlerts">
-        <i class="pi pi-bell menu-icon"/>
-        <span>Price Alerts</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-<!--      <button class="menu-item" @click="goTransactions">-->
-<!--        <i class="pi pi-history menu-icon"/>-->
-<!--        <span>Transaction History</span>-->
-<!--        <i class="pi pi-chevron-right text-muted" />-->
-<!--      </button>-->
-      <button class="menu-item" @click="router.push('/about')">
-        <i class="pi pi-info-circle menu-icon"/>
-        <span>About</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-      <button class="menu-item" @click="router.push('/disclaimer')">
-        <i class="pi pi-shield menu-icon"/>
-        <span>Financial Disclaimer</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-    </div>
-
-    <!-- App -->
-    <div class="menu-list">
-      <button v-if="!installed" class="menu-item" @click="install">
-        <i class="pi pi-download menu-icon"/>
-        <span>Install App</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-      <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
-        <i class="pi pi-window-maximize menu-icon"/>
-        <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-      <button class="menu-item" @click="replayTour">
-        <i class="pi pi-compass menu-icon"/>
-        <span>Start Tour</span>
-        <i class="pi pi-chevron-right text-muted" />
-      </button>
-    </div>
-
-    <Button
-      class="sign-out-btn"
-      label="Sign Out"
-      severity="danger"
-      fluid
-      icon="pi pi-sign-out"
-      @click="logout"
-    />
-
-    <!-- About & Donate -->
-    <div class="about-section">
-      <div class="donate-card">
-        <h2 class="donate-title">Support StockFolio</h2>
-        <p class="text-muted donate-sub">StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.</p>
-        <div class="qr-wrap">
-          <canvas ref="qrCanvas" class="qr"/>
+    <div class="profile-layout">
+      <div class="main-col">
+        <!-- Identity card -->
+        <div class="profile-card">
+          <Avatar
+              :label="(auth.user?.name || auth.user?.email || '?').charAt(0).toUpperCase()"
+            size="xlarge"
+            class="avatar"
+          />
+          <div class="profile-info">
+            <p class="profile-name">{{ auth.user?.name || 'Account' }}</p>
+            <p class="profile-email text-muted">{{ auth.user?.email || '—' }}</p>
+            <p v-if="memberSince" class="member-since text-muted">Member since {{ memberSince }}</p>
+          </div>
         </div>
-        <div class="addr-label text-muted">Bitcoin Address</div>
-        <div class="addr-row">
-          <code class="addr">{{ BTC_ADDRESS }}</code>
-          <button class="copy-btn" title="Copy" @click="copyAddress"><i class="pi pi-copy"/></button>
+
+        <!-- Portfolio snapshot -->
+        <div v-if="summary" class="stats-card">
+          <div class="stat">
+            <span class="stat-label text-muted">Net Worth</span>
+            <span class="stat-value">{{ useCurrency(summary.value, 'USD') }}</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label text-muted">Total P&L</span>
+            <span :class="gainLossClass(summary.pnl)" class="stat-value">
+              {{ summary.pnl >= 0 ? '+' : '' }}{{ useCurrency(summary.pnl, 'USD') }}
+              <span class="stat-pct">({{ usePercent(summary.pnlPercent) }})</span>
+            </span>
+          </div>
+          <div class="stat">
+            <span class="stat-label text-muted">Holdings</span>
+            <span class="stat-value">{{ positionCount }}</span>
+          </div>
         </div>
-        <div class="contact-block">
-          <div class="text-muted contact-label">Contact</div>
-          <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
-          <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
+
+        <div class="menu-grid">
+          <!-- Menu -->
+          <div class="menu-list">
+            <button class="menu-item" @click="showFeeProfiles = true">
+              <i class="pi pi-percentage menu-icon"/>
+              <span>Fee Profiles</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+            <button class="menu-item" @click="goAlerts">
+              <i class="pi pi-bell menu-icon"/>
+              <span>Price Alerts</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+            <button class="menu-item" @click="router.push('/about')">
+              <i class="pi pi-info-circle menu-icon"/>
+              <span>About</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+            <button class="menu-item" @click="router.push('/disclaimer')">
+              <i class="pi pi-shield menu-icon"/>
+              <span>Financial Disclaimer</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+          </div>
+
+          <!-- App -->
+          <div class="menu-list">
+            <button v-if="!installed" class="menu-item" @click="install">
+              <i class="pi pi-download menu-icon"/>
+              <span>Install App</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+            <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
+              <i class="pi pi-window-maximize menu-icon"/>
+              <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+            <button class="menu-item" @click="replayTour">
+              <i class="pi pi-compass menu-icon"/>
+              <span>Start Tour</span>
+              <i class="pi pi-chevron-right text-muted" />
+            </button>
+          </div>
+        </div>
+
+        <Button
+          class="sign-out-btn"
+          label="Sign Out"
+          severity="danger"
+          fluid
+          icon="pi pi-sign-out"
+          @click="logout"
+        />
+
+        <p class="legal text-muted main-legal">
+          © {{ new Date().getFullYear() }} StockFolio · <RouterLink to="/disclaimer">Disclaimer</RouterLink> · <a alt="www.handcoded.tech"
+                                                                                     href="//handcoded.tech">
+          handcoded.tech </a>. All rights reserved.
+        </p>
+      </div>
+
+      <div class="side-col">
+        <!-- About & Donate -->
+        <div class="donate-card">
+          <h2 class="donate-title">Support StockFolio</h2>
+          <p class="text-muted donate-sub">StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.</p>
+          <div class="qr-wrap">
+            <canvas ref="qrCanvas" class="qr"/>
+          </div>
+          <div class="addr-label text-muted">Bitcoin Address</div>
+          <div class="addr-row">
+            <code class="addr">{{ BTC_ADDRESS }}</code>
+            <button class="copy-btn" title="Copy" @click="copyAddress"><i class="pi pi-copy"/></button>
+          </div>
+          <div class="contact-block">
+            <div class="text-muted contact-label">Contact</div>
+            <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
+            <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
+          </div>
         </div>
       </div>
     </div>
-
-    <p class="legal text-muted">
-      © {{ new Date().getFullYear() }} StockFolio · <RouterLink to="/disclaimer">Disclaimer</RouterLink> · <a alt="www.handcoded.tech"
-                                                                                 href="//handcoded.tech">
-      handcoded.tech </a>. All rights reserved.
-    </p>
 
     <FeeProfilesModal v-model:visible="showFeeProfiles" />
   </div>
@@ -234,24 +235,39 @@ function logout() {
 
 @media (min-width: 1024px) {
   .profile {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto;
-    column-gap: 1.5rem;
-    align-items: start;
-    padding: 2rem 2.5rem;
+    padding: 2.5rem 3rem;
   }
-
-  .page-header    { grid-column: 1 / -1; }
-  .profile-card   { grid-column: 1 / -1; }
-  .stats-card     { grid-column: 1 / -1; }
-  .sign-out-btn   { grid-column: 1 / -1; }
-  .about-section  { grid-column: 1 / -1; }
-  .legal          { grid-column: 1 / -1; }
 }
 
 .page-header {
   margin-bottom: 1rem;
+}
+
+.profile-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .profile-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .main-col {
+    flex: 1.7;
+    min-width: 0;
+  }
+
+  .side-col {
+    flex: 1;
+    min-width: 0;
+    position: sticky;
+    top: 2.5rem;
+  }
 }
 
 /* Identity */
@@ -339,6 +355,23 @@ function logout() {
 }
 
 /* Menu */
+.menu-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .menu-grid {
+    flex-direction: row;
+    gap: 1rem;
+  }
+
+  .menu-grid .menu-list {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
 .menu-list {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -374,26 +407,20 @@ function logout() {
   font-size: 1rem;
 }
 
-/* About section */
-.about-section {
-  margin-top: 0.5rem;
-}
-
-@media (min-width: 1024px) {
-  .about-section {
-    display: grid;
-    gap: 1.5rem;
-    align-items: start;
-  }
-}
-
+/* About / donate */
 .donate-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.25rem;
-  margin-bottom: 1rem;
+  margin-top: 0.5rem;
   text-align: center;
+}
+
+@media (min-width: 1024px) {
+  .donate-card {
+    margin-top: 0;
+  }
 }
 .donate-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; }
 .donate-sub { font-size: 0.82rem; line-height: 1.45; margin-bottom: 1.1rem; }

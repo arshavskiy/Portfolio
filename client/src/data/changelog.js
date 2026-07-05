@@ -12,6 +12,7 @@ export const changelog = [
       'Fixed crypto ticker search not finding results while typing',
       'Added Sign in with Google as an alternative to email/password',
       'Fixed Realized Gains list not refreshing after editing or deleting a row',
+      'Redesigned desktop Account page with a proper two-column layout',
     ],
   },
   {
