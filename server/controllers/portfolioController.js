@@ -493,6 +493,8 @@ exports.getRealizedGains = async (req, res) => {
                     ticker: t,
                     date: tx.date,
                     isDividend: true,
+                    shares: tx.shares,
+                    price: tx.price,
                     grossGain: tx.total || 0,
                     netGain: tx.total || 0,
                     notes: tx.notes,

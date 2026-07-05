@@ -32,6 +32,10 @@ function openEdit(tx) {
   showEdit.value = true
 }
 
+function openEditGain(record, type) {
+  openEdit({...record, type})
+}
+
 async function fetchTransactions() {
   loadingHistory.value = true
   try {
@@ -271,7 +275,7 @@ watch(activeTab, (tab) => {
             </div>
 
             <!-- Sell rows -->
-            <div v-for="s in yr.sells" :key="s._id" class="gain-row">
+            <div v-for="s in yr.sells" :key="s._id" class="gain-row" @click="openEditGain(s, 'sell')">
               <div class="gain-left">
                 <span class="ticker">{{ s.ticker }}</span>
                 <span class="tx-date text-muted">{{ formatDate(s.date) }}</span>
@@ -288,10 +292,11 @@ watch(activeTab, (tab) => {
                   net {{ s.netGain >= 0 ? '+' : '' }}{{ useTickerCurrency(s.netGain, s.ticker) }}
                 </span>
               </div>
+              <i class="pi pi-pencil edit-hint text-muted"/>
             </div>
 
             <!-- Dividend rows in this year -->
-            <div v-for="d in yr.dividends" :key="d._id" class="gain-row gain-row-div">
+            <div v-for="d in yr.dividends" :key="d._id" class="gain-row gain-row-div" @click="openEditGain(d, 'dividend')">
               <div class="gain-left">
                 <span class="ticker">{{ d.ticker }}</span>
                 <span class="tx-date text-muted">{{ formatDate(d.date) }}</span>
@@ -300,6 +305,7 @@ watch(activeTab, (tab) => {
               <div class="gain-right">
                 <span class="gain gross-gain">+{{ useTickerCurrency(d.grossGain, d.ticker) }}</span>
               </div>
+              <i class="pi pi-pencil edit-hint text-muted"/>
             </div>
           </div>
         </template>
@@ -498,6 +504,12 @@ watch(activeTab, (tab) => {
   gap: 0.5rem;
   padding: 0.65rem 0;
   border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.gain-row:active {
+  background: rgba(255, 255, 255, 0.03);
 }
 
 .gain-row-div {
