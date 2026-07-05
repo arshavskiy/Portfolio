@@ -8,23 +8,28 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
       password: {
           type: String,
-          required: true,
+          required: function () { return !this.googleId },
           minlength: 8,
           validate: {
-              validator: (value) => PASSWORD_RULE.test(value),
+              validator: function (value) {
+                  if (!value) return true
+                  return PASSWORD_RULE.test(value)
+              },
               message: 'Password must be at least 8 characters and include a number and a special character',
           },
       },
+      googleId: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 )
 
 userSchema.pre('save', async function () {
-  if (!this.isModified('password')) return
+  if (!this.isModified('password') || !this.password) return
   this.password = await bcrypt.hash(this.password, 12)
 })
 
 userSchema.methods.comparePassword = function (candidate) {
+  if (!this.password) return Promise.resolve(false)
   return bcrypt.compare(candidate, this.password)
 }
 

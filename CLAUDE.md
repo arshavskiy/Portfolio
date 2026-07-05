@@ -63,8 +63,8 @@ Portfolio/
 ```
 
 ## Env vars
-Server needs: `PORT`, `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CORS_ORIGINS`, `CLIENT_URL`  
-Client needs: `VITE_API_URL`
+Server needs: `PORT`, `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CORS_ORIGINS`, `CLIENT_URL`, `GOOGLE_CLIENT_ID`  
+Client needs: `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`
 
 ## Docs
 - `docs/ARCHITECTURE.md` — full architecture reference

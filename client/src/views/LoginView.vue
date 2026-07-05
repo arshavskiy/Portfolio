@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useAuthStore} from '@/stores/auth'
@@ -17,6 +17,9 @@ const name = ref('')
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const googleButtonLogin = ref(null)
+const googleButtonRegister = ref(null)
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
 const pageTitle = 'StockFolio Login | Track Stocks, Crypto, and Global Markets'
 const pageDescription = 'Sign in to StockFolio to track your portfolio, monitor live market moves, manage price alerts, and follow stocks, crypto, and global markets in one place.'
 const pageUrl = '/login'
@@ -93,6 +96,8 @@ onMounted(() => {
   slideTimer = setInterval(() => {
     slide.value = (slide.value + 1) % SLIDE_COUNT
   }, 2600)
+
+  loadGoogleScript()
 })
 onUnmounted(() => {
   clearInterval(slideTimer)
@@ -200,6 +205,50 @@ function switchMode(nextMode) {
   password.value = ''
   loading.value = false
 }
+
+async function handleGoogleCredential(response) {
+  loading.value = true
+  try {
+    await auth.loginWithGoogle(response.credential)
+    router.push('/')
+  } catch (err) {
+    toast.add({severity: 'error', summary: 'Google sign-in failed', detail: err.message, life: 3000})
+  } finally {
+    loading.value = false
+  }
+}
+
+function renderGoogleButtons() {
+  if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id) return
+  window.google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: handleGoogleCredential,
+  })
+  if (googleButtonLogin.value) {
+    window.google.accounts.id.renderButton(googleButtonLogin.value, {theme: 'filled_black', size: 'large', width: '100%'})
+  }
+  if (googleButtonRegister.value) {
+    window.google.accounts.id.renderButton(googleButtonRegister.value, {theme: 'filled_black', size: 'large', width: '100%'})
+  }
+}
+
+function loadGoogleScript() {
+  if (!GOOGLE_CLIENT_ID) return
+  if (window.google?.accounts?.id) {
+    renderGoogleButtons()
+    return
+  }
+  if (document.querySelector('script[data-google-identity]')) return
+  const script = document.createElement('script')
+  script.src = 'https://accounts.google.com/gsi/client'
+  script.async = true
+  script.defer = true
+  script.dataset.googleIdentity = 'true'
+  script.onload = renderGoogleButtons
+  document.head.appendChild(script)
+}
+
+watch(mode, () => nextTick(renderGoogleButtons))
 </script>
 
 <template>
@@ -491,6 +540,11 @@ function switchMode(nextMode) {
             />
           </form>
 
+          <template v-if="GOOGLE_CLIENT_ID">
+            <div class="auth-divider"><span>or</span></div>
+            <div ref="googleButtonLogin" class="google-button"/>
+          </template>
+
           <p class="auth-footer">
             No account?
             <button class="auth-link" type="button" @click="switchMode('register')">Create one — it's free</button>
@@ -541,6 +595,11 @@ function switchMode(nextMode) {
               <RouterLink to="/disclaimer">Read the disclaimer</RouterLink>
             </p>
           </form>
+
+          <template v-if="GOOGLE_CLIENT_ID">
+            <div class="auth-divider"><span>or</span></div>
+            <div ref="googleButtonRegister" class="google-button"/>
+          </template>
 
           <p class="auth-footer">
             Already have an account?
@@ -1234,9 +1293,7 @@ function switchMode(nextMode) {
 
 :deep(.register-button) {
   margin-top: 0.25rem;
-  min-height: 3.25rem;
   border: 0;
-  border-radius: 14px;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #fff;
   box-shadow: 0 18px 36px rgba(34, 197, 94, 0.22);
@@ -1279,6 +1336,28 @@ function switchMode(nextMode) {
 
 .password-hint.invalid {
   color: var(--neon-red);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.25rem 0;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.google-button {
+  display: flex;
+  justify-content: center;
 }
 
 .auth-footer {

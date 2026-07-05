@@ -348,9 +348,7 @@ async function submit() {
 
 :deep(.register-button) {
   margin-top: 0.25rem;
-  min-height: 3.25rem;
   border: 0;
-  border-radius: 14px;
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #fff;
   box-shadow: 0 18px 36px rgba(34, 197, 94, 0.22);

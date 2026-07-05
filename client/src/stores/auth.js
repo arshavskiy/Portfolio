@@ -26,6 +26,12 @@ export const useAuthStore = defineStore('auth', () => {
     setAuth(data.token, data.user)
     return data
   }
+
+  async function loginWithGoogle(credential) {
+    const data = await api.post('/auth/google', { credential })
+    setAuth(data.token, data.user)
+    return data
+  }
     
     // Refresh the current user from the server (cached localStorage copy may be
     // missing/stale). Keeps token; updates user.
@@ -46,5 +52,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
     
-    return {token, user, isAuthenticated, login, register, logout, fetchMe}
+    return {token, user, isAuthenticated, login, register, loginWithGoogle, logout, fetchMe}
 })

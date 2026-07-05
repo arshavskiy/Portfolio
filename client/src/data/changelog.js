@@ -10,6 +10,7 @@ export const changelog = [
       'Fixed duplicate price bubble showing while dragging the chart range selector',
       'Realized Gains rows are now tappable to edit or delete the underlying sell/dividend',
       'Fixed crypto ticker search not finding results while typing',
+      'Added Sign in with Google as an alternative to email/password',
     ],
   },
   {
