@@ -50,64 +50,70 @@ async function copyAddress() {
       <h1 class="gradient-title">About</h1>
     </header>
 
-    <!-- Desktop screenshot -->
-    <div class="screenshot-card">
-      <div class="screenshot-label">Desktop View</div>
-      <img src="/screenshot-desktop.png" alt="StockFolio desktop dashboard" class="screenshot-img" />
-    </div>
+    <div class="about-layout">
+      <div class="main-col">
+        <!-- Desktop screenshot -->
+        <div class="screenshot-card">
+          <div class="screenshot-label">Desktop View</div>
+          <img src="/screenshot-desktop.png" alt="StockFolio desktop dashboard" class="screenshot-img" />
+        </div>
 
-    <!-- Import guide -->
-    <div class="screenshot-card">
-      <div class="screenshot-label">Import from Excel / CSV</div>
-      <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="screenshot-img" />
-    </div>
+        <!-- Import guide -->
+        <div class="screenshot-card">
+          <div class="screenshot-label">Import from Excel / CSV</div>
+          <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="screenshot-img" />
+        </div>
 
-    <!-- App intro -->
-    <div class="intro-card">
-      <div class="brand">
-        <span class="brand-mark">📈</span>
-        <span class="brand-name gradient-title">StockFolio</span>
-      </div>
-      <p class="tagline text-muted">
-        A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L,
-        price alerts, and a clean dark interface.
-      </p>
-      <ul class="feature-list">
-        <li v-for="f in features" :key="f.text">
-          <i :class="f.icon" /><span>{{ f.text }}</span>
-        </li>
-      </ul>
-    </div>
+        <!-- App intro -->
+        <div class="intro-card">
+          <div class="brand">
+            <span class="brand-mark">📈</span>
+            <span class="brand-name gradient-title">StockFolio</span>
+          </div>
+          <p class="tagline text-muted">
+            A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L,
+            price alerts, and a clean dark interface.
+          </p>
+          <ul class="feature-list">
+            <li v-for="f in features" :key="f.text">
+              <i :class="f.icon" /><span>{{ f.text }}</span>
+            </li>
+          </ul>
+        </div>
 
-    <!-- Donate -->
-    <div class="donate-card">
-      <h2 class="donate-title">Support StockFolio</h2>
-      <p class="text-muted donate-sub">
-        StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.
-      </p>
-
-      <div class="qr-wrap">
-        <canvas ref="qrCanvas" class="qr" />
-      </div>
-      <div class="addr-label text-muted">Your Bitcoin Address</div>
-
-      <div class="addr-row">
-        <code class="addr">{{ BTC_ADDRESS }}</code>
-        <button class="copy-btn" title="Copy" @click="copyAddress">
-          <i class="pi pi-copy" />
-        </button>
+        <p class="legal text-muted main-legal">© {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech"
+                                                                                     href="//handcoded.tech">
+          handcoded.tech </a>. All rights reserved.</p>
       </div>
 
-      <div class="contact-block">
-        <div class="text-muted contact-label">Contact</div>
-        <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
-        <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
+      <div class="side-col">
+        <!-- Donate -->
+        <div class="donate-card">
+          <h2 class="donate-title">Support StockFolio</h2>
+          <p class="text-muted donate-sub">
+            StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.
+          </p>
+
+          <div class="qr-wrap">
+            <canvas ref="qrCanvas" class="qr" />
+          </div>
+          <div class="addr-label text-muted">Your Bitcoin Address</div>
+
+          <div class="addr-row">
+            <code class="addr">{{ BTC_ADDRESS }}</code>
+            <button class="copy-btn" title="Copy" @click="copyAddress">
+              <i class="pi pi-copy" />
+            </button>
+          </div>
+
+          <div class="contact-block">
+            <div class="text-muted contact-label">Contact</div>
+            <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
+            <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
+          </div>
+        </div>
       </div>
     </div>
-
-    <p class="legal text-muted">© {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech"
-                                                                                 href="//handcoded.tech">
-      handcoded.tech </a>. All rights reserved.</p>
   </div>
 </template>
 
@@ -138,9 +144,37 @@ async function copyAddress() {
 }
 
 .about { padding: 1rem; }
-@media (min-width: 768px) { .about { padding: 1.5rem; max-width: 640px; } }
+@media (min-width: 768px) { .about { padding: 1.5rem; } }
+@media (min-width: 1024px) { .about { padding: 2.5rem 3rem; } }
 
 .page-header { display: flex; align-items: center; gap: 0.25rem; margin-bottom: 1.25rem; }
+
+.about-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .about-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .main-col {
+    flex: 1.7;
+    min-width: 0;
+  }
+
+  .side-col {
+    flex: 1;
+    min-width: 0;
+    position: sticky;
+    top: 2.5rem;
+  }
+}
 
 .intro-card, .donate-card {
   background: var(--bg-card);

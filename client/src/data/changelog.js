@@ -14,6 +14,8 @@ export const changelog = [
       'Moved About to the main navigation bar instead of inside Account',
       'Removed the duplicate donate/support card from Account — it now only lives on the About page',
       'Fixed the About/Math/Disclaimer pages missing the navigation bar on mobile',
+      'Desktop About page now shows a two-column layout with a sticky Support card',
+      'On desktop, About/Math Reference/Financial Disclaimer combine into one scrollable page with quick-jump tabs',
     ],
   },
   {
