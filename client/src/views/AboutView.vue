@@ -53,7 +53,7 @@ async function copyAddress() {
     <!-- Desktop screenshot -->
     <div class="screenshot-card">
       <div class="screenshot-label">Desktop View</div>
-      <img src="/screenshot-desktop.svg" alt="StockFolio desktop dashboard" class="screenshot-img" />
+      <img src="/screenshot-desktop.png" alt="StockFolio desktop dashboard" class="screenshot-img" />
     </div>
 
     <!-- Import guide -->

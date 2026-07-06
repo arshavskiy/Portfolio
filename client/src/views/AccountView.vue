@@ -158,14 +158,9 @@ function logout() {
               <span>Price Alerts</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
-            <button class="menu-item" @click="router.push('/about')">
+            <button class="menu-item" @click="router.push('/help')">
               <i class="pi pi-info-circle menu-icon"/>
               <span>About</span>
-              <i class="pi pi-chevron-right text-muted" />
-            </button>
-            <button class="menu-item" @click="router.push('/disclaimer')">
-              <i class="pi pi-shield menu-icon"/>
-              <span>Financial Disclaimer</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
           </div>

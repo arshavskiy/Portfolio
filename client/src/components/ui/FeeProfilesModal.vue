@@ -203,7 +203,7 @@ function formatMonthlyUsage(usage) {
             <label>{{ form.buyFee.type === 'percent' ? 'Fee %' : 'Flat amount' }}</label>
             <InputNumber v-model="form.buyFee.value" :min="0" :max-fraction-digits="form.buyFee.type === 'percent' ? 3 : 4"
               :suffix="form.buyFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
-            <small v-if="form.buyFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%</small>
+            <small v-if="form.buyFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%, 0.001 = 0.1%</small>
           </div>
         </div>
         <div class="field">
@@ -224,7 +224,7 @@ function formatMonthlyUsage(usage) {
             <label>{{ form.sellFee.type === 'percent' ? 'Fee %' : 'Flat amount' }}</label>
             <InputNumber v-model="form.sellFee.value" :min="0" :max-fraction-digits="form.sellFee.type === 'percent' ? 3 : 4"
               :suffix="form.sellFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
-            <small v-if="form.sellFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%</small>
+            <small v-if="form.sellFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%, 0.001 = 0.1%</small>
           </div>
         </div>
         <div class="field">

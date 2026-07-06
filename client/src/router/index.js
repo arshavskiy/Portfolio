@@ -5,6 +5,8 @@ const routes = [
   { path: '/login', name: 'Login', component: () => import('@/views/LoginView.vue'), meta: { guest: true } },
   { path: '/register', name: 'Register', component: () => import('@/views/RegisterView.vue'), meta: { guest: true } },
   {path: '/about', name: 'About', component: () => import('@/views/AboutView.vue')},
+  {path: '/math', name: 'Math', component: () => import('@/views/MathView.vue')},
+  {path: '/help', name: 'Help', component: () => import('@/views/HelpView.vue')},
   {path: '/disclaimer', name: 'Disclaimer', component: () => import('@/views/DisclaimerView.vue')},
   {
     path: '/',

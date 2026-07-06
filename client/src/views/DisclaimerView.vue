@@ -1,8 +1,18 @@
+<script setup>
+import {useRouter} from 'vue-router'
+import Button from 'primevue/button'
+
+const router = useRouter()
+</script>
+
 <template>
   <div class="disclaimer safe-bottom">
     <header class="page-header">
+      <div class="title-row">
+        <Button icon="pi pi-arrow-left" text rounded class="back-btn" @click="router.back()" />
+        <h1 class="gradient-title">Financial Disclaimer</h1>
+      </div>
       <p class="eyebrow">Important information</p>
-      <h1 class="gradient-title">Financial Disclaimer</h1>
       <p class="intro">
         StockFolio helps you organize market data, holdings, watchlists, alerts, and portfolio calculations. It is a tracking and research tool only.
       </p>
@@ -73,6 +83,17 @@
   margin-bottom: 1rem;
 }
 
+.title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.back-btn {
+  margin-left: -0.5rem;
+}
+
 .eyebrow {
   color: var(--text-secondary);
   font-size: 0.75rem;
@@ -83,9 +104,8 @@
 }
 
 .page-header h1 {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 800;
-  margin-bottom: 0.65rem;
 }
 
 .intro {

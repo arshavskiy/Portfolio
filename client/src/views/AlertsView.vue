@@ -53,6 +53,7 @@ async function remove(alert) {
 <template>
   <div class="alerts-page safe-bottom">
     <header class="page-header">
+      <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <h1 class="gradient-title">Alerts</h1>
     </header>
 
@@ -111,6 +112,9 @@ async function remove(alert) {
 }
 
 .page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   margin-bottom: 1.25rem;
 }
 

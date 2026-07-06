@@ -12,7 +12,6 @@ out/
 
 # Misc
 .DS_Store
-agent/
 *.pem
 .env
 .env.local
@@ -22,6 +21,7 @@ agent/
 .specstory
 .claude/settings.local.json
 .idea
+agent/data/
 
 # Logs
 logs
