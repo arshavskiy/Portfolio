@@ -9,8 +9,10 @@ export const changelog = [
       'No-trade rows in the Watchlist show the colored gain/loss pill again, alongside the "No trade" tag',
       'Added a new "How the Numbers Work" math reference page explaining fees, gains, and portfolio math in plain language',
       'Replaced the desktop screenshot on the About page',
-      'Grouped About, Math Reference, and Financial Disclaimer under a single "About" entry in Account',
+      'Grouped About, Math Reference, and Financial Disclaimer under a single "About" entry',
       'Added back buttons to the Alerts and Financial Disclaimer pages',
+      'Moved About to the main navigation bar instead of inside Account',
+      'Removed the duplicate donate/support card from Account — it now only lives on the About page',
     ],
   },
   {

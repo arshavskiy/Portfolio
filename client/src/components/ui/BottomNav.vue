@@ -14,8 +14,7 @@ const tabs = [
   { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History', tourKey: 'history' },
   {name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News', tourKey: 'news'},
   { name: 'Account', to: '/account', icon: 'pi pi-user', label: 'Account', tourKey: 'account' },
-  // Desktop sidebar has room for an extra item; hidden on the mobile bottom bar.
-  { name: 'About', to: '/about', icon: 'pi pi-info-circle', label: 'About', desktopOnly: true },
+  { name: 'About', to: '/help', icon: 'pi pi-info-circle', label: 'About' },
 ]
 
 function isActive(tab) {
@@ -90,12 +89,8 @@ function isActive(tab) {
 .nav-item.active i { filter: drop-shadow(0 0 6px var(--neon-blue)); }
 .nav-item.active span { text-shadow: 0 0 8px var(--neon-blue); }
 
-/* Hidden on the cramped mobile bottom bar; shown in the desktop sidebar. */
-.nav-item.desktop-only { display: none; }
-
 /* ── Desktop: vertical sidebar ── */
 @media (min-width: 1024px) {
-  .nav-item.desktop-only { display: flex; }
   .app-nav {
     position: relative;
     bottom: auto;

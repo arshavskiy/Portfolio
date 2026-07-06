@@ -24,6 +24,7 @@ const navItems = [
   {name: 'History & Alerts',  to: '/history-alerts', icon: 'pi pi-list'},
   {name: 'News',           to: '/news',            icon: 'pi pi-globe'},
   {name: 'Account',        to: '/account',         icon: 'pi pi-user'},
+  {name: 'About',          to: '/help',            icon: 'pi pi-info-circle'},
 ]
 
 function isActive(item) {
