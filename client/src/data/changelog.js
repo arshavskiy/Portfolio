@@ -13,6 +13,7 @@ export const changelog = [
       'Added back buttons to the Alerts and Financial Disclaimer pages',
       'Moved About to the main navigation bar instead of inside Account',
       'Removed the duplicate donate/support card from Account — it now only lives on the About page',
+      'Fixed the About/Math/Disclaimer pages missing the navigation bar on mobile',
     ],
   },
   {

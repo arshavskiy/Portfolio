@@ -4,15 +4,15 @@ import {useAuthStore} from '@/stores/auth'
 const routes = [
   { path: '/login', name: 'Login', component: () => import('@/views/LoginView.vue'), meta: { guest: true } },
   { path: '/register', name: 'Register', component: () => import('@/views/RegisterView.vue'), meta: { guest: true } },
-  {path: '/about', name: 'About', component: () => import('@/views/AboutView.vue')},
-  {path: '/math', name: 'Math', component: () => import('@/views/MathView.vue')},
-  {path: '/help', name: 'Help', component: () => import('@/views/HelpView.vue')},
-  {path: '/disclaimer', name: 'Disclaimer', component: () => import('@/views/DisclaimerView.vue')},
   {
     path: '/',
     component: () => import('@/layouts/AppLayout.vue'),
     children: [
       { path: '', name: 'Dashboard', component: () => import('@/views/DashboardView.vue'), meta: { requiresAuth: true } },
+      {path: 'about', name: 'About', component: () => import('@/views/AboutView.vue')},
+      {path: 'math', name: 'Math', component: () => import('@/views/MathView.vue')},
+      {path: 'help', name: 'Help', component: () => import('@/views/HelpView.vue')},
+      {path: 'disclaimer', name: 'Disclaimer', component: () => import('@/views/DisclaimerView.vue')},
       { path: 'news/article/:id', name: 'NewsArticle', component: () => import('@/views/NewsArticleView.vue'), meta: { requiresAuth: true } },
       { path: 'news', name: 'News', component: () => import('@/views/NewsView.vue'), meta: { requiresAuth: true } },
       { path: 'holdings', redirect: '/watchlist' },
