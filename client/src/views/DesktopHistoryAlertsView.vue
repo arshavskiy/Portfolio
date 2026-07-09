@@ -15,11 +15,13 @@ import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
 const PortfolioCompareChart = defineAsyncComponent(() => import('@/components/charts/PortfolioCompareChart.vue'))
 
 const toast = useToast()
+const {locale, t} = useI18n()
 const dashboard = useDashboardStore()
 const alerts = useAlertsStore()
 const {supported, subscribed, busy, refreshState, enablePush, disablePush} = usePush()
@@ -44,12 +46,12 @@ const filterType = ref(null)
 const editTx = ref(null)
 const showEdit = ref(false)
 
-const typeOptions = [
-  {label: 'All types', value: null},
-  {label: 'Buy', value: 'buy'},
-  {label: 'Sell', value: 'sell'},
-  {label: 'Dividend', value: 'dividend'},
-]
+const typeOptions = computed(() => [
+  {label: t('transactions.allTypes'), value: null},
+  {label: t('common.buy'), value: 'buy'},
+  {label: t('common.sell'), value: 'sell'},
+  {label: t('common.dividend'), value: 'dividend'},
+])
 
 function openEdit(tx) { editTx.value = tx; showEdit.value = true }
 
@@ -72,7 +74,11 @@ const filtered = computed(() =>
 )
 
 function formatDate(d) {
-  return new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})
+  return new Date(d).toLocaleDateString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
 }
 
 function exportCSV() {
@@ -95,7 +101,7 @@ const selectedYear = ref(null)
 
 const yearOptions = computed(() => {
   const years = gainsData.value?.availableYears ?? []
-  return [{label: 'All years', value: null}, ...years.map((y) => ({label: String(y), value: y}))]
+  return [{label: t('transactions.allYears'), value: null}, ...years.map((y) => ({label: String(y), value: y}))]
 })
 
 const visibleYears = computed(() => {
@@ -129,10 +135,10 @@ async function togglePush() {
   try {
     if (subscribed.value) {
       await disablePush()
-      toast.add({severity: 'info', summary: 'Push disabled', life: 2000})
+      toast.add({severity: 'info', summary: t('alerts.pushDisabled'), life: 2000})
     } else {
       await enablePush()
-      toast.add({severity: 'success', summary: 'Push enabled', life: 2000})
+      toast.add({severity: 'success', summary: t('alerts.pushEnabled'), life: 2000})
     }
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
@@ -150,7 +156,7 @@ async function toggleActive(alert) {
 async function removeAlert(alert) {
   try {
     await alerts.deleteAlert(alert._id)
-    toast.add({severity: 'success', summary: 'Alert deleted', life: 2000})
+    toast.add({severity: 'success', summary: t('alerts.deleted'), life: 2000})
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
   }
@@ -172,7 +178,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
     <!-- Col 1: Portfolio History -->
     <div class="history-col">
       <header class="col-header">
-        <h1 class="gradient-title">Portfolio History</h1>
+        <h1 class="gradient-title">{{ t('dashboard.portfolioValue') }}</h1>
         <div class="toggle-group">
           <button
               v-for="opt in HISTORY_RANGES"
@@ -193,7 +199,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
         />
         <div v-else class="col-empty text-muted">
           <i class="pi pi-chart-line"/>
-          <p>No holdings yet</p>
+          <p>{{ t('dashboard.empty') }}</p>
         </div>
         <PortfolioCompareChart
             v-if="portfolioPositions.length"
@@ -209,7 +215,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
     <div class="tx-col">
       <header class="col-header tx-col-header">
         <div class="tx-title-row">
-          <h1 class="gradient-title">Transactions</h1>
+          <h1 class="gradient-title">{{ t('nav.transactions') }}</h1>
           <Button
               v-if="activeTab === 'history'"
               :disabled="!filtered.length"
@@ -227,8 +233,12 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
           />
         </div>
         <div class="tab-bar">
-          <button :class="{active: activeTab === 'history'}" class="tab-btn" @click="activeTab = 'history'">Transactions</button>
-          <button :class="{active: activeTab === 'gains'}" class="tab-btn" @click="activeTab = 'gains'">Realized Gains</button>
+          <button :class="{active: activeTab === 'history'}" class="tab-btn" @click="activeTab = 'history'">
+            {{ t('nav.transactions') }}
+          </button>
+          <button :class="{active: activeTab === 'gains'}" class="tab-btn" @click="activeTab = 'gains'">
+            {{ t('transactions.realizedGains') }}
+          </button>
         </div>
       </header>
 
@@ -236,13 +246,14 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
         <!-- History tab -->
         <template v-if="activeTab === 'history'">
           <div class="filters">
-            <InputText v-model="filterTicker" class="filter-input" placeholder="Filter ticker..." size="small"/>
+            <InputText v-model="filterTicker" :placeholder="t('transactions.filterTicker')" class="filter-input"
+                       size="small"/>
             <Select v-model="filterType" :options="typeOptions" class="filter-select" option-label="label" option-value="value" size="small"/>
           </div>
           <div v-if="loadingHistory" class="page-loader"><AppLoader/></div>
           <div v-else-if="!filtered.length" class="col-empty text-muted">
             <i class="pi pi-list"/>
-            <p>No transactions found</p>
+            <p>{{ t('transactions.noTransactions') }}</p>
           </div>
           <div v-else class="tx-list">
             <div v-for="tx in filtered" :key="tx._id" class="tx-row" @click="openEdit(tx)">
@@ -252,12 +263,15 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
               </div>
               <div class="tx-mid">
                 <span v-if="tx.type === 'dividend'" class="text-muted">
-                  {{ useTickerCurrency(tx.price, tx.ticker) }}/sh{{ tx.drip ? ' · DRIP' : '' }}
+                  {{ useTickerCurrency(tx.price, tx.ticker) }}{{
+                    t('transactions.perShareShort')
+                  }}{{ tx.drip ? ' · DRIP' : '' }}
                 </span>
                 <span v-else class="text-muted">{{ tx.shares }} × {{ useTickerCurrency(tx.price, tx.ticker) }}</span>
               </div>
               <div class="tx-right">
-                <Tag :severity="tx.type === 'buy' ? 'success' : tx.type === 'sell' ? 'danger' : 'info'" :value="tx.type.toUpperCase()"/>
+                <Tag :severity="tx.type === 'buy' ? 'success' : tx.type === 'sell' ? 'danger' : 'info'"
+                     :value="tx.type === 'buy' ? t('common.buy') : tx.type === 'sell' ? t('common.sell') : t('common.dividend')"/>
                 <span :class="tx.type === 'sell' || tx.type === 'dividend' ? 'gain' : ''" class="total">
                   {{ tx.type === 'sell' || tx.type === 'dividend' ? '+' : '-' }}{{ useTickerCurrency(tx.total, tx.ticker) }}
                 </span>
@@ -265,7 +279,12 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
               <i class="pi pi-pencil edit-hint text-muted"/>
             </div>
           </div>
-          <p v-if="filtered.length" class="count text-muted">{{ filtered.length }} transaction{{ filtered.length !== 1 ? 's' : '' }}</p>
+          <p v-if="filtered.length" class="count text-muted">{{
+              t('transactions.count', {
+                count: filtered.length,
+                plural: filtered.length !== 1 ? 's' : ''
+              })
+            }}</p>
         </template>
 
         <!-- Realized gains tab -->
@@ -274,7 +293,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
           <template v-else-if="gainsData">
             <div v-if="!gainsData.availableYears.length" class="col-empty text-muted">
               <i class="pi pi-chart-line"/>
-              <p>No realized gains yet</p>
+              <p>{{ t('transactions.noRealizedGains') }}</p>
             </div>
             <template v-else>
               <div class="gains-filter">
@@ -285,15 +304,15 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                   <span class="year-label">{{ yr.year }}</span>
                   <div class="year-totals">
                     <div v-if="yr.totalDividends" class="year-stat">
-                      <span class="text-muted">Dividends</span>
+                      <span class="text-muted">{{ t('common.dividends') }}</span>
                       <span class="gain">+{{ useCurrency(yr.totalDividends, 'USD') }}</span>
                     </div>
                     <div class="year-stat">
-                      <span class="text-muted">Gross gain</span>
+                      <span class="text-muted">{{ t('transactions.grossGain') }}</span>
                       <span :class="gainLossClass(yr.totalGross)">{{ yr.totalGross >= 0 ? '+' : '' }}{{ useCurrency(yr.totalGross, 'USD') }}</span>
                     </div>
                     <div class="year-stat">
-                      <span class="text-muted">Net gain</span>
+                      <span class="text-muted">{{ t('transactions.netGain') }}</span>
                       <span :class="gainLossClass(yr.totalNet)" class="net-highlight">{{ yr.totalNet >= 0 ? '+' : '' }}{{ useCurrency(yr.totalNet, 'USD') }}</span>
                     </div>
                   </div>
@@ -303,10 +322,16 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                     <span class="tx-ticker">{{ s.ticker }}</span>
                     <span class="tx-date text-muted">{{ formatDate(s.date) }}</span>
                   </div>
-                  <div class="gain-mid text-muted">{{ s.shares }} sh · avg {{ useTickerCurrency(s.avgCostAtSale, s.ticker) }} → {{ useTickerCurrency(s.price, s.ticker) }}</div>
+                  <div class="gain-mid text-muted">{{ s.shares }} {{ t('rebalance.sharesShort') }} ·
+                    {{ t('transactions.avg') }} {{ useTickerCurrency(s.avgCostAtSale, s.ticker) }} →
+                    {{ useTickerCurrency(s.price, s.ticker) }}
+                  </div>
                   <div class="gain-right">
                     <span :class="gainLossClass(s.grossGain)" class="gross-gain">{{ s.grossGain >= 0 ? '+' : '' }}{{ useTickerCurrency(s.grossGain, s.ticker) }}</span>
-                    <span v-if="s.feePaid || s.taxPaid" :class="gainLossClass(s.netGain)" class="net-gain">net {{ s.netGain >= 0 ? '+' : '' }}{{ useTickerCurrency(s.netGain, s.ticker) }}</span>
+                    <span v-if="s.feePaid || s.taxPaid" :class="gainLossClass(s.netGain)"
+                          class="net-gain">{{ t('transactions.net') }} {{
+                        s.netGain >= 0 ? '+' : ''
+                      }}{{ useTickerCurrency(s.netGain, s.ticker) }}</span>
                   </div>
                 </div>
                 <div v-for="d in yr.dividends" :key="d._id" class="gain-row gain-row-div">
@@ -314,7 +339,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                     <span class="tx-ticker">{{ d.ticker }}</span>
                     <span class="tx-date text-muted">{{ formatDate(d.date) }}</span>
                   </div>
-                  <div class="gain-mid text-muted">Dividend</div>
+                  <div class="gain-mid text-muted">{{ t('common.dividend') }}</div>
                   <div class="gain-right">
                     <span class="gain gross-gain">+{{ useTickerCurrency(d.grossGain, d.ticker) }}</span>
                   </div>
@@ -331,28 +356,30 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
     <!-- Col 3: Alerts -->
     <div class="alerts-col">
       <header class="col-header">
-        <h1 class="gradient-title">Alerts</h1>
+        <h1 class="gradient-title">{{ t('alerts.title') }}</h1>
       </header>
       <div class="col-body">
         <div class="push-card">
           <div class="push-info">
             <i class="pi pi-bell"/>
             <div>
-              <div class="push-title">Push notifications</div>
+              <div class="push-title">{{ t('alerts.pushNotifications') }}</div>
               <div class="push-sub text-muted">
-                {{ supported ? (subscribed ? 'On — alerts reach this device' : 'Off') : 'Not supported' }}
+                {{
+                  supported ? (subscribed ? t('alerts.pushOn') : t('alerts.pushOff')) : t('alerts.pushUnsupportedShort')
+                }}
               </div>
             </div>
           </div>
           <ToggleSwitch :disabled="!supported || busy" :model-value="subscribed" @update:model-value="togglePush"/>
         </div>
 
-        <div v-if="alerts.loading" class="col-empty text-muted">Loading…</div>
+        <div v-if="alerts.loading" class="col-empty text-muted">{{ t('common.loading') }}</div>
 
         <div v-else-if="!alerts.items.length" class="col-empty text-muted">
           <i class="pi pi-bell-slash"/>
-          <p>No price alerts yet</p>
-          <span class="sub">Open a stock and tap the bell to set one.</span>
+          <p>{{ t('alerts.empty') }}</p>
+          <span class="sub">{{ t('alerts.emptyHint') }}</span>
         </div>
 
         <div v-else class="alert-list">
@@ -368,7 +395,9 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                 <i :class="a.condition === 'above' ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"/>
                 {{ useTickerCurrency(a.target, a.ticker) }}
               </span>
-              <span v-if="a.triggeredAt" class="triggered-tag">triggered @ {{ useTickerCurrency(a.triggeredPrice, a.ticker) }}</span>
+              <span v-if="a.triggeredAt" class="triggered-tag">{{
+                  t('alerts.triggeredAt', {price: useTickerCurrency(a.triggeredPrice, a.ticker)})
+                }}</span>
             </div>
             <div class="alert-actions">
               <ToggleSwitch :model-value="a.active" @update:model-value="toggleActive(a)"/>

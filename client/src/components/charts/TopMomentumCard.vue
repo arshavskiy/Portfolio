@@ -4,6 +4,7 @@ import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {usePercent} from '@/composables/useFormat'
 import {signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
 import {useMomentumStore} from '@/stores/momentum'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   items: {type: Array, default: () => []},
@@ -12,6 +13,7 @@ const props = defineProps({
 
 const {openPosition} = useNavigateToPosition()
 const momentumStore = useMomentumStore()
+const {t} = useI18n()
 
 // Eagerly compute + publish scores for all items so dashboard doesn't need WatchRow.
 useListMomentumScores(toRef(props, 'items'))
@@ -40,7 +42,7 @@ const bearish = computed(() =>
 
 <template>
   <div v-if="loading || bullish.length || bearish.length" class="momentum-card">
-    <h2 class="section-title">Top Momentum</h2>
+    <h2 class="section-title">{{ t('dashboard.topMomentum') }}</h2>
 
     <div v-if="loading" class="momentum-loading">
       <div v-for="n in 4" :key="n" class="momentum-skeleton"/>
@@ -49,7 +51,7 @@ const bearish = computed(() =>
     <div v-else class="momentum-cols">
       <!-- Bullish -->
       <div class="momentum-col">
-        <div class="col-header gain">Bullish</div>
+        <div class="col-header gain">{{ t('dashboard.bullish') }}</div>
         <div
           v-for="{item, score} in bullish"
           :key="item.ticker"
@@ -70,12 +72,12 @@ const bearish = computed(() =>
             </span>
           </div>
         </div>
-        <div v-if="!bullish.length" class="col-empty text-muted">None</div>
+        <div v-if="!bullish.length" class="col-empty text-muted">{{ t('dashboard.none') }}</div>
       </div>
 
       <!-- Bearish -->
       <div class="momentum-col">
-        <div class="col-header loss">Bearish</div>
+        <div class="col-header loss">{{ t('dashboard.bearish') }}</div>
         <div
           v-for="{item, score} in bearish"
           :key="item.ticker"
@@ -96,7 +98,7 @@ const bearish = computed(() =>
             </span>
           </div>
         </div>
-        <div v-if="!bearish.length" class="col-empty text-muted">None</div>
+        <div v-if="!bearish.length" class="col-empty text-muted">{{ t('dashboard.none') }}</div>
       </div>
     </div>
   </div>

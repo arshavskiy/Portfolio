@@ -10,12 +10,15 @@ import {useTour} from '@/composables/useTour'
 import {useToast} from 'primevue/usetoast'
 import Button from 'primevue/button'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
+import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const toast = useToast()
 const auth = useAuthStore()
 const portfolio = usePortfolioStore()
 const showFeeProfiles = ref(false)
+const {locale, t} = useI18n()
 
 const {isDesktop} = useBreakpoint()
 const { canInstall, installed, isIos, promptInstall } = usePwaInstall()
@@ -32,19 +35,19 @@ function replayTour() {
 async function install() {
   if (canInstall.value) {
     const ok = await promptInstall()
-    if (ok) toast.add({ severity: 'success', summary: 'App installed', life: 2000 })
+    if (ok) toast.add({severity: 'success', summary: t('account.appInstalled'), life: 2000})
   } else if (isIos) {
     toast.add({
       severity: 'info',
-      summary: 'Add to Home Screen',
-      detail: 'Tap Share → "Add to Home Screen" to install on iOS.',
+      summary: t('account.addToHomeScreen'),
+      detail: t('account.iosInstallDetail'),
       life: 5000,
     })
   } else {
     toast.add({
       severity: 'info',
-      summary: 'Install',
-      detail: 'Use Chrome menu (⋮) → "Install app" / "Add to Home screen".',
+      summary: t('account.install'),
+      detail: t('account.browserInstallDetail'),
       life: 5000,
     })
   }
@@ -56,7 +59,7 @@ const positionCount = computed(() => portfolio.positions.length)
 const memberSince = computed(() => {
   const d = auth.user?.createdAt
   if (!d) return null
-  return new Date(d).toLocaleDateString('en-US', {month: 'short', year: 'numeric'})
+  return new Date(d).toLocaleDateString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {month: 'short', year: 'numeric'})
 })
 
 onMounted(async () => {
@@ -74,7 +77,7 @@ function logout() {
 <template>
   <div class="profile safe-bottom">
     <header class="page-header">
-      <h1 class="gradient-title">Account</h1>
+      <h1 class="gradient-title">{{ t('common.account') }}</h1>
     </header>
 
     <div class="profile-layout">
@@ -87,15 +90,17 @@ function logout() {
 <!--            class="avatar"-->
 <!--          />-->
           <div class="profile-info">
-            <p class="profile-name">{{ auth.user?.name || 'Account' }}</p>
+            <p class="profile-name">{{ auth.user?.name || t('common.account') }}</p>
             <p class="profile-email text-muted">
               {{ auth.user?.email || (auth.user?.username ? '@' + auth.user.username : '—') }}</p>
-            <p v-if="memberSince" class="member-since text-muted">Member since {{ memberSince }}</p>
+            <p v-if="memberSince" class="member-since text-muted">{{
+                t('account.memberSince', {date: memberSince})
+              }}</p>
           </div>
           <div class="flex justify-between">
             <Button
                 class="sign-out-btn w-[100px]"
-                label="Sign Out"
+                :label="t('account.signOut')"
                 severity="danger"
                 @click="logout"
 
@@ -107,18 +112,18 @@ function logout() {
         <!-- Portfolio snapshot -->
         <div v-if="summary" class="stats-card">
           <div class="stat">
-            <span class="stat-label text-muted">Net Worth</span>
+            <span class="stat-label text-muted">{{ t('account.netWorth') }}</span>
             <span class="stat-value">{{ useCurrency(summary.value, 'USD') }}</span>
           </div>
           <div class="stat">
-            <span class="stat-label text-muted">Total P&L</span>
+            <span class="stat-label text-muted">{{ t('account.totalPnl') }}</span>
             <span :class="gainLossClass(summary.pnl)" class="stat-value">
               {{ summary.pnl >= 0 ? '+' : '' }}{{ useCurrency(summary.pnl, 'USD') }}
               <span class="stat-pct">({{ usePercent(summary.pnlPercent) }})</span>
             </span>
           </div>
           <div class="stat">
-            <span class="stat-label text-muted">Holdings</span>
+            <span class="stat-label text-muted">{{ t('account.holdings') }}</span>
             <span class="stat-value">{{ positionCount }}</span>
           </div>
         </div>
@@ -128,12 +133,12 @@ function logout() {
           <div class="menu-list">
             <button class="menu-item" @click="showFeeProfiles = true">
               <i class="pi pi-percentage menu-icon"/>
-              <span>Fee Profiles</span>
+              <span>{{ t('account.feeProfiles') }}</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
             <button class="menu-item" @click="goAlerts">
               <i class="pi pi-bell menu-icon"/>
-              <span>Price Alerts</span>
+              <span>{{ t('account.priceAlerts') }}</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
           </div>
@@ -142,26 +147,34 @@ function logout() {
           <div class="menu-list">
             <button v-if="!installed" class="menu-item" @click="install">
               <i class="pi pi-download menu-icon"/>
-              <span>Install App</span>
+              <span>{{ t('account.installApp') }}</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
             <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
               <i class="pi pi-window-maximize menu-icon"/>
-              <span>{{ isFullscreen ? 'Exit Fullscreen' : 'Fullscreen' }}</span>
+              <span>{{ isFullscreen ? t('account.exitFullscreen') : t('account.fullscreen') }}</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
             <button class="menu-item" @click="replayTour">
               <i class="pi pi-compass menu-icon"/>
-              <span>Start Tour</span>
+              <span>{{ t('account.startTour') }}</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
+            <div class="menu-item language-menu-item">
+              <i class="pi pi-language menu-icon"/>
+              <span>{{ t('common.language') }}</span>
+              <LanguageSelect/>
+              <i class="pi pi-chevron-right text-muted"/>
+            </div>
           </div>
         </div>
 
         <p class="legal text-muted main-legal">
-          © {{ new Date().getFullYear() }} StockFolio · <RouterLink to="/disclaimer">Disclaimer</RouterLink> · <a alt="www.handcoded.tech"
+          © {{ new Date().getFullYear() }} StockFolio ·
+          <RouterLink to="/disclaimer">{{ t('common.disclaimer') }}</RouterLink>
+          · <a alt="www.handcoded.tech"
                                                                                      href="//handcoded.tech">
-          handcoded.tech </a>. All rights reserved.
+          handcoded.tech </a>. {{ t('common.allRightsReserved') }}
         </p>
       </div>
     </div>
@@ -348,6 +361,12 @@ function logout() {
   background: rgba(255, 255, 255, 0.04);
 }
 .menu-item span { flex: 1; }
+
+.language-menu-item :deep(.language-select) {
+  border-color: transparent;
+  background: transparent;
+  padding: 0;
+}
 
 .menu-icon {
   color: var(--accent);

@@ -4,6 +4,7 @@ import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
 import PortfolioStatsCard from '@/components/ui/PortfolioStatsCard.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const BreakdownCard         = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
@@ -14,6 +15,7 @@ const WatchlistMoversCard   = defineAsyncComponent(() => import('@/components/ch
 const TopMomentumCard       = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
 
 const dashboard = useDashboardStore()
+const {t} = useI18n()
 const {
   ready,
   groupedPositions,
@@ -66,7 +68,7 @@ onUnmounted(() => {
 <template>
   <div class="dashboard">
     <header class="dash-header">
-      <h1 class="gradient-title">Dashboard</h1>
+      <h1 class="gradient-title">{{ t('common.dashboard') }}</h1>
     </header>
 
     <!-- Full-page loader until all data is ready -->
@@ -144,7 +146,7 @@ onUnmounted(() => {
       <!-- Portfolio value over time -->
       <section v-if="portfolioPositions.length" class="history-card">
         <div class="history-head">
-          <h2 class="section-title">Portfolio Value</h2>
+          <h2 class="section-title">{{ t('dashboard.portfolioValue') }}</h2>
           <div class="toggle-group">
             <button
                 v-for="opt in HISTORY_RANGES"
@@ -169,7 +171,7 @@ onUnmounted(() => {
     <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
 
       <div v-if="showEmpty" class="empty text-muted">
-        No holdings yet. Add a transaction to get started, or explore what’s trending.
+        {{ t('dashboard.empty') }}
       </div>
 
     </template>

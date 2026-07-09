@@ -4,11 +4,13 @@ import { useStorage } from '@vueuse/core'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 import { usePwaInstall } from '@/composables/usePwa'
+import {useI18n} from '@/composables/useI18n'
 import Button from 'primevue/button'
 
 const { canInstall, installed, promptInstall } = usePwaInstall()
 const { isAuthenticated } = storeToRefs(useAuthStore())
 const dismissed = useStorage('install-banner-dismissed', false)
+const {t} = useI18n()
 
 const show = computed(() => canInstall.value && !installed.value && isAuthenticated.value && !dismissed.value)
 
@@ -26,12 +28,12 @@ function dismiss() {
       <div class="ib-text">
         <i class="pi pi-download" />
         <div>
-          <div class="ib-title">Install StockFolio</div>
-          <div class="ib-sub text-muted">Add to your home screen for a fullscreen app</div>
+          <div class="ib-title">{{ t('pwa.installTitle') }}</div>
+          <div class="ib-sub text-muted">{{ t('pwa.installBody') }}</div>
         </div>
       </div>
       <div class="ib-actions">
-        <Button label="Install" size="small" outlined @click="install" />
+        <Button :label="t('pwa.install')" outlined size="small" @click="install"/>
         <button class="ib-close" @click="dismiss"><i class="pi pi-times" /></button>
       </div>
     </div>

@@ -2,11 +2,13 @@
 import { ref, watch, onMounted, nextTick } from 'vue'
 import * as d3 from 'd3'
 import { useCurrency } from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   positions: { type: Array, default: () => [] },
   combinedUsd: { type: Object, default: null },
 })
+const {t} = useI18n()
 
 const svgRef = ref(null)
 
@@ -54,7 +56,7 @@ function draw() {
 
   g.append('text').attr('text-anchor', 'middle').attr('dy', isMixed ? '0.35em' : '-0.2em')
     .attr('fill', '#94a3b8').attr('font-size', '11')
-    .text(isMixed ? 'Mixed' : 'Total')
+      .text(isMixed ? t('dashboard.mixed') : t('dashboard.total'))
   if (totalLabel) {
     g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
       .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')
@@ -68,7 +70,7 @@ watch(() => [props.positions, props.combinedUsd], () => nextTick(draw), { deep: 
 
 <template>
   <div v-if="positions.length" class="allocation-wrap">
-    <h2 class="section-title">Allocation</h2>
+    <h2 class="section-title">{{ t('dashboard.allocation') }}</h2>
     <div class="chart-row">
       <svg ref="svgRef" />
       <div class="legend">

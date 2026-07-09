@@ -11,6 +11,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
 import api from '@/composables/useApi'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   visible: Boolean,
@@ -22,6 +23,7 @@ const emit = defineEmits(['update:visible', 'saved'])
 
 const toast = useToast()
 const portfolio = usePortfolioStore()
+const {t} = useI18n()
 
 const ticker = ref('')
 const amountPerShare = ref(null)
@@ -64,7 +66,7 @@ watch(drip, (on) => {
 
 async function submit() {
   if (!ticker.value || !amountPerShare.value) {
-    toast.add({severity: 'warn', summary: 'Ticker and amount per share required', life: 2000})
+    toast.add({severity: 'warn', summary: t('transactionModal.tickerOrAmountRequired'), life: 2000})
     return
   }
   const shares = drip.value ? (dripShares.value || 0) : (props.positionShares || 0)
@@ -82,12 +84,16 @@ async function submit() {
       drip: drip.value,
     })
     await portfolio.fetchPortfolio()
-    toast.add({severity: 'success', summary: `Dividend logged for ${ticker.value.toUpperCase()}`, life: 2000})
+    toast.add({
+      severity: 'success',
+      summary: t('transactionModal.dividendLogged', {ticker: ticker.value.toUpperCase()}),
+      life: 2000
+    })
     trackEvent('log_dividend', {ticker: ticker.value.toUpperCase(), drip: drip.value})
     emit('update:visible', false)
     emit('saved')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Error', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('transactionModal.error'), detail: err.message, life: 3000})
   } finally {
     loading.value = false
   }
@@ -99,13 +105,13 @@ async function submit() {
       :draggable="false"
       :style="{ width: '95vw', maxWidth: '420px' }"
       :visible="visible"
-      header="Log Dividend"
+      :header="t('transactionModal.logDividend')"
       modal
       @update:visible="emit('update:visible', $event)"
   >
     <div class="div-form">
       <div class="field">
-        <label>Ticker</label>
+        <label>{{ t('common.ticker') }}</label>
         <InputText
             v-model="ticker"
             :disabled="hasFixedTicker"
@@ -116,46 +122,46 @@ async function submit() {
       </div>
 
       <div class="field">
-        <label>Dividend per share</label>
+        <label>{{ t('transactionModal.dividendPerShare') }}</label>
         <InputNumber v-model="amountPerShare" :currency="currency" :max-fraction-digits="4" :min="0" fluid
                      mode="currency"/>
         <span v-if="yieldEstimate != null" class="hint text-muted">
-          ≈ {{ yieldEstimate.toFixed(2) }}% annualised yield (×4)
+          ≈ {{ yieldEstimate.toFixed(2) }}% {{ t('transactionModal.annualisedYield') }} (×4)
         </span>
       </div>
 
       <div v-if="totalCash != null" class="total-preview">
-        <span class="text-muted">Total received</span>
+        <span class="text-muted">{{ t('transactionModal.totalReceived') }}</span>
         <span class="total-val">{{ useCurrency(totalCash, currency) }}</span>
       </div>
 
       <div class="drip-row">
         <div class="drip-label">
-          <span>DRIP (reinvested as shares)</span>
-          <span class="text-muted hint">Dividend used to buy additional shares</span>
+          <span>{{ t('transactionModal.drip') }}</span>
+          <span class="text-muted hint">{{ t('transactionModal.dripHint') }}</span>
         </div>
         <ToggleSwitch v-model="drip"/>
       </div>
 
       <div v-if="drip" class="field">
-        <label>Shares received (DRIP)</label>
+        <label>{{ t('transactionModal.sharesReceived') }}</label>
         <InputNumber v-model="dripShares" :max-fraction-digits="4" :min="0" fluid placeholder="0"/>
         <span v-if="dripShares && amountPerShare" class="hint text-muted">
-          At {{ currencySymbol }}{{ amountPerShare.toFixed(4) }} / share
+          {{ t('transactionModal.atPerShare', {price: `${currencySymbol}${amountPerShare.toFixed(4)}`}) }}
         </span>
       </div>
 
       <div class="field">
-        <label>Date</label>
+        <label>{{ t('common.date') }}</label>
         <DatePicker v-model="date" :max-date="new Date()" date-format="dd/mm/yy" fluid show-icon/>
       </div>
 
       <div class="field">
-        <label>Notes <span class="text-muted">(optional)</span></label>
+        <label>{{ t('common.notes') }} <span class="text-muted">({{ t('common.optional') }})</span></label>
         <InputText v-model="notes" fluid placeholder="Q2 2025 dividend"/>
       </div>
 
-      <Button :loading="loading" label="Log Dividend" severity="success" @click="submit"/>
+      <Button :label="t('transactionModal.logDividend')" :loading="loading" severity="success" @click="submit"/>
     </div>
   </Dialog>
 </template>

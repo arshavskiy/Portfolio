@@ -1,6 +1,7 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
+import {useI18n} from '@/composables/useI18n'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
@@ -11,6 +12,7 @@ const props = defineProps({
   dayPnl: {type: Number, default: null},
   range: {type: String, default: ''},
 })
+const {t} = useI18n()
 
 const svgRef = ref(null)
 const wrapRef = ref(null)
@@ -164,7 +166,7 @@ watch(() => props.loading, async (isLoading) => {
     <div v-if="loading" class="hist-state">
       <AppLoader/>
     </div>
-    <div v-else-if="!data.length" class="hist-state">Not enough history yet</div>
+    <div v-else-if="!data.length" class="hist-state">{{ t('dashboard.notEnoughHistory') }}</div>
     <svg v-else ref="svgRef" class="hist-svg"/>
   </div>
 </template>

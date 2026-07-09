@@ -1,6 +1,7 @@
 <script setup>
 import {computed} from 'vue'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   items: {type: Array, default: () => []},
@@ -8,6 +9,7 @@ const props = defineProps({
 })
 
 const {openPosition} = useNavigateToPosition()
+const {t} = useI18n()
 
 function moverChangePercent(item) {
   return typeof item?.changePercent === 'number' && Number.isFinite(item.changePercent)
@@ -82,8 +84,11 @@ function openStock(item) {
 <template>
   <section v-if="loading || hasMovers" class="movers-card">
     <div class="movers-head">
-      <h2 class="card-title">Top Movers</h2>
-      <RouterLink :to="{ name: 'Watchlist' }" class="text-muted head-note head-link">From your watchlist</RouterLink>
+      <h2 class="card-title">{{ t('dashboard.topMovers') }}</h2>
+      <RouterLink :to="{ name: 'Watchlist' }" class="text-muted head-note head-link">{{
+          t('dashboard.fromWatchlist')
+        }}
+      </RouterLink>
     </div>
 
     <div v-if="loading && !hasMovers" class="movers-chart skeleton-chart">

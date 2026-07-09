@@ -5,9 +5,11 @@ import {gainLossClass, useCurrency, useTickerCurrency} from '@/composables/useFo
 import {useRouter} from 'vue-router'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const portfolio = usePortfolioStore()
+const {t} = useI18n()
 
 // User-editable target allocations (0–100 per ticker)
 const targets = ref({})
@@ -101,23 +103,23 @@ function formatShares(n) {
   <div class="rebalance safe-bottom">
     <header class="page-header">
       <Button icon="pi pi-arrow-left" rounded text @click="router.push('/watchlist')"/>
-      <h1 class="gradient-title">Rebalance</h1>
+      <h1 class="gradient-title">{{ t('rebalance.title') }}</h1>
       <div/>
     </header>
 
     <div v-if="portfolio.loading" class="page-loader">
-      <span class="text-muted">Loading…</span>
+      <span class="text-muted">{{ t('common.loading') }}</span>
     </div>
 
     <template v-else-if="portfolio.positions.length">
       <!-- Context -->
       <div class="context-card">
         <div class="ctx-row">
-          <span class="text-muted">Portfolio value</span>
+          <span class="text-muted">{{ t('rebalance.portfolioValue') }}</span>
           <span>{{ useCurrency(portfolioValueUsd, 'USD') }}</span>
         </div>
         <div class="ctx-row">
-          <span class="text-muted">Extra cash to deploy</span>
+          <span class="text-muted">{{ t('rebalance.extraCash') }}</span>
           <InputNumber
               v-model="totalCash"
               :max-fraction-digits="2"
@@ -134,10 +136,10 @@ function formatShares(n) {
       <!-- Target allocation sliders -->
       <section class="alloc-section">
         <div class="section-head">
-          <h2 class="section-title">Target Allocations</h2>
+          <h2 class="section-title">{{ t('rebalance.targetAllocations') }}</h2>
           <div class="section-actions">
-            <button class="action-link" @click="setEqualWeights">Equal weight</button>
-            <button class="action-link" @click="resetToCurrent">Reset</button>
+            <button class="action-link" @click="setEqualWeights">{{ t('rebalance.equalWeight') }}</button>
+            <button class="action-link" @click="resetToCurrent">{{ t('rebalance.reset') }}</button>
           </div>
         </div>
 
@@ -163,15 +165,16 @@ function formatShares(n) {
         </div>
 
         <div :class="{ error: !targetSumOk && targetSum > 0 }" class="sum-row">
-          <span>Total allocated: <strong>{{ targetSum.toFixed(1) }}%</strong></span>
-          <span v-if="unallocated > 0.01" class="text-muted">{{ unallocated.toFixed(1) }}% unallocated</span>
-          <span v-if="!targetSumOk && targetSum > 0" class="err-msg">Must sum to 100%</span>
+          <span>{{ t('rebalance.totalAllocated') }} <strong>{{ targetSum.toFixed(1) }}%</strong></span>
+          <span v-if="unallocated > 0.01"
+                class="text-muted">{{ t('rebalance.unallocated', {amount: unallocated.toFixed(1)}) }}</span>
+          <span v-if="!targetSumOk && targetSum > 0" class="err-msg">{{ t('rebalance.mustSum') }}</span>
         </div>
       </section>
 
       <!-- Action plan -->
       <section v-if="targetSumOk" class="plan-section">
-        <h2 class="section-title">Action Plan</h2>
+        <h2 class="section-title">{{ t('rebalance.actionPlan') }}</h2>
         <div class="plan-list">
           <div v-for="a in actions" :key="a.ticker" class="plan-row">
             <div class="plan-left">
@@ -190,10 +193,10 @@ function formatShares(n) {
                   :class="a.action === 'buy' ? 'gain' : a.action === 'sell' ? 'loss' : 'text-muted'"
                   class="plan-action"
               >
-                <template v-if="a.action === 'hold'">Hold</template>
+                <template v-if="a.action === 'hold'">{{ t('common.hold') }}</template>
                 <template v-else>
-                  {{ a.action === 'buy' ? 'Buy' : 'Sell' }}
-                  {{ formatShares(Math.abs(a.sharesDelta)) }} sh
+                  {{ a.action === 'buy' ? t('common.buy') : t('common.sell') }}
+                  {{ formatShares(Math.abs(a.sharesDelta)) }} {{ t('rebalance.sharesShort') }}
                 </template>
               </span>
               <span :class="gainLossClass(a.diffUsd)" class="plan-usd">
@@ -204,15 +207,15 @@ function formatShares(n) {
         </div>
 
         <div class="plan-note text-muted">
-          Prices are live quotes. Share counts are estimates — verify before trading.
+          {{ t('rebalance.note') }}
         </div>
       </section>
     </template>
 
     <div v-else class="empty">
       <i class="pi pi-briefcase"/>
-      <p class="text-muted">No holdings to rebalance</p>
-      <Button label="Add Transaction" @click="router.push('/watchlist')"/>
+      <p class="text-muted">{{ t('rebalance.empty') }}</p>
+      <Button :label="t('watchlist.addTransaction')" @click="router.push('/watchlist')"/>
     </div>
   </div>
 </template>

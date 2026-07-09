@@ -1,0 +1,16 @@
+{
+  "name": "stockfolio-marketing-agent",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "discover": "node scripts/discover.js",
+    "discover:sleep": "node scripts/sleepDiscovery.js",
+    "scrape": "node scripts/scrapePublicPages.js",
+    "screenshots": "node scripts/captureSearchScreenshots.js",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}

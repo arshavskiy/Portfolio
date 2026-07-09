@@ -6,10 +6,13 @@ import {useAuthStore} from '@/stores/auth'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const toast = useToast()
 const auth = useAuthStore()
+const {t} = useI18n()
 
 const name = ref('')
 const identifier = ref('')
@@ -21,30 +24,30 @@ const submitEnabled = computed(() =>
     name.value.trim() && identifier.value.trim() && password.value && passwordValid.value
 )
 
-const features = [
+const features = computed(() => [
   {
     icon: 'pi pi-chart-line',
-    title: 'Track Everything',
-    text: 'Follow stocks, crypto, and multi-market positions in one clean mobile-first workspace.',
+    title: t('register.trackEverythingTitle'),
+    text: t('register.trackEverythingText'),
   },
   {
     icon: 'pi pi-bell',
-    title: 'Price Alerts',
-    text: 'Create multiple target alerts and keep market triggers close to your positions.',
+    title: t('login.features.priceAlertsTitle'),
+    text: t('login.features.priceAlertsText'),
   },
   {
     icon: 'pi pi-folder-open',
-    title: 'Groups & Lots',
-    text: 'Organize symbols by sector or custom groups and inspect transaction lots in detail.',
+    title: t('register.groupsLotsTitle'),
+    text: t('register.groupsLotsText'),
   },
-]
+])
 
 async function submit() {
   if (!passwordValid.value) {
     toast.add({
       severity: 'warn',
-      summary: 'Weak password',
-      detail: 'Password must be at least 8 characters and include a number and a special character',
+      summary: t('login.weakPassword'),
+      detail: t('login.weakPasswordDetail'),
       life: 3000,
     })
     return
@@ -55,7 +58,7 @@ async function submit() {
     await auth.register(name.value, identifier.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('login.registrationFailed'), detail: err.message, life: 3000})
   } finally {
     loading.value = false
   }
@@ -70,35 +73,35 @@ async function submit() {
           <div class="brand">
             <span class="brand-mark">📈</span>
             <span class="brand-name gradient-title">StockFolio</span>
+            <LanguageSelect class="hero-language"/>
           </div>
 
           <h1 id="register-hero-title" class="hero-title">
-            Build your market workspace,<br/>
-            <span class="gradient-title">from the first position.</span>
+            {{ t('register.heroTitleLine1') }}<br/>
+            <span class="gradient-title">{{ t('register.heroTitleLine2') }}</span>
           </h1>
           <p class="hero-sub">
-            Create your account to track holdings, inspect lots, follow markets,
-            and manage alerts across US, TASE, and crypto in one place.
+            {{ t('register.heroSubtitle') }}
           </p>
 
           <div class="hero-panel">
             <div class="hero-panel-grid">
               <div class="hero-stat">
-                <span class="hero-kicker">Coverage</span>
-                <strong>US + TASE + Crypto</strong>
+                <span class="hero-kicker">{{ t('register.coverage') }}</span>
+                <strong>{{ t('register.coverageValue') }}</strong>
               </div>
               <div class="hero-stat">
-                <span class="hero-kicker">Alerts</span>
-                <strong>Multiple targets per ticker</strong>
+                <span class="hero-kicker">{{ t('alerts.title') }}</span>
+                <strong>{{ t('register.alertsValue') }}</strong>
               </div>
               <div class="hero-stat">
-                <span class="hero-kicker">Detail</span>
-                <strong>Lots, charts, and grouped lists</strong>
+                <span class="hero-kicker">{{ t('register.detail') }}</span>
+                <strong>{{ t('register.detailValue') }}</strong>
               </div>
             </div>
           </div>
 
-          <div aria-label="Product features" class="features">
+          <div :aria-label="t('register.featuresLabel')" class="features">
             <div v-for="f in features" :key="f.title" class="feature">
               <i :class="f.icon" aria-hidden="true" class="feature-icon"/>
               <div>
@@ -112,34 +115,35 @@ async function submit() {
 
       <section aria-labelledby="register-form-title" class="auth">
         <div class="auth-card">
-          <h2 id="register-form-title" class="auth-heading">Create your account</h2>
-          <p class="auth-subheading text-muted">Start tracking your portfolio</p>
+          <h2 id="register-form-title" class="auth-heading">{{ t('login.createAccount') }}</h2>
+          <p class="auth-subheading text-muted">{{ t('login.startTracking') }}</p>
 
           <form class="auth-form" @submit.prevent="submit">
             <div class="field">
-              <label for="register-name">Name</label>
-              <InputText id="register-name" v-model="name" autocomplete="name" fluid placeholder="Your name" required/>
+              <label for="register-name">{{ t('login.name') }}</label>
+              <InputText id="register-name" v-model="name" :placeholder="t('login.namePlaceholder')" autocomplete="name"
+                         fluid required/>
             </div>
             <div class="field">
-              <label for="register-email">Email or Username</label>
+              <label for="register-email">{{ t('login.emailOrUsername') }}</label>
               <InputText id="register-email" v-model="identifier" autocomplete="username" fluid
-                         placeholder="you@example.com or username"
+                         :placeholder="t('login.identifierPlaceholder')"
                          required/>
             </div>
             <div class="field">
-              <label for="register-password">Password</label>
+              <label for="register-password">{{ t('login.password') }}</label>
               <Password
                   v-model="password"
                   :feedback="false"
                   autocomplete="new-password"
                   fluid
                   inputId="register-password"
-                  placeholder="8+ chars, number, special char"
+                  :placeholder="t('login.passwordPlaceholder')"
                   required
                   toggleMask
               />
               <small :class="{ invalid: password && !passwordValid }" class="password-hint">
-                Use at least 8 characters, one number, and one special character.
+                {{ t('login.passwordHint') }}
               </small>
             </div>
             <Button
@@ -149,18 +153,18 @@ async function submit() {
                 fluid
                 icon="pi pi-arrow-right"
                 iconPos="right"
-                label="Create StockFolio Account"
+                :label="t('login.createStockFolioAccount')"
                 type="submit"
             />
             <p class="disclaimer-note text-muted">
-              By creating an account, you acknowledge that StockFolio is an informational portfolio tool, not financial advice, and that investing involves risk.
-              <RouterLink to="/disclaimer">Read the disclaimer</RouterLink>
+              {{ t('login.disclaimerNote') }}
+              <RouterLink to="/disclaimer">{{ t('login.readDisclaimer') }}</RouterLink>
             </p>
           </form>
 
           <p class="auth-footer">
-            Already have an account?
-            <RouterLink to="/login">Sign in</RouterLink>
+            {{ t('login.alreadyHaveAccount') }}
+            <RouterLink to="/login">{{ t('login.signIn') }}</RouterLink>
           </p>
         </div>
       </section>
@@ -208,6 +212,10 @@ async function submit() {
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 1.75rem;
+}
+
+.hero-language {
+  margin-left: auto;
 }
 
 .brand-mark {

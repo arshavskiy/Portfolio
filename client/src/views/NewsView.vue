@@ -6,10 +6,12 @@ import {storeToRefs} from 'pinia'
 import {DEFAULT_NEWS_TOPICS, useNewsStore} from '@/stores/news'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const news = useNewsStore()
 const {topics} = storeToRefs(news)
+const {t} = useI18n()
 
 const topic = useStorage('news-topic', 'for-you')
 const error = ref('')
@@ -33,7 +35,7 @@ async function loadNews({reset = false} = {}) {
   try {
     await news.fetchFeed(topic.value, {reset, limit: PAGE_SIZE})
   } catch (err) {
-    error.value = err.message || 'Unable to load news'
+    error.value = err.message || t('newsPage.unableToLoad')
   }
 }
 
@@ -79,8 +81,8 @@ onUnmounted(() => observer?.disconnect())
   <div class="news-page safe-bottom">
     <header class="page-header">
       <div>
-        <h1 class="gradient-title">News</h1>
-        <p class="text-muted">{{ activeTopic?.label || 'Markets' }} feed</p>
+        <h1 class="gradient-title">{{ t('common.news') }}</h1>
+        <p class="text-muted">{{ t('newsPage.feed', {topic: activeTopic?.label || t('newsPage.markets')}) }}</p>
       </div>
     </header>
 
@@ -107,7 +109,7 @@ onUnmounted(() => observer?.disconnect())
 
     <div v-else-if="!articles.length" class="empty">
       <i class="pi pi-globe" />
-      <p>No stories found for this topic</p>
+      <p>{{ t('newsPage.noStories') }}</p>
     </div>
 
     <div v-else class="news-list">
@@ -127,7 +129,7 @@ onUnmounted(() => observer?.disconnect())
         type="button"
         @click="loadNews()"
       >
-        Load more
+        {{ t('newsPage.loadMore') }}
       </button>
     </div>
   </div>

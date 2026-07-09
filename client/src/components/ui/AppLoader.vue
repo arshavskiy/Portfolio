@@ -1,5 +1,11 @@
+<script setup>
+import {useI18n} from '@/composables/useI18n'
+
+const {t} = useI18n()
+</script>
+
 <template>
-  <span aria-label="Loading" class="app-loader"/>
+  <span :aria-label="t('common.loading')" class="app-loader"/>
 </template>
 
 <style scoped>

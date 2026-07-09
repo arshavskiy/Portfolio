@@ -3,29 +3,32 @@ import {computed} from 'vue'
 import {useRoute} from 'vue-router'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useI18n} from '@/composables/useI18n'
 import PositionDetailView from '@/views/PositionDetailView.vue'
 import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
 import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
+import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 
 const route = useRoute()
 const focus = useDesktopFocusStore()
+const {t} = useI18n()
 
 function trackNav(item) {
-  trackEvent('nav_click', {nav_item: item.name})
+  trackEvent('nav_click', {nav_item: item.key})
 }
 
 const isDashboard = computed(() => route.path === '/')
 const PANEL_ROUTES = ['/watchlist']
 const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)))
 
-const navItems = [
-  {name: 'Dashboard',    to: '/',             icon: 'pi pi-chart-bar'},
-  {name: 'Watchlist',    to: '/watchlist',    icon: 'pi pi-eye'},
-  {name: 'History & Alerts',  to: '/history-alerts', icon: 'pi pi-list'},
-  {name: 'News',           to: '/news',            icon: 'pi pi-globe'},
-  {name: 'Account',        to: '/account',         icon: 'pi pi-user'},
-  {name: 'About',          to: '/help',            icon: 'pi pi-info-circle'},
-]
+const navItems = computed(() => [
+  {key: 'dashboard', name: t('common.dashboard'), to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
+  {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
+  {key: 'history', name: t('common.historyAlerts'), to: '/history-alerts', icon: 'pi pi-list', tourKey: 'history'},
+  {key: 'news', name: t('common.news'), to: '/news', icon: 'pi pi-globe', tourKey: 'news'},
+  {key: 'account', name: t('common.account'), to: '/account', icon: 'pi pi-user', tourKey: 'account'},
+  {key: 'about', name: t('common.about'), to: '/help', icon: 'pi pi-info-circle', tourKey: 'about'},
+])
 
 function isActive(item) {
   if (item.to === '/') return route.path === '/'
@@ -39,13 +42,16 @@ function isActive(item) {
       <div class="sidebar-brand">
         <span class="brand-name gradient-title">StockFolio</span>
       </div>
+      <div class="sidebar-language">
+        <LanguageSelect/>
+      </div>
       <div class="sidebar-nav">
         <RouterLink
             v-for="item in navItems"
-            :key="item.name"
+            :key="item.key"
             :to="item.to"
             :class="{active: isActive(item)}"
-            :data-tour="`nav-${item.name.split(' ')[0].toLowerCase()}`"
+            :data-tour="`nav-${item.tourKey}`"
             class="sidebar-item"
             @click="trackNav(item)"
         >
@@ -70,7 +76,7 @@ function isActive(item) {
       <aside class="right-col">
         <div v-if="!focus.ticker" class="right-empty">
           <i class="pi pi-chart-line"/>
-          <p>Click any row to view position</p>
+          <p>{{ t('nav.clickRowToViewPosition') }}</p>
         </div>
         <PositionDetailView
             v-else
@@ -146,6 +152,12 @@ function isActive(item) {
   flex-direction: column;
   gap: 2px;
   padding: 0 8px;
+}
+
+.sidebar-language {
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem 0.75rem;
 }
 
 .sidebar-item {

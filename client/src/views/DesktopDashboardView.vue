@@ -21,6 +21,7 @@ import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const BreakdownCard = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
@@ -32,6 +33,7 @@ const TrendingCard = defineAsyncComponent(() => import('@/components/charts/Tren
 
 // ── Dashboard store ──
 const dashboard = useDashboardStore()
+const {t} = useI18n()
 const {
   ready,
   portfolioPositions,
@@ -121,9 +123,9 @@ const cacheStatusText = computed(() => {
     minute: '2-digit',
     hour12: false
   }).format(new Date(meta.savedAt))
-  if (meta.stale) return `Offline cache from ${time}`
-  if (meta.cached) return `Cached ${time}`
-  return `Updated ${time}`
+  if (meta.stale) return t('watchlist.offlineCacheFrom', {time})
+  if (meta.cached) return t('watchlist.cached', {time})
+  return t('watchlist.updated', {time})
 })
 
 const visibleOrderedItems = computed(() => {
@@ -236,7 +238,7 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
 
         <section v-if="portfolioPositions.length" class="history-card">
           <div class="history-head">
-            <h2 class="section-title gradient-title">Portfolio Value</h2>
+            <h2 class="section-title gradient-title">{{ t('dashboard.portfolioValue') }}</h2>
             <div class="toggle-group">
               <button
                   v-for="opt in HISTORY_RANGES"
@@ -260,7 +262,7 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
         <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
 
         <div v-if="showEmpty" class="empty text-muted">
-          No holdings yet. Add a transaction to get started, or explore what's trending.
+          {{ t('dashboard.empty') }}
         </div>
       </template>
     </div>
@@ -269,7 +271,7 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
     <div class="position-col">
       <div v-if="!desktopFocus.ticker" class="position-empty">
         <i class="pi pi-chart-line"/>
-        <p>Click a watchlist or holdings item to view its position</p>
+        <p>{{ t('nav.clickRowToViewPosition') }}</p>
       </div>
       <PositionDetailView
           v-else
@@ -283,25 +285,25 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
     <div class="watchlist-col">
       <div class="wl-sticky-header">
         <div class="wl-header-row">
-          <h2 class="gradient-title wl-title">Watchlist</h2>
+          <h2 class="gradient-title wl-title">{{ t('common.watchlist') }}</h2>
           <div class="wl-actions">
             <span class="tour-action-anchor" data-tour="wl-import">
               <Button
-                  v-tooltip.bottom="'Import from file'"
+                  v-tooltip.bottom="t('watchlist.importFromFile')"
                   icon="pi pi-upload"
                   size="small"
                   text
                   @click="showImportModal = true"
               />
             </span>
-            <Button label="Add" outlined size="small" @click="showModal = true"/>
+            <Button :label="t('common.add')" outlined size="small" @click="showModal = true"/>
           </div>
         </div>
         <WatchlistSearch v-model="searchQuery"/>
         <RangeBar class="wl-range"/>
         <div v-if="rangeLoading" class="range-loading-indicator">
           <AppLoader/>
-          <span>Loading {{ rangeLabel }} data</span>
+          <span>{{ t('common.loadingRangeData', {range: rangeLabel}) }}</span>
         </div>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="wl-group-mode"/>
         <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
@@ -315,12 +317,12 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
       </div>
       <div v-else-if="!watchlist.items.length" class="empty">
         <i class="pi pi-eye"/>
-        <p>Your watchlist is empty</p>
-        <Button label="Add Stock" @click="showModal = true"/>
+        <p>{{ t('watchlist.empty') }}</p>
+        <Button :label="t('watchlist.addStock')" @click="showModal = true"/>
       </div>
       <div v-else-if="!filteredItems.length" class="empty">
         <i class="pi pi-search"/>
-        <p>No matches</p>
+        <p>{{ t('watchlist.noMatchesShort') }}</p>
       </div>
       <div v-else class="watch-list" :class="{loading: rangeLoading}">
         <template v-for="section in grouped" :key="section.group ?? '_all'">

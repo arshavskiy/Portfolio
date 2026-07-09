@@ -4,6 +4,7 @@ import {useToast} from 'primevue/usetoast'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useWatchlistStore} from '@/stores/watchlist'
 import api from '@/composables/useApi'
+import {useI18n} from '@/composables/useI18n'
 import {autoMap, downloadTemplate, mapRows, parseFile} from '@/composables/useImport'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
@@ -18,6 +19,96 @@ const emit = defineEmits(['update:visible', 'imported'])
 const toast = useToast()
 const portfolio = usePortfolioStore()
 const watchlist = useWatchlistStore()
+const {locale, t: translate} = useI18n()
+
+const importModalFallback = {
+  en: {
+    importHoldings: 'Import Holdings',
+    importWatchlist: 'Import Watchlist',
+    ticker: 'Ticker',
+    shares: 'Shares',
+    price: 'Price',
+    date: 'Date',
+    company: 'Company',
+    groups: 'Groups',
+    none: '— none —',
+    unknownTicker: 'Unknown ticker — not found',
+    noRows: 'No data rows found in the file.',
+    readFailed: 'Could not read file',
+    alreadyInWatchlist: 'Already in watchlist',
+    requestFailed: 'Request failed ({status})',
+    importedSummary: 'Imported {ok} of {total}',
+    notAddedDetail: '{count} not added — see list below',
+    copiedList: 'Copied list',
+    copyFailed: 'Copy failed',
+    reading: 'Reading…',
+    chooseFile: 'Tap to choose a file',
+    supportedFiles: '.xlsx, .csv, or .docx (with a table)',
+    downloadTemplate: 'Download {mode} template',
+    holdings: 'holdings',
+    watchlist: 'watchlist',
+    rows: 'rows',
+    change: 'Change',
+    preview: 'Preview',
+    checkingTickers: 'Checking tickers…',
+    checkingTickersInline: 'checking tickers…',
+    validCount: '{valid} of {total} valid',
+    importItems: 'Import {count} {mode}',
+    tickers: 'tickers',
+    addedCount: 'Added {ok} of {total}',
+    notAdded: '{count} not added',
+    done: 'Done',
+  },
+  ru: {
+    importHoldings: 'Импорт позиций',
+    importWatchlist: 'Импорт списка наблюдения',
+    ticker: 'Тикер',
+    shares: 'Количество',
+    price: 'Цена',
+    date: 'Дата',
+    company: 'Компания',
+    groups: 'Группы',
+    none: '— нет —',
+    unknownTicker: 'Неизвестный тикер — не найден',
+    noRows: 'В файле не найдены строки с данными.',
+    readFailed: 'Не удалось прочитать файл',
+    alreadyInWatchlist: 'Уже в списке наблюдения',
+    requestFailed: 'Ошибка запроса ({status})',
+    importedSummary: 'Импортировано {ok} из {total}',
+    notAddedDetail: '{count} не добавлено — смотрите список ниже',
+    copiedList: 'Список скопирован',
+    copyFailed: 'Не удалось скопировать',
+    reading: 'Чтение...',
+    chooseFile: 'Нажмите, чтобы выбрать файл',
+    supportedFiles: '.xlsx, .csv или .docx (с таблицей)',
+    downloadTemplate: 'Скачать шаблон: {mode}',
+    holdings: 'позиции',
+    watchlist: 'список наблюдения',
+    rows: 'строк',
+    change: 'Изменить',
+    preview: 'Предпросмотр',
+    checkingTickers: 'Проверка тикеров...',
+    checkingTickersInline: 'проверка тикеров...',
+    validCount: '{valid} из {total} корректны',
+    importItems: 'Импортировать {count}: {mode}',
+    tickers: 'тикеры',
+    addedCount: 'Добавлено {ok} из {total}',
+    notAdded: '{count} не добавлено',
+    done: 'Готово',
+  },
+}
+
+function formatLocal(template, params = {}) {
+  return template.replace(/\{(\w+)\}/g, (_, name) => params[name] ?? '')
+}
+
+function t(key, params) {
+  const translated = translate(key, params)
+  if (!key.startsWith('importModal.') || translated !== key) return translated
+  const localKey = key.slice('importModal.'.length)
+  const fallback = importModalFallback[locale.value]?.[localKey] ?? importModalFallback.en[localKey]
+  return fallback ? formatLocal(fallback, params) : key
+}
 
 const fileInput = ref(null)
 const fileName = ref('')
@@ -30,26 +121,26 @@ const progress = ref(0)
 const result = ref(null) // { ok, failed, failures: [{ ticker, reason }] }
 
 const isHoldings = computed(() => props.mode === 'holdings')
-const title = computed(() => (isHoldings.value ? 'Import Holdings' : 'Import Watchlist'))
+const title = computed(() => t(isHoldings.value ? 'importModal.importHoldings' : 'importModal.importWatchlist'))
 
 // Fields the user can map, per mode.
 const fields = computed(() =>
     isHoldings.value
         ? [
-          {key: 'ticker', label: 'Ticker', required: true},
-          {key: 'shares', label: 'Shares', required: true},
-          {key: 'price', label: 'Price', required: true},
-          {key: 'date', label: 'Date', required: false},
-          {key: 'companyName', label: 'Company', required: false},
-          {key: 'groups', label: 'Groups', required: false},
+          {key: 'ticker', label: t('importModal.ticker'), required: true},
+          {key: 'shares', label: t('importModal.shares'), required: true},
+          {key: 'price', label: t('importModal.price'), required: true},
+          {key: 'date', label: t('importModal.date'), required: false},
+          {key: 'companyName', label: t('importModal.company'), required: false},
+          {key: 'groups', label: t('importModal.groups'), required: false},
         ]
         : [
-          {key: 'ticker', label: 'Ticker', required: true},
+          {key: 'ticker', label: t('importModal.ticker'), required: true},
         ]
 )
 
 const headerOptions = computed(() => [
-  {label: '— none —', value: null},
+  {label: t('importModal.none'), value: null},
   ...headers.value.map((h) => ({label: h, value: h})),
 ])
 
@@ -66,7 +157,7 @@ const mappedRows = computed(() =>
     baseRows.value.map((r) => {
       if (!r.valid || validSet.value == null) return r
       if (validSet.value.has(r.ticker.toUpperCase())) return r
-      return {...r, valid: false, unknown: true, error: 'Unknown ticker — not found'}
+      return {...r, valid: false, unknown: true, error: t('importModal.unknownTicker')}
     })
 )
 
@@ -118,12 +209,12 @@ async function onFile(e) {
   parsing.value = true
   try {
     const {headers: hs, rows} = await parseFile(file)
-    if (!rows.length) throw new Error('No data rows found in the file.')
+    if (!rows.length) throw new Error(t('importModal.noRows'))
     headers.value = hs
     rawRows.value = rows
     map.value = autoMap(hs)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Could not read file', detail: err.message, life: 4000})
+    toast.add({severity: 'error', summary: t('importModal.readFailed'), detail: err.message, life: 4000})
     reset()
   } finally {
     parsing.value = false
@@ -156,8 +247,8 @@ async function runImport() {
       ok++
     } catch (err) {
       const reason = err?.status === 409
-        ? 'Already in watchlist'
-        : err?.message || `Request failed (${err?.status || '—'})`
+          ? t('importModal.alreadyInWatchlist')
+          : err?.message || t('importModal.requestFailed', {status: err?.status || '—'})
       failures.push({ticker: r.ticker, reason})
     }
     progress.value = Math.round(((ok + failures.length) / rows.length) * 100)
@@ -169,8 +260,8 @@ async function runImport() {
   result.value = {ok, failed: failures.length, failures}
   toast.add({
     severity: failures.length ? 'warn' : 'success',
-    summary: `Imported ${ok} of ${rows.length}`,
-    detail: failures.length ? `${failures.length} not added — see list below` : undefined,
+    summary: t('importModal.importedSummary', {ok, total: rows.length}),
+    detail: failures.length ? t('importModal.notAddedDetail', {count: failures.length}) : undefined,
     life: 3500,
   })
   emit('imported')
@@ -180,9 +271,9 @@ async function copyFailures() {
   const text = result.value?.failures.map((f) => `${f.ticker}\t${f.reason}`).join('\n') || ''
   try {
     await navigator.clipboard.writeText(text)
-    toast.add({severity: 'success', summary: 'Copied list', life: 2000})
+    toast.add({severity: 'success', summary: t('importModal.copiedList'), life: 2000})
   } catch {
-    toast.add({severity: 'warn', summary: 'Copy failed', life: 2000})
+    toast.add({severity: 'warn', summary: t('importModal.copyFailed'), life: 2000})
   }
 }
 
@@ -214,18 +305,21 @@ function close() {
       <template v-if="!rawRows.length">
         <div class="dropzone" @click="pickFile">
           <i class="pi pi-upload"/>
-          <p>{{ parsing ? 'Reading…' : 'Tap to choose a file' }}</p>
-          <span class="text-muted">.xlsx, .csv, or .docx (with a table)</span>
+          <p>{{ parsing ? t('importModal.reading') : t('importModal.chooseFile') }}</p>
+          <span class="text-muted">{{ t('importModal.supportedFiles') }}</span>
         </div>
         <button class="template-link" @click="downloadTemplate(mode)">
-          <i class="pi pi-download"/> Download {{ isHoldings ? 'holdings' : 'watchlist' }} template
+          <i class="pi pi-download"/>
+          {{
+            t('importModal.downloadTemplate', {mode: isHoldings ? t('importModal.holdings') : t('importModal.watchlist')})
+          }}
         </button>
       </template>
 
       <template v-else>
         <p class="file-line text-muted">
-          <i class="pi pi-file"/> {{ fileName }} · {{ rawRows.length }} rows
-          <button class="link" @click="pickFile">Change</button>
+          <i class="pi pi-file"/> {{ fileName }} · {{ rawRows.length }} {{ t('importModal.rows') }}
+          <button class="link" @click="pickFile">{{ t('importModal.change') }}</button>
         </p>
 
         <!-- Column mapping -->
@@ -246,10 +340,12 @@ function close() {
         <!-- Preview -->
         <div class="preview">
           <div class="preview-head">
-            <span>Preview</span>
+            <span>{{ t('importModal.preview') }}</span>
             <span class="text-muted">
-              <template v-if="validating">checking tickers…</template>
-              <template v-else>{{ validCount }} of {{ mappedRows.length }} valid</template>
+              <template v-if="validating">{{ t('importModal.checkingTickersInline') }}</template>
+              <template v-else>{{
+                  t('importModal.validCount', {valid: validCount, total: mappedRows.length})
+                }}</template>
             </span>
           </div>
           <div class="preview-list">
@@ -280,7 +376,7 @@ function close() {
         <Button
             v-if="!result"
             :disabled="!canImport || importing"
-            :label="validating ? 'Checking tickers…' : `Import ${validCount} ${isHoldings ? 'holdings' : 'tickers'}`"
+            :label="validating ? t('importModal.checkingTickers') : t('importModal.importItems', { count: validCount, mode: isHoldings ? t('importModal.holdings') : t('importModal.tickers') })"
             :loading="importing || validating"
             fluid
             outlined
@@ -291,14 +387,16 @@ function close() {
         <div v-if="result" class="result">
           <div class="result-head">
             <i class="pi pi-check-circle ok"/>
-            <span>Added {{ result.ok }} of {{ result.ok + result.failed }}</span>
+            <span>{{ t('importModal.addedCount', {ok: result.ok, total: result.ok + result.failed}) }}</span>
           </div>
 
           <div v-if="result.failures.length" class="not-added">
             <div class="not-added-head">
-              <span><i class="pi pi-exclamation-triangle bad"/> {{ result.failures.length }} not added</span>
+              <span><i class="pi pi-exclamation-triangle bad"/> {{
+                  t('importModal.notAdded', {count: result.failures.length})
+                }}</span>
               <button class="link" @click="copyFailures">
-                <i class="pi pi-copy"/> Copy
+                <i class="pi pi-copy"/> {{ t('common.copy') }}
               </button>
             </div>
             <div class="not-added-list">
@@ -309,7 +407,7 @@ function close() {
             </div>
           </div>
 
-          <Button fluid label="Done" @click="close"/>
+          <Button :label="t('importModal.done')" fluid @click="close"/>
         </div>
       </template>
     </div>

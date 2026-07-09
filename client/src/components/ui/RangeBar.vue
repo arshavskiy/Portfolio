@@ -1,6 +1,7 @@
 <script setup>
 import {computed} from 'vue'
 import { useChartRange } from '@/composables/useChartRange'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   modelValue: {
@@ -12,6 +13,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const sharedRange = useChartRange()
+const {t} = useI18n()
 
 const range = computed({
   get: () => props.modelValue ?? sharedRange.value,
@@ -24,13 +26,13 @@ const range = computed({
   },
 })
 
-const OPTIONS = [
-  { label: 'D', value: '1d', title: 'Day' },
-  { label: 'W', value: '5d', title: 'Week' },
-  { label: 'M', value: '1mo', title: 'Month' },
-  { label: '6M', value: '6mo', title: '6 Months' },
-  { label: 'Y', value: '1y', title: 'Year' },
-]
+const OPTIONS = computed(() => [
+  {label: 'D', value: '1d', title: t('range.day')},
+  {label: 'W', value: '5d', title: t('range.week')},
+  {label: 'M', value: '1mo', title: t('range.month')},
+  {label: '6M', value: '6mo', title: t('range.sixMonths')},
+  {label: 'Y', value: '1y', title: t('range.year')},
+])
 </script>
 
 <template>

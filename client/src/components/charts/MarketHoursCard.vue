@@ -1,11 +1,50 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {getMarketHoursState, MARKET_HOURS_LIST} from '@/composables/useMarketHours'
+import {useI18n} from '@/composables/useI18n'
 
 const now = ref(new Date())
+const {locale, t} = useI18n()
 let timer = null
 
 const markets = computed(() => MARKET_HOURS_LIST.map((market) => getMarketHoursState(market, now.value)))
+
+function localDuration(value = '') {
+  return locale.value === 'ru'
+      ? value.replace(/(\d+)d/g, '$1д').replace(/(\d+)h/g, '$1ч').replace(/(\d+)m/g, '$1м')
+      : value
+}
+
+function displayMarketHoursLabel(value = '') {
+  const patterns = [
+    [/^Regular in (.+)$/u, 'dashboard.regularIn'],
+    [/^Pre-Market in (.+)$/u, 'dashboard.preMarketIn'],
+    [/^After-Hours in (.+)$/u, 'dashboard.afterHoursIn'],
+    [/^Closed in (.+)$/u, 'dashboard.closedIn'],
+    [/^Pre until (.+)$/u, 'dashboard.preUntil'],
+    [/^Pre in (.+)$/u, 'dashboard.preIn'],
+    [/^Regular until (.+)$/u, 'dashboard.regularUntil'],
+    [/^Post until (.+)$/u, 'dashboard.postUntil'],
+    [/^Opens in (.+)$/u, 'dashboard.opensIn'],
+  ]
+  for (const [pattern, key] of patterns) {
+    const match = value.match(pattern)
+    if (match) return t(key, {duration: localDuration(match[1])})
+  }
+  const exact = {
+    Open: 'common.open',
+    Closed: 'dashboard.closed',
+    'Pre-Market Trading': 'dashboard.preMarketTrading',
+    'Before Trade': 'dashboard.beforeTrade',
+    'After-Hours Trading': 'dashboard.afterHoursTrading',
+    'After Trade': 'dashboard.afterTrade',
+  }[value]
+  return exact ? t(exact) : value
+}
+
+function displaySessionLabel(value = '') {
+  return value.replace('Pre-Market', t('dashboard.preMarketSession'))
+}
 
 onMounted(() => {
   timer = setInterval(() => {
@@ -21,8 +60,8 @@ onUnmounted(() => {
 <template>
   <section class="hours-card">
     <div class="hours-head">
-      <h2 class="card-title">Market Hours</h2>
-      <span class="text-muted head-note">Live sessions</span>
+      <h2 class="card-title">{{ t('dashboard.marketHours') }}</h2>
+      <span class="text-muted head-note">{{ t('dashboard.liveSessions') }}</span>
     </div>
 
     <div class="hours-grid">
@@ -33,14 +72,14 @@ onUnmounted(() => {
             <div class="market-city text-muted">{{ market.city }}</div>
           </div>
           <span :class="market.isOpen ? 'state-open' : 'state-closed'" class="state-pill">
-            {{ market.isOpen ? 'Open' : 'Closed' }}
+            {{ market.isOpen ? t('common.open') : t('dashboard.closed') }}
           </span>
         </div>
 
         <div class="market-time">{{ market.localTime }}</div>
         <div class="market-meta">
-          <span class="text-muted">{{ market.nextLabel }}</span>
-          <span class="session" v-html="market.sessionLabel" />
+          <span class="text-muted">{{ displayMarketHoursLabel(market.nextLabel) }}</span>
+          <span class="session" v-html="displaySessionLabel(market.sessionLabel)"/>
         </div>
       </article>
     </div>

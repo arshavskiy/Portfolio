@@ -5,6 +5,7 @@ import {useWatchlistStore} from '@/stores/watchlist'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {useChartRange} from '@/composables/useChartRange'
 import {gainLossClass, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 import StockChart from '@/components/charts/StockChart.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
@@ -18,6 +19,7 @@ const emit = defineEmits(['select-ticker'])
 const historyStore = useHistoryStore()
 const watchlist = useWatchlistStore()
 const range = useChartRange()
+const {t} = useI18n()
 
 const history = ref([])
 const chartLoading = ref(false)
@@ -62,7 +64,7 @@ const changePct = computed(() => quote.value?.changePercent ?? null)
     <!-- Empty state -->
     <div v-if="!ticker" class="empty-state">
       <i class="pi pi-chart-line empty-icon"/>
-      <p>Click any holding or watchlist item to see its chart</p>
+      <p>{{ t('nav.clickRowToViewPosition') }}</p>
     </div>
 
     <template v-else>
@@ -105,9 +107,9 @@ const changePct = computed(() => quote.value?.changePercent ?? null)
 
       <!-- Watchlist section below chart -->
       <div class="watchlist-section">
-        <div class="section-label">Watchlist</div>
+        <div class="section-label">{{ t('common.watchlist') }}</div>
         <div v-if="watchlist.loading" class="wl-loader"><AppLoader/></div>
-        <div v-else-if="!watchlist.items.length" class="wl-empty">No watchlist items</div>
+        <div v-else-if="!watchlist.items.length" class="wl-empty">{{ t('watchlist.noWatchlistItems') }}</div>
         <div v-else class="wl-list">
           <button
               v-for="item in watchlist.items"

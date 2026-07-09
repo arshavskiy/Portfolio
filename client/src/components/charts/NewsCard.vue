@@ -2,10 +2,12 @@
 import {computed, onMounted} from 'vue'
 import {useRouter} from 'vue-router'
 import {useNewsStore} from '@/stores/news'
+import {useI18n} from '@/composables/useI18n'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 
 const router = useRouter()
 const news = useNewsStore()
+const {t} = useI18n()
 const articles = computed(() => news.getPreview('for-you'))
 const loading = computed(() => news.isLoading('for-you') && !articles.value.length)
 
@@ -22,8 +24,8 @@ onMounted(() => {
 <template>
   <section v-if="loading || articles.length" class="news-card">
     <div class="news-head">
-      <h2 class="card-title"><i class="pi pi-globe" /> For You</h2>
-      <button class="view-all" @click="router.push('/news')">View all</button>
+      <h2 class="card-title"><i class="pi pi-globe"/> {{ t('dashboard.forYou') }}</h2>
+      <button class="view-all" @click="router.push('/news')">{{ t('dashboard.viewAll') }}</button>
     </div>
 
     <div v-if="loading && !articles.length" class="news-grid">

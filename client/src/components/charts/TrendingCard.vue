@@ -4,9 +4,11 @@ import {storeToRefs} from 'pinia'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import { useStorage } from '@vueuse/core'
 import {useMarketDataStore} from '@/stores/marketData'
+import {useI18n} from '@/composables/useI18n'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const {openPosition} = useNavigateToPosition()
+const {t} = useI18n()
 const marketData = useMarketDataStore()
 const {trendingGroups, trendingByGroup, trendingLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-trending-group', 'US')
@@ -34,6 +36,17 @@ function pct(n) {
   return `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`
 }
 
+function displayMarketGroup(name) {
+  const key = {
+    US: 'dashboard.marketGroupUS',
+    Israel: 'dashboard.marketGroupIsrael',
+    Crypto: 'dashboard.marketGroupCrypto',
+    Europe: 'dashboard.marketGroupEurope',
+    Asia: 'dashboard.marketGroupAsia',
+  }[name]
+  return key ? t(key) : name || t('dashboard.marketGroupOther')
+}
+
 onMounted(() => {
   marketData.fetchTrending(group.value).catch(() => {})
 })
@@ -46,7 +59,7 @@ watch(group, (nextGroup) => {
 <template>
   <section v-if="loading || items.length" class="trending-card">
     <div class="trending-head">
-      <h2 class="card-title"><i class="pi pi-bolt" /> Trending</h2>
+      <h2 class="card-title"><i class="pi pi-bolt"/> {{ t('dashboard.trending') }}</h2>
       <div class="trend-tabs">
         <button
           v-for="g in groups"
@@ -54,7 +67,8 @@ watch(group, (nextGroup) => {
           class="trend-tab"
           :class="{ active: group === g }"
           @click="selectGroup(g)"
-        >{{ g }}</button>
+        >{{ displayMarketGroup(g) }}
+        </button>
       </div>
     </div>
 

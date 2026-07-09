@@ -1,7 +1,9 @@
 <script setup>
 import {ref} from 'vue'
+import {useI18n} from '@/composables/useI18n'
 
 const open = ref(false)
+const {t} = useI18n()
 </script>
 
 <template>
@@ -20,7 +22,7 @@ const open = ref(false)
     <Transition name="slide">
       <div v-if="open" class="drawer">
         <div class="drawer-header">
-          <span class="drawer-title">Settings</span>
+          <span class="drawer-title">{{ t('common.settings') }}</span>
           <button class="drawer-close" @click="open = false">
             <i class="pi pi-times"/>
           </button>

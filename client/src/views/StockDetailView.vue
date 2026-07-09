@@ -15,11 +15,13 @@ import StockChart from '@/components/charts/StockChart.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AlertModal from '@/components/ui/AlertModal.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
 const toast = useSafeToast()
 const confirm = useConfirm()
+const {t} = useI18n()
 const watchlist = useWatchlistStore()
 const historyStore = useHistoryStore()
 const portfolio = usePortfolioStore()
@@ -182,7 +184,7 @@ async function loadQuote() {
   try {
     quote.value = await fetchCachedQuote(ticker.value)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to refresh', detail: err.message, life: 2000})
+    toast.add({severity: 'error', summary: t('stockDetail.failedRefresh'), detail: err.message, life: 2000})
   }
 }
 
@@ -200,7 +202,7 @@ async function loadHistory() {
     const points = selectedRange.value === '1d' ? 160 : 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('stockDetail.failedLoadChart'), detail: err.message, life: 3000})
   } finally {
     chartLoading.value = false
   }
@@ -255,10 +257,10 @@ async function toggleWatchlist() {
   const existing = watchlist.items.find((i) => i.ticker === ticker.value && !i.synthetic)
   if (existing) {
     await watchlist.removeItem(existing._id)
-    toast.add({severity: 'info', summary: 'Removed from watchlist', life: 2000})
+    toast.add({severity: 'info', summary: t('stockDetail.removedFromWatchlist'), life: 2000})
   } else {
     await watchlist.addItem(ticker.value, quote.value?.name)
-    toast.add({severity: 'success', summary: 'Added to watchlist', life: 2000})
+    toast.add({severity: 'success', summary: t('stockDetail.addedToWatchlist'), life: 2000})
   }
 }
 
@@ -278,12 +280,12 @@ function confirmDelete() {
   if (!heldPosition.value) return
   confirm.require({
     message: `Remove ${ticker.value} from your portfolio? This deletes the position but keeps its transaction history.`,
-    header: 'Confirm',
+    header: t('stockDetail.confirm'),
     icon: 'pi pi-exclamation-triangle',
     acceptClass: 'p-button-danger',
     accept: async () => {
       await portfolio.deletePosition(heldPosition.value._id)
-      toast.add({severity: 'success', summary: 'Removed', life: 2000})
+      toast.add({severity: 'success', summary: t('stockDetail.removed'), life: 2000})
       router.push('/watchlist')
     },
   })
@@ -304,7 +306,7 @@ function handleChartSelection(points) {
       </div>
       <div class="header-actions">
         <Button
-            v-tooltip.bottom="'Buy'"
+            v-tooltip.bottom="t('common.buy')"
             icon="pi pi-plus-circle"
             rounded
             text
@@ -336,7 +338,7 @@ function handleChartSelection(points) {
 <!--            @click="showAlertModal = true"-->
 <!--        />-->
                 <Button
-                    v-tooltip.bottom="isWatched() ? 'Remove from watchlist' : 'Add to watchlist'"
+                    v-tooltip.bottom="isWatched() ? t('stockDetail.removeWatchlist') : t('stockDetail.addWatchlist')"
                     :icon="isWatched() ? 'pi pi-trash' : 'pi pi-eye'"
                     :outlined="isWatched()"
                     :severity="isWatched() ? 'danger' : undefined"
@@ -388,7 +390,7 @@ function handleChartSelection(points) {
           <button
             class="chart-mode-btn"
             :class="{ active: chartMode === 'line' }"
-            title="Line chart"
+            :title="t('stockDetail.lineChart')"
             type="button"
             @click="chartMode = 'line'"
           >
@@ -397,7 +399,7 @@ function handleChartSelection(points) {
           <button
             class="chart-mode-btn"
             :class="{ active: chartMode === 'candle' }"
-            title="Candlestick chart"
+            :title="t('stockDetail.candlestickChart')"
             type="button"
             @click="chartMode = 'candle'"
           >
@@ -439,35 +441,35 @@ function handleChartSelection(points) {
 
     <div v-if="quote" class="stats-grid">
       <div class="stat">
-        <span class="text-muted">Open</span>
+        <span class="text-muted">{{ t('common.open') }}</span>
         <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">Day High</span>
+        <span class="text-muted">{{ t('common.dayHigh') }}</span>
         <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">Day Low</span>
+        <span class="text-muted">{{ t('common.dayLow') }}</span>
         <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">Volume</span>
+        <span class="text-muted">{{ t('common.volume') }}</span>
         <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">Mkt Cap</span>
+        <span class="text-muted">{{ t('common.marketCap') }}</span>
         <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">P/E</span>
+        <span class="text-muted">{{ t('common.pe') }}</span>
         <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">52W High</span>
+        <span class="text-muted">{{ t('common.week52High') }}</span>
         <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">52W Low</span>
+        <span class="text-muted">{{ t('common.week52Low') }}</span>
         <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
       </div>
     </div>

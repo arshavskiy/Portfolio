@@ -1,8 +1,10 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
+import {useI18n} from '@/composables/useI18n'
 
 const now = ref(new Date())
+const {locale, t} = useI18n()
 let timer = null
 
 const metas = computed(() =>
@@ -20,6 +22,47 @@ function statusClass(meta) {
   return meta.statusTone === 'open' ? 'meta-open' : 'meta-closed'
 }
 
+function displayMarketGroup(name) {
+  return name === 'US' ? t('dashboard.marketGroupUS') : name === 'Israel' ? t('dashboard.marketGroupIsrael') : name
+}
+
+function localDuration(value = '') {
+  return locale.value === 'ru'
+      ? value.replace(/(\d+)d/g, '$1д').replace(/(\d+)h/g, '$1ч').replace(/(\d+)m/g, '$1м')
+      : value
+}
+
+function displayMarketHoursLabel(value = '') {
+  const patterns = [
+    [/^Regular in (.+)$/u, 'dashboard.regularIn'],
+    [/^Pre-Market in (.+)$/u, 'dashboard.preMarketIn'],
+    [/^After-Hours in (.+)$/u, 'dashboard.afterHoursIn'],
+    [/^Closed in (.+)$/u, 'dashboard.closedIn'],
+    [/^Pre until (.+)$/u, 'dashboard.preUntil'],
+    [/^Pre in (.+)$/u, 'dashboard.preIn'],
+    [/^Regular until (.+)$/u, 'dashboard.regularUntil'],
+    [/^Post until (.+)$/u, 'dashboard.postUntil'],
+    [/^Opens in (.+)$/u, 'dashboard.opensIn'],
+  ]
+  for (const [pattern, key] of patterns) {
+    const match = value.match(pattern)
+    if (match) return t(key, {duration: localDuration(match[1])})
+  }
+  const exact = {
+    Open: 'common.open',
+    Closed: 'dashboard.closed',
+    'Pre-Market Trading': 'dashboard.preMarketTrading',
+    'Before Trade': 'dashboard.beforeTrade',
+    'After-Hours Trading': 'dashboard.afterHoursTrading',
+    'After Trade': 'dashboard.afterTrade',
+  }[value]
+  return exact ? t(exact) : value
+}
+
+function displaySessionLabel(value = '') {
+  return value.replace('Pre-Market', t('dashboard.preMarketSession'))
+}
+
 onMounted(() => { timer = setInterval(() => { now.value = new Date() }, 60000) })
 onUnmounted(() => { if (timer) clearInterval(timer) })
 </script>
@@ -32,10 +75,10 @@ onUnmounted(() => { if (timer) clearInterval(timer) })
         :class="{ 'market-meta-break': meta.group === 'US' }"
         class="market-meta"
     >
-      <span class="meta-group">{{ meta.group }}</span>
-      <span :class="statusClass(meta)" class="meta-status">{{ meta.statusLabel }}</span>
-      <span class="text-muted">{{ meta.nextLabel }}
-        <span class="session text-muted" v-html="meta.sessionLabel"/>
+      <span class="meta-group">{{ displayMarketGroup(meta.group) }}</span>
+      <span :class="statusClass(meta)" class="meta-status">{{ displayMarketHoursLabel(meta.statusLabel) }}</span>
+      <span class="text-muted">{{ displayMarketHoursLabel(meta.nextLabel) }}
+        <span class="session text-muted" v-html="displaySessionLabel(meta.sessionLabel)"/>
       </span>
     </div>
   </div>

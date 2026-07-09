@@ -4,6 +4,7 @@ import * as d3 from 'd3'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useHistoryStore} from '@/stores/history'
 import {usePercent} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
@@ -13,6 +14,7 @@ const props = defineProps({
 
 const {openPosition} = useNavigateToPosition()
 const historyStore = useHistoryStore()
+const {t} = useI18n()
 const svgRef = ref(null)
 const wrapRef = ref(null)
 const loading = ref(false)
@@ -147,13 +149,13 @@ watch(series, () => nextTick(draw), {deep: true})
 
 <template>
   <section v-if="positions.length" class="compare-card">
-    <h2 class="card-title">Stock Performance</h2>
+    <h2 class="card-title">{{ t('dashboard.stockPerformance') }}</h2>
 
     <div ref="wrapRef" class="compare-wrap">
       <div v-if="loading && !normalized.length" class="compare-state">
         <AppLoader/>
       </div>
-      <div v-else-if="!normalized.length" class="compare-state">Not enough history yet</div>
+      <div v-else-if="!normalized.length" class="compare-state">{{ t('dashboard.notEnoughHistory') }}</div>
       <svg v-else ref="svgRef" class="compare-svg"/>
     </div>
 

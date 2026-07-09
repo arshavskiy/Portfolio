@@ -23,6 +23,7 @@ import RangeBar from '@/components/ui/RangeBar.vue'
 import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const watchlist = useWatchlistStore()
 const alerts = useAlertsStore()
@@ -32,14 +33,15 @@ const router = useRouter()
 const {isDesktop} = useBreakpoint()
 const desktopFocus = useDesktopFocusStore()
 const range = useChartRange()
+const {t} = useI18n()
 const showModal = ref(false)
 const showImportModal = ref(false)
 const showTxModal = ref(false)
 const importMode = ref('watchlist')
 const importMenu = ref(null)
-const importMenuItems = [
+const importMenuItems = computed(() => [
   {
-    label: 'Import watchlist',
+    label: t('watchlist.importWatchlist'),
     icon: 'pi pi-eye',
     command: () => {
       importMode.value = 'watchlist'
@@ -47,14 +49,14 @@ const importMenuItems = [
     },
   },
   {
-    label: 'Import holdings',
+    label: t('watchlist.importHoldings'),
     icon: 'pi pi-briefcase',
     command: () => {
       importMode.value = 'holdings'
       showImportModal.value = true
     },
   },
-]
+])
 const showGroupModal = ref(false)
 const groupItem = ref(null)
 const groupMode = useStorage('watchlist-group-mode', 'market')
@@ -126,9 +128,9 @@ const cacheStatusText = computed(() => {
     hour12: false,
   }).format(new Date(meta.savedAt))
 
-  if (meta.stale) return `Offline cache from ${time}`
-  if (meta.cached) return `Cached ${time}`
-  return `Updated ${time}`
+  if (meta.stale) return t('watchlist.offlineCacheFrom', {time})
+  if (meta.cached) return t('watchlist.cached', {time})
+  return t('watchlist.updated', {time})
 })
 
 const visibleOrderedItems = computed(() => {
@@ -258,7 +260,7 @@ function onGroupsSaved() {
       <div  class="page-header">
         <div class="page-heading">
           <h1 class="gradient-title">
-            Watchlist
+            {{ t('common.watchlist') }}
             <span v-if="watchlist.items.length" class="count-badge">({{ watchlist.items.length }})</span>
           </h1>
           <div v-if="cacheStatusText" :class="{stale: watchlist.cacheMeta?.stale}" class="cache-status">
@@ -271,7 +273,7 @@ function onGroupsSaved() {
         <div class="header-actions" data-tour="wl-actions">
           <Button
               v-if="heldCount"
-              v-tooltip.bottom="heldOnly ? 'Show all' : 'Show holdings only'"
+              v-tooltip.bottom="heldOnly ? t('watchlist.showAll') : t('watchlist.showHoldingsOnly')"
               :outlined="!heldOnly"
               class="held-filter-btn"
               data-tour="wl-held-filter"
@@ -281,7 +283,7 @@ function onGroupsSaved() {
           />
           <Button
               v-if="portfolio.positions.length"
-              v-tooltip.bottom="'Rebalance'"
+              v-tooltip.bottom="t('watchlist.rebalance')"
               icon="pi pi-sliders-h"
               size="small"
               text
@@ -289,7 +291,7 @@ function onGroupsSaved() {
           />
           <span class="tour-action-anchor" data-tour="wl-import">
             <Button
-                v-tooltip.bottom="'Import from file'"
+                v-tooltip.bottom="t('watchlist.importFromFile')"
                 icon="pi pi-upload"
                 size="small"
                 text
@@ -299,21 +301,21 @@ function onGroupsSaved() {
           <Menu ref="importMenu" :model="importMenuItems" popup/>
           <Button
               v-if="watchlist.items.length"
-              v-tooltip.bottom="'Download watchlist (CSV)'"
+              v-tooltip.bottom="t('watchlist.downloadCsv')"
               icon="pi pi-download"
               size="small"
               text
               @click="exportCsv"
           />
           <Button
-              v-tooltip.bottom="'Add transaction'"
+              v-tooltip.bottom="t('watchlist.addTransaction')"
               data-tour="wl-add-transaction"
               icon="pi pi-dollar"
               size="small"
               text
               @click="showTxModal = true"
           />
-          <Button v-tooltip.bottom="'Add to watchlist'"
+          <Button v-tooltip.bottom="t('watchlist.addToWatchlist')"
                   data-tour="wl-add-watchlist"
                   icon="pi pi-eye"
                   size="small"
@@ -328,7 +330,7 @@ function onGroupsSaved() {
         <RangeBar class="page-range" data-tour="wl-range"/>
         <div v-if="rangeLoading || quotesLoading" class="range-loading-indicator">
           <AppLoader/>
-          <span>Loading {{ rangeLabel }} data</span>
+          <span>{{ t('common.loadingRangeData', {range: rangeLabel}) }}</span>
         </div>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode" data-tour="wl-group"/>
       </div>
@@ -341,13 +343,13 @@ function onGroupsSaved() {
 
     <div v-else-if="!watchlist.items.length" class="empty">
       <i class="pi pi-eye"/>
-      <p>Your watchlist is empty</p>
-      <Button label="Add Stock" @click="showModal = true"/>
+      <p>{{ t('watchlist.empty') }}</p>
+      <Button :label="t('watchlist.addStock')" @click="showModal = true"/>
     </div>
 
     <div v-else-if="!filteredItems.length" class="empty">
       <i class="pi pi-search"/>
-      <p>No matches in your watchlist</p>
+      <p>{{ t('watchlist.noMatches') }}</p>
     </div>
 
     <div v-else class="watch-list-shell" :class="{ loading: rangeLoading }">

@@ -3,6 +3,7 @@ import {computed, ref} from 'vue'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   items: {type: Array, default: () => []},
@@ -10,6 +11,7 @@ const props = defineProps({
 })
 
 const {openPosition} = useNavigateToPosition()
+const {t} = useI18n()
 const mode = ref('gainers')
 
 const rankedItems = computed(() => {
@@ -61,7 +63,7 @@ function rangeEndPrice(item) {
           type="button"
           @click="mode = 'gainers'"
       >
-        Gainers
+        {{ t('dashboard.gainers') }}
       </button>
       <button
           :class="{active: mode === 'losers'}"
@@ -69,7 +71,7 @@ function rangeEndPrice(item) {
           type="button"
           @click="mode = 'losers'"
       >
-        Losers
+        {{ t('dashboard.losers') }}
       </button>
     </div>
 

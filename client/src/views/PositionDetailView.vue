@@ -3,6 +3,7 @@ import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
 import {useWatchlistStore} from '@/stores/watchlist'
@@ -33,6 +34,7 @@ const router = useRouter()
 const toast = useToast()
 const historyStore = useHistoryStore()
 const watchlistStore = useWatchlistStore()
+const {t} = useI18n()
 
 const ticker = computed(() =>
     props.tickerOverride
@@ -59,11 +61,11 @@ const buySimFeeProfileId = ref(null)
 const buySimMode = ref('amount') // 'amount' | 'target' | 'shares'
 const buySimAmount = ref(null)   // total budget (mode: amount)
 const buySimTargetAvg = ref(null) // desired avg cost (mode: target)
-const BUY_SIM_MODES = [
-  {label: 'Amount', value: 'amount'},
-  {label: 'Target avg', value: 'target'},
-  {label: 'Shares', value: 'shares'},
-]
+const BUY_SIM_MODES = computed(() => [
+  {label: t('positionDetail.modeAmount'), value: 'amount'},
+  {label: t('positionDetail.modeTargetAvg'), value: 'target'},
+  {label: t('positionDetail.modeShares'), value: 'shares'},
+])
 const feeStore = useFeeProfileStore()
 const history = ref([])
 const chartLoading = ref(false)
@@ -129,7 +131,7 @@ async function fetchLots() {
     const data = await api.get(`/portfolio/transactions?ticker=${encodeURIComponent(ticker.value)}&limit=500`)
     transactions.value = data.transactions.sort((a, b) => new Date(a.date) - new Date(b.date))
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to load', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('stockDetail.failedLoad'), detail: err.message, life: 3000})
   }
 }
 
@@ -158,7 +160,7 @@ async function loadHistory() {
     const points = pointsMap[selectedRange.value] ?? 50
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Failed to load chart', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('stockDetail.failedLoadChart'), detail: err.message, life: 3000})
     history.value = []
   } finally {
     chartLoading.value = false
@@ -314,7 +316,7 @@ function formatDurationMs(value) {
   if (years > 0) return `${years}y${months > 0 ? ` ${months}m` : ''}`
   if (months > 0) return `${months}m${days > 0 ? ` ${days}d` : ''}`
   if (days > 0) return `${days}d`
-  return 'Today'
+  return t('positionDetail.today')
 }
 
 function fmt(val) {
@@ -467,11 +469,11 @@ const displayedPriceChange = computed(() =>
 )
 const displayedPriceChangeLabel = computed(() =>
     selectedRange.value !== '1d' && rangeChange.value
-        ? `${RANGE_LABELS[selectedRange.value] || selectedRange.value} range`
-        : 'Today'
+        ? t('positionDetail.rangeLabel', {range: RANGE_LABELS[selectedRange.value] || selectedRange.value})
+        : t('positionDetail.today')
 )
 const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
-const headerSubtitle = computed(() => summary.value ? `${ticker.value} · Transaction Lots` : `${ticker.value} · Market Overview`)
+const headerSubtitle = computed(() => summary.value ? `${ticker.value} · ${t('positionDetail.transactionLots')}` : `${ticker.value} · ${t('positionDetail.marketOverview')}`)
 const isWatched = computed(() => Boolean(watchedItem.value))
 const watchlistNavIndex = computed(() => watchlistNavTickers.value.indexOf(ticker.value))
 const previousWatchlistTicker = computed(() => {
@@ -485,8 +487,8 @@ const nextWatchlistTicker = computed(() => {
 const sessionMetaText = computed(() => {
   const meta = marketMeta.value
   if (!meta?.closeLabel) return ''
-  if (meta.key === 'crypto') return 'Trades 24/7'
-  return `${meta.isOpen ? 'Closes' : 'After hours'}: ${meta.closeLabel}`
+  if (meta.key === 'crypto') return t('positionDetail.trades247')
+  return `${meta.isOpen ? t('positionDetail.closes') : t('positionDetail.afterHoursShort')}: ${meta.closeLabel}`
 })
 
 function formatExtendedHoursTime(value, timezone) {
@@ -515,7 +517,7 @@ const extendedHours = computed(() => {
 
   const source = quote.value.postMarketPrice != null
       ? {
-        label: 'After hours',
+        label: t('common.afterHours'),
         price: quote.value.postMarketPrice,
         change: quote.value.postMarketChange,
         changePercent: quote.value.postMarketChangePercent,
@@ -523,7 +525,7 @@ const extendedHours = computed(() => {
       }
       : quote.value.preMarketPrice != null
           ? {
-            label: 'Pre-market',
+            label: t('common.preMarket'),
             price: quote.value.preMarketPrice,
             change: quote.value.preMarketChange,
             changePercent: quote.value.preMarketChangePercent,
@@ -531,7 +533,7 @@ const extendedHours = computed(() => {
           }
           : quote.value.lastPostMarketPrice != null
               ? {
-                label: 'After hours (last seen)',
+                label: t('common.afterHoursLastSeen'),
                 price: quote.value.lastPostMarketPrice,
                 change: quote.value.lastPostMarketChange,
                 changePercent: quote.value.lastPostMarketChangePercent,
@@ -539,7 +541,7 @@ const extendedHours = computed(() => {
               }
               : quote.value.lastPreMarketPrice != null
                   ? {
-                    label: 'Pre-market (last seen)',
+                    label: t('common.preMarketLastSeen'),
                     price: quote.value.lastPreMarketPrice,
                     change: quote.value.lastPreMarketChange,
                     changePercent: quote.value.lastPreMarketChangePercent,
@@ -565,22 +567,23 @@ const extendedHoursChangeText = computed(() => {
   if (extendedHours.value.change == null && extendedHours.value.changePercent == null) return ''
   return `${useTickerCurrency(extendedHours.value.change, ticker.value)} (${usePercent(extendedHours.value.changePercent)})`
 })
-// Short plain-language explanations for the stock-data table metrics. Keyed by
-// the visible label; rendered as an ⓘ tooltip next to each stat.
-const STAT_INFO = {
-  'Open': 'The price at which the stock started trading when the market opened today.',
-  'Day High': "The highest price the stock has traded at so far during today's session.",
-  'Day Low': "The lowest price the stock has traded at so far during today's session.",
-  'Volume': 'Number of shares traded today. Higher volume means more activity and liquidity.',
-  'Mkt Cap': 'Market capitalization — total value of all shares (price × shares outstanding).',
-  'P/E': 'Price-to-earnings ratio — share price divided by earnings per share. A rough valuation gauge.',
-  '52W High': 'The highest price the stock reached over the past 52 weeks.',
-  '52W Low': 'The lowest price the stock reached over the past 52 weeks.',
-  'Div Yield': 'Annual dividend as a percentage of the current share price.',
-  'Div / Share': 'The dividend paid per share over the last year.',
-  'Held div total': 'Estimated dividend for the currently held shares, prorated by their share-weighted holding time.',
-  'Avg holding time': 'Share-weighted holding time for the currently held shares. Sells consume older lots first.',
-}
+// Short plain-language explanations for the stock-data table metrics, rendered
+// as an ⓘ tooltip next to each stat. Keyed to match the positionDetail.stat*
+// message keys.
+const STAT_INFO = computed(() => ({
+  open: t('positionDetail.statOpenInfo'),
+  dayHigh: t('positionDetail.statDayHighInfo'),
+  dayLow: t('positionDetail.statDayLowInfo'),
+  volume: t('positionDetail.statVolumeInfo'),
+  mktCap: t('positionDetail.statMktCapInfo'),
+  pe: t('positionDetail.statPeInfo'),
+  week52High: t('positionDetail.stat52WHighInfo'),
+  week52Low: t('positionDetail.stat52WLowInfo'),
+  divYield: t('positionDetail.divYieldInfo'),
+  divPerShare: t('positionDetail.divPerShareInfo'),
+  heldDivTotal: t('positionDetail.heldDivTotalInfo'),
+  avgHoldingTime: t('positionDetail.avgHoldingTimeInfo'),
+}))
 
 const extendedHoursStats = computed(() => {
   if (!extendedHours.value) return []
@@ -788,9 +791,9 @@ const measureDelta = computed(() =>
 )
 
 const measureLabel = computed(() => {
-  if (selectedDelta.value) return 'Selected range'
-  if (!measureDelta.value) return 'Low to high'
-  return measureDelta.value.amount < 0 ? 'High to low' : 'Low to high'
+  if (selectedDelta.value) return t('positionDetail.selectedRange')
+  if (!measureDelta.value) return t('positionDetail.lowToHigh')
+  return measureDelta.value.amount < 0 ? t('positionDetail.highToLow') : t('positionDetail.lowToHigh')
 })
 
 const measureMarkerPoints = computed(() => {
@@ -900,10 +903,10 @@ async function toggleWatchlist() {
   if (watchedItem.value) {
     await watchlistStore.removeItem(watchedItem.value._id)
     watchedItem.value = null
-    toast.add({severity: 'info', summary: 'Removed from watchlist', life: 2000})
+    toast.add({severity: 'info', summary: t('stockDetail.removedFromWatchlist'), life: 2000})
   } else {
     watchedItem.value = await watchlistStore.addItem(ticker.value, quote.value?.name)
-    toast.add({severity: 'success', summary: 'Added to watchlist', life: 2000})
+    toast.add({severity: 'success', summary: t('stockDetail.addedToWatchlist'), life: 2000})
   }
 }
 </script>
@@ -946,21 +949,21 @@ async function toggleWatchlist() {
         <Button data-tour="pos-add-transaction" icon="pi pi-plus" rounded text @click="showModal = true"/>
         <Button
             v-if="summary"
-            v-tooltip.bottom="'Log dividend'"
+            v-tooltip.bottom="t('positionDetail.logDividend')"
             icon="pi pi-dollar"
             rounded
             text
             @click="showDividendModal = true"
         />
         <Button
-            v-tooltip.bottom="'Set price alert'"
+            v-tooltip.bottom="t('positionDetail.setPriceAlert')"
             icon="pi pi-bell"
             rounded
             text
             @click="showAlertModal = true"
         />
         <Button
-            v-tooltip.bottom="isWatched ? 'Remove from watchlist' : 'Add to watchlist'"
+            v-tooltip.bottom="isWatched ? t('positionDetail.removeFromWatchlist') : t('positionDetail.addToWatchlist')"
             :icon="isWatched ? 'pi pi-trash' : 'pi pi-eye'"
             :outlined="isWatched"
             :severity="isWatched ? 'danger' : undefined"
@@ -1034,7 +1037,7 @@ async function toggleWatchlist() {
               class="chart-mode-btn"
               :class="{ active: chartMode === 'line' }"
               data-tour="pos-chart-line"
-              title="Line chart"
+              :title="t('positionDetail.lineChart')"
               type="button"
               @click="chartMode = 'line'"
             >
@@ -1044,7 +1047,7 @@ async function toggleWatchlist() {
               class="chart-mode-btn"
               :class="{ active: chartMode === 'candle' }"
               data-tour="pos-chart-candle"
-              title="Candlestick chart"
+              :title="t('positionDetail.candlestickChart')"
               type="button"
               @click="chartMode = 'candle'"
             >
@@ -1074,14 +1077,15 @@ async function toggleWatchlist() {
           </span>
         </div>
         <div v-else class="text-muted measure-hint">
-          Drag either range marker to update the selected delta.
+          {{ t('positionDetail.dragMarkerHint') }}
         </div>
       </div>
       <div v-if="!chartSelectionHelpDismissed" class="chart-selection-help text-muted">
-        <button class="chart-selection-help-close" aria-label="Dismiss chart range help" type="button" @click="dismissChartSelectionHelp">
+        <button :aria-label="t('positionDetail.dismissChartHelp')" class="chart-selection-help-close" type="button"
+                @click="dismissChartSelectionHelp">
           <i class="pi pi-times"/>
         </button>
-        <p>Click the chart once to set the range start, then click a second point to measure that custom range. Drag either marker to fine-tune it.</p>
+        <p>{{ t('positionDetail.chartSelectionHelp') }}</p>
       </div>
 
       <!-- Signal breakdown -->
@@ -1118,7 +1122,8 @@ async function toggleWatchlist() {
              :class="gainLossClass(summary.netPnl)"
              class="pnl-card net-card">
           <div class="pnl-header">
-            <span class="pnl-label text-muted">Net P&L <span class="after-badge">after fees & tax</span></span>
+            <span class="pnl-label text-muted">{{ t('positionDetail.netPnl') }} <span
+                class="after-badge">{{ t('positionDetail.afterFeesTax') }}</span></span>
             <span :class="gainLossClass(summary.netPnl)" class="pnl-label">
             {{ summary.netPnl != null ? fmt(summary.netPnl) + useTickerCurrency(summary.netPnl, ticker) : '—' }}
           </span>
@@ -1126,21 +1131,23 @@ async function toggleWatchlist() {
           <div class="fee-breakdown">
             <div v-for="row in summary.feeRows" :key="row.key" class="fee-row">
               <span class="text-muted">{{
-                  row.type === 'buy' ? 'Buy' : 'Sell'
-                }} fees {{ row.estimated ? '(default)' : 'paid' }}</span>
+                  row.type === 'buy' ? t('positionDetail.buyFeesLabel') : t('positionDetail.sellFeesLabel')
+                }} {{ row.estimated ? t('positionDetail.default') : t('positionDetail.paid') }}</span>
               <span class="loss">-{{ useCurrency(row.amount, row.currency) }}</span>
             </div>
             <div v-if="summary.totalTax > 0" class="fee-row">
-              <span class="text-muted">Capital gains tax paid</span>
+              <span class="text-muted">{{ t('positionDetail.capitalGainsTaxPaid') }}</span>
               <span class="loss">-{{ useTickerCurrency(summary.totalTax, ticker) }}</span>
             </div>
             <div v-if="summary.estimatedTax > 0" class="fee-row est-row">
-              <span class="text-muted">Est. tax if sold now ({{ formatTaxPercent(summary.taxRate) }})</span>
+              <span class="text-muted">{{
+                  t('positionDetail.estTaxIfSoldNow', {rate: formatTaxPercent(summary.taxRate)})
+                }}</span>
               <span class="loss">-{{ useTickerCurrency(summary.estimatedTax, ticker) }}</span>
             </div>
           </div>
           <div v-if="summary.netPnlPct != null" class="fee-row net-return-row">
-            <span class="text-muted net-return-label">Net Return</span>
+            <span class="text-muted net-return-label">{{ t('positionDetail.netReturn') }}</span>
             <span :class="gainLossClass(summary.netPnlPct)" class="net-pct">
               {{ fmt(summary.netPnlPct) }}{{ summary.netPnlPct.toFixed(2) }}%
             </span>
@@ -1150,19 +1157,19 @@ async function toggleWatchlist() {
         <!-- Stats grid -->
         <div class="stats-row">
           <div class="stat-item">
-            <span class="text-muted">Shares held</span>
+            <span class="text-muted">{{ t('positionDetail.sharesHeld') }}</span>
             <span>{{ summary.shares.toFixed(4).replace(/\.?0+$/, '') }}</span>
           </div>
           <div class="stat-item">
-            <span class="text-muted">Avg cost</span>
+            <span class="text-muted">{{ t('positionDetail.avgCost') }}</span>
             <span>{{ useTickerCurrency(summary.avgCost, ticker) }}</span>
           </div>
           <div class="stat-item">
-            <span class="text-muted">Total invested</span>
+            <span class="text-muted">{{ t('positionDetail.totalInvested') }}</span>
             <span>{{ useTickerCurrency(summary.totalCost, ticker) }}</span>
           </div>
           <div class="stat-item">
-            <span class="text-muted">Current value</span>
+            <span class="text-muted">{{ t('positionDetail.currentValue') }}</span>
             <span>{{ summary.currentValue != null ? useTickerCurrency(summary.currentValue, ticker) : '…' }}</span>
           </div>
         </div>
@@ -1178,61 +1185,75 @@ async function toggleWatchlist() {
           <span :class="row.valueClass">{{ row.value }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">Open <i v-tooltip.focus.top="STAT_INFO['Open']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.statOpen') }} <i
+              v-tooltip.focus.top="STAT_INFO.open" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">Day High <i v-tooltip.focus.top="STAT_INFO['Day High']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.statDayHigh') }} <i
+              v-tooltip.focus.top="STAT_INFO.dayHigh" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">Day Low <i v-tooltip.focus.top="STAT_INFO['Day Low']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.statDayLow') }} <i
+              v-tooltip.focus.top="STAT_INFO.dayLow" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">Volume <i v-tooltip.focus.top="STAT_INFO['Volume']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.statVolume') }} <i
+              v-tooltip.focus.top="STAT_INFO.volume" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">Mkt Cap <i v-tooltip.focus.top="STAT_INFO['Mkt Cap']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.statMktCap') }} <i
+              v-tooltip.focus.top="STAT_INFO.mktCap" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">P/E <i v-tooltip.focus.top="STAT_INFO['P/E']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.statPe') }} <i
+              v-tooltip.focus.top="STAT_INFO.pe" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">52W High <i v-tooltip.focus.top="STAT_INFO['52W High']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.stat52WHigh') }} <i
+              v-tooltip.focus.top="STAT_INFO.week52High" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
         </div>
         <div class="stat">
-          <span class="text-muted stat-label-info">52W Low <i v-tooltip.focus.top="STAT_INFO['52W Low']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.stat52WLow') }} <i
+              v-tooltip.focus.top="STAT_INFO.week52Low" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
         </div>
         <div v-if="normalizedDividendYield" class="stat">
-          <span class="text-muted stat-label-info">Div Yield <i v-tooltip.focus.top="STAT_INFO['Div Yield']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.divYield') }} <i
+              v-tooltip.focus.top="STAT_INFO.divYield" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span class="div-yield-val">{{ (normalizedDividendYield * 100).toFixed(3).replace(/\.?0+$/, '') }}%</span>
         </div>
         <div v-if="annualDividendRate" class="stat">
-          <span class="text-muted stat-label-info">Div / Share <i v-tooltip.focus.top="STAT_INFO['Div / Share']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.divPerShare') }} <i
+              v-tooltip.focus.top="STAT_INFO.divPerShare" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ formatDividendCurrency(annualDividendRate) }}</span>
         </div>
         <div v-if="annualDividendRate && summary?.taxRate" class="stat">
-          <span class="text-muted">Div after tax ({{ formatTaxPercent(summary.taxRate) }})</span>
+          <span class="text-muted">{{
+              t('positionDetail.divAfterTax', {rate: formatTaxPercent(summary.taxRate)})
+            }}</span>
           <span class="div-yield-val">{{
               formatDividendCurrency(annualDividendRate * (1 - summary.taxRate / 100))
             }}</span>
         </div>
         <div v-if="heldDividendTotal != null" class="stat">
-          <span class="text-muted stat-label-info">Held div total <i v-tooltip.focus.top="STAT_INFO['Held div total']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.heldDivTotal') }} <i
+              v-tooltip.focus.top="STAT_INFO.heldDivTotal" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span class="div-yield-val">{{ formatDividendCurrency(heldDividendTotal) }}</span>
         </div>
         <div v-if="summary && holdingTimeLabel" class="stat">
-          <span class="text-muted stat-label-info">Avg holding time <i v-tooltip.focus.top="STAT_INFO['Avg holding time']" tabindex="0" class="pi pi-info-circle info-icon"/></span>
+          <span class="text-muted stat-label-info">{{ t('positionDetail.avgHoldingTime') }} <i
+              v-tooltip.focus.top="STAT_INFO.avgHoldingTime" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span>{{ holdingTimeLabel }}</span>
         </div>
         <div v-if="heldDividendTotal != null && summary?.taxRate" class="stat">
-          <span class="text-muted">Held div after tax</span>
+          <span class="text-muted">{{ t('positionDetail.heldDivAfterTax') }}</span>
           <span class="div-yield-val">{{
               formatDividendCurrency(heldDividendTotal * (1 - summary.taxRate / 100))
             }}</span>
@@ -1244,7 +1265,7 @@ async function toggleWatchlist() {
       <div class="sim-wrap">
         <button class="sim-toggle" @click="showBuySimulator = !showBuySimulator">
           <i class="pi pi-shopping-cart"/>
-          Buy Simulator
+          {{ t('positionDetail.buySimulator') }}
           <i :class="showBuySimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
         </button>
 
@@ -1259,7 +1280,7 @@ async function toggleWatchlist() {
 
           <div class="sim-inputs">
             <div class="sim-field">
-              <label>Buy price per share</label>
+              <label>{{ t('positionDetail.buyPricePerShare') }}</label>
               <InputNumber
                   v-model="buySimPrice"
                   :currency="tickerCurr"
@@ -1272,7 +1293,7 @@ async function toggleWatchlist() {
 
             <!-- Mode: shares -->
             <div v-if="buySimMode === 'shares'" class="sim-field">
-              <label>Shares to buy</label>
+              <label>{{ t('positionDetail.sharesToBuy') }}</label>
               <InputNumber
                   v-model="buySimShares"
                   :max-fraction-digits="4"
@@ -1284,7 +1305,7 @@ async function toggleWatchlist() {
 
             <!-- Mode: amount -->
             <div v-if="buySimMode === 'amount'" class="sim-field">
-              <label>Budget (total to invest)</label>
+              <label>{{ t('positionDetail.budgetTotal') }}</label>
               <InputNumber
                   v-model="buySimAmount"
                   :currency="tickerCurr"
@@ -1297,7 +1318,7 @@ async function toggleWatchlist() {
 
             <!-- Mode: target avg -->
             <div v-if="buySimMode === 'target'" class="sim-field">
-              <label>Target average cost</label>
+              <label>{{ t('positionDetail.targetAverageCost') }}</label>
               <InputNumber
                   v-model="buySimTargetAvg"
                   :currency="tickerCurr"
@@ -1309,10 +1330,10 @@ async function toggleWatchlist() {
             </div>
 
             <div class="sim-field">
-              <label>Fee profile</label>
+              <label>{{ t('positionDetail.feeProfile') }}</label>
               <Select
                   v-model="buySimFeeProfileId"
-                  :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
+                  :options="[{ label: t('positionDetail.noFeeProfile'), value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
                   fluid
                   option-label="label"
                   option-value="value"
@@ -1322,52 +1343,55 @@ async function toggleWatchlist() {
 
           <div class="sim-results">
             <template v-if="buySimulation?.targetImpossible">
-              <span class="sim-placeholder loss">Buy price ({{ useTickerCurrency(buySimulation.price, ticker) }}) must be below target avg ({{
-                  useTickerCurrency(buySimulation.targetAvg, ticker)
-                }}) to average down. Lower the buy price or raise the target avg.</span>
+              <span class="sim-placeholder loss">{{
+                  t('positionDetail.targetImpossible', {
+                    price: useTickerCurrency(buySimulation.price, ticker),
+                    target: useTickerCurrency(buySimulation.targetAvg, ticker)
+                  })
+                }}</span>
             </template>
             <template v-else-if="buySimulation">
               <!-- Amount mode: show shares recommendation first -->
               <div v-if="buySimMode === 'amount'" class="sim-row sim-highlight">
-                <span class="text-muted">Shares to buy</span>
+                <span class="text-muted">{{ t('positionDetail.sharesToBuy') }}</span>
                 <span class="sim-net">{{ buySimulation.shares }}</span>
               </div>
               <!-- Target mode: show shares recommendation first -->
               <div v-if="buySimMode === 'target'" class="sim-row sim-highlight">
-                <span class="text-muted">Shares to buy</span>
+                <span class="text-muted">{{ t('positionDetail.sharesToBuy') }}</span>
                 <span class="sim-net">{{ buySimulation.shares }}</span>
               </div>
               <div class="sim-row">
-                <span class="text-muted">Shares cost</span>
+                <span class="text-muted">{{ t('positionDetail.sharesCost') }}</span>
                 <span>{{ currSymbol }}{{ buySimulation.cost.toFixed(2) }}</span>
               </div>
               <div v-if="buySimulation.buyFee > 0" class="sim-row">
-                <span class="text-muted">Buy fee{{
+                <span class="text-muted">{{ t('positionDetail.buyFeeLabel') }}{{
                     buySimulation.profileName ? ` · ${buySimulation.profileName}` : ''
                   }}</span>
                 <span class="loss">+{{ useCurrency(buySimulation.buyFee, buySimulation.buyFeeCurrency) }}</span>
               </div>
               <div class="sim-row sim-divider">
-                <span>Total outlay</span>
+                <span>{{ t('positionDetail.totalOutlay') }}</span>
                 <span class="sim-net">{{ currSymbol }}{{ buySimulation.totalCost.toFixed(2) }}</span>
               </div>
               <div v-if="buySimMode === 'amount' && buySimulation.leftover != null" class="sim-row">
-                <span class="text-muted">Leftover cash</span>
+                <span class="text-muted">{{ t('positionDetail.leftoverCash') }}</span>
                 <span>{{ currSymbol }}{{ buySimulation.leftover.toFixed(2) }}</span>
               </div>
               <div class="sim-row">
-                <span class="text-muted">New avg cost</span>
+                <span class="text-muted">{{ t('positionDetail.newAvgCost') }}</span>
                 <span>{{ useTickerCurrency(buySimulation.newAvgCost, ticker) }}</span>
               </div>
               <div class="sim-row">
-                <span class="text-muted">Break-even price</span>
+                <span class="text-muted">{{ t('positionDetail.breakEvenPrice') }}</span>
                 <span>{{ useTickerCurrency(buySimulation.breakEven, ticker) }}</span>
               </div>
             </template>
             <span v-else class="sim-placeholder text-muted">
-              <template v-if="buySimMode === 'shares'">Enter a price and number of shares</template>
-              <template v-else-if="buySimMode === 'amount'">Enter a price and your total budget</template>
-              <template v-else>Enter a price and your target average cost</template>
+              <template v-if="buySimMode === 'shares'">{{ t('positionDetail.enterPriceShares') }}</template>
+              <template v-else-if="buySimMode === 'amount'">{{ t('positionDetail.enterPriceBudget') }}</template>
+              <template v-else>{{ t('positionDetail.enterPriceTarget') }}</template>
             </span>
           </div>
         </div>
@@ -1377,14 +1401,14 @@ async function toggleWatchlist() {
       <div v-if="summary" class="sim-wrap">
         <button class="sim-toggle" @click="showSimulator = !showSimulator">
           <i class="pi pi-calculator"/>
-          Sell Simulator
+          {{ t('positionDetail.sellSimulator') }}
           <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
         </button>
 
         <div v-if="showSimulator" class="sim-body">
           <div class="sim-inputs">
             <div class="sim-field">
-              <label>Sell price per share</label>
+              <label>{{ t('positionDetail.sellPricePerShare') }}</label>
               <InputNumber
                   v-model="simPrice"
                   :currency="tickerCurr"
@@ -1395,10 +1419,10 @@ async function toggleWatchlist() {
               />
             </div>
             <div class="sim-field">
-              <label>Fee profile</label>
+              <label>{{ t('positionDetail.feeProfile') }}</label>
               <Select
                   v-model="simFeeProfileId"
-                  :options="[{ label: 'No fee profile', value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
+                  :options="[{ label: t('positionDetail.noFeeProfile'), value: null }, ...matchingFeeProfiles.map(p => ({ label: p.name, value: p._id }))]"
                   fluid
                   option-label="label"
                   option-value="value"
@@ -1409,25 +1433,27 @@ async function toggleWatchlist() {
           <div class="sim-results">
             <template v-if="simulation">
               <div class="sim-row">
-                <span class="text-muted">Gross proceeds</span>
+                <span class="text-muted">{{ t('transactionModal.grossProceeds') }}</span>
                 <span>{{ currSymbol }}{{ simulation.grossProceeds.toFixed(2) }}</span>
               </div>
               <div v-if="simulation.sellFee > 0" class="sim-row">
-                <span class="text-muted">Sell fee{{
+                <span class="text-muted">{{ t('positionDetail.sellFeeLabel') }}{{
                     simulation.profileName ? ` · ${simulation.profileName}` : ''
                   }}</span>
                 <span class="loss">-{{ useCurrency(simulation.sellFee, simulation.sellFeeCurrency) }}</span>
               </div>
               <div v-if="simulation.tax > 0" class="sim-row">
-                <span class="text-muted">Capital gains tax ({{ formatTaxPercent(simulation.taxRate) }})</span>
+                <span class="text-muted">{{
+                    t('positionDetail.capitalGainsTaxPct', {rate: formatTaxPercent(simulation.taxRate)})
+                  }}</span>
                 <span class="loss">-{{ currSymbol }}{{ simulation.tax.toFixed(2) }}</span>
               </div>
               <div class="sim-row sim-divider">
-                <span>Net proceeds</span>
+                <span>{{ t('transactionModal.netProceeds') }}</span>
                 <span class="sim-net">{{ currSymbol }}{{ simulation.netProceeds.toFixed(2) }}</span>
               </div>
               <div :class="gainLossClass(simulation.netProfit)" class="sim-row sim-profit">
-                <span>Net profit / loss</span>
+                <span>{{ t('transactionModal.netProfitLoss') }}</span>
                 <div class="sim-profit-right">
                   <span class="sim-profit-pct">{{ fmt(simulation.netProfitPct) }}{{
                       simulation.netProfitPct.toFixed(2)
@@ -1438,7 +1464,7 @@ async function toggleWatchlist() {
                 </div>
               </div>
             </template>
-            <span v-else class="sim-placeholder text-muted">Enter a sell price to see results</span>
+            <span v-else class="sim-placeholder text-muted">{{ t('positionDetail.enterSellPrice') }}</span>
           </div>
         </div>
       </div>
@@ -1446,10 +1472,13 @@ async function toggleWatchlist() {
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">
         <div class="dividends-header">
-          <h2 class="section-title">Dividends</h2>
+          <h2 class="section-title">{{ t('positionDetail.dividends') }}</h2>
           <div class="dividends-summary">
-            <span v-if="holdingTimeLabel" class="text-muted">Avg held {{ holdingTimeLabel }}</span>
-            <span class="div-total gain">Total {{ useTickerCurrency(totalDividends, ticker) }}</span>
+            <span v-if="holdingTimeLabel"
+                  class="text-muted">{{ t('positionDetail.avgHeld', {duration: holdingTimeLabel}) }}</span>
+            <span class="div-total gain">{{ t('positionDetail.total') }} {{
+                useTickerCurrency(totalDividends, ticker)
+              }}</span>
           </div>
         </div>
         <div v-for="d in dividendTxs" :key="d._id" class="lot-row">
@@ -1460,8 +1489,8 @@ async function toggleWatchlist() {
               <span v-if="d.drip" class="drip-tag">DRIP</span>
             </div>
             <div class="lot-detail">
-              {{ useTickerCurrency(d.price, ticker) }} / share
-              <template v-if="d.drip && d.shares"> · +{{ d.shares }} shares</template>
+              {{ useTickerCurrency(d.price, ticker) }} {{ t('positionDetail.perShare') }}
+              <template v-if="d.drip && d.shares"> · +{{ d.shares }} {{ t('common.shares') }}</template>
             </div>
             <div v-if="d.notes" class="lot-notes text-muted">{{ d.notes }}</div>
           </div>
@@ -1474,12 +1503,12 @@ async function toggleWatchlist() {
 
       <div v-if="!lots.length" class="empty">
         <i class="pi pi-list"/>
-        <p class="text-muted">No transactions yet</p>
-        <Button label="Add Transaction" @click="showModal = true"/>
+        <p class="text-muted">{{ t('positionDetail.noTransactionsYet') }}</p>
+        <Button :label="t('positionDetail.addTransaction')" @click="showModal = true"/>
       </div>
 
       <div v-else class="lots-list">
-        <h2 class="section-title">Lots</h2>
+        <h2 class="section-title">{{ t('positionDetail.lots') }}</h2>
         <div v-for="lot in lots" :key="lot._id" class="lot-row">
           <div class="lot-left">
             <div class="lot-top">
@@ -1488,26 +1517,29 @@ async function toggleWatchlist() {
               <span class="lot-date text-muted">{{ formatDate(lot.date) }}</span>
             </div>
             <div class="lot-detail">
-              {{ lot.shares }} shares @ {{ useTickerCurrency(lot.price, ticker) }}
+              {{ lot.shares }} {{ t('common.shares') }} @ {{ useTickerCurrency(lot.price, ticker) }}
             </div>
             <!-- Buy fee -->
             <div v-if="lot.type === 'buy' && effectiveFeeAmountOf(lot)" class="lot-extra loss">
-              <i class="pi pi-percentage"/> Buy fee: {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
-              <span class="text-muted"> · {{ feeProfileOf(lot)?.name || 'Default profile' }}</span>
+              <i class="pi pi-percentage"/> {{ t('positionDetail.buyFeeColon') }}:
+              {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
+              <span class="text-muted"> · {{ feeProfileOf(lot)?.name || t('positionDetail.defaultProfile') }}</span>
             </div>
             <!-- Sell fee -->
             <div v-if="lot.type === 'sell' && effectiveFeeAmountOf(lot)" class="lot-extra loss">
-              <i class="pi pi-percentage"/> Sell fee: {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
-              <span class="text-muted"> · {{ feeProfileOf(lot)?.name || 'Default profile' }}</span>
+              <i class="pi pi-percentage"/> {{ t('positionDetail.sellFeeColon') }}:
+              {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
+              <span class="text-muted"> · {{ feeProfileOf(lot)?.name || t('positionDetail.defaultProfile') }}</span>
             </div>
             <!-- Tax -->
             <div v-if="lot.taxAmount" class="lot-extra loss">
-              <i class="pi pi-building-columns"/> Tax ({{ formatTaxPercent(lot.feeProfile?.capitalGainsTax) }}):
+              <i class="pi pi-building-columns"/>
+              {{ t('positionDetail.taxColon', {rate: formatTaxPercent(lot.feeProfile?.capitalGainsTax)}) }}:
               {{ useTickerCurrency(lot.taxAmount, ticker) }}
             </div>
             <!-- Net proceeds -->
             <div v-if="lot.type === 'sell'" class="lot-extra gain">
-              <i class="pi pi-wallet"/> Net proceeds: {{
+              <i class="pi pi-wallet"/> {{ t('positionDetail.netProceedsColon') }}: {{
                 useTickerCurrency(netProceedsOf(lot), ticker)
               }}
             </div>
@@ -1515,8 +1547,12 @@ async function toggleWatchlist() {
           </div>
           <div class="lot-right">
             <span class="lot-total">{{ useTickerCurrency(lot.total, ticker) }}</span>
-            <span class="lot-avg text-muted">Avg → {{ useTickerCurrency(lot.runningAvg, ticker) }}</span>
-            <span class="lot-shares text-muted">{{ lot.runningShares.toFixed(2) }} held</span>
+            <span class="lot-avg text-muted">{{
+                t('positionDetail.avgArrow')
+              }} {{ useTickerCurrency(lot.runningAvg, ticker) }}</span>
+            <span class="lot-shares text-muted">{{ lot.runningShares.toFixed(2) }} {{
+                t('positionDetail.heldSuffix')
+              }}</span>
             <Button class="lot-edit-btn" icon="pi pi-pencil" rounded size="small" text @click.stop="editingTx = lot"/>
           </div>
         </div>

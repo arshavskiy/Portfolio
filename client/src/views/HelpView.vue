@@ -1,21 +1,23 @@
 <script setup>
-import {ref, onMounted, nextTick} from 'vue'
+import {computed, ref, onMounted, nextTick} from 'vue'
 import {useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import QRCode from 'qrcode'
 import Button from 'primevue/button'
 import {useBreakpoint} from '@/composables/useBreakpoint'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const toast = useToast()
 const {isDesktop} = useBreakpoint()
+const {t} = useI18n()
 
 const activeAnchor = ref('about')
-const anchors = [
-  {id: 'about', label: 'About'},
-  {id: 'math', label: 'Math Reference'},
-  {id: 'disclaimer', label: 'Financial Disclaimer'},
-]
+const anchors = computed(() => [
+  {id: 'about', label: t('common.about')},
+  {id: 'math', label: t('mathPage.navTitle')},
+  {id: 'disclaimer', label: t('disclaimerPage.title')},
+])
 
 function scrollTo(id) {
   activeAnchor.value = id
@@ -26,28 +28,20 @@ function scrollTo(id) {
 const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
 const qrCanvas = ref(null)
 
-const features = [
-  { icon: 'pi pi-chart-line', text: 'Live portfolio tracking with P&L, multi-currency totals, and a value-over-time chart' },
-  { icon: 'pi pi-globe', text: 'Coverage for US stocks, TASE, global markets, and crypto watchlists' },
-  { icon: 'pi pi-money-bill', text: 'Buy/sell lots with fee profiles for broker fees and capital-gains tax simulation' },
-  { icon: 'pi pi-bell', text: 'Price alerts via push notifications, set and monitored per ticker' },
-  { icon: 'pi pi-bolt', text: 'Dashboard cards for top movers, trending symbols, and live market-hours status' },
-  { icon: 'pi pi-clock', text: 'Pre-market and after-hours price changes alongside regular session quotes' },
-  { icon: 'pi pi-tags', text: 'Custom multi-tag groups with group-by views across holdings and watchlist' },
-  { icon: 'pi pi-upload', text: 'Bulk import holdings or watchlist from Excel, CSV, or Word files' },
-]
+const featureIcons = ['pi pi-chart-line', 'pi pi-globe', 'pi pi-money-bill', 'pi pi-bell', 'pi pi-bolt', 'pi pi-clock', 'pi pi-tags', 'pi pi-upload']
 
 async function copyAddress() {
   try {
     await navigator.clipboard.writeText(BTC_ADDRESS)
-    toast.add({ severity: 'success', summary: 'Address copied', life: 2000 })
+    toast.add({severity: 'success', summary: t('aboutPage.addressCopied'), life: 2000})
   } catch {
-    toast.add({ severity: 'warn', summary: 'Copy failed — select it manually', life: 2500 })
+    toast.add({severity: 'warn', summary: t('aboutPage.copyFailed'), life: 2500})
   }
 }
 
 // ── Math Reference section ──
-const mathSections = [
+const mathSections = computed(() => t('mathPage.sections'))
+const legacyMathSections = [
   {
     title: 'Average Cost per Share',
     intro: 'When you buy the same stock multiple times at different prices, StockFolio blends them into one weighted average — the price your gain/loss is measured against.',
@@ -147,23 +141,23 @@ onMounted(async () => {
   <div v-if="!isDesktop" class="help safe-bottom">
     <header class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
-      <h1 class="gradient-title">About</h1>
+      <h1 class="gradient-title">{{ t('common.about') }}</h1>
     </header>
 
     <div class="menu-list">
       <button class="menu-item" @click="router.push('/about')">
         <i class="pi pi-info-circle menu-icon"/>
-        <span>About</span>
+        <span>{{ t('common.about') }}</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
       <button class="menu-item" @click="router.push('/math')">
         <i class="pi pi-calculator menu-icon"/>
-        <span>Math Reference</span>
+        <span>{{ t('mathPage.navTitle') }}</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
       <button class="menu-item" @click="router.push('/disclaimer')">
         <i class="pi pi-shield menu-icon"/>
-        <span>Financial Disclaimer</span>
+        <span>{{ t('disclaimerPage.title') }}</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
     </div>
@@ -172,7 +166,7 @@ onMounted(async () => {
   <!-- ── Desktop: combined single-scroll page with anchor tabs ── -->
   <div v-else class="help-desktop safe-bottom">
     <header class="page-header">
-      <h1 class="gradient-title">About</h1>
+      <h1 class="gradient-title">{{ t('common.about') }}</h1>
     </header>
 
     <nav class="anchor-tabs">
@@ -188,16 +182,16 @@ onMounted(async () => {
     <div class="help-body">
       <!-- About -->
       <section id="about" class="anchor-section">
-        <h2 class="section-title">About</h2>
+        <h2 class="section-title">{{ t('common.about') }}</h2>
 
         <div class="screenshot-card">
-          <div class="screenshot-label">Desktop View</div>
-          <img src="/screenshot-desktop.png" alt="StockFolio desktop dashboard" class="screenshot-img" />
+          <div class="screenshot-label">{{ t('aboutPage.desktopView') }}</div>
+          <img :alt="t('aboutPage.desktopAlt')" class="screenshot-img" src="/screenshot-desktop.png"/>
         </div>
 
         <div class="screenshot-card">
-          <div class="screenshot-label">Import from Excel / CSV</div>
-          <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="screenshot-img" />
+          <div class="screenshot-label">{{ t('aboutPage.importGuide') }}</div>
+          <img :alt="t('aboutPage.importAlt')" class="screenshot-img" src="/import-guide.svg"/>
         </div>
 
         <div class="intro-card">
@@ -206,44 +200,44 @@ onMounted(async () => {
             <span class="brand-name gradient-title">StockFolio</span>
           </div>
           <p class="tagline text-muted">
-            A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L,
-            price alerts, and a clean dark interface.
+            {{ t('aboutPage.tagline') }}
           </p>
           <ul class="feature-list">
-            <li v-for="f in features" :key="f.text">
-              <i :class="f.icon" /><span>{{ f.text }}</span>
+            <li v-for="(text, i) in t('aboutPage.features')" :key="text">
+              <i :class="featureIcons[i]"/><span>{{ text }}</span>
             </li>
           </ul>
         </div>
 
         <div class="donate-card">
-          <h3 class="donate-title">Support StockFolio</h3>
+          <h3 class="donate-title">{{ t('aboutPage.supportTitle') }}</h3>
           <p class="text-muted donate-sub">
-            StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.
+            {{ t('aboutPage.supportText') }}
           </p>
           <div class="qr-wrap">
             <canvas ref="qrCanvas" class="qr" />
           </div>
-          <div class="addr-label text-muted">Your Bitcoin Address</div>
+          <div class="addr-label text-muted">{{ t('aboutPage.bitcoinAddress') }}</div>
           <div class="addr-row">
             <code class="addr">{{ BTC_ADDRESS }}</code>
-            <button class="copy-btn" title="Copy" @click="copyAddress">
+            <button :title="t('common.copy')" class="copy-btn" @click="copyAddress">
               <i class="pi pi-copy" />
             </button>
           </div>
           <div class="contact-block">
-            <div class="text-muted contact-label">Contact</div>
-            <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
-            <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
+            <div class="text-muted contact-label">{{ t('common.contact') }}</div>
+            <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">{{ t('common.emailMe') }}</a>
+            <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer"
+               target="_blank">{{ t('common.telegramMe') }}</a>
           </div>
         </div>
       </section>
 
       <!-- Math Reference -->
       <section id="math" class="anchor-section">
-        <h2 class="section-title">Math Reference</h2>
+        <h2 class="section-title">{{ t('mathPage.navTitle') }}</h2>
         <p class="intro text-muted">
-          A plain-language look at how StockFolio calculates your average cost, fees, taxes, gains, and portfolio totals.
+          {{ t('mathPage.intro') }}
         </p>
 
         <section v-for="s in mathSections" :key="s.title" class="math-card">
@@ -260,54 +254,54 @@ onMounted(async () => {
 
       <!-- Financial Disclaimer -->
       <section id="disclaimer" class="anchor-section">
-        <h2 class="section-title">Financial Disclaimer</h2>
-        <p class="eyebrow">Important information</p>
+        <h2 class="section-title">{{ t('disclaimerPage.title') }}</h2>
+        <p class="eyebrow">{{ t('disclaimerPage.eyebrow') }}</p>
         <p class="disclaimer-intro">
-          StockFolio helps you organize market data, holdings, watchlists, alerts, and portfolio calculations. It is a tracking and research tool only.
+          {{ t('disclaimerPage.intro') }}
         </p>
 
         <section class="notice">
           <i class="pi pi-exclamation-triangle"/>
           <div>
-            <h3>Not financial advice</h3>
+            <h3>{{ t('disclaimerPage.notAdviceTitle') }}</h3>
             <p>
-              StockFolio does not provide investment, financial, tax, legal, or accounting advice. Nothing in the app is a recommendation to buy, sell, hold, or trade any security, crypto asset, or other financial instrument.
+              {{ t('disclaimerPage.notAdviceText') }}
             </p>
           </div>
         </section>
 
         <section class="disclaimer-grid">
           <article class="disclaimer-card">
-            <h3>Investment risk</h3>
+            <h3>{{ t('disclaimerPage.riskTitle') }}</h3>
             <p>
-              Investing involves risk, including possible loss of principal. Prices can move quickly, past performance does not guarantee future results, and simulated results or projections may not reflect actual outcomes.
+              {{ t('disclaimerPage.riskText') }}
             </p>
           </article>
 
           <article class="disclaimer-card">
-            <h3>Market data</h3>
+            <h3>{{ t('disclaimerPage.dataTitle') }}</h3>
             <p>
-              Quotes, charts, news, alerts, dividends, currency conversions, and other data may be delayed, incomplete, inaccurate, or unavailable. Always verify important information with your broker, exchange, issuer, or another official source before making decisions.
+              {{ t('disclaimerPage.dataText') }}
             </p>
           </article>
 
           <article class="disclaimer-card">
-            <h3>User responsibility</h3>
+            <h3>{{ t('disclaimerPage.responsibilityTitle') }}</h3>
             <p>
-              You are responsible for your own investment decisions and for reviewing the accuracy of imported transactions, fees, tax assumptions, holdings, watchlists, and calculations. Consult a qualified professional for advice based on your personal situation.
+              {{ t('disclaimerPage.responsibilityText') }}
             </p>
           </article>
 
           <article class="disclaimer-card">
-            <h3>No guarantees</h3>
+            <h3>{{ t('disclaimerPage.guaranteesTitle') }}</h3>
             <p>
-              StockFolio is provided without warranties about availability, accuracy, completeness, or fitness for a particular purpose. The app and its creator are not liable for losses or damages arising from your use of the app or reliance on its content.
+              {{ t('disclaimerPage.guaranteesText') }}
             </p>
           </article>
         </section>
 
         <p class="closing text-muted">
-          By using StockFolio, you acknowledge that you understand these limitations and agree to use the app as an informational portfolio tool.
+          {{ t('disclaimerPage.closing') }}
         </p>
       </section>
     </div>

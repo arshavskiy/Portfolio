@@ -3,6 +3,7 @@ import {ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useGroupsStore} from '@/stores/groups'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useI18n} from '@/composables/useI18n'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
@@ -16,6 +17,7 @@ const emit = defineEmits(['update:visible', 'saved'])
 
 const toast = useToast()
 const groupsStore = useGroupsStore()
+const {t} = useI18n()
 
 const groups = ref([])
 const groupSuggestions = ref([])
@@ -68,7 +70,7 @@ async function save() {
     } else {
       await groupsStore.updatePositionGroups(props.item._id, groups.value)
     }
-    toast.add({severity: 'success', summary: 'Groups updated', life: 2000})
+    toast.add({severity: 'success', summary: t('groupEdit.updated'), life: 2000})
     trackEvent('update_groups', {ticker: props.item.ticker})
     emit('update:visible', false)
     emit('saved', {ticker: props.item.ticker, groups: groups.value})
@@ -83,7 +85,7 @@ async function save() {
 <template>
   <Dialog
       :draggable="false"
-      :header="`Groups · ${item?.ticker}`"
+      :header="t('groupEdit.title', { ticker: item?.ticker })"
       :style="{ width: '95vw', maxWidth: '380px' }"
       :visible="visible"
       modal
@@ -91,7 +93,7 @@ async function save() {
   >
     <div class="form">
       <div class="field">
-        <label>Groups</label>
+        <label>{{ t('groupEdit.label') }}</label>
         <AutoComplete
             v-model="groups"
             :suggestions="groupSuggestions"
@@ -99,14 +101,14 @@ async function save() {
             complete-on-focus
             fluid
             multiple
-            placeholder="Tech, Long-term…"
+            :placeholder="t('groupEdit.placeholder')"
             @complete="searchGroups"
             @input="pending = $event.target ? $event.target.value : pending"
             @keydown.enter="addTypedGroup"
         />
-        <span class="text-muted hint">Type to create a new group or pick an existing one</span>
+        <span class="text-muted hint">{{ t('groupEdit.hint') }}</span>
       </div>
-      <Button :loading="loading" fluid label="Save" @click="save"/>
+      <Button :label="t('common.save')" :loading="loading" fluid @click="save"/>
     </div>
   </Dialog>
 </template>

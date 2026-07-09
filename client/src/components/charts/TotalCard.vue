@@ -1,10 +1,12 @@
 <script setup>
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 
 defineProps({
   total: {type: Object, required: true},
   combinedUsd: {type: Object, default: null},
 })
+const {t} = useI18n()
 </script>
 
 <template>
@@ -29,7 +31,7 @@ defineProps({
       </span>
     </div>
     <div class="total-row">
-      <span class="text-muted today-label">Today</span>
+      <span class="text-muted today-label">{{ t('dashboard.today') }}</span>
       <span :class="gainLossClass(total.dayPnl)" class="total-day">
         {{ total.dayPnl >= 0 ? '+' : '' }}{{ useCurrency(total.dayPnl, total.currency) }}
       </span>

@@ -1,9 +1,11 @@
 <script setup>
 import {useWhatsNew} from '@/composables/useWhatsNew'
+import {useI18n} from '@/composables/useI18n'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 
 const {visible, entries, dismiss} = useWhatsNew()
+const {t} = useI18n()
 </script>
 
 <template>
@@ -17,7 +19,7 @@ const {visible, entries, dismiss} = useWhatsNew()
     <template #header>
       <div class="whats-new-header">
         <span class="sparkle">✨</span>
-        <span class="gradient-title">What's New</span>
+        <span class="gradient-title">{{ t('whatsNew.title') }}</span>
       </div>
     </template>
 
@@ -37,7 +39,7 @@ const {visible, entries, dismiss} = useWhatsNew()
     </div>
 
     <template #footer>
-      <Button label="Got it" fluid @click="dismiss"/>
+      <Button :label="t('whatsNew.gotIt')" fluid @click="dismiss"/>
     </template>
   </Dialog>
 </template>

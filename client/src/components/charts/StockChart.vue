@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import * as d3 from 'd3'
+import {useI18n} from '@/composables/useI18n'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
@@ -12,6 +13,7 @@ const props = defineProps({
   ticker: { type: String, default: '' },
   currentPrice: { type: Number, default: null },
 })
+const {t} = useI18n()
 
 const emit = defineEmits(['selection-change'])
 
@@ -966,7 +968,7 @@ onUnmounted(() => ro.disconnect())
     <div v-if="loading" class="chart-loading">
       <AppLoader/>
     </div>
-    <div v-else-if="!data.length" class="chart-empty text-muted">No data</div>
+    <div v-else-if="!data.length" class="chart-empty text-muted">{{ t('dashboard.noData') }}</div>
     <template v-else>
       <svg ref="svgRef" />
     </template>

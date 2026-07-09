@@ -1,9 +1,12 @@
 <script setup>
+import {useI18n} from '@/composables/useI18n'
+
 defineProps({
   article: {type: Object, required: true},
 })
 
 const emit = defineEmits(['open'])
+const {t} = useI18n()
 
 function fmtDate(value) {
   if (!value) return ''
@@ -22,7 +25,7 @@ function fmtDate(value) {
   <article class="article-card" @click="emit('open', article)">
     <div class="article-glow" />
     <div class="article-meta">
-      <span class="source">{{ article.source || 'Market News' }}</span>
+      <span class="source">{{ article.source || t('newsPage.marketNews') }}</span>
       <span v-if="fmtDate(article.publishedAt)" class="text-muted">{{ fmtDate(article.publishedAt) }}</span>
     </div>
 

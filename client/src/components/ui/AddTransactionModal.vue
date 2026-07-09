@@ -18,6 +18,7 @@ import Select from 'primevue/select'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const BUILTIN_FEE_PROFILES = [
   {
@@ -46,12 +47,17 @@ const emit = defineEmits(['update:visible', 'hide'])
 
 const toast = useToast()
 const portfolio = usePortfolioStore()
+const {t} = useI18n()
 const feeStore = useFeeProfileStore()
 const groupsStore = useGroupsStore()
 const showFeeModal = ref(false)
 const {suffix: marketSuffix, selected: selectedMarket, applyTo, searchQuery} = useMarketSuffix('tx-add-market')
 
 const type = ref('buy')
+const txTypeOptions = computed(() => [
+  {label: t('common.buy'), value: 'buy'},
+  {label: t('common.sell'), value: 'sell'},
+])
 const ticker = ref('')
 const shares = ref(null)
 const price = ref(null)
@@ -104,14 +110,14 @@ function formatTaxPercent(value) {
 }
 
 const feeOptions = computed(() => [
-  { label: 'No fee', detail: '', value: null },
+  {label: t('common.noFee'), detail: '', value: null},
   ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
     const feeStr = formatFeeRule(fee, p.currency || currency.value)
-    const minStr = fee?.minFee ? ` min ${useCurrency(fee.minFee, p.currency || currency.value)}` : ''
+    const minStr = fee?.minFee ? ` ${t('feeProfiles.min')} ${useCurrency(fee.minFee, p.currency || currency.value)}` : ''
     const usageStr = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : ''
-    const taxStr = p.capitalGainsTax ? `Tax ${formatTaxPercent(p.capitalGainsTax)}` : ''
-    const presetStr = p.builtin ? 'Preset' : ''
+    const taxStr = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatTaxPercent(p.capitalGainsTax)}` : ''
+    const presetStr = p.builtin ? t('feeProfiles.preset') : ''
     const detail = [feeStr + minStr, usageStr, taxStr].filter(Boolean).join(' · ')
     return { label: p.name, detail, meta: presetStr, value: p._id, profile: p }
   }),
@@ -119,15 +125,15 @@ const feeOptions = computed(() => [
 
 function formatMonthlyUsage(usage) {
   const parts = []
-  if (usage.transactions) parts.push(`${usage.transactions} tx/mo`)
-  if (usage.shares) parts.push(`${usage.shares.toLocaleString()} shares/mo`)
-  return parts.join(' or ')
+  if (usage.transactions) parts.push(t('feeProfiles.txPerMonth', {count: usage.transactions}))
+  if (usage.shares) parts.push(t('feeProfiles.sharesPerMonth', {count: usage.shares.toLocaleString()}))
+  return parts.join(` ${t('feeProfiles.or')} `)
 }
 
 function formatFeeRule(rule, profileCurrency = currency.value) {
   if (!rule?.value) return '0'
   if (rule.type === 'percent') return formatFeePercent(rule.value)
-  if (rule.type === 'perShare') return `${useCurrency(rule.value, profileCurrency)} / share`
+  if (rule.type === 'perShare') return `${useCurrency(rule.value, profileCurrency)} / ${t('feeProfiles.share')}`
   return useCurrency(rule.value, profileCurrency)
 }
 
@@ -256,7 +262,7 @@ async function sellAllAtMarket() {
   if (marketPrice.value == null) await fetchMarketPrice()
   const latestPrice = marketPrice.value ?? props.defaultPrice
   if (latestPrice == null) {
-    toast.add({ severity: 'warn', summary: 'Market price unavailable', life: 2000 })
+    toast.add({severity: 'warn', summary: t('transactionModal.marketPriceUnavailable'), life: 2000})
     return
   }
   price.value = latestPrice
@@ -315,7 +321,7 @@ async function submit() {
   if (type.value === 'buy') commitPendingGroup() // flush un-Entered group text
   const raw = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
   const symbol = (raw || '').split(' — ')[0].trim().toUpperCase()
-  const t = hasFixedTicker.value ? symbol : applyTo(symbol)
+  const submittedTicker = hasFixedTicker.value ? symbol : applyTo(symbol)
 
   // Crypto buy with no price → fall back to the live market price.
   let effectivePrice = price.value
@@ -325,14 +331,14 @@ async function submit() {
     if (effectivePrice != null) price.value = effectivePrice
   }
 
-  if (!t || !shares.value || !effectivePrice) {
-    toast.add({ severity: 'warn', summary: 'Fill all fields', life: 2000 })
+  if (!submittedTicker || !shares.value || !effectivePrice) {
+    toast.add({severity: 'warn', summary: t('transactionModal.fillAllFields'), life: 2000})
     return
   }
   loading.value = true
   try {
     await portfolio.addTransaction({
-      ticker: t,
+      ticker: submittedTicker,
       type: type.value,
       shares: shares.value,
       price: effectivePrice,
@@ -341,8 +347,12 @@ async function submit() {
       feeProfileId: selectedFeeProfile.value ?? null,
       groups: type.value === 'buy' && groups.value.length ? groups.value : undefined,
     })
-    toast.add({ severity: 'success', summary: `${type.value === 'buy' ? 'Bought' : 'Sold'} ${t}`, life: 2000 })
-    trackEvent('add_transaction', {ticker: t, transaction_type: type.value})
+    toast.add({
+      severity: 'success',
+      summary: type.value === 'buy' ? t('transactionModal.bought', {ticker: submittedTicker}) : t('transactionModal.sold', {ticker: submittedTicker}),
+      life: 2000
+    })
+    trackEvent('add_transaction', {ticker: submittedTicker, transaction_type: type.value})
     emit('update:visible', false)
     emit('hide')
   } catch (err) {
@@ -364,16 +374,17 @@ async function submit() {
     :visible="visible"
     @update:visible="emit('update:visible', $event)"
     modal
-    :header="type === 'buy' ? 'Buy Stock' : 'Sell Stock'"
+    :header="type === 'buy' ? t('transactionModal.buyStock') : t('transactionModal.sellStock')"
     :style="{ width: '95vw', maxWidth: '420px' }"
     :draggable="false"
   >
     <div class="tx-form">
-      <SelectButton v-model="type" :options="['buy', 'sell']" class="type-select"/>
+      <SelectButton v-model="type" :options="txTypeOptions" class="type-select" option-label="label"
+                    option-value="value"/>
 
       <!-- Market selector -->
       <div v-if="!hasFixedTicker" class="field">
-        <label>Market</label>
+        <label>{{ t('common.market') }}</label>
         <div class="market-grid">
           <button
               v-for="m in MARKETS"
@@ -388,7 +399,7 @@ async function submit() {
       </div>
 
       <div class="field">
-        <label>{{ isCryptoBuy ? 'Coin' : 'Ticker' }}</label>
+        <label>{{ isCryptoBuy ? t('common.coin') : t('common.ticker') }}</label>
         <InputText
           v-if="hasFixedTicker"
           :model-value="currentTicker"
@@ -413,7 +424,7 @@ async function submit() {
       <div class="fields-row">
         <div class="field">
           <label>
-            <span>{{ isCryptoBuy ? 'Amount' : 'Shares' }}</span>
+            <span>{{ isCryptoBuy ? t('common.amount') : t('common.shares') }}</span>
             <button
                 v-if="type === 'sell' && maxShares"
                 class="max-link"
@@ -428,18 +439,20 @@ async function submit() {
         </div>
         <div class="field">
           <label>
-            <span>{{ isCryptoBuy ? 'Price/coin' : 'Price/share' }}</span>
+            <span>{{ isCryptoBuy ? t('transactionModal.pricePerCoin') : t('transactionModal.pricePerShare') }}</span>
             <button
                 v-if="marketPrice != null"
                 class="max-link"
                 type="button"
                 @click="useMarketPrice"
             >Market {{ formatCompactPrice(marketPrice) }}</button>
-            <span v-else-if="fetchingPrice" class="max-link" style="opacity:0.5;cursor:default">Fetching…</span>
+            <span v-else-if="fetchingPrice" class="max-link"
+                  style="opacity:0.5;cursor:default">{{ t('transactionModal.fetching') }}</span>
           </label>
           <InputNumber v-model="price" mode="currency" :currency="currency" :min="0" :min-fraction-digits="0"
                        :max-fraction-digits="shareDigits"
-                       :placeholder="isCryptoBuy && type === 'buy' ? 'Market price' : `${currencySymbol}0`" fluid />
+                       :placeholder="isCryptoBuy && type === 'buy' ? t('transactionModal.marketPrice') : `${currencySymbol}0`"
+                       fluid/>
           <span v-if="isCryptoBuy && type === 'buy' && !price" class="suffix-hint">
             Leave empty to buy at the current market price
           </span>
@@ -454,16 +467,18 @@ async function submit() {
           @click="sellAllAtMarket"
       >
         <i class="pi pi-bolt"/>
-        <span>{{ fetchingPrice ? 'Loading market price...' : 'Sell all at market price' }}</span>
+        <span>{{
+            fetchingPrice ? t('transactionModal.loadingMarketPrice') : t('transactionModal.sellAllMarket')
+          }}</span>
       </button>
 
       <div class="field">
-        <label>Date</label>
+        <label>{{ t('common.date') }}</label>
         <DatePicker v-model="date" :max-date="new Date()" date-format="dd/mm/yy" show-icon fluid />
       </div>
 
       <div v-if="type === 'buy'" class="field">
-        <label>Groups <span class="text-muted">(optional)</span></label>
+        <label>{{ t('common.groups') }} <span class="text-muted">({{ t('common.optional') }})</span></label>
         <AutoComplete
             v-model="groups"
             :suggestions="groupSuggestions"
@@ -476,18 +491,20 @@ async function submit() {
             @input="pendingGroup = $event.target ? $event.target.value : pendingGroup"
             @keydown.enter="addTypedGroup"
         />
-        <span class="text-muted hint">Type a name + Enter to create, or pick an existing one</span>
+        <span class="text-muted hint">{{ t('transactionModal.typeGroupHint') }}</span>
       </div>
 
       <div class="field">
-        <label><span>Brokerage fee <i v-tooltip.focus.top="'Apply a saved fee profile to include your broker\'s commission (and capital-gains tax on sells) in the total.'" tabindex="0" class="pi pi-info-circle info-icon"/></span></label>
+        <label><span>{{ t('transactionModal.brokerageFee') }} <i
+            v-tooltip.focus.top="t('transactionModal.brokerageFeeHelp')" class="pi pi-info-circle info-icon"
+            tabindex="0"/></span></label>
         <Select
           v-if="feeOptions.length > 1"
           v-model="selectedFeeProfile"
           :options="feeOptions"
           option-label="label"
           option-value="value"
-          placeholder="No fee"
+          :placeholder="t('common.noFee')"
           panel-class="fee-select-panel"
           fluid
         >
@@ -509,7 +526,7 @@ async function submit() {
         <Button
           v-else
           icon="pi pi-plus"
-          label="Create fee profile"
+          :label="t('transactionModal.createFeeProfile')"
           severity="secondary"
           outlined
           fluid
@@ -518,21 +535,21 @@ async function submit() {
       </div>
 
       <div class="field">
-        <label>Notes <span class="text-muted">(optional)</span></label>
-        <InputText v-model="notes" placeholder="e.g. dividend reinvestment" fluid />
+        <label>{{ t('common.notes') }} <span class="text-muted">({{ t('common.optional') }})</span></label>
+        <InputText v-model="notes" :placeholder="t('transactionModal.notesPlaceholder')" fluid/>
       </div>
 
       <div class="total-row">
         <div v-if="type === 'buy'" class="total-line">
-          <span class="text-muted">Subtotal</span>
+          <span class="text-muted">{{ t('common.subtotal') }}</span>
           <span>{{ currencySymbol }}{{ ((shares || 0) * (price || 0)).toFixed(2) }}</span>
         </div>
         <div v-if="type === 'buy' && feeAmount > 0" class="total-line fee-line">
-          <span class="text-muted">Buy fee</span>
+          <span class="text-muted">{{ t('transactionModal.buyFee') }}</span>
           <span class="loss">+{{ useCurrency(feeAmount, feeCurrency) }}</span>
         </div>
         <div v-if="type === 'buy'" class="total-line total-final">
-          <span>Total cost</span>
+          <span>{{ t('transactionModal.totalCost') }}</span>
           <span class="total-amount">
             {{ currencySymbol }}{{ ((((shares || 0) * (price || 0)) + feeAmount).toFixed(2)) }}
           </span>
@@ -540,31 +557,37 @@ async function submit() {
 
         <template v-else-if="sellSimulation">
           <div class="total-line">
-            <span class="text-muted">Gross proceeds</span>
+            <span class="text-muted">{{ t('transactionModal.grossProceeds') }}</span>
             <span>{{ useCurrency(sellSimulation.grossProceeds, currency) }}</span>
           </div>
           <div v-if="sellSimulation.sellFee > 0" class="total-line fee-line">
-            <span class="text-muted">Sell fee{{ sellSimulation.profileName ? ` · ${sellSimulation.profileName}` : '' }}</span>
+            <span class="text-muted">{{
+                t('transactionModal.sellFee')
+              }}{{ sellSimulation.profileName ? ` · ${sellSimulation.profileName}` : '' }}</span>
             <span class="loss">-{{ useCurrency(sellSimulation.sellFee, feeCurrency) }}</span>
           </div>
           <div v-if="sellSimulation.tax > 0" class="total-line fee-line">
-            <span class="text-muted">Capital gains tax ({{ formatTaxPercent(sellSimulation.taxRate) }})</span>
+            <span class="text-muted">{{
+                t('transactionModal.capitalGainsTax')
+              }} ({{ formatTaxPercent(sellSimulation.taxRate) }})</span>
             <span class="loss">-{{ useCurrency(sellSimulation.tax, currency) }}</span>
           </div>
           <div v-else-if="sellSimulation.taxRate > 0" class="total-line fee-line">
-            <span class="text-muted">Capital gains tax ({{ formatTaxPercent(sellSimulation.taxRate) }})</span>
-            <span class="text-muted">No taxable gain</span>
+            <span class="text-muted">{{
+                t('transactionModal.capitalGainsTax')
+              }} ({{ formatTaxPercent(sellSimulation.taxRate) }})</span>
+            <span class="text-muted">{{ t('transactionModal.noTaxableGain') }}</span>
           </div>
           <div class="total-line total-final">
-            <span>Net proceeds</span>
+            <span>{{ t('transactionModal.netProceeds') }}</span>
             <span class="total-amount">{{ useCurrency(sellSimulation.netProceeds, currency) }}</span>
           </div>
           <div v-if="sellSimulation.costBasis != null" class="total-line fee-line">
-            <span class="text-muted">Cost basis</span>
+            <span class="text-muted">{{ t('transactionModal.costBasis') }}</span>
             <span>{{ useCurrency(sellSimulation.costBasis, currency) }}</span>
           </div>
           <div v-if="sellSimulation.buyFeesBasis > 0" class="total-line fee-line">
-            <span class="text-muted">Buy fees basis</span>
+            <span class="text-muted">{{ t('transactionModal.buyFeesBasis') }}</span>
             <span>{{ useCurrency(sellSimulation.buyFeesBasis, currency) }}</span>
           </div>
           <div
@@ -572,7 +595,7 @@ async function submit() {
               :class="sellSimulation.netProfit >= 0 ? 'gain' : 'loss'"
               class="total-line sell-profit"
           >
-            <span>Net profit / loss</span>
+            <span>{{ t('transactionModal.netProfitLoss') }}</span>
             <span>
               {{ fmt(sellSimulation.netProfit) }}{{ useCurrency(Math.abs(sellSimulation.netProfit), currency) }}
               <template v-if="sellSimulation.netProfitPct != null">
@@ -581,12 +604,12 @@ async function submit() {
             </span>
           </div>
           <div v-else-if="sellSimulation.taxRate > 0" class="total-hint text-muted">
-            Tax will be finalized by the server using your exact cost basis.
+            {{ t('transactionModal.taxFinalizedServer') }}
           </div>
         </template>
 
         <div v-else class="total-line total-final">
-          <span>Net proceeds</span>
+          <span>{{ t('transactionModal.netProceeds') }}</span>
           <span class="total-amount">
             {{ currencySymbol }}{{ ((((shares || 0) * (price || 0)) - feeAmount).toFixed(2)) }}
           </span>
@@ -595,7 +618,7 @@ async function submit() {
 
       <div class="action-row">
         <Button
-            :label="type === 'buy' ? 'Buy' : 'Sell'"
+            :label="type === 'buy' ? t('common.buy') : t('common.sell')"
             :loading="loading"
             :severity="type === 'buy' ? 'success' : 'danger'"
             class="submit-btn"

@@ -3,6 +3,7 @@ import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import * as d3 from 'd3'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useCurrency} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   positions: {type: Array, default: () => []},
@@ -10,6 +11,7 @@ const props = defineProps({
 })
 
 const {openPosition} = useNavigateToPosition()
+const {t} = useI18n()
 const svgRef = ref(null)
 
 // Shared categorical palette for allocation slices + legend dots.
@@ -118,7 +120,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
 
 <template>
   <section v-if="positions.length" class="breakdown-card">
-    <h2 class="card-title">Portfolio Breakdown</h2>
+    <h2 class="card-title">{{ t('dashboard.portfolioBreakdown') }}</h2>
 
     <!-- Allocation -->
     <div class="alloc-row">
@@ -143,7 +145,7 @@ watch(() => props.combinedUsd, () => nextTick(draw))
     <template v-if="movers.length">
       <div class="divider"/>
       <div class="movers-strip">
-        <span class="movers-label text-muted">Today</span>
+        <span class="movers-label text-muted">{{ t('dashboard.today') }}</span>
         <div class="movers-items">
           <button
               v-for="m in movers"

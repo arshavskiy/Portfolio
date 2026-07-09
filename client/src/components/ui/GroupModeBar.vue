@@ -1,8 +1,10 @@
 <script setup>
 import {ref, watch} from 'vue'
 import {GROUP_MODES} from '@/composables/useGrouping'
+import {useI18n} from '@/composables/useI18n'
 
 const model = defineModel({type: String, required: true})
+const {t} = useI18n()
 // 'down' = gainers first (default), 'up' = losers first. Meaningful while
 // model === 'change', 'pre', or 'post'; clicking the already-active chip again
 // flips it (next click toggles direction instead of needing a double-click).
@@ -19,12 +21,12 @@ const MODE_ICONS = {
 }
 
 const MODE_EXPLANATIONS = {
-  market: 'Market',
-  change: "Today's change",
-  extended: 'Pre/post change',
-  momentum: 'Momentum',
-  industry: 'Industry',
-  group: 'Your tags',
+  market: 'grouping.market',
+  change: 'grouping.todayChange',
+  extended: 'grouping.extended',
+  momentum: 'grouping.momentum',
+  industry: 'grouping.industry',
+  group: 'grouping.tags',
 }
 
 const SEEN_KEY = 'group-mode-tooltips-seen'
@@ -54,7 +56,8 @@ function onTap(value) {
 }
 
 function labelFor(opt) {
-  return opt.title || (directionalModes.has(opt.value) ? `${opt.label} (click again to flip)` : `Group by ${opt.label}`)
+  const label = t(MODE_EXPLANATIONS[opt.value] || 'grouping.groupBy')
+  return opt.title || (directionalModes.has(opt.value) ? t('grouping.clickAgain', {label}) : t('grouping.groupByLabel', {label}))
 }
 
 function iconFor(opt) {
@@ -64,7 +67,7 @@ function iconFor(opt) {
 </script>
 
 <template>
-  <div class="group-bar" aria-label="Group by">
+  <div :aria-label="t('grouping.groupBy')" class="group-bar">
     <button
       v-for="opt in GROUP_MODES"
       :key="opt.value"
@@ -75,7 +78,7 @@ function iconFor(opt) {
         'btn-directional-bull': directionalModes.has(opt.value) && model === opt.value && changeDirection === 'down',
         'btn-directional-bear': directionalModes.has(opt.value) && model === opt.value && changeDirection === 'up',
       }"
-      v-tooltip.focus.bottom="allSeen ? null : MODE_EXPLANATIONS[opt.value]"
+      v-tooltip.focus.bottom="allSeen ? null : t(MODE_EXPLANATIONS[opt.value])"
       :aria-label="labelFor(opt)"
       @click="onTap(opt.value)"
     >

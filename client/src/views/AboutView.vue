@@ -4,23 +4,16 @@ import { useRouter } from 'vue-router'
 import { useToast } from 'primevue/usetoast'
 import QRCode from 'qrcode'
 import Button from 'primevue/button'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const toast = useToast()
+const {t} = useI18n()
 
 const BTC_ADDRESS = 'bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2'
 const qrCanvas = ref(null)
 
-const features = [
-  { icon: 'pi pi-chart-line', text: 'Live portfolio tracking with P&L, multi-currency totals, and a value-over-time chart' },
-  { icon: 'pi pi-globe', text: 'Coverage for US stocks, TASE, global markets, and crypto watchlists' },
-  { icon: 'pi pi-money-bill', text: 'Buy/sell lots with fee profiles for broker fees and capital-gains tax simulation' },
-  { icon: 'pi pi-bell', text: 'Price alerts via push notifications, set and monitored per ticker' },
-  { icon: 'pi pi-bolt', text: 'Dashboard cards for top movers, trending symbols, and live market-hours status' },
-  { icon: 'pi pi-clock', text: 'Pre-market and after-hours price changes alongside regular session quotes' },
-  { icon: 'pi pi-tags', text: 'Custom multi-tag groups with group-by views across holdings and watchlist' },
-  { icon: 'pi pi-upload', text: 'Bulk import holdings or watchlist from Excel, CSV, or Word files' },
-]
+const featureIcons = ['pi pi-chart-line', 'pi pi-globe', 'pi pi-money-bill', 'pi pi-bell', 'pi pi-bolt', 'pi pi-clock', 'pi pi-tags', 'pi pi-upload']
 
 onMounted(async () => {
   if (!qrCanvas.value) return
@@ -36,9 +29,9 @@ onMounted(async () => {
 async function copyAddress() {
   try {
     await navigator.clipboard.writeText(BTC_ADDRESS)
-    toast.add({ severity: 'success', summary: 'Address copied', life: 2000 })
+    toast.add({severity: 'success', summary: t('aboutPage.addressCopied'), life: 2000})
   } catch {
-    toast.add({ severity: 'warn', summary: 'Copy failed — select it manually', life: 2500 })
+    toast.add({severity: 'warn', summary: t('aboutPage.copyFailed'), life: 2500})
   }
 }
 </script>
@@ -47,21 +40,21 @@ async function copyAddress() {
   <div class="about safe-bottom">
     <header class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
-      <h1 class="gradient-title">About</h1>
+      <h1 class="gradient-title">{{ t('common.about') }}</h1>
     </header>
 
     <div class="about-layout">
       <div class="main-col">
         <!-- Desktop screenshot -->
         <div class="screenshot-card">
-          <div class="screenshot-label">Desktop View</div>
-          <img src="/screenshot-desktop.png" alt="StockFolio desktop dashboard" class="screenshot-img" />
+          <div class="screenshot-label">{{ t('aboutPage.desktopView') }}</div>
+          <img :alt="t('aboutPage.desktopAlt')" class="screenshot-img" src="/screenshot-desktop.png"/>
         </div>
 
         <!-- Import guide -->
         <div class="screenshot-card">
-          <div class="screenshot-label">Import from Excel / CSV</div>
-          <img src="/import-guide.svg" alt="How to import holdings from Excel or CSV" class="screenshot-img" />
+          <div class="screenshot-label">{{ t('aboutPage.importGuide') }}</div>
+          <img :alt="t('aboutPage.importAlt')" class="screenshot-img" src="/import-guide.svg"/>
         </div>
 
         <!-- App intro -->
@@ -71,45 +64,45 @@ async function copyAddress() {
             <span class="brand-name gradient-title">StockFolio</span>
           </div>
           <p class="tagline text-muted">
-            A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L,
-            price alerts, and a clean dark interface.
+            {{ t('aboutPage.tagline') }}
           </p>
           <ul class="feature-list">
-            <li v-for="f in features" :key="f.text">
-              <i :class="f.icon" /><span>{{ f.text }}</span>
+            <li v-for="(text, i) in t('aboutPage.features')" :key="text">
+              <i :class="featureIcons[i]"/><span>{{ text }}</span>
             </li>
           </ul>
         </div>
 
         <p class="legal text-muted main-legal">© {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech"
                                                                                      href="//handcoded.tech">
-          handcoded.tech </a>. All rights reserved.</p>
+          handcoded.tech </a>. {{ t('common.allRightsReserved') }}</p>
       </div>
 
       <div class="side-col">
         <!-- Donate -->
         <div class="donate-card">
-          <h2 class="donate-title">Support StockFolio</h2>
+          <h2 class="donate-title">{{ t('aboutPage.supportTitle') }}</h2>
           <p class="text-muted donate-sub">
-            StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.
+            {{ t('aboutPage.supportText') }}
           </p>
 
           <div class="qr-wrap">
             <canvas ref="qrCanvas" class="qr" />
           </div>
-          <div class="addr-label text-muted">Your Bitcoin Address</div>
+          <div class="addr-label text-muted">{{ t('aboutPage.bitcoinAddress') }}</div>
 
           <div class="addr-row">
             <code class="addr">{{ BTC_ADDRESS }}</code>
-            <button class="copy-btn" title="Copy" @click="copyAddress">
+            <button :title="t('common.copy')" class="copy-btn" @click="copyAddress">
               <i class="pi pi-copy" />
             </button>
           </div>
 
           <div class="contact-block">
-            <div class="text-muted contact-label">Contact</div>
-            <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">Email me</a>
-            <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer" target="_blank">Telegram me</a>
+            <div class="text-muted contact-label">{{ t('common.contact') }}</div>
+            <a class="contact-link" href="mailto:pavelspersonalhelper@gmail.com">{{ t('common.emailMe') }}</a>
+            <a class="contact-link" href="https://t.me/PashaArsha" rel="noopener noreferrer"
+               target="_blank">{{ t('common.telegramMe') }}</a>
           </div>
         </div>
       </div>

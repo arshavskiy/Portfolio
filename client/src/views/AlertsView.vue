@@ -7,11 +7,13 @@ import {usePush} from '@/composables/usePush'
 import {useTickerCurrency} from '@/composables/useFormat'
 import Button from 'primevue/button'
 import ToggleSwitch from 'primevue/toggleswitch'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
 const toast = useToast()
 const alerts = useAlertsStore()
 const {supported, subscribed, busy, refreshState, enablePush, disablePush} = usePush()
+const {t} = useI18n()
 
 onMounted(() => {
   alerts.fetchAlerts()
@@ -22,10 +24,10 @@ async function togglePush() {
   try {
     if (subscribed.value) {
       await disablePush()
-      toast.add({severity: 'info', summary: 'Push disabled', life: 2000})
+      toast.add({severity: 'info', summary: t('alerts.pushDisabled'), life: 2000})
     } else {
       await enablePush()
-      toast.add({severity: 'success', summary: 'Push enabled', life: 2000})
+      toast.add({severity: 'success', summary: t('alerts.pushEnabled'), life: 2000})
     }
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
@@ -43,7 +45,7 @@ async function toggleActive(alert) {
 async function remove(alert) {
   try {
     await alerts.deleteAlert(alert._id)
-    toast.add({severity: 'success', summary: 'Alert deleted', life: 2000})
+    toast.add({severity: 'success', summary: t('alerts.deleted'), life: 2000})
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
   }
@@ -54,7 +56,7 @@ async function remove(alert) {
   <div class="alerts-page safe-bottom">
     <header class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
-      <h1 class="gradient-title">Alerts</h1>
+      <h1 class="gradient-title">{{ t('alerts.title') }}</h1>
     </header>
 
     <!-- Push toggle -->
@@ -62,9 +64,9 @@ async function remove(alert) {
       <div class="push-info">
         <i class="pi pi-bell"/>
         <div>
-          <div class="push-title">Push notifications</div>
+          <div class="push-title">{{ t('alerts.pushNotifications') }}</div>
           <div class="push-sub text-muted">
-            {{ supported ? (subscribed ? 'On — alerts reach this device' : 'Off') : 'Not supported on this device' }}
+            {{ supported ? (subscribed ? t('alerts.pushOn') : t('alerts.pushOff')) : t('alerts.pushUnsupported') }}
           </div>
         </div>
       </div>
@@ -72,12 +74,12 @@ async function remove(alert) {
     </div>
 
     <!-- Alerts list -->
-    <div v-if="alerts.loading" class="loading text-muted">Loading…</div>
+    <div v-if="alerts.loading" class="loading text-muted">{{ t('common.loading') }}</div>
 
     <div v-else-if="!alerts.items.length" class="empty">
       <i class="pi pi-bell-slash"/>
-      <p>No price alerts yet</p>
-      <span class="text-muted">Open a stock and tap the bell to set one.</span>
+      <p>{{ t('alerts.empty') }}</p>
+      <span class="text-muted">{{ t('alerts.emptyHint') }}</span>
     </div>
 
     <div v-else class="alert-list">
@@ -94,7 +96,7 @@ async function remove(alert) {
             {{ useTickerCurrency(a.target, a.ticker) }}
           </span>
           <span v-if="a.triggeredAt" class="triggered-tag">
-            triggered @ {{ useTickerCurrency(a.triggeredPrice, a.ticker) }}
+            {{ t('alerts.triggeredAt', {price: useTickerCurrency(a.triggeredPrice, a.ticker)}) }}
           </span>
         </div>
         <div class="alert-actions">

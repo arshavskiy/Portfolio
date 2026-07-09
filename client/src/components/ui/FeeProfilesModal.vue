@@ -4,6 +4,7 @@ import {useToast} from 'primevue/usetoast'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useCurrency} from '@/composables/useFormat'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useI18n} from '@/composables/useI18n'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
@@ -16,6 +17,7 @@ const emit = defineEmits(['update:visible'])
 
 const toast = useToast()
 const store = useFeeProfileStore()
+const {t} = useI18n()
 
 const BUILTIN_FEE_PROFILES = [
   {
@@ -30,20 +32,15 @@ const BUILTIN_FEE_PROFILES = [
   },
 ]
 
-// ⓘ tooltip explanations, see project_info_tooltip_pattern
-const INFO = {
-  buyFee: 'Commission your broker charges when you buy. Percent of trade value, or a flat amount per order.',
-  sellFee: 'Commission your broker charges when you sell. Percent of trade value, or a flat amount per order.',
-  minBuyFee: 'Minimum buy commission charged even when the percentage fee would be lower.',
-  minSellFee: 'Minimum sell commission charged even when the percentage fee would be lower.',
-  capitalGainsTax: 'Tax rate applied to your profit when you sell at a gain. E.g. 25% in Israel.',
-}
-
 const editing = ref(null)
 const form = ref(defaultForm())
 const visibleProfiles = computed(() => [
   ...BUILTIN_FEE_PROFILES,
   ...store.profiles,
+])
+const feeTypeOptions = computed(() => [
+  {label: t('feeProfiles.percent'), value: 'percent'},
+  {label: t('feeProfiles.flat'), value: 'flat'},
 ])
 
 function defaultForm() {
@@ -90,16 +87,17 @@ function formatFeePercent(value, digits = 3) {
 
 async function save() {
   if (!form.value.name) {
-    toast.add({ severity: 'warn', summary: 'Name required', life: 2000 }); return
+    toast.add({severity: 'warn', summary: t('feeProfiles.nameRequired'), life: 2000});
+    return
   }
   try {
     if (editing.value === 'new') {
       await store.createProfile(form.value)
-      toast.add({ severity: 'success', summary: 'Fee profile created', life: 2000 })
+      toast.add({severity: 'success', summary: t('feeProfiles.created'), life: 2000})
       trackEvent('create_fee_profile', {})
     } else {
       await store.updateProfile(editing.value._id, form.value)
-      toast.add({ severity: 'success', summary: 'Updated', life: 2000 })
+      toast.add({severity: 'success', summary: t('feeProfiles.updated'), life: 2000})
       trackEvent('update_fee_profile', {})
     }
     closeEdit()
@@ -112,7 +110,7 @@ async function remove(p) {
   if (p.builtin) return
   try {
     await store.deleteProfile(p._id)
-    toast.add({ severity: 'success', summary: 'Deleted', life: 2000 })
+    toast.add({severity: 'success', summary: t('feeProfiles.deleted'), life: 2000})
   } catch (err) {
     toast.add({ severity: 'error', summary: err.message, life: 3000 })
   }
@@ -120,28 +118,28 @@ async function remove(p) {
 
 function feeLabel(p) {
   const buy = p.buyFee?.value
-    ? `Buy ${formatFeeRule(p.buyFee, p.currency || 'USD')}`
+      ? `${t('feeProfiles.buy')} ${formatFeeRule(p.buyFee, p.currency || 'USD')}`
     : null
   const sell = p.sellFee?.value
-    ? `Sell ${formatFeeRule(p.sellFee, p.currency || 'USD')}`
+      ? `${t('feeProfiles.sell')} ${formatFeeRule(p.sellFee, p.currency || 'USD')}`
     : null
   const usage = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : null
-  const tax = p.capitalGainsTax ? `Tax ${formatPercentValue(p.capitalGainsTax)}%` : null
-  return [buy, sell, usage, tax].filter(Boolean).join(' · ') || 'No fees'
+  const tax = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatPercentValue(p.capitalGainsTax)}%` : null
+  return [buy, sell, usage, tax].filter(Boolean).join(' · ') || t('feeProfiles.noFees')
 }
 
 function formatFeeRule(rule, currency = 'USD') {
   if (!rule?.value) return '0'
   if (rule.type === 'percent') return formatFeePercent(rule.value)
-  if (rule.type === 'perShare') return `${useCurrency(rule.value, currency)} / share`
+  if (rule.type === 'perShare') return `${useCurrency(rule.value, currency)} / ${t('feeProfiles.share')}`
   return useCurrency(rule.value, currency)
 }
 
 function formatMonthlyUsage(usage) {
   const parts = []
-  if (usage.transactions) parts.push(`${usage.transactions} tx/mo`)
-  if (usage.shares) parts.push(`${usage.shares.toLocaleString()} shares/mo`)
-  return parts.join(' or ')
+  if (usage.transactions) parts.push(t('feeProfiles.txPerMonth', {count: usage.transactions}))
+  if (usage.shares) parts.push(t('feeProfiles.sharesPerMonth', {count: usage.shares.toLocaleString()}))
+  return parts.join(` ${t('feeProfiles.or')} `)
 }
 </script>
 
@@ -150,23 +148,23 @@ function formatMonthlyUsage(usage) {
     :visible="visible"
     @update:visible="emit('update:visible', $event)"
     modal
-    header="Fee Profiles"
+    :header="t('feeProfiles.title')"
     :style="{ width: '95vw', maxWidth: '460px' }"
     :draggable="false"
   >
     <!-- Profile list -->
     <div v-if="!editing">
-      <div v-if="store.loading" class="text-muted">Loading...</div>
+      <div v-if="store.loading" class="text-muted">{{ t('common.loading') }}</div>
       <div v-else-if="!visibleProfiles.length" class="empty">
-        <p class="text-muted">No fee profiles yet. Add one to track brokerage costs.</p>
+        <p class="text-muted">{{ t('feeProfiles.empty') }}</p>
       </div>
       <div v-else class="profile-list">
         <div v-for="p in visibleProfiles" :key="p._id" class="profile-row" :class="{ preset: p.builtin }">
           <div class="profile-info" @click="openEdit(p)">
             <span class="profile-name">
               {{ p.name }}
-              <span v-if="p.builtin" class="preset-badge">Preset</span>
-              <span v-if="p.isDefault" class="default-badge">Default</span>
+              <span v-if="p.builtin" class="preset-badge">{{ t('feeProfiles.preset') }}</span>
+              <span v-if="p.isDefault" class="default-badge">{{ t('feeProfiles.default') }}</span>
             </span>
             <span class="profile-detail text-muted">{{ feeLabel(p) }}</span>
           </div>
@@ -176,79 +174,100 @@ function formatMonthlyUsage(usage) {
           </div>
         </div>
       </div>
-      <Button class="mt" fluid icon="pi pi-plus" label="Add Profile" @click="openNew"/>
+      <Button :label="t('feeProfiles.addProfile')" class="mt" fluid icon="pi pi-plus" @click="openNew"/>
     </div>
 
     <!-- Edit / Create form -->
     <div v-else class="fee-form">
       <div class="form-header">
         <Button icon="pi pi-arrow-left" text rounded size="small" @click="closeEdit" />
-        <span class="form-title">{{ editing === 'new' ? 'New Profile' : 'Edit Profile' }}</span>
+        <span class="form-title">{{
+            editing === 'new' ? t('feeProfiles.newProfile') : t('feeProfiles.editProfile')
+          }}</span>
       </div>
 
       <div class="field">
-        <label>Broker / Vendor name</label>
-        <InputText v-model="form.name" placeholder="e.g. IBI, Meitav, IBKR" fluid />
+        <label>{{ t('feeProfiles.brokerName') }}</label>
+        <InputText v-model="form.name" :placeholder="t('feeProfiles.brokerPlaceholder')" fluid/>
       </div>
 
       <!-- Buy fee -->
       <div class="fee-section">
-        <p class="fee-section-title">Buy Fee <i v-tooltip.focus.top="INFO.buyFee" tabindex="0" class="pi pi-info-circle info-icon"/></p>
+        <p class="fee-section-title">{{ t('feeProfiles.buyFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoBuyFee')"
+                                                                      class="pi pi-info-circle info-icon" tabindex="0"/>
+        </p>
         <div class="fields-row">
           <div class="field">
-            <label>Type</label>
-            <SelectButton v-model="form.buyFee.type" :options="['percent', 'flat']" />
+            <label>{{ t('feeProfiles.type') }}</label>
+            <SelectButton v-model="form.buyFee.type" :options="feeTypeOptions" option-label="label"
+                          option-value="value"/>
           </div>
           <div class="field">
-            <label>{{ form.buyFee.type === 'percent' ? 'Fee %' : 'Flat amount' }}</label>
+            <label>{{
+                form.buyFee.type === 'percent' ? t('feeProfiles.feePercent') : t('feeProfiles.flatAmount')
+              }}</label>
             <InputNumber v-model="form.buyFee.value" :min="0" :max-fraction-digits="form.buyFee.type === 'percent' ? 3 : 4"
               :suffix="form.buyFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
-            <small v-if="form.buyFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%, 0.001 = 0.1%</small>
+            <small v-if="form.buyFee.type === 'percent'" class="field-hint text-muted">{{
+                t('feeProfiles.percentHint')
+              }}</small>
           </div>
         </div>
         <div class="field">
-          <label>Min buy fee <i v-tooltip.focus.top="INFO.minBuyFee" tabindex="0" class="pi pi-info-circle info-icon"/></label>
+          <label>{{ t('feeProfiles.minBuyFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoMinBuyFee')" class="pi pi-info-circle info-icon"
+                                                     tabindex="0"/></label>
           <InputNumber v-model="form.buyFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
         </div>
       </div>
 
       <!-- Sell fee -->
       <div class="fee-section">
-        <p class="fee-section-title">Sell Fee <i v-tooltip.focus.top="INFO.sellFee" tabindex="0" class="pi pi-info-circle info-icon"/></p>
+        <p class="fee-section-title">{{ t('feeProfiles.sellFee') }} <i
+            v-tooltip.focus.top="t('feeProfiles.infoSellFee')" class="pi pi-info-circle info-icon" tabindex="0"/></p>
         <div class="fields-row">
           <div class="field">
-            <label>Type</label>
-            <SelectButton v-model="form.sellFee.type" :options="['percent', 'flat']" />
+            <label>{{ t('feeProfiles.type') }}</label>
+            <SelectButton v-model="form.sellFee.type" :options="feeTypeOptions" option-label="label"
+                          option-value="value"/>
           </div>
           <div class="field">
-            <label>{{ form.sellFee.type === 'percent' ? 'Fee %' : 'Flat amount' }}</label>
+            <label>{{
+                form.sellFee.type === 'percent' ? t('feeProfiles.feePercent') : t('feeProfiles.flatAmount')
+              }}</label>
             <InputNumber v-model="form.sellFee.value" :min="0" :max-fraction-digits="form.sellFee.type === 'percent' ? 3 : 4"
               :suffix="form.sellFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
-            <small v-if="form.sellFee.type === 'percent'" class="field-hint text-muted">1 = 100%, 0.1 = 10%, 0.01 = 1%, 0.001 = 0.1%</small>
+            <small v-if="form.sellFee.type === 'percent'" class="field-hint text-muted">{{
+                t('feeProfiles.percentHint')
+              }}</small>
           </div>
         </div>
         <div class="field">
-          <label>Min sell fee <i v-tooltip.focus.top="INFO.minSellFee" tabindex="0" class="pi pi-info-circle info-icon"/></label>
+          <label>{{ t('feeProfiles.minSellFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoMinSellFee')" class="pi pi-info-circle info-icon"
+                                                      tabindex="0"/></label>
           <InputNumber v-model="form.sellFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
         </div>
       </div>
 
       <!-- Capital gains tax -->
       <div class="fee-section">
-        <p class="fee-section-title">Capital Gains Tax <i v-tooltip.focus.top="INFO.capitalGainsTax" tabindex="0" class="pi pi-info-circle info-icon"/></p>
+        <p class="fee-section-title">{{ t('feeProfiles.capitalGainsTax') }} <i
+            v-tooltip.focus.top="t('feeProfiles.infoCapitalGainsTax')" class="pi pi-info-circle info-icon"
+            tabindex="0"/></p>
         <div class="field">
-          <label>Tax rate % <span class="text-muted">(applied to profit on sell)</span></label>
+          <label>{{ t('feeProfiles.taxRate') }} <span class="text-muted">{{
+              t('feeProfiles.taxRateHint')
+            }}</span></label>
           <InputNumber v-model="form.capitalGainsTax" :min="0" :max="100" :max-fraction-digits="3"
-            suffix="%" placeholder="e.g. 25 for Israel" fluid />
+                       :placeholder="t('feeProfiles.taxPlaceholder')" fluid suffix="%"/>
         </div>
       </div>
 
       <div class="field-row-inline">
-        <label>Set as default profile</label>
+        <label>{{ t('feeProfiles.setDefault') }}</label>
         <ToggleSwitch v-model="form.isDefault" />
       </div>
 
-      <Button fluid label="Save" @click="save"/>
+      <Button :label="t('common.save')" fluid @click="save"/>
     </div>
   </Dialog>
 </template>

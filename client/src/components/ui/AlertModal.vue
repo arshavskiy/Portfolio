@@ -10,6 +10,7 @@ import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import SelectButton from 'primevue/selectbutton'
 import Message from 'primevue/message'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   visible: Boolean,
@@ -21,6 +22,7 @@ const emit = defineEmits(['update:visible'])
 const toast = useToast()
 const alerts = useAlertsStore()
 const {supported, subscribed, busy, refreshState, enablePush} = usePush()
+const {t} = useI18n()
 
 const condition = ref('above')
 const target = ref(null)
@@ -28,10 +30,10 @@ const loading = ref(false)
 const deleting = ref(false)
 const editingAlertId = ref(null)
 
-const conditionOptions = [
-  {label: 'Above', value: 'above'},
-  {label: 'Below', value: 'below'},
-]
+const conditionOptions = computed(() => [
+  {label: t('alerts.above'), value: 'above'},
+  {label: t('alerts.below'), value: 'below'},
+])
 
 const isIls = computed(() => props.ticker?.toUpperCase().endsWith('.TA'))
 const existingAlerts = computed(() =>
@@ -68,18 +70,18 @@ const editingAlert = computed(() =>
 
 async function submit() {
   if (target.value == null) {
-    toast.add({severity: 'warn', summary: 'Enter a target price', life: 2000})
+    toast.add({severity: 'warn', summary: t('alerts.enterTarget'), life: 2000})
     return
   }
   loading.value = true
   try {
     if (editingAlert.value) {
       await alerts.updateAlert(editingAlert.value._id, {ticker: props.ticker, condition: condition.value, target: target.value})
-      toast.add({severity: 'success', summary: `Alert updated for ${props.ticker}`, life: 2000})
+      toast.add({severity: 'success', summary: t('alerts.updatedFor', {ticker: props.ticker}), life: 2000})
       trackEvent('update_alert', {ticker: props.ticker})
     } else {
       await alerts.createAlert({ticker: props.ticker, condition: condition.value, target: target.value})
-      toast.add({severity: 'success', summary: `Alert set for ${props.ticker}`, life: 2000})
+      toast.add({severity: 'success', summary: t('alerts.setFor', {ticker: props.ticker}), life: 2000})
       trackEvent('create_alert', {ticker: props.ticker})
     }
     emit('update:visible', false)
@@ -95,7 +97,7 @@ async function removeSpecificAlert(alert) {
   deleting.value = alert._id
   try {
     await alerts.deleteAlert(alert._id)
-    toast.add({severity: 'info', summary: `Alert removed for ${props.ticker}`, life: 2000})
+    toast.add({severity: 'info', summary: t('alerts.removedFor', {ticker: props.ticker}), life: 2000})
     if (editingAlertId.value === alert._id) resetForm()
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
@@ -105,13 +107,13 @@ async function removeSpecificAlert(alert) {
 }
 
 function formatAlertTarget(alert) {
-  return `${alert.condition === 'below' ? 'Below' : 'Above'} ${useTickerCurrency(alert.target, props.ticker)}`
+  return `${alert.condition === 'below' ? t('alerts.below') : t('alerts.above')} ${useTickerCurrency(alert.target, props.ticker)}`
 }
 
 async function turnOnPush() {
   try {
     await enablePush()
-    toast.add({severity: 'success', summary: 'Push notifications enabled', life: 2000})
+    toast.add({severity: 'success', summary: t('alerts.enabled'), life: 2000})
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
   }
@@ -129,11 +131,11 @@ async function turnOnPush() {
   >
     <div class="form">
       <p v-if="currentPrice != null" class="current text-muted">
-        Current price: <strong>{{ useTickerCurrency(currentPrice, ticker) }}</strong>
+        {{ t('alerts.currentPrice') }} <strong>{{ useTickerCurrency(currentPrice, ticker) }}</strong>
       </p>
 
       <div v-if="existingAlerts.length" class="existing-alerts">
-        <div class="existing-title text-muted">Existing alerts</div>
+        <div class="existing-title text-muted">{{ t('alerts.existing') }}</div>
         <div class="existing-list">
           <div v-for="alert in existingAlerts" :key="alert._id" class="existing-item">
             <button
@@ -143,7 +145,7 @@ async function turnOnPush() {
               @click="editAlert(alert)"
             >
               <span class="existing-label">{{ formatAlertTarget(alert) }}</span>
-              <span class="existing-action text-muted">Edit</span>
+              <span class="existing-action text-muted">{{ t('common.edit') }}</span>
             </button>
             <Button
               :loading="deleting === alert._id"
@@ -159,30 +161,31 @@ async function turnOnPush() {
       </div>
 
       <div class="field">
-        <label>Notify me when price is</label>
+        <label>{{ t('alerts.notifyWhen') }}</label>
         <SelectButton v-model="condition" :allow-empty="false" :options="conditionOptions" option-label="label"
                       option-value="value"/>
       </div>
 
       <div class="field">
-        <label>Target price ({{ isIls ? '₪' : '$' }})</label>
+        <label>{{ t('alerts.targetPrice') }} ({{ isIls ? '₪' : '$' }})</label>
         <InputNumber v-model="target" :max-fraction-digits="4" :min="0" :placeholder="isIls ? '₪0.00' : '$0.00'" fluid/>
       </div>
 
       <Message v-if="supported && !subscribed" :closable="false" severity="warn">
-        Push notifications are off — you won't be alerted on your device.
-        <Button :loading="busy" label="Enable push" size="small" text @click="turnOnPush"/>
+        {{ t('alerts.pushOffWarning') }}
+        <Button :label="t('alerts.enablePush')" :loading="busy" size="small" text @click="turnOnPush"/>
       </Message>
       <Message v-else-if="!supported" :closable="false" severity="info">
-        This device doesn't support push. Alerts still show in-app.
+        {{ t('alerts.pushNotSupportedInApp') }}
       </Message>
 
       <div class="actions">
-        <Button :loading="loading" fluid :label="editingAlert ? 'Update Alert' : 'Create Alert'" outlined @click="submit"/>
+        <Button :label="editingAlert ? t('alerts.updateAlert') : t('alerts.createAlert')" :loading="loading" fluid
+                outlined @click="submit"/>
         <Button
           v-if="editingAlert"
           fluid
-          label="Create New"
+          :label="t('alerts.createNew')"
           text
           @click="resetForm"
         />

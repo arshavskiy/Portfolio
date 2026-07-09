@@ -1,8 +1,10 @@
 <script setup>
 import {useRouter} from 'vue-router'
 import Button from 'primevue/button'
+import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
+const {t} = useI18n()
 </script>
 
 <template>
@@ -10,56 +12,56 @@ const router = useRouter()
     <header class="page-header">
       <div class="title-row">
         <Button icon="pi pi-arrow-left" text rounded class="back-btn" @click="router.back()" />
-        <h1 class="gradient-title">Financial Disclaimer</h1>
+        <h1 class="gradient-title">{{ t('disclaimerPage.title') }}</h1>
       </div>
-      <p class="eyebrow">Important information</p>
+      <p class="eyebrow">{{ t('disclaimerPage.eyebrow') }}</p>
       <p class="intro">
-        StockFolio helps you organize market data, holdings, watchlists, alerts, and portfolio calculations. It is a tracking and research tool only.
+        {{ t('disclaimerPage.intro') }}
       </p>
     </header>
 
     <section class="notice">
       <i class="pi pi-exclamation-triangle"/>
       <div>
-        <h2>Not financial advice</h2>
+        <h2>{{ t('disclaimerPage.notAdviceTitle') }}</h2>
         <p>
-          StockFolio does not provide investment, financial, tax, legal, or accounting advice. Nothing in the app is a recommendation to buy, sell, hold, or trade any security, crypto asset, or other financial instrument.
+          {{ t('disclaimerPage.notAdviceText') }}
         </p>
       </div>
     </section>
 
     <section class="disclaimer-grid">
       <article class="disclaimer-card">
-        <h2>Investment risk</h2>
+        <h2>{{ t('disclaimerPage.riskTitle') }}</h2>
         <p>
-          Investing involves risk, including possible loss of principal. Prices can move quickly, past performance does not guarantee future results, and simulated results or projections may not reflect actual outcomes.
+          {{ t('disclaimerPage.riskText') }}
         </p>
       </article>
 
       <article class="disclaimer-card">
-        <h2>Market data</h2>
+        <h2>{{ t('disclaimerPage.dataTitle') }}</h2>
         <p>
-          Quotes, charts, news, alerts, dividends, currency conversions, and other data may be delayed, incomplete, inaccurate, or unavailable. Always verify important information with your broker, exchange, issuer, or another official source before making decisions.
+          {{ t('disclaimerPage.dataText') }}
         </p>
       </article>
 
       <article class="disclaimer-card">
-        <h2>User responsibility</h2>
+        <h2>{{ t('disclaimerPage.responsibilityTitle') }}</h2>
         <p>
-          You are responsible for your own investment decisions and for reviewing the accuracy of imported transactions, fees, tax assumptions, holdings, watchlists, and calculations. Consult a qualified professional for advice based on your personal situation.
+          {{ t('disclaimerPage.responsibilityText') }}
         </p>
       </article>
 
       <article class="disclaimer-card">
-        <h2>No guarantees</h2>
+        <h2>{{ t('disclaimerPage.guaranteesTitle') }}</h2>
         <p>
-          StockFolio is provided without warranties about availability, accuracy, completeness, or fitness for a particular purpose. The app and its creator are not liable for losses or damages arising from your use of the app or reliance on its content.
+          {{ t('disclaimerPage.guaranteesText') }}
         </p>
       </article>
     </section>
 
     <p class="closing text-muted">
-      By using StockFolio, you acknowledge that you understand these limitations and agree to use the app as an informational portfolio tool.
+      {{ t('disclaimerPage.closing') }}
     </p>
   </div>
 </template>

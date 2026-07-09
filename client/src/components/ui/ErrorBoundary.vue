@@ -2,10 +2,12 @@
 import {onErrorCaptured, ref, watch} from 'vue'
 import {useRoute} from 'vue-router'
 import {logClientError} from '@/composables/useClientErrors'
+import {useI18n} from '@/composables/useI18n'
 import Button from 'primevue/button'
 
 const failed = ref(false)
 const route = useRoute()
+const {t} = useI18n()
 
 onErrorCaptured((error, instance, info) => {
   failed.value = true
@@ -30,8 +32,8 @@ function reload() {
 <template>
   <div v-if="failed" class="error-boundary">
     <i class="pi pi-exclamation-triangle"/>
-    <p class="eb-title">Something went wrong loading this page</p>
-    <Button label="Reload" icon="pi pi-refresh" @click="reload"/>
+    <p class="eb-title">{{ t('errorBoundary.title') }}</p>
+    <Button :label="t('errorBoundary.reload')" icon="pi pi-refresh" @click="reload"/>
   </div>
   <slot v-else/>
 </template>

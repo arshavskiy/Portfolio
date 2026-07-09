@@ -8,6 +8,7 @@ import {trackEvent} from '@/composables/useAnalytics'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({ visible: Boolean })
 const emit = defineEmits(['update:visible'])
@@ -15,6 +16,7 @@ const emit = defineEmits(['update:visible'])
 const toast = useToast()
 const watchlist = useWatchlistStore()
 const {suffix: marketSuffix, selected: selectedMarket, applyTo, searchQuery} = useMarketSuffix('watchlist-add-market')
+const {t} = useI18n()
 
 const ticker = ref('')
 const suggestions = ref([])
@@ -37,13 +39,16 @@ async function searchTicker(event) {
 async function submit() {
   let t = typeof ticker.value === 'object' ? ticker.value.value : ticker.value
   const name = typeof ticker.value === 'object' ? ticker.value.name : ''
-  if (!t) { toast.add({ severity: 'warn', summary: 'Enter a ticker', life: 2000 }); return }
+  if (!t) {
+    toast.add({severity: 'warn', summary: t('watchlist.enterTicker'), life: 2000});
+    return
+  }
 
   t = applyTo(t)
   loading.value = true
   try {
     await watchlist.addItem(t, name)
-    toast.add({ severity: 'success', summary: `${t} added to watchlist`, life: 2000 })
+    toast.add({severity: 'success', summary: t('watchlist.added', {ticker: t}), life: 2000})
     trackEvent('add_watchlist_item', {ticker: t})
     emit('update:visible', false)
   } catch (err) {
@@ -59,14 +64,14 @@ async function submit() {
     :visible="visible"
     @update:visible="emit('update:visible', $event)"
     modal
-    header="Add to Watchlist"
+    :header="t('watchlist.addToWatchlist')"
     :style="{ width: '95vw', maxWidth: '380px' }"
     :draggable="false"
   >
     <div class="form">
       <!-- Market selector -->
       <div class="field">
-        <label>Market</label>
+        <label>{{ t('common.market') }}</label>
         <div class="market-grid">
           <button
               v-for="m in MARKETS"
@@ -82,7 +87,7 @@ async function submit() {
 
       <!-- Ticker search -->
       <div class="field">
-        <label>Search ticker or company</label>
+        <label>{{ t('watchlist.searchPlaceholder') }}</label>
         <AutoComplete
           v-model="ticker"
           :suggestions="suggestions"
@@ -93,11 +98,11 @@ async function submit() {
           force-selection
         />
         <span v-if="marketSuffix" class="suffix-hint">
-          Suffix <code>{{ marketSuffix }}</code> will be appended automatically
+          {{ t('watchlist.marketSuffixHint', {ticker: `${ticker || ''}${marketSuffix}`}) }}
         </span>
       </div>
 
-      <Button :loading="loading" fluid label="Add to Watchlist" outlined @click="submit"/>
+      <Button :label="t('watchlist.addToWatchlist')" :loading="loading" fluid outlined @click="submit"/>
     </div>
   </Dialog>
 </template>

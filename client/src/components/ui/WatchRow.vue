@@ -3,6 +3,7 @@ import {computed, toRef} from 'vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
 import {useItemMomentum} from '@/composables/useMomentumScore'
+import {useI18n} from '@/composables/useI18n'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
 const props = defineProps({
@@ -11,15 +12,16 @@ const props = defineProps({
 })
 const emit = defineEmits(['edit-groups', 'open-stock'])
 const alerts = useAlertsStore()
+const {t} = useI18n()
 
 // marketState from Yahoo: 'REGULAR' = open, 'PRE' = pre-market, 'POST' = after-hours, 'CLOSED' = closed
 const marketDot = computed(() => {
   const state = props.item.marketState
   if (!state) return null
-  if (state === 'REGULAR') return {cls: 'dot-open', title: 'Market open — live price'}
-  if (state === 'PRE') return {cls: 'dot-ext', title: 'Pre-market'}
-  if (state === 'POST') return {cls: 'dot-ext', title: 'After-hours'}
-  return {cls: 'dot-closed', title: 'Market closed — last close price'}
+  if (state === 'REGULAR') return {cls: 'dot-open', title: t('watchlist.marketOpenLive')}
+  if (state === 'PRE') return {cls: 'dot-ext', title: t('watchlist.preMarket')}
+  if (state === 'POST') return {cls: 'dot-ext', title: t('watchlist.afterHours')}
+  return {cls: 'dot-closed', title: t('watchlist.marketClosedLastClose')}
 })
 
 // Active price alerts on this ticker → drives the bell indicator.
@@ -65,7 +67,7 @@ function resolveExtendedHours(kind) {
 
   if (props.item[priceKey] != null || props.item[changeKey] != null || props.item[percentKey] != null) {
     return {
-      label: isPost ? 'After hours' : 'Pre-market',
+      label: isPost ? t('watchlist.afterHours') : t('watchlist.preMarket'),
       price: props.item[priceKey] ?? null,
       percent: props.item[percentKey] ?? calculateExtendedChangePercent(props.item[priceKey], props.item[changeKey]),
     }
@@ -76,7 +78,7 @@ function resolveExtendedHours(kind) {
     (props.item[lastPriceKey] != null || props.item[lastChangeKey] != null || props.item[lastPercentKey] != null)
   ) {
     return {
-      label: isPost ? 'After hours (last seen)' : 'Pre-market (last seen)',
+      label: isPost ? t('watchlist.afterHoursLastSeen') : t('watchlist.preMarketLastSeen'),
       price: props.item[lastPriceKey] ?? null,
       percent: props.item[lastPercentKey] ?? calculateExtendedChangePercent(props.item[lastPriceKey], props.item[lastChangeKey]),
     }
@@ -124,7 +126,8 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
     <div class="row-left">
       <span class="ticker">
         {{ item.ticker }}
-        <span v-if="activeAlerts" :title="`${activeAlerts} active alert${activeAlerts > 1 ? 's' : ''}`"
+        <span v-if="activeAlerts"
+              :title="t('watchlist.activeAlerts', { count: activeAlerts, plural: activeAlerts > 1 ? 's' : '' })"
               class="alert-badge">
           <i class="pi pi-bell"/>
           <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
@@ -137,7 +140,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
       <div class="group-tags compact-tags" @click.stop="emit('edit-groups', item)">
         <span v-for="g in item.groups || []" :key="g" class="group-tag">{{ g }}</span>
         <span class="group-tag add-tag">
-          <i class="pi pi-plus"/><span v-if="!item.groups?.length"> Tag</span>
+          <i class="pi pi-plus"/><span v-if="!item.groups?.length"> {{ t('watchlist.tag') }}</span>
         </span>
       </div>
     </div>
@@ -169,7 +172,7 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
         <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
         <!--        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>-->
       </span>
-      <span v-if="isStaleQuote" class="badge badge-stale">No trade</span>
+      <span v-if="isStaleQuote" class="badge badge-stale">{{ t('watchlist.noTrade') }}</span>
       <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>

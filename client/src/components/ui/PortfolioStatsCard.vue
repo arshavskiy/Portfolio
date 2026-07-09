@@ -3,8 +3,10 @@ import {computed} from 'vue'
 import {useStorage} from '@vueuse/core'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
+import {useI18n} from '@/composables/useI18n'
 
 const portfolio = usePortfolioStore()
+const {t} = useI18n()
 
 const ilsTotal = computed(() => portfolio.totals.find(t => t.currency === 'ILS') ?? null)
 const usdTotal = computed(() => portfolio.totals.find(t => t.currency === 'USD') ?? null)
@@ -42,11 +44,11 @@ const combinedDisplay = computed(() => {
     <div v-if="combinedDisplay" class="stat stat-combined" :class="(usdTotal || ilsTotal) ? 'stat-bordered' : ''">
       <button
           class="currency-toggle"
-          :title="`Switch to ${combinedCurrency === 'ILS' ? 'USD' : 'ILS'}`"
+          :title="t('dashboard.switchCurrency', { currency: combinedCurrency === 'ILS' ? 'USD' : 'ILS' })"
           @click="combinedCurrency = combinedCurrency === 'ILS' ? 'USD' : 'ILS'"
       >{{ combinedCurrency === 'ILS' ? '$' : '₪' }}</button>
       <div class="stat-label-row">
-        <span class="stat-label text-muted">Combined</span>
+        <span class="stat-label text-muted">{{ t('dashboard.combined') }}</span>
       </div>
       <span class="stat-value">{{ useCurrency(combinedDisplay.value, combinedDisplay.currency) }}</span>
       <span :class="gainLossClass(combinedDisplay.pnl)" class="stat-pnl">{{ combinedDisplay.pnl >= 0 ? '+' : '' }}{{ useCurrency(combinedDisplay.pnl, combinedDisplay.currency) }}</span>

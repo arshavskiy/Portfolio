@@ -8,6 +8,9 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {useI18n} from '@/composables/useI18n'
+
+const {locale, t} = useI18n()
 
 // ── Tab state ──────────────────────────────────────────────────────────────
 const activeTab = ref('history') // 'history' | 'gains'
@@ -20,12 +23,12 @@ const filterType = ref(null)
 const editTx = ref(null)
 const showEdit = ref(false)
 
-const typeOptions = [
-  {label: 'All types', value: null},
-  {label: 'Buy', value: 'buy'},
-  {label: 'Sell', value: 'sell'},
-  {label: 'Dividend', value: 'dividend'},
-]
+const typeOptions = computed(() => [
+  {label: t('transactions.allTypes'), value: null},
+  {label: t('common.buy'), value: 'buy'},
+  {label: t('common.sell'), value: 'sell'},
+  {label: t('common.dividend'), value: 'dividend'},
+])
 
 function openEdit(tx) {
   editTx.value = tx
@@ -55,7 +58,11 @@ const filtered = computed(() => {
 })
 
 function formatDate(d) {
-  return new Date(d).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})
+  return new Date(d).toLocaleDateString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  })
 }
 
 function exportCSV() {
@@ -88,7 +95,7 @@ const selectedYear = ref(null)  // null = all years
 const yearOptions = computed(() => {
   const years = gainsData.value?.availableYears ?? []
   return [
-    {label: 'All years', value: null},
+    {label: t('transactions.allYears'), value: null},
     ...years.map((y) => ({label: String(y), value: y})),
   ]
 })
@@ -150,7 +157,7 @@ watch(activeTab, (tab) => {
 <template>
   <div class="transactions">
     <header class="page-header">
-      <h1 class="gradient-title">History</h1>
+      <h1 class="gradient-title">{{ t('common.history') }}</h1>
       <Button
           v-if="activeTab === 'history'"
           :disabled="!filtered.length"
@@ -171,17 +178,18 @@ watch(activeTab, (tab) => {
     <!-- Tab bar -->
     <div class="tab-bar">
       <button :class="{active: activeTab === 'history'}" class="tab-btn" @click="activeTab = 'history'">
-        Transactions
+        {{ t('nav.transactions') }}
       </button>
       <button :class="{active: activeTab === 'gains'}" class="tab-btn" @click="activeTab = 'gains'">
-        Realized Gains
+        {{ t('transactions.realizedGains') }}
       </button>
     </div>
 
     <!-- ── History tab ── -->
     <template v-if="activeTab === 'history'">
       <div class="filters">
-        <InputText v-model="filterTicker" class="filter-input" placeholder="Filter ticker..." size="small"/>
+        <InputText v-model="filterTicker" :placeholder="t('transactions.filterTicker')" class="filter-input"
+                   size="small"/>
         <Select
             v-model="filterType"
             :options="typeOptions"
@@ -197,7 +205,7 @@ watch(activeTab, (tab) => {
       </div>
       <div v-else-if="!filtered.length" class="empty">
         <i class="pi pi-list"/>
-        <p class="text-muted">No transactions found</p>
+        <p class="text-muted">{{ t('transactions.noTransactions') }}</p>
       </div>
       <div v-else class="tx-list">
         <div v-for="tx in filtered" :key="tx._id" class="tx-row" @click="openEdit(tx)">
@@ -207,14 +215,16 @@ watch(activeTab, (tab) => {
           </div>
           <div class="tx-mid">
             <span v-if="tx.type === 'dividend'" class="text-muted">
-              {{ useTickerCurrency(tx.price, tx.ticker) }}/sh{{ tx.drip ? ' · DRIP' : '' }}
+              {{ useTickerCurrency(tx.price, tx.ticker) }}{{
+                t('transactions.perShareShort')
+              }}{{ tx.drip ? ' · DRIP' : '' }}
             </span>
             <span v-else class="text-muted">{{ tx.shares }} × {{ useTickerCurrency(tx.price, tx.ticker) }}</span>
           </div>
           <div class="tx-right">
             <Tag
                 :severity="tx.type === 'buy' ? 'success' : tx.type === 'sell' ? 'danger' : 'info'"
-                :value="tx.type.toUpperCase()"
+                :value="tx.type === 'buy' ? t('common.buy') : tx.type === 'sell' ? t('common.sell') : t('common.dividend')"
             />
             <span :class="tx.type === 'sell' || tx.type === 'dividend' ? 'gain' : ''" class="total">
               {{ tx.type === 'sell' || tx.type === 'dividend' ? '+' : '-' }}{{ useTickerCurrency(tx.total, tx.ticker) }}
@@ -224,7 +234,7 @@ watch(activeTab, (tab) => {
         </div>
       </div>
       <p v-if="filtered.length" class="count text-muted">
-        {{ filtered.length }} transaction{{ filtered.length !== 1 ? 's' : '' }}
+        {{ t('transactions.count', {count: filtered.length, plural: filtered.length !== 1 ? 's' : ''}) }}
       </p>
     </template>
 
@@ -237,8 +247,8 @@ watch(activeTab, (tab) => {
       <template v-else-if="gainsData">
         <div v-if="!gainsData.availableYears.length" class="empty">
           <i class="pi pi-chart-line"/>
-          <p class="text-muted">No realized gains yet</p>
-          <span class="text-muted" style="font-size:0.8rem">Sell a position to see its gain/loss here.</span>
+          <p class="text-muted">{{ t('transactions.noRealizedGains') }}</p>
+          <span class="text-muted" style="font-size:0.8rem">{{ t('transactions.sellToSeeGains') }}</span>
         </div>
 
         <template v-else>
@@ -261,17 +271,17 @@ watch(activeTab, (tab) => {
               <span class="year-label">{{ yr.year }}</span>
               <div class="year-totals">
                 <div v-if="yr.totalDividends" class="year-stat">
-                  <span class="text-muted">Dividends</span>
+                  <span class="text-muted">{{ t('common.dividends') }}</span>
                   <span class="gain">+{{ useCurrency(yr.totalDividends, 'USD') }}</span>
                 </div>
                 <div class="year-stat">
-                  <span class="text-muted">Gross gain</span>
+                  <span class="text-muted">{{ t('transactions.grossGain') }}</span>
                   <span :class="gainLossClass(yr.totalGross)">
                     {{ yr.totalGross >= 0 ? '+' : '' }}{{ useCurrency(yr.totalGross, 'USD') }}
                   </span>
                 </div>
                 <div class="year-stat">
-                  <span class="text-muted">Net gain</span>
+                  <span class="text-muted">{{ t('transactions.netGain') }}</span>
                   <span :class="gainLossClass(yr.totalNet)" class="net-highlight">
                     {{ yr.totalNet >= 0 ? '+' : '' }}{{ useCurrency(yr.totalNet, 'USD') }}
                   </span>
@@ -286,7 +296,8 @@ watch(activeTab, (tab) => {
                 <span class="tx-date text-muted">{{ formatDate(s.date) }}</span>
               </div>
               <div class="gain-mid text-muted">
-                {{ s.shares }} sh · avg {{ useTickerCurrency(s.avgCostAtSale, s.ticker) }} →
+                {{ s.shares }} {{ t('rebalance.sharesShort') }} · {{ t('transactions.avg') }}
+                {{ useTickerCurrency(s.avgCostAtSale, s.ticker) }} →
                 {{ useTickerCurrency(s.price, s.ticker) }}
               </div>
               <div class="gain-right">
@@ -294,7 +305,9 @@ watch(activeTab, (tab) => {
                   {{ s.grossGain >= 0 ? '+' : '' }}{{ useTickerCurrency(s.grossGain, s.ticker) }}
                 </span>
                 <span v-if="s.feePaid || s.taxPaid" :class="gainLossClass(s.netGain)" class="net-gain">
-                  net {{ s.netGain >= 0 ? '+' : '' }}{{ useTickerCurrency(s.netGain, s.ticker) }}
+                  {{ t('transactions.net') }} {{ s.netGain >= 0 ? '+' : '' }}{{
+                    useTickerCurrency(s.netGain, s.ticker)
+                  }}
                 </span>
               </div>
               <i class="pi pi-pencil edit-hint text-muted"/>
@@ -306,7 +319,7 @@ watch(activeTab, (tab) => {
                 <span class="ticker">{{ d.ticker }}</span>
                 <span class="tx-date text-muted">{{ formatDate(d.date) }}</span>
               </div>
-              <div class="gain-mid text-muted">Dividend</div>
+              <div class="gain-mid text-muted">{{ t('common.dividend') }}</div>
               <div class="gain-right">
                 <span class="gain gross-gain">+{{ useTickerCurrency(d.grossGain, d.ticker) }}</span>
               </div>

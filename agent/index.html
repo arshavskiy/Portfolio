@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>StockFolio Marketing Agent</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+<main class="shell">
+    <header class="hero">
+        <div>
+            <p class="eyebrow">StockFolio Marketing Agent</p>
+            <h1>Find communities, tailor the post, publish manually.</h1>
+            <p class="subtle">
+                This tool prepares outreach for investing and crypto communities without logging in,
+                scraping private pages, or auto-posting to Facebook.
+            </p>
+        </div>
+        <div class="hero-actions">
+            <button id="discoverBtn" type="button">Run public discovery</button>
+            <button id="scrapeBtn" type="button">Verify with Playwright</button>
+            <button class="primary" id="copyOpenBtn" type="button">Copy post & open target</button>
+            <button id="copyBtn" type="button">Copy post</button>
+        </div>
+    </header>
+
+    <section aria-label="Agent mode" class="mode-switch">
+        <button class="mode-pill active" id="discoverModeBtn" type="button">Discover</button>
+        <button class="mode-pill" id="reviewModeBtn" type="button">Review</button>
+    </section>
+
+    <section class="mode-panel" id="modePanel">
+        <div class="mode-card">
+            <strong id="modeTitle">Discover mode</strong>
+            <p id="modeDescription">
+                Run public web discovery first, then optionally verify shortlisted public pages with Playwright before
+                you review the queue.
+            </p>
+        </div>
+        <div class="mode-meta">
+            <span>Current lane</span>
+            <strong id="modeBadge">Public search + Playwright</strong>
+        </div>
+    </section>
+
+    <section class="controls">
+        <label>
+            <span>Platform</span>
+            <select id="platformFilter">
+                <option value="all">All platforms</option>
+                <option value="facebook">Facebook</option>
+                <option value="reddit">Reddit</option>
+                <option value="telegram">Telegram</option>
+                <option value="discord">Discord</option>
+                <option value="x">X / Twitter</option>
+                <option value="forum">Forums</option>
+            </select>
+        </label>
+
+        <label>
+            <span>Language</span>
+            <select id="languageFilter">
+                <option value="all">All languages</option>
+                <option value="en">English</option>
+                <option value="he">Hebrew</option>
+                <option value="ru">Russian</option>
+            </select>
+        </label>
+
+        <label>
+            <span>Post angle</span>
+            <select id="angleSelect">
+                <option value="feedback">Ask for feedback</option>
+                <option value="portfolio">Portfolio tracking workflow</option>
+                <option value="crypto">Crypto watchlist angle</option>
+                <option value="alerts">Price alerts angle</option>
+            </select>
+        </label>
+
+        <label class="check">
+            <input id="hideRestricted" type="checkbox">
+            <span>Hide restricted communities</span>
+        </label>
+    </section>
+
+    <div class="agent-status" id="agentStatus">
+        Local mode. Start the server with <code>npm start</code> to enable saved targets and discovery.
+    </div>
+    <div class="discovery-summary" hidden id="discoverySummary"></div>
+
+    <section class="workspace">
+        <aside>
+            <div class="section-head">
+                <h2>Targets</h2>
+                <span id="targetCount">0</span>
+            </div>
+            <div class="target-list" id="targetList"></div>
+        </aside>
+
+        <section class="detail">
+            <div class="section-head">
+                <h2 id="targetName">Select a target</h2>
+                <span class="score" id="scoreBadge">0</span>
+            </div>
+
+            <div class="metrics">
+                <div><strong id="membersMetric">0</strong><span>Members</span></div>
+                <div><strong id="activityMetric">0</strong><span>Activity</span></div>
+                <div><strong id="relevanceMetric">0</strong><span>Relevance</span></div>
+                <div><strong id="policyMetric">-</strong><span>Posting</span></div>
+            </div>
+
+            <div class="intel-grid">
+                <div>
+                    <span>Confidence</span>
+                    <strong id="confidenceMetric">-</strong>
+                </div>
+                <div>
+                    <span>Strategy</span>
+                    <strong id="strategyMetric">review-rules</strong>
+                </div>
+                <div>
+                    <span>Review</span>
+                    <strong id="reviewMetric">pending</strong>
+                </div>
+                <div>
+                    <span>Canonical ID</span>
+                    <strong id="canonicalMetric">-</strong>
+                </div>
+            </div>
+
+            <p class="notes" id="targetNotes"></p>
+
+            <div class="composer">
+                <label for="basePost">Base message</label>
+                <textarea id="basePost" rows="8">
+            I built StockFolio, a portfolio tracker for stocks, ETFs, and crypto.
+            It is focused on practical portfolio work: live P&amp;L, watchlists, price alerts, transaction history, market news, and crypto tracking in one clean dashboard.
+            I would appreciate feedback from investors who actively track their portfolio:
+            https://stockfolio.handcoded.tech
+          </textarea>
+            </div>
+
+            <div class="preview">
+                <div class="preview-head">
+                    <span>Ready to publish</span>
+                    <button id="openBtn" type="button">Open target</button>
+                </div>
+                <pre id="postPreview"></pre>
+            </div>
+
+            <div class="discovery">
+                <h3>Discovery searches</h3>
+                <div class="search-links" id="searchLinks"></div>
+            </div>
+        </section>
+    </section>
+</main>
+
+<div aria-live="polite" class="toast" id="toast" role="status"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

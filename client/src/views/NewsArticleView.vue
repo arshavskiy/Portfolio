@@ -3,18 +3,20 @@ import {computed, onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import Button from 'primevue/button'
 import api from '@/composables/useApi'
+import {useI18n} from '@/composables/useI18n'
 
 const route = useRoute()
 const router = useRouter()
 const article = ref(null)
 const loading = ref(false)
 const error = ref('')
+const {locale, t} = useI18n()
 
 const publishedAt = computed(() => {
   if (!article.value?.publishedAt) return ''
   const date = new Date(article.value.publishedAt)
   if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -42,7 +44,7 @@ async function loadArticle() {
     const data = await api.get(`/stocks/news/article/${encodeURIComponent(route.params.id)}`)
     article.value = data.article
   } catch (err) {
-    if (!article.value) error.value = err.message || 'Article not found'
+    if (!article.value) error.value = err.message || t('newsPage.articleNotFound')
   } finally {
     loading.value = false
   }
@@ -74,14 +76,14 @@ onMounted(loadArticle)
     <div v-else-if="error" class="empty">
       <i class="pi pi-exclamation-triangle" />
       <p>{{ error }}</p>
-      <Button label="Back to News" outlined @click="router.push('/news')" />
+      <Button :label="t('newsPage.backToNews')" outlined @click="router.push('/news')"/>
     </div>
 
     <article v-else-if="article" class="article-shell">
       <div class="article-glow" />
 
       <div class="article-meta">
-        <span class="source">{{ article.source || 'Market News' }}</span>
+        <span class="source">{{ article.source || t('newsPage.marketNews') }}</span>
         <span v-if="publishedAt" class="text-muted">{{ publishedAt }}</span>
       </div>
 
@@ -98,7 +100,7 @@ onMounted(loadArticle)
       <p v-if="article.summary" class="summary text-muted">{{ article.summary }}</p>
 
       <div class="article-actions">
-        <Button icon="pi pi-external-link" label="Open original" outlined @click="openOriginal" />
+        <Button :label="t('newsPage.openOriginal')" icon="pi pi-external-link" outlined @click="openOriginal"/>
       </div>
     </article>
   </div>

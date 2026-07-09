@@ -1,21 +1,24 @@
 <script setup>
 import {useRoute} from 'vue-router'
 import {trackEvent} from '@/composables/useAnalytics'
+import {computed} from 'vue'
+import {useI18n} from '@/composables/useI18n'
 
 const route = useRoute()
+const {t} = useI18n()
 
 function trackNav(tab) {
-  trackEvent('nav_click', {nav_item: tab.name})
+  trackEvent('nav_click', {nav_item: tab.key})
 }
 
-const tabs = [
-  { name: 'Dashboard', to: '/', icon: 'pi pi-chart-bar', label: 'Dashboard', tourKey: 'dashboard' },
-  { name: 'Watchlist', to: '/watchlist', icon: 'pi pi-eye', label: 'Watchlist', tourKey: 'watchlist' },
-  { name: 'Transactions', to: '/transactions', icon: 'pi pi-list', label: 'History', tourKey: 'history' },
-  {name: 'News', to: '/news', icon: 'pi pi-globe', label: 'News', tourKey: 'news'},
-  { name: 'Account', to: '/account', icon: 'pi pi-user', label: 'Account', tourKey: 'account' },
-  { name: 'About', to: '/help', icon: 'pi pi-info-circle', label: 'About' },
-]
+const tabs = computed(() => [
+  {key: 'dashboard', to: '/', icon: 'pi pi-chart-bar', label: t('common.dashboard'), tourKey: 'dashboard'},
+  {key: 'watchlist', to: '/watchlist', icon: 'pi pi-eye', label: t('common.watchlist'), tourKey: 'watchlist'},
+  {key: 'transactions', to: '/transactions', icon: 'pi pi-list', label: t('common.history'), tourKey: 'history'},
+  {key: 'news', to: '/news', icon: 'pi pi-globe', label: t('common.news'), tourKey: 'news'},
+  {key: 'account', to: '/account', icon: 'pi pi-user', label: t('common.account'), tourKey: 'account'},
+  {key: 'about', to: '/help', icon: 'pi pi-info-circle', label: t('common.about')},
+])
 
 function isActive(tab) {
   if (tab.to === '/') return route.path === '/'
@@ -32,7 +35,7 @@ function isActive(tab) {
     <div class="nav-items">
       <RouterLink
           v-for="tab in tabs"
-          :key="tab.name"
+          :key="tab.key"
           :class="{ active: isActive(tab), 'desktop-only': tab.desktopOnly }"
           :to="tab.to"
           :data-tour="tab.tourKey ? `nav-${tab.tourKey}` : null"

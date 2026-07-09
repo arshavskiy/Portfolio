@@ -1,8 +1,10 @@
 <script setup>
 import {onMounted, onUnmounted, ref} from 'vue'
+import {useI18n} from '@/composables/useI18n'
 import Button from 'primevue/button'
 
 const showUpdate = ref(false)
+const {t} = useI18n()
 let checkingTimer = null
 let refreshing = false
 
@@ -83,12 +85,12 @@ onUnmounted(() => {
       <div class="ub-text">
         <i class="pi pi-refresh"/>
         <div>
-          <div class="ub-title">New version available</div>
-          <div class="ub-sub text-muted">Refresh to use the latest app</div>
+          <div class="ub-title">{{ t('pwa.updateTitle') }}</div>
+          <div class="ub-sub text-muted">{{ t('pwa.updateBody') }}</div>
         </div>
       </div>
       <div class="ub-actions">
-        <Button label="Refresh" size="small" outlined @click="requestReload"/>
+        <Button :label="t('pwa.refresh')" outlined size="small" @click="requestReload"/>
         <button class="ub-close" type="button" @click="showUpdate = false">
           <i class="pi pi-times"/>
         </button>

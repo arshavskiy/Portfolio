@@ -13,6 +13,7 @@ import DatePicker from 'primevue/datepicker'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   visible: Boolean,
@@ -23,6 +24,7 @@ const emit = defineEmits(['update:visible', 'saved'])
 const toast = useToast()
 const confirm = useConfirm()
 const feeStore = useFeeProfileStore()
+const {t} = useI18n()
 
 const shares = ref(null)
 const price = ref(null)
@@ -62,11 +64,11 @@ function formatTaxPercent(value) {
 }
 
 const feeOptions = computed(() => [
-  { label: 'No fee', value: null },
+  {label: t('common.noFee'), value: null},
   ...matchingProfiles.value.map((p) => {
     const fee = props.transaction?.type === 'buy' ? p.buyFee : p.sellFee
     const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${p.currency} ${fee.value}`) : '0%'
-    const taxStr = p.capitalGainsTax ? ` · Tax ${formatTaxPercent(p.capitalGainsTax)}` : ''
+    const taxStr = p.capitalGainsTax ? ` · ${t('transactionModal.capitalGainsTax')} ${formatTaxPercent(p.capitalGainsTax)}` : ''
     return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id }
   }),
 ])
@@ -86,7 +88,7 @@ watch(() => props.transaction, (tx) => {
 
 async function save() {
   if (!shares.value || !price.value) {
-    toast.add({ severity: 'warn', summary: 'Shares and price required', life: 2000 })
+    toast.add({severity: 'warn', summary: t('transactionModal.sharesAndPriceRequired'), life: 2000})
     return
   }
   loading.value = true
@@ -98,7 +100,7 @@ async function save() {
       notes: notes.value || undefined,
       feeProfileId: selectedFeeProfile.value ?? null,
     })
-    toast.add({ severity: 'success', summary: 'Transaction updated', life: 2000 })
+    toast.add({severity: 'success', summary: t('transactionModal.updated'), life: 2000})
     trackEvent('edit_transaction', {ticker: ticker.value})
     emit('update:visible', false)
     emit('saved')
@@ -111,16 +113,20 @@ async function save() {
 
 function confirmDelete() {
   confirm.require({
-    message: `Delete this ${props.transaction?.type} of ${props.transaction?.shares} ${ticker.value}? The position will be recalculated from remaining transactions.`,
-    header: 'Delete transaction',
+    message: t('transactionModal.deleteMessage', {
+      type: props.transaction?.type,
+      shares: props.transaction?.shares,
+      ticker: ticker.value
+    }),
+    header: t('transactionModal.deleteHeader'),
     icon: 'pi pi-exclamation-triangle',
     acceptClass: 'p-button-danger',
-    acceptLabel: 'Delete',
+    acceptLabel: t('common.delete'),
     accept: async () => {
       loading.value = true
       try {
         await api.delete(`/portfolio/transaction/${props.transaction._id}`)
-        toast.add({severity: 'success', summary: 'Transaction deleted', life: 2000})
+        toast.add({severity: 'success', summary: t('transactionModal.deleted'), life: 2000})
         emit('update:visible', false)
         emit('saved')
       } catch (err) {
@@ -147,7 +153,7 @@ function confirmDelete() {
           :value="transaction?.type?.toUpperCase()"
           :severity="transaction?.type === 'buy' ? 'success' : transaction?.type === 'sell' ? 'danger' : 'info'"
         />
-        <span class="modal-title">Edit · {{ ticker }}</span>
+        <span class="modal-title">{{ t('transactionModal.editTitle', {ticker}) }}</span>
       </div>
     </template>
 
@@ -155,13 +161,13 @@ function confirmDelete() {
       <div class="fields-row">
         <div class="field">
           <label>{{
-              transaction?.type === 'dividend' ? (transaction?.drip ? 'DRIP shares' : 'Shares held') : (crypto ? 'Amount' : 'Shares')
+              transaction?.type === 'dividend' ? (transaction?.drip ? t('transactionModal.dripShares') : t('transactionModal.sharesHeld')) : (crypto ? t('common.amount') : t('common.shares'))
             }}</label>
           <InputNumber v-model="shares" :max-fraction-digits="crypto ? 8 : 4" :min="0" fluid/>
         </div>
         <div class="field">
           <label>{{
-              transaction?.type === 'dividend' ? 'Dividend per share' : (crypto ? 'Price per coin' : 'Price per share')
+              transaction?.type === 'dividend' ? t('transactionModal.dividendPerShare') : (crypto ? t('transactionModal.pricePerCoin') : t('transactionModal.pricePerShare'))
             }}</label>
           <InputNumber
             v-model="price"
@@ -175,29 +181,29 @@ function confirmDelete() {
       </div>
 
       <div class="field">
-        <label>Date</label>
+        <label>{{ t('common.date') }}</label>
         <DatePicker v-model="date" :max-date="new Date()" date-format="dd/mm/yy" show-icon fluid />
       </div>
 
       <div class="field">
-        <label>Brokerage fee</label>
+        <label>{{ t('transactionModal.brokerageFee') }}</label>
         <Select v-model="selectedFeeProfile" :options="feeOptions" option-label="label" option-value="value" fluid />
       </div>
 
       <div class="field">
-        <label>Notes <span class="text-muted">(optional)</span></label>
+        <label>{{ t('common.notes') }} <span class="text-muted">({{ t('common.optional') }})</span></label>
         <InputText v-model="notes" fluid />
       </div>
 
       <div class="total-row" v-if="total > 0">
-        <span class="text-muted">Total</span>
+        <span class="text-muted">{{ t('common.total') }}</span>
         <span class="total-amount">{{ currencySymbol }}{{ total.toFixed(2) }}</span>
       </div>
 
       <div class="actions">
-        <Button :disabled="loading" icon="pi pi-trash" label="Delete" severity="danger"
+        <Button :disabled="loading" :label="t('common.delete')" icon="pi pi-trash" severity="danger"
                 @click="confirmDelete"/>
-        <Button :loading="loading" class="save-btn" label="Save changes" outlined @click="save"/>
+        <Button :label="t('transactionModal.saveChanges')" :loading="loading" class="save-btn" outlined @click="save"/>
       </div>
     </div>
   </Dialog>

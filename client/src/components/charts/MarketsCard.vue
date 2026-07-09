@@ -4,10 +4,12 @@ import {storeToRefs} from 'pinia'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useStorage} from '@vueuse/core'
 import {useMarketDataStore} from '@/stores/marketData'
+import {useI18n} from '@/composables/useI18n'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import MarketMetaList from '@/components/ui/MarketMetaList.vue'
 
 const {openPosition} = useNavigateToPosition()
+const {t} = useI18n()
 const marketData = useMarketDataStore()
 const {marketGroups, marketsByGroup, marketLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-markets-group', 'US')
@@ -48,6 +50,17 @@ function hasIndexData(idx) {
   return Number.isFinite(idx?.price) || Number.isFinite(idx?.changePercent) || idx?.history?.length
 }
 
+function displayMarketGroup(name) {
+  const key = {
+    US: 'dashboard.marketGroupUS',
+    Israel: 'dashboard.marketGroupIsrael',
+    Crypto: 'dashboard.marketGroupCrypto',
+    Europe: 'dashboard.marketGroupEurope',
+    Asia: 'dashboard.marketGroupAsia',
+  }[name]
+  return key ? t(key) : name || t('dashboard.marketGroupOther')
+}
+
 onMounted(() => {
   marketData.fetchMarkets(group.value).catch(() => {})
 })
@@ -76,7 +89,7 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
               :class="{ active: group === g }"
               class="market-tab"
               @click="selectGroup(g)"
-          >{{ g }}
+          >{{ displayMarketGroup(g) }}
           </button>
           <div v-if="extraGroups.length" class="market-more">
             <button
@@ -93,7 +106,8 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
                 class="market-more-item"
                 type="button"
                 @click="selectGroup(g)"
-              >{{ g }}</button>
+              >{{ displayMarketGroup(g) }}
+              </button>
             </div>
           </div>
         </div>

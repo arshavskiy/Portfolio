@@ -4,6 +4,7 @@ import {useToast} from 'primevue/usetoast'
 import {useWatchlistStore} from '@/stores/watchlist'
 import api from '@/composables/useApi'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useI18n} from '@/composables/useI18n'
 
 const props = defineProps({
   modelValue: {type: String, default: ''}, // filters the existing watchlist as you type
@@ -12,6 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const watchlist = useWatchlistStore()
 const toast = useToast()
+const {t} = useI18n()
 
 const addResults = ref([])
 const addLoading = ref(false)
@@ -52,7 +54,7 @@ async function add(result) {
   addingTicker.value = result.ticker
   try {
     await watchlist.addItem(result.ticker, result.name)
-    toast.add({severity: 'success', summary: `${result.ticker} added to watchlist`, life: 2000})
+    toast.add({severity: 'success', summary: t('watchlist.added', {ticker: result.ticker}), life: 2000})
     trackEvent('add_watchlist_item', {ticker: result.ticker, source: 'search'})
   } catch (err) {
     toast.add({severity: 'error', summary: err.message, life: 3000})
@@ -74,7 +76,7 @@ function clear() {
       <input
           :value="modelValue"
           class="search-input"
-          placeholder="Filter watchlist or search to add…"
+          :placeholder="t('watchlist.searchPlaceholder')"
           type="text"
           @input="emit('update:modelValue', $event.target.value)"
           @blur="modelValue && trackEvent('search_watchlist', {query: modelValue})"
@@ -86,7 +88,7 @@ function clear() {
 
     <!-- Results not already on the watchlist — quick-add from Yahoo search -->
     <div v-if="modelValue && (addLoading || addResults.some((r) => !alreadyWatched(r.ticker)))" class="add-results">
-      <div v-if="addLoading" class="add-results-state">Searching…</div>
+      <div v-if="addLoading" class="add-results-state">{{ t('common.loading') }}</div>
       <template v-else>
         <div
             v-for="r in addResults.filter((r) => !alreadyWatched(r.ticker))"

@@ -6,11 +6,14 @@ import {useAuthStore} from '@/stores/auth'
 import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
+import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import {useI18n} from '@/composables/useI18n'
 
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const router = useRouter()
 const toast = useToast()
 const auth = useAuthStore()
+const {locale, t} = useI18n()
 
 const mode = ref('login')
 const name = ref('')
@@ -20,9 +23,9 @@ const loading = ref(false)
 const googleButtonLogin = ref(null)
 const googleButtonRegister = ref(null)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
-const pageTitle = 'StockFolio Login | Track Stocks, Crypto, and Global Markets'
-const pageDescription = 'Sign in to StockFolio to track your portfolio, monitor live market moves, manage price alerts, and follow stocks, crypto, and global markets in one place.'
 const pageUrl = '/login'
+const pageTitle = computed(() => t('login.metaTitle'))
+const pageDescription = computed(() => t('login.metaDescription'))
 const passwordValid = computed(() => PASSWORD_RULE.test(password.value))
 const loginEnabled = computed(() => identifier.value.trim() && password.value)
 const registerEnabled = computed(() =>
@@ -62,6 +65,21 @@ function ensureCanonical() {
   return node
 }
 
+function updateLoginHead() {
+  const canonicalUrl = new URL(pageUrl, window.location.origin).toString()
+  document.title = pageTitle.value
+  ensureMeta('meta[name="description"]', {name: 'description', content: pageDescription.value})
+  ensureMeta('meta[name="robots"]', {name: 'robots', content: 'index,follow'})
+  ensureMeta('meta[property="og:title"]', {property: 'og:title', content: pageTitle.value})
+  ensureMeta('meta[property="og:description"]', {property: 'og:description', content: pageDescription.value})
+  ensureMeta('meta[property="og:type"]', {property: 'og:type', content: 'website'})
+  ensureMeta('meta[property="og:url"]', {property: 'og:url', content: canonicalUrl})
+  ensureMeta('meta[name="twitter:card"]', {name: 'twitter:card', content: 'summary_large_image'})
+  ensureMeta('meta[name="twitter:title"]', {name: 'twitter:title', content: pageTitle.value})
+  ensureMeta('meta[name="twitter:description"]', {name: 'twitter:description', content: pageDescription.value})
+  ensureCanonical().setAttribute('href', canonicalUrl)
+}
+
 // ── Animated phone slideshow ──
 const SLIDE_COUNT = 9
 const slide = ref(0)
@@ -78,18 +96,7 @@ onMounted(() => {
   previousHead.twitterDescription = document.head.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || ''
   previousHead.canonicalHref = document.head.querySelector('link[rel="canonical"]')?.getAttribute('href') || ''
 
-  const canonicalUrl = new URL(pageUrl, window.location.origin).toString()
-  document.title = pageTitle
-  ensureMeta('meta[name="description"]', { name: 'description', content: pageDescription })
-  ensureMeta('meta[name="robots"]', { name: 'robots', content: 'index,follow' })
-  ensureMeta('meta[property="og:title"]', { property: 'og:title', content: pageTitle })
-  ensureMeta('meta[property="og:description"]', { property: 'og:description', content: pageDescription })
-  ensureMeta('meta[property="og:type"]', { property: 'og:type', content: 'website' })
-  ensureMeta('meta[property="og:url"]', { property: 'og:url', content: canonicalUrl })
-  ensureMeta('meta[name="twitter:card"]', { name: 'twitter:card', content: 'summary_large_image' })
-  ensureMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: pageTitle })
-  ensureMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: pageDescription })
-  ensureCanonical().setAttribute('href', canonicalUrl)
+  updateLoginHead()
 
   // Always cycle the content; CSS disables the slide transition under
   // prefers-reduced-motion (so it just swaps instead of fully stopping).
@@ -113,58 +120,58 @@ onUnmounted(() => {
   ensureCanonical().setAttribute('href', previousHead.canonicalHref || window.location.origin)
 })
 
-const features = [
+const features = computed(() => [
   {
     icon: 'pi pi-chart-line',
-    title: 'Live Portfolio',
-    text: 'Track holdings, P&L, and value over time across stocks, crypto & global markets.'
+    title: t('login.features.livePortfolioTitle'),
+    text: t('login.features.livePortfolioText')
   },
   {
     icon: 'pi pi-bell',
-    title: 'Price Alerts',
-    text: 'Push notifications the moment a stock hits your target — above or below.'
+    title: t('login.features.priceAlertsTitle'),
+    text: t('login.features.priceAlertsText')
   },
   {
     icon: 'pi pi-globe',
-    title: 'Multi-Market',
-    text: 'US, TASE, crypto and more — all in one place, multi-currency (USD + ILS).'
+    title: t('login.features.multiMarketTitle'),
+    text: t('login.features.multiMarketText')
   },
   {
     icon: 'pi pi-chart-bar',
-    title: 'Advanced Charts',
-    text: 'Line & candlestick with pre/after-hours coloring, delta measurement, and volume.'
+    title: t('login.features.advancedChartsTitle'),
+    text: t('login.features.advancedChartsText')
   },
   {
     icon: 'pi pi-sync',
-    title: 'Rebalancer',
-    text: 'Set target allocations and get a buy/sell action plan to rebalance your portfolio.'
+    title: t('login.features.rebalancerTitle'),
+    text: t('login.features.rebalancerText')
   },
   {
     icon: 'pi pi-percentage',
-    title: 'Fees & Tax',
-    text: 'Fee profiles for broker commissions and capital-gains tax simulation per trade.'
+    title: t('login.features.feesTaxTitle'),
+    text: t('login.features.feesTaxText')
   },
   {
     icon: 'pi pi-dollar',
-    title: 'Dividends & DRIP',
-    text: 'Track cash dividends and reinvested DRIP shares with full lot history.'
+    title: t('login.features.dividendsTitle'),
+    text: t('login.features.dividendsText')
   },
   {
     icon: 'pi pi-tags',
-    title: 'Groups',
-    text: 'Organize holdings and watchlist into custom multi-tag groups with group-by views.'
+    title: t('login.features.groupsTitle'),
+    text: t('login.features.groupsText')
   },
   {
     icon: 'pi pi-book',
-    title: 'For You News',
-    text: 'Personalized market stories from your watchlist, with topic feeds and quick scanning.'
+    title: t('login.features.newsTitle'),
+    text: t('login.features.newsText')
   },
   {
     icon: 'pi pi-upload',
-    title: 'Bulk Import',
-    text: 'Import holdings or watchlist from Excel, CSV, or Word — columns auto-detected.'
+    title: t('login.features.importTitle'),
+    text: t('login.features.importText')
   },
-]
+])
 
 async function submit() {
   loading.value = true
@@ -172,7 +179,7 @@ async function submit() {
     await auth.login(identifier.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Login failed', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('login.loginFailed'), detail: err.message, life: 3000})
   } finally {
     loading.value = false
   }
@@ -182,8 +189,8 @@ async function register() {
   if (!passwordValid.value) {
     toast.add({
       severity: 'warn',
-      summary: 'Weak password',
-      detail: 'Password must be at least 8 characters and include a number and a special character',
+      summary: t('login.weakPassword'),
+      detail: t('login.weakPasswordDetail'),
       life: 3000,
     })
     return
@@ -194,7 +201,7 @@ async function register() {
     await auth.register(name.value, identifier.value, password.value)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Registration failed', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('login.registrationFailed'), detail: err.message, life: 3000})
   } finally {
     loading.value = false
   }
@@ -212,7 +219,7 @@ async function handleGoogleCredential(response) {
     await auth.loginWithGoogle(response.credential)
     router.push('/')
   } catch (err) {
-    toast.add({severity: 'error', summary: 'Google sign-in failed', detail: err.message, life: 3000})
+    toast.add({severity: 'error', summary: t('login.googleFailed'), detail: err.message, life: 3000})
   } finally {
     loading.value = false
   }
@@ -257,6 +264,7 @@ function loadGoogleScript() {
 }
 
 watch(mode, () => nextTick(renderGoogleButtons))
+watch(locale, updateLoginHead)
 </script>
 
 <template>
@@ -268,18 +276,18 @@ watch(mode, () => nextTick(renderGoogleButtons))
           <div class="brand">
             <span class="brand-mark">📈</span>
             <span class="brand-name gradient-title">StockFolio</span>
+            <LanguageSelect class="hero-language"/>
           </div>
 
           <h1 id="login-hero-title" class="hero-title">
-            Your whole portfolio,<br/>
-            <span class="gradient-title">beautifully in focus.</span>
+            {{ t('login.heroTitleLine1') }}<br/>
+            <span class="gradient-title">{{ t('login.heroTitleLine2') }}</span>
           </h1>
           <p class="hero-sub">
-            A fast, mobile-first tracker for stocks, crypto, and global markets —
-            with live P&L, price alerts, and a clean dark interface.
+            {{ t('login.heroSubtitle') }}
           </p>
 
-          <div class="app-preview" aria-label="App preview">
+          <div :aria-label="t('login.appPreview')" class="app-preview">
             <div aria-hidden="true" class="mockup">
               <div class="phone">
                 <div class="phone-notch"/>
@@ -288,7 +296,9 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
                   <!-- 0 · Portfolio -->
                   <div v-show="slide === 0" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Portfolio</span><span class="mk-total">$48,210</span>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{
+                        t('login.slides.portfolio')
+                      }}</span><span class="mk-total">$48,210</span>
                     </div>
                     <div class="mk-card mk-gain">
                       <div class="mk-row">
@@ -324,7 +334,9 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
                   <!-- 1 · Global Markets -->
                   <div v-show="slide === 1" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Markets</span><span class="mk-tabs">US · Crypto</span>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{
+                        t('login.slides.markets')
+                      }}</span><span class="mk-tabs">US · Crypto</span>
                     </div>
                     <div class="mk-grid">
                       <div class="mk-tile">
@@ -348,12 +360,13 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
                   <!-- 2 · Price Alerts -->
                   <div v-show="slide === 2" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Alerts</span></div>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{ t('login.slides.alerts') }}</span>
+                    </div>
                     <div class="mk-alert">
                       <i class="pi pi-bell"/>
                       <div>
                         <div class="mk-aticker">AAPL ↑ $200</div>
-                        <div class="mk-name">Notify above target</div>
+                        <div class="mk-name">{{ t('login.slides.notifyAbove') }}</div>
                       </div>
                       <span class="mk-toggle on"/>
                     </div>
@@ -361,16 +374,18 @@ watch(mode, () => nextTick(renderGoogleButtons))
                       <i class="pi pi-bell"/>
                       <div>
                         <div class="mk-aticker">TSLA ↓ $180</div>
-                        <div class="mk-name">Notify below target</div>
+                        <div class="mk-name">{{ t('login.slides.notifyBelow') }}</div>
                       </div>
                       <span class="mk-toggle on"/>
                     </div>
-                    <div class="mk-pushrow"><i class="pi pi-mobile"/> Push notifications on</div>
+                    <div class="mk-pushrow"><i class="pi pi-mobile"/> {{ t('login.slides.pushOn') }}</div>
                   </div>
 
                   <!-- 3 · Allocation -->
                   <div v-show="slide === 3" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Breakdown</span></div>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{
+                        t('login.slides.breakdown')
+                      }}</span></div>
                     <div class="mk-alloc">
                       <svg class="mk-donut" viewBox="0 0 42 42">
                         <circle class="d-bg" cx="21" cy="21" r="15.9"/>
@@ -388,8 +403,10 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
                   <!-- 4 · Groups -->
                   <div v-show="slide === 4" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Groups</span></div>
-                    <div class="mk-grouprow"><span class="mk-gtag">Tech</span><span class="mk-gcount">3</span></div>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{ t('login.slides.groups') }}</span>
+                    </div>
+                    <div class="mk-grouprow"><span class="mk-gtag">{{ t('login.slides.tech') }}</span><span
+                        class="mk-gcount">3</span></div>
                     <div class="mk-card mk-flat">
                       <div class="mk-ticker">AAPL</div>
                       <span class="mk-badge up">+1.1%</span></div>
@@ -406,29 +423,31 @@ watch(mode, () => nextTick(renderGoogleButtons))
                   <!-- 5 · News -->
                   <div v-show="slide === 5" class="slide">
                     <div class="mk-header">
-                      <span class="mk-title gradient-title">For You</span>
+                      <span class="mk-title gradient-title">{{ t('login.slides.forYou') }}</span>
                       <span class="mk-tabs">AAPL · NVDA</span>
                     </div>
                     <div class="mk-topicrow">
-                      <span class="mk-topic active">For You</span>
-                      <span class="mk-topic">Tech</span>
-                      <span class="mk-topic">Markets</span>
+                      <span class="mk-topic active">{{ t('login.slides.forYou') }}</span>
+                      <span class="mk-topic">{{ t('login.slides.tech') }}</span>
+                      <span class="mk-topic">{{ t('login.slides.markets') }}</span>
                     </div>
                     <div class="mk-news-card">
                       <div class="mk-news-source">CNBC</div>
-                      <div class="mk-news-title">Chip stocks lead watchlist moves</div>
+                      <div class="mk-news-title">{{ t('login.slides.chipStocks') }}</div>
                       <div class="mk-symbols"><span>NVDA</span><span>AMD</span></div>
                     </div>
                     <div class="mk-news-card">
                       <div class="mk-news-source">Reuters</div>
-                      <div class="mk-news-title">Apple suppliers rise after demand update</div>
+                      <div class="mk-news-title">{{ t('login.slides.appleSuppliers') }}</div>
                       <div class="mk-symbols"><span>AAPL</span></div>
                     </div>
                   </div>
 
                   <!-- 6 · Rebalancer -->
                   <div v-show="slide === 6" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Rebalance</span></div>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{
+                        t('login.slides.rebalance')
+                      }}</span></div>
                     <div class="mk-rebal-row">
                       <span class="mk-ticker">AAPL</span>
                       <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:62%;background:#3b82f6"/><div class="mk-rebal-target" style="left:50%"/></div>
@@ -444,7 +463,7 @@ watch(mode, () => nextTick(renderGoogleButtons))
                       <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:48%;background:#3b82f6"/><div class="mk-rebal-target" style="left:30%"/></div>
                       <span class="mk-badge down">SELL</span>
                     </div>
-                    <div class="mk-rebal-note">Target allocations · action plan</div>
+                    <div class="mk-rebal-note">{{ t('login.slides.targetPlan') }}</div>
                   </div>
 
                   <!-- 7 · Stock Chart -->
@@ -478,7 +497,8 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
                   <!-- 8 · Watchlist movers -->
                   <div v-show="slide === 8" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">Watchlist</span><span class="mk-tabs">Gainers</span></div>
+                    <div class="mk-header"><span class="mk-title gradient-title">{{ t('common.watchlist') }}</span><span
+                        class="mk-tabs">Gainers</span></div>
                     <div class="mk-card mk-gain">
                       <div class="mk-row">
                         <div><div class="mk-ticker">META</div><div class="mk-name">Meta Platforms</div></div>
@@ -525,18 +545,19 @@ watch(mode, () => nextTick(renderGoogleButtons))
       <!-- Login -->
       <section class="auth" aria-labelledby="login-form-title">
         <div v-if="mode === 'login'" class="auth-card">
-          <h2 id="login-form-title" class="auth-heading">Welcome back</h2>
-          <p class="auth-subheading text-muted">Sign in to your portfolio</p>
+          <h2 id="login-form-title" class="auth-heading">{{ t('login.welcomeBack') }}</h2>
+          <p class="auth-subheading text-muted">{{ t('login.signInToPortfolio') }}</p>
 
           <form class="auth-form" @submit.prevent="submit">
             <div class="field">
-              <label for="login-email">Email or Username</label>
+              <label for="login-email">{{ t('login.emailOrUsername') }}</label>
               <InputText id="login-email" v-model="identifier" autocomplete="username" fluid
-                         placeholder="you@example.com or username" required/>
+                         :placeholder="t('login.identifierPlaceholder')" required/>
             </div>
             <div class="field">
-              <label for="login-password">Password</label>
-              <Password inputId="login-password" v-model="password" :feedback="false" autocomplete="current-password" fluid placeholder="Password" required toggleMask/>
+              <label for="login-password">{{ t('login.password') }}</label>
+              <Password v-model="password" :feedback="false" :placeholder="t('login.password')" autocomplete="current-password"
+                        fluid inputId="login-password" required toggleMask/>
             </div>
             <Button
               :disabled="loading"
@@ -544,56 +565,57 @@ watch(mode, () => nextTick(renderGoogleButtons))
               class="login-button"
               fluid
               iconPos="right"
-              label="Sign In"
+              :label="t('login.signIn')"
               type="submit"
             />
           </form>
 
           <template v-if="GOOGLE_CLIENT_ID">
-            <div class="auth-divider"><span>or</span></div>
+            <div class="auth-divider"><span>{{ t('common.or') }}</span></div>
             <div ref="googleButtonLogin" class="google-button"/>
           </template>
 
           <p class="auth-footer">
-            No account?
-            <button class="auth-link" type="button" @click="switchMode('register')">Create one — it's free</button>
+            {{ t('login.noAccount') }}
+            <button class="auth-link" type="button" @click="switchMode('register')">{{ t('login.createFree') }}</button>
           </p>
         </div>
 
         <div v-else class="register-card">
-          <h2 class="auth-heading">Create your account</h2>
-          <p class="auth-subheading text-muted">Start tracking your portfolio</p>
+          <h2 class="auth-heading">{{ t('login.createAccount') }}</h2>
+          <p class="auth-subheading text-muted">{{ t('login.startTracking') }}</p>
 
           <template v-if="GOOGLE_CLIENT_ID">
-            <p class="google-hint text-muted">Skip the form — sign up with Google, no email required</p>
+            <p class="google-hint text-muted">{{ t('login.googleHint') }}</p>
             <div ref="googleButtonRegister" class="google-button"/>
-            <div class="auth-divider"><span>or sign up with email or username</span></div>
+            <div class="auth-divider"><span>{{ t('login.signUpWithIdentifier') }}</span></div>
           </template>
 
           <form class="auth-form" @submit.prevent="register">
             <div class="field">
-              <label for="inline-register-name">Name</label>
-              <InputText id="inline-register-name" v-model="name" autocomplete="name" fluid placeholder="Your name" required />
+              <label for="inline-register-name">{{ t('login.name') }}</label>
+              <InputText id="inline-register-name" v-model="name" :placeholder="t('login.namePlaceholder')" autocomplete="name"
+                         fluid required/>
             </div>
             <div class="field">
-              <label for="inline-register-email">Email or Username</label>
+              <label for="inline-register-email">{{ t('login.emailOrUsername') }}</label>
               <InputText id="inline-register-email" v-model="identifier" autocomplete="username" fluid
-                         placeholder="you@example.com or username" required/>
+                         :placeholder="t('login.identifierPlaceholder')" required/>
             </div>
             <div class="field">
-              <label for="inline-register-password">Password</label>
+              <label for="inline-register-password">{{ t('login.password') }}</label>
               <Password
                 inputId="inline-register-password"
                 v-model="password"
                 :feedback="false"
                 autocomplete="new-password"
                 fluid
-                placeholder="8+ chars, number, special char"
+                :placeholder="t('login.passwordPlaceholder')"
                 required
                 toggleMask
               />
               <small class="password-hint" :class="{ invalid: password && !passwordValid }">
-                Use at least 8 characters, one number, and one special character.
+                {{ t('login.passwordHint') }}
               </small>
             </div>
             <Button
@@ -603,18 +625,18 @@ watch(mode, () => nextTick(renderGoogleButtons))
               fluid
               icon="pi pi-arrow-right"
               iconPos="right"
-              label="Create StockFolio Account"
+              :label="t('login.createStockFolioAccount')"
               type="submit"
             />
             <p class="disclaimer-note text-muted">
-              By creating an account, you acknowledge that StockFolio is an informational portfolio tool, not financial advice, and that investing involves risk.
-              <RouterLink to="/disclaimer">Read the disclaimer</RouterLink>
+              {{ t('login.disclaimerNote') }}
+              <RouterLink to="/disclaimer">{{ t('login.readDisclaimer') }}</RouterLink>
             </p>
           </form>
 
           <p class="auth-footer">
-            Already have an account?
-            <button class="auth-link" type="button" @click="switchMode('login')">Sign in</button>
+            {{ t('login.alreadyHaveAccount') }}
+            <button class="auth-link" type="button" @click="switchMode('login')">{{ t('login.signIn') }}</button>
           </p>
         </div>
       </section>
@@ -622,12 +644,12 @@ watch(mode, () => nextTick(renderGoogleButtons))
 
     <!-- Footer -->
     <footer class="landing-footer">
-      <RouterLink to="/about" class="footer-link">About</RouterLink>
+      <RouterLink class="footer-link" to="/about">{{ t('common.about') }}</RouterLink>
       <span class="footer-sep">·</span>
-      <RouterLink to="/disclaimer" class="footer-link">Disclaimer</RouterLink>
+      <RouterLink class="footer-link" to="/disclaimer">{{ t('common.disclaimer') }}</RouterLink>
       <span class="footer-sep">·</span>
       © {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech" href="//handcoded.tech">
-      handcoded.tech </a>. All rights reserved.
+      handcoded.tech </a>. {{ t('common.allRightsReserved') }}
     </footer>
   </div>
 </template>
@@ -674,6 +696,10 @@ watch(mode, () => nextTick(renderGoogleButtons))
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 1.75rem;
+}
+
+.hero-language {
+  margin-left: auto;
 }
 
 .brand-mark {

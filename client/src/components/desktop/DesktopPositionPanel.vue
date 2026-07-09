@@ -11,12 +11,14 @@ import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarke
 import StockChart from '@/components/charts/StockChart.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import Button from 'primevue/button'
+import {useI18n} from '@/composables/useI18n'
 import Tag from 'primevue/tag'
 
 const props = defineProps({
   ticker: {type: String, default: null},
   companyName: {type: String, default: ''},
 })
+const {t} = useI18n()
 
 const router = useRouter()
 const historyStore = useHistoryStore()
@@ -100,8 +102,8 @@ const displayedChange = computed(() =>
 )
 const changeLabel = computed(() =>
   selectedRange.value !== '1d' && rangeChange.value
-    ? `${RANGE_LABELS[selectedRange.value]} range`
-    : 'Today'
+      ? t('dashboard.rangeLabel', {range: RANGE_LABELS[selectedRange.value]})
+      : t('dashboard.today')
 )
 
 // ── Market state ──
@@ -161,7 +163,7 @@ function formatVol(v) {
     <!-- Empty state -->
     <div v-if="!ticker" class="empty-state">
       <i class="pi pi-chart-line empty-icon"/>
-      <p>Click a watchlist item to see its chart and position details</p>
+      <p>{{ t('stockDetail.clickForDetails') }}</p>
     </div>
 
     <template v-else>
@@ -175,7 +177,7 @@ function formatVol(v) {
           <span class="company-name">{{ companyName || quote?.name }}</span>
         </div>
         <Button
-            v-tooltip.left="'Open full page'"
+            v-tooltip.left="t('stockDetail.openFullPage')"
             icon="pi pi-arrow-up-right"
             size="small"
             text
@@ -194,10 +196,10 @@ function formatVol(v) {
           </span>
         </div>
         <div class="price-meta">
-          <span v-if="open != null">O {{ useTickerCurrency(open, ticker) }}</span>
-          <span v-if="high != null">H {{ useTickerCurrency(high, ticker) }}</span>
-          <span v-if="low != null">L {{ useTickerCurrency(low, ticker) }}</span>
-          <span v-if="volume != null">Vol {{ formatVol(volume) }}</span>
+          <span v-if="open != null">{{ t('dashboard.openShort') }} {{ useTickerCurrency(open, ticker) }}</span>
+          <span v-if="high != null">{{ t('dashboard.highShort') }} {{ useTickerCurrency(high, ticker) }}</span>
+          <span v-if="low != null">{{ t('dashboard.lowShort') }} {{ useTickerCurrency(low, ticker) }}</span>
+          <span v-if="volume != null">{{ t('dashboard.volumeShort') }} {{ formatVol(volume) }}</span>
         </div>
       </div>
 
@@ -226,18 +228,18 @@ function formatVol(v) {
 
       <!-- Position summary if held -->
       <div v-if="position" class="position-summary">
-        <div class="summary-label">Your Position</div>
+        <div class="summary-label">{{ t('dashboard.yourPosition') }}</div>
         <div class="summary-grid">
           <div class="summary-item">
-            <span class="si-label">Shares</span>
+            <span class="si-label">{{ t('common.shares') }}</span>
             <span class="si-value">{{ position.shares }}</span>
           </div>
           <div class="summary-item">
-            <span class="si-label">Avg cost</span>
+            <span class="si-label">{{ t('stockDetail.avgCost') }}</span>
             <span class="si-value">{{ useTickerCurrency(position.avgCost, ticker) }}</span>
           </div>
           <div class="summary-item">
-            <span class="si-label">Value</span>
+            <span class="si-label">{{ t('stockDetail.value') }}</span>
             <span class="si-value">{{ useTickerCurrency(position.value, ticker) }}</span>
           </div>
           <div class="summary-item">
@@ -272,7 +274,7 @@ function formatVol(v) {
       <!-- Link to full page -->
       <div class="full-page-link">
         <Button
-            label="Open full position page"
+            :label="t('stockDetail.openFullPositionPage')"
             icon="pi pi-arrow-up-right"
             text
             size="small"
