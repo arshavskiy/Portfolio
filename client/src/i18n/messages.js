@@ -741,7 +741,7 @@ export const messages = {
             allRightsReserved: 'Все права защищены.',
             account: 'Аккаунт',
             dashboard: 'Панель',
-            watchlist: 'Список',
+            watchlist: 'Позиции',
             history: 'История',
             historyAlerts: 'История и алерты',
             news: 'Новости',
