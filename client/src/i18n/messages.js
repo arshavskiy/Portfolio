@@ -219,6 +219,7 @@ export const messages = {
             infoCapitalGainsTax: 'Tax rate applied to your profit when you sell at a gain. E.g. 25% in Israel.',
         },
         dashboard: {
+            pageTitle: 'StockFolio',
             portfolioValue: 'Portfolio Value',
             empty: 'No holdings yet. Add a transaction to get started, or explore what’s trending.',
             markets: 'Markets',
@@ -740,7 +741,7 @@ export const messages = {
             about: 'О сервисе',
             allRightsReserved: 'Все права защищены.',
             account: 'Аккаунт',
-            dashboard: 'Панель',
+            dashboard: 'StockFolio',
             watchlist: 'Позиции',
             history: 'История',
             historyAlerts: 'История и алерты',
@@ -943,6 +944,7 @@ export const messages = {
             infoCapitalGainsTax: 'Ставка налога на прибыль при продаже с прибылью. Например, 25% в Израиле.',
         },
         dashboard: {
+            pageTitle: 'СтокФолио',
             portfolioValue: 'Стоимость портфеля',
             empty: 'Пока нет позиций. Добавьте операцию, чтобы начать, или посмотрите тренды.',
             markets: 'Рынки',

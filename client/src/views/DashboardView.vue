@@ -68,7 +68,7 @@ onUnmounted(() => {
 <template>
   <div class="dashboard">
     <header class="dash-header">
-      <h1 class="gradient-title">{{ t('common.dashboard') }}</h1>
+      <h1 class="gradient-title">{{ t('dashboard.pageTitle') }}</h1>
     </header>
 
     <!-- Full-page loader until all data is ready -->
