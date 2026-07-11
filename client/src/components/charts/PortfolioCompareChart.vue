@@ -28,6 +28,20 @@ const COLORS = ['#3b82f6', '#00ff88', '#f59e0b', '#ff3366', '#8b5cf6', '#06b6d4'
 // the per-stock history endpoint's — translate to the closest equivalent.
 const STOCK_RANGE = {'1d': '1d', '1wk': '5d', '1mo': '1mo', '3mo': '3mo', '6mo': '6mo', '1y': '1y', all: '5y'}
 
+// Index benchmarks the user can overlay for context. Toggles persist per device.
+const BENCHMARKS = [
+  {symbol: '^GSPC', label: 'S&P 500', color: '#e2e8f0'},
+  {symbol: '^TA125.TA', label: 'TA-125', color: '#94a3b8'},
+]
+const BENCHMARK_STORAGE_KEY = 'compare-benchmarks'
+const selectedBenchmarks = ref(JSON.parse(localStorage.getItem(BENCHMARK_STORAGE_KEY) || '["^GSPC"]'))
+
+function toggleBenchmark(symbol) {
+  const list = selectedBenchmarks.value
+  selectedBenchmarks.value = list.includes(symbol) ? list.filter((s) => s !== symbol) : [...list, symbol]
+  localStorage.setItem(BENCHMARK_STORAGE_KEY, JSON.stringify(selectedBenchmarks.value))
+}
+
 const tickers = computed(() => [...new Set(props.positions.map((p) => p.ticker))])
 const positionByTicker = computed(() => {
   return Object.fromEntries(props.positions.map((p) => [p.ticker, p]))
@@ -46,23 +60,27 @@ const colorFor = (ticker) => {
 // Normalize each ticker's series to % change from its first point so
 // differently-priced/sized holdings are visually comparable on one chart.
 const normalized = computed(() => {
-  return tickers.value
-      .map((ticker) => {
-        const rows = (series.value[ticker] || []).filter((r) => r.close != null)
-        if (!rows.length) return null
-        const base = rows[0].close
-        if (!base) return null
-        return {
-          ticker,
-          color: colorFor(ticker),
-          points: rows.map((r) => ({date: r.date, pct: ((r.close - base) / base) * 100})),
-        }
-      })
-      .filter(Boolean)
+  const toSeries = (ticker, color, benchmark = false) => {
+    const rows = (series.value[ticker] || []).filter((r) => r.close != null)
+    if (!rows.length) return null
+    const base = rows[0].close
+    if (!base) return null
+    return {
+      ticker,
+      color,
+      benchmark,
+      points: rows.map((r) => ({date: r.date, pct: ((r.close - base) / base) * 100})),
+    }
+  }
+  const stocks = tickers.value.map((ticker) => toSeries(ticker, colorFor(ticker)))
+  const benches = BENCHMARKS
+      .filter((b) => selectedBenchmarks.value.includes(b.symbol))
+      .map((b) => toSeries(b.symbol, b.color, true))
+  return [...stocks, ...benches].filter(Boolean)
 })
 
 const legend = computed(() =>
-    normalized.value.map((s) => ({
+    normalized.value.filter((s) => !s.benchmark).map((s) => ({
       ticker: s.ticker,
       name: stockName(s.ticker),
       color: s.color,
@@ -70,11 +88,23 @@ const legend = computed(() =>
     }))
 )
 
+const benchmarkLegend = computed(() =>
+    BENCHMARKS.map((b) => {
+      const s = normalized.value.find((n) => n.ticker === b.symbol)
+      return {
+        ...b,
+        active: selectedBenchmarks.value.includes(b.symbol),
+        pct: s ? s.points[s.points.length - 1]?.pct ?? null : null,
+      }
+    })
+)
+
 async function fetchSeries() {
   loading.value = true
   const stockRange = STOCK_RANGE[props.range] || '1mo'
+  const wanted = [...tickers.value, ...selectedBenchmarks.value]
   try {
-    const entries = await Promise.all(tickers.value.map(async (ticker) => {
+    const entries = await Promise.all(wanted.map(async (ticker) => {
       try {
         return [ticker, await historyStore.fetchHistory(ticker, stockRange, 40)]
       } catch {
@@ -124,14 +154,17 @@ function draw() {
       .curve(d3.curveMonotoneX)
 
   normalized.value.forEach((s) => {
-    svg.append('path')
+    const path = svg.append('path')
         .datum(s.points)
         .attr('fill', 'none')
         .attr('stroke', s.color)
-        .attr('stroke-width', 1.5)
+        .attr('stroke-width', s.benchmark ? 1.25 : 1.5)
         .attr('d', line)
-        .style('cursor', 'pointer')
-        .on('click', () => openPosition(s.ticker))
+    if (s.benchmark) {
+      path.attr('stroke-dasharray', '5 4').attr('opacity', 0.75)
+    } else {
+      path.style('cursor', 'pointer').on('click', () => openPosition(s.ticker))
+    }
   })
 }
 
@@ -144,6 +177,7 @@ onMounted(async () => {
 })
 watch(() => props.range, fetchSeries)
 watch(() => props.positions.map((p) => p.ticker).join(','), fetchSeries)
+watch(selectedBenchmarks, fetchSeries)
 watch(series, () => nextTick(draw), {deep: true})
 </script>
 
@@ -170,6 +204,22 @@ watch(series, () => nextTick(draw), {deep: true})
         <span class="legend-name" :title="`${item.name} · ${item.ticker}`">{{ item.name }}</span>
         <span class="legend-symbol text-muted">{{ item.ticker }}</span>
         <span :class="item.pct >= 0 ? 'up' : 'down'" class="legend-pct">{{ usePercent(item.pct) }}</span>
+      </button>
+
+      <button
+          v-for="bench in benchmarkLegend"
+          :key="bench.symbol"
+          :class="{'bench-off': !bench.active}"
+          class="legend-item bench-item"
+          type="button"
+          @click="toggleBenchmark(bench.symbol)"
+      >
+        <span :style="{ background: bench.active ? bench.color : 'transparent', borderColor: bench.color }"
+              class="legend-dot bench-dot"/>
+        <span class="legend-name">{{ bench.label }}</span>
+        <span v-if="bench.active && bench.pct != null" :class="bench.pct >= 0 ? 'up' : 'down'" class="legend-pct">
+          {{ usePercent(bench.pct) }}
+        </span>
       </button>
     </div>
   </section>
@@ -269,5 +319,17 @@ watch(series, () => nextTick(draw), {deep: true})
 
 .legend-pct.down {
   color: var(--neon-red);
+}
+
+.bench-item {
+  border-style: dashed;
+}
+
+.bench-item.bench-off {
+  opacity: 0.45;
+}
+
+.bench-dot {
+  border: 1px solid;
 }
 </style>

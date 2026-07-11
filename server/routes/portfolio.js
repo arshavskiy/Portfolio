@@ -12,6 +12,10 @@ const {
     updateTransaction,
     deleteTransaction,
     updatePositionGroups,
+    updatePositionNotes,
+    getPositionNotes,
+    getRebalanceTargets,
+    saveRebalanceTargets,
     deletePosition
 } = require('../controllers/portfolioController')
 
@@ -27,6 +31,10 @@ router.get('/realized-gains', getRealizedGains)
 router.put('/transaction/:id', updateTransaction)
 router.delete('/transaction/:id', deleteTransaction)
 router.put('/position/:id/groups', updatePositionGroups)
+router.get('/position/notes/:ticker', getPositionNotes)
+router.get('/rebalance-targets', getRebalanceTargets)
+router.put('/rebalance-targets', saveRebalanceTargets)
+router.put('/position/notes/:ticker', updatePositionNotes)
 router.delete('/position/:id', deletePosition)
 
 module.exports = router

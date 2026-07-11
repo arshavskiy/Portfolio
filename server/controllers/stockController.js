@@ -63,7 +63,7 @@ exports.getMarketNews = async (req, res) => {
       limit: Number(req.query.limit) || null,
       symbolCount: symbols.length,
     })
-    const data = await getMarketNews(req.query.limit, resolvedTopic, req.query.page, { symbols })
+    const data = await getMarketNews(req.query.limit, resolvedTopic, req.query.page, { symbols, lang: req.query.lang })
     const articles = Array.isArray(data) ? data : data.articles || []
     const topics = Object.entries(NEWS_TOPICS).map(([value, config]) => ({
       value,

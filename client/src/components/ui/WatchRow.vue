@@ -119,6 +119,24 @@ const hasVisibleExtended = computed(() =>
 
 const extPercentRef = computed(() => activeExtended.value?.percent ?? null)
 const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'), extPercentRef)
+
+// ── Earnings proximity badge ─────────────────────────────────────────────────
+// Days until the next reported earnings date, shown only within a week.
+const earningsInDays = computed(() => {
+  const ts = props.item.earningsTimestamp
+  if (!ts) return null
+  const when = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts)
+  if (Number.isNaN(when.getTime())) return null
+  const days = Math.ceil((when.getTime() - Date.now()) / 86400000)
+  return days >= 0 && days <= 7 ? days : null
+})
+
+const earningsTitle = computed(() => {
+  if (earningsInDays.value == null) return ''
+  const ts = props.item.earningsTimestamp
+  const when = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts)
+  return t('watchlist.earningsOn', {date: when.toLocaleDateString()})
+})
 </script>
 
 <template>
@@ -134,6 +152,10 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
         </span>
         <span :class="signal.cls" :title="tooltipText" class="signal-badge">
           {{ signal.icon }}<span class="signal-score">({{ combinedScore > 0 ? '+' : '' }}{{ combinedScore }})</span>
+        </span>
+        <span v-if="earningsInDays != null" :title="earningsTitle" class="earnings-badge">
+          <i class="pi pi-megaphone"/>
+          {{ earningsInDays === 0 ? t('watchlist.earningsToday') : `${earningsInDays}${t('watchlist.daysShort')}` }}
         </span>
       </span>
       <span class="company text-muted">{{ item.companyName }}</span>
@@ -245,6 +267,24 @@ const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'
   font-size: 0.62rem;
   font-weight: 700;
   line-height: 1;
+}
+
+.earnings-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(255, 184, 0, 0.14);
+  color: #ffb800;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+.earnings-badge i {
+  font-size: 0.6rem;
 }
 
 .company {

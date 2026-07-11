@@ -618,3 +618,66 @@ exports.updatePositionGroups = async (req, res) => {
     res.status(500).json({message: err.message})
   }
 }
+
+// Save the position's journal notes (investment thesis). Keyed by ticker so the
+// position page doesn't need the Position _id up front.
+exports.updatePositionNotes = async (req, res) => {
+  try {
+    const ticker = String(req.params.ticker || '').toUpperCase()
+    const notes = String(req.body.notes ?? '').slice(0, 5000)
+    const position = await Position.findOneAndUpdate(
+        {user: req.user._id, ticker},
+        {notes},
+        {new: true}
+    )
+    if (!position) return res.status(404).json({message: 'Position not found'})
+    res.json({_id: position._id, ticker: position.ticker, notes: position.notes})
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
+// ── Rebalance targets (saved allocation + drift alert config) ──
+const RebalanceTarget = require('../models/RebalanceTarget')
+
+exports.getRebalanceTargets = async (req, res) => {
+  try {
+    const doc = await RebalanceTarget.findOne({user: req.user._id}).lean()
+    res.json(doc || {targets: [], threshold: 5, enabled: false})
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
+exports.saveRebalanceTargets = async (req, res) => {
+  try {
+    const targets = (Array.isArray(req.body.targets) ? req.body.targets : [])
+        .filter((t) => t?.ticker && Number.isFinite(Number(t.percent)))
+        .map((t) => ({ticker: String(t.ticker).toUpperCase(), percent: Number(t.percent)}))
+    const sum = targets.reduce((s, t) => s + t.percent, 0)
+    if (targets.length && Math.abs(sum - 100) > 0.5) {
+      return res.status(400).json({message: 'Targets must sum to 100%'})
+    }
+    const threshold = Math.min(50, Math.max(1, Number(req.body.threshold) || 5))
+    const enabled = req.body.enabled !== false && targets.length > 0
+    const doc = await RebalanceTarget.findOneAndUpdate(
+        {user: req.user._id},
+        {targets, threshold, enabled},
+        {new: true, upsert: true}
+    )
+    res.json(doc)
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
+// Fetch a single position's journal notes.
+exports.getPositionNotes = async (req, res) => {
+  try {
+    const ticker = String(req.params.ticker || '').toUpperCase()
+    const position = await Position.findOne({user: req.user._id, ticker}).lean()
+    res.json({ticker, notes: position?.notes || ''})
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}

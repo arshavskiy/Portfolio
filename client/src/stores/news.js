@@ -1,6 +1,17 @@
 import {defineStore} from 'pinia'
 import {computed, ref} from 'vue'
 import api from '@/composables/useApi'
+import {useLocaleStore} from '@/stores/locale'
+
+// Russian locale gets native-language articles (GNews on the server side).
+function langParam() {
+  try {
+    const locale = useLocaleStore().locale
+    return locale === 'ru' ? '&lang=ru' : ''
+  } catch {
+    return ''
+  }
+}
 
 export const DEFAULT_NEWS_TOPICS = [
   {value: 'for-you', label: 'For You'},
@@ -49,7 +60,7 @@ export const useNewsStore = defineStore('news', () => {
 
     loadingByTopic.value = {...loadingByTopic.value, [topic]: true}
     try {
-      const data = await api.get(`/stocks/news?topic=${encodeURIComponent(topic)}&limit=${limit}`)
+      const data = await api.get(`/stocks/news?topic=${encodeURIComponent(topic)}&limit=${limit}${langParam()}`)
       previewByTopic.value = {...previewByTopic.value, [topic]: data.articles || []}
       if (data.topics?.length) topics.value = data.topics
       return previewByTopic.value[topic]
@@ -74,7 +85,7 @@ export const useNewsStore = defineStore('news', () => {
 
     try {
       const data = await api.get(
-        `/stocks/news?topic=${encodeURIComponent(topic)}&limit=${limit}&page=${nextPage}`
+        `/stocks/news?topic=${encodeURIComponent(topic)}&limit=${limit}&page=${nextPage}${langParam()}`
       )
       const nextArticles = data.articles || []
       const current = reset ? [] : getFeed(topic)

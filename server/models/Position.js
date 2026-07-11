@@ -10,6 +10,7 @@ const positionSchema = new mongoose.Schema(
     shares: { type: Number, required: true, min: 0 },
     avgCost: { type: Number, required: true, min: 0 },
       groups: {type: [String], default: []},
+      notes: {type: String, default: ''},
   },
   { timestamps: true }
 )

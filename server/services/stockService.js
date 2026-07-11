@@ -358,6 +358,7 @@ async function getQuote(ticker) {
       dividendYield: dividend.dividendYield,
       marketState: result.marketState || null,
       regularMarketTime: result.regularMarketTime ?? null,
+      earningsTimestamp: result.earningsTimestamp ?? result.earningsTimestampStart ?? null,
       ...live,
       lastPostMarketPrice: live.postMarketPrice ?? snapshot.postMarketPrice ?? null,
       lastPostMarketChange: live.postMarketChange ?? snapshot.postMarketChange ?? null,
@@ -437,6 +438,7 @@ async function getQuotes(tickers) {
           dividendYield: dividend.dividendYield,
           marketState: result.marketState || null,
           regularMarketTime: result.regularMarketTime ?? null,
+          earningsTimestamp: result.earningsTimestamp ?? result.earningsTimestampStart ?? null,
           ...live,
           lastPostMarketPrice: live.postMarketPrice ?? snapshot.postMarketPrice ?? null,
           lastPostMarketChange: live.postMarketChange ?? snapshot.postMarketChange ?? null,
@@ -802,14 +804,14 @@ let articleCache = new Map()
 const NEWS_TTL = 15 * 60 * 1000
 
 const NEWS_TOPICS = {
-  'for-you': { label: 'For You', yahooQuery: 'stock market news' },
-  markets: { label: 'Markets', yahooQuery: 'stock market news' },
-  tech: { label: 'Tech', industries: 'Technology', yahooQuery: 'technology stocks news' },
-  financials: { label: 'Financials', industries: 'Financial', yahooQuery: 'financial stocks bank news' },
-  crypto: { label: 'Crypto', symbols: 'BTC,ETH,SOL', yahooQuery: 'crypto market news' },
-  energy: { label: 'Energy', industries: 'Energy', yahooQuery: 'energy stocks oil news' },
-  israel: { label: 'Israel', countries: 'il', yahooQuery: 'Israel market stocks news' },
-  positive: { label: 'Positive', sentiment_gte: '0', yahooQuery: 'positive stock market news' },
+  'for-you': { label: 'For You', yahooQuery: 'stock market news', ruQuery: 'фондовый рынок акции' },
+  markets: { label: 'Markets', yahooQuery: 'stock market news', ruQuery: 'фондовый рынок новости' },
+  tech: { label: 'Tech', industries: 'Technology', yahooQuery: 'technology stocks news', ruQuery: 'технологические компании акции' },
+  financials: { label: 'Financials', industries: 'Financial', yahooQuery: 'financial stocks bank news', ruQuery: 'банки финансовый сектор акции' },
+  crypto: { label: 'Crypto', symbols: 'BTC,ETH,SOL', yahooQuery: 'crypto market news', ruQuery: 'криптовалюта биткоин' },
+  energy: { label: 'Energy', industries: 'Energy', yahooQuery: 'energy stocks oil news', ruQuery: 'нефть газ энергетика акции' },
+  israel: { label: 'Israel', countries: 'il', yahooQuery: 'Israel market stocks news', ruQuery: 'Израиль экономика биржа' },
+  positive: { label: 'Positive', sentiment_gte: '0', yahooQuery: 'positive stock market news', ruQuery: 'рост акций рынок' },
 }
 
 function getNewsTopic(topic) {
@@ -950,6 +952,44 @@ async function getMarketauxNews(limit, topicKey, page = 1, symbols = []) {
   return { articles: withArticleIds(withTopicTags(articles, topicKey), 'marketaux'), provider: 'marketaux' }
 }
 
+function normalizeGnewsArticle(article) {
+  return {
+    title: article.title,
+    url: article.url,
+    image: article.image || null,
+    source: article.source?.name || null,
+    summary: article.description || null,
+    symbols: [],
+    tags: [],
+    publishedAt: article.publishedAt || null,
+  }
+}
+
+// Russian-language market news via GNews (lang=ru). Only used when the client
+// asks for lang=ru and GNEWS_API_KEY is configured.
+async function getGnewsNews(limit, topicKey, page = 1, lang = 'ru') {
+  if (!process.env.GNEWS_API_KEY) return { articles: [], provider: null }
+
+  const topic = NEWS_TOPICS[topicKey]
+  const url = new URL('https://gnews.io/api/v4/search')
+  url.searchParams.set('apikey', process.env.GNEWS_API_KEY)
+  url.searchParams.set('q', topic.ruQuery || topic.yahooQuery)
+  url.searchParams.set('lang', lang)
+  url.searchParams.set('max', String(Math.min(limit, 25)))
+  url.searchParams.set('page', String(page))
+  url.searchParams.set('sortby', 'publishedAt')
+
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`GNews request failed (${res.status})`)
+
+  const data = await res.json()
+  const articles = (Array.isArray(data.articles) ? data.articles : [])
+    .map(normalizeGnewsArticle)
+    .filter((article) => article.title && article.url)
+    .slice(0, limit)
+  return { articles: withArticleIds(withTopicTags(articles, topicKey), 'gnews'), provider: 'gnews' }
+}
+
 async function getYahooNews(limit, topicKey) {
   const result = await yahooFinance.search(NEWS_TOPICS[topicKey].yahooQuery)
   const articles = (result.news || [])
@@ -969,8 +1009,9 @@ async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {
   const pageNumber = Math.max(1, Math.floor(Number(page) || 1))
   const topicKey = getNewsTopic(topic)
   const symbols = Array.isArray(options.symbols) ? options.symbols.filter(Boolean).slice(0, 20) : []
-  const cacheKey = `${topicKey}:${symbols.join(',')}:${cappedLimit}:${pageNumber}`
-  const pooledCacheKey = `${topicKey}:${symbols.join(',')}:pooled`
+  const lang = options.lang === 'ru' ? 'ru' : 'en'
+  const cacheKey = `${lang}:${topicKey}:${symbols.join(',')}:${cappedLimit}:${pageNumber}`
+  const pooledCacheKey = `${lang}:${topicKey}:${symbols.join(',')}:pooled`
   const cached = newsCache.get(cacheKey)
   if (cached?.data.length && Date.now() - cached.ts < NEWS_TTL) {
     const articles = cached.data.slice(0, cappedLimit)
@@ -1012,17 +1053,41 @@ async function getMarketNews(limit = 4, topic = 'markets', page = 1, options = {
 
   let data = []
   let provider = null
-  try {
-    const result = await getMarketauxNews(cappedLimit, topicKey, pageNumber, symbols)
-    data = result.articles
-    provider = result.provider
-    logNews('provider result', {
-      provider: result.provider,
-      topicKey,
-      pageNumber,
-      count: data.length,
-    })
-  } catch {}
+
+  // Russian locale: GNews is the only provider with native ru articles, so it
+  // goes first; the English chain below still runs as fallback.
+  if (lang === 'ru') {
+    try {
+      const pooledLimit = Math.min(24, Math.max(cappedLimit * 4, cappedLimit))
+      const result = await getGnewsNews(pooledLimit, topicKey, 1, 'ru')
+      if (result.articles.length) {
+        newsCache.set(pooledCacheKey, { data: result.articles, provider: result.provider, ts: Date.now() })
+        data = paginateArticles(result.articles, pageNumber, cappedLimit)
+        provider = result.provider
+      }
+      logNews('provider result', {
+        provider: 'gnews',
+        topicKey,
+        pageNumber,
+        count: data.length,
+        pooledCount: result.articles.length,
+      })
+    } catch {}
+  }
+
+  if (!data.length) {
+    try {
+      const result = await getMarketauxNews(cappedLimit, topicKey, pageNumber, symbols)
+      data = result.articles
+      provider = result.provider
+      logNews('provider result', {
+        provider: result.provider,
+        topicKey,
+        pageNumber,
+        count: data.length,
+      })
+    } catch {}
+  }
 
   if (!data.length) {
     try {

@@ -101,6 +101,38 @@ onMounted(async () => {
 })
 onUnmounted(() => clearInterval(refreshTimer))
 
+// ── Position journal (thesis notes) ──
+const showJournal = ref(false)
+const journalNotes = ref('')
+const journalSavedNotes = ref('')
+const journalSaving = ref(false)
+
+async function loadJournal() {
+  try {
+    const data = await api.get(`/portfolio/position/notes/${encodeURIComponent(ticker.value)}`)
+    journalNotes.value = data?.notes || ''
+    journalSavedNotes.value = journalNotes.value
+  } catch {
+    journalNotes.value = ''
+    journalSavedNotes.value = ''
+  }
+}
+
+async function saveJournal() {
+  journalSaving.value = true
+  try {
+    const data = await api.put(`/portfolio/position/notes/${encodeURIComponent(ticker.value)}`, {notes: journalNotes.value})
+    journalSavedNotes.value = data?.notes ?? journalNotes.value
+    toast.add({severity: 'success', summary: t('journal.saved'), life: 2000})
+  } catch (err) {
+    toast.add({severity: 'error', summary: t('journal.saveFailed'), detail: err.message, life: 3000})
+  } finally {
+    journalSaving.value = false
+  }
+}
+
+const journalDirty = computed(() => journalNotes.value !== journalSavedNotes.value)
+
 // ── Price targets (active alerts as distance-to-target bars) ──
 const priceTargets = computed(() => {
   const price = currentPrice.value
@@ -140,7 +172,7 @@ async function loadPositionData() {
   const requestId = ++pageRequestId
   loading.value = true
   try {
-    await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx(), fetchWatchlistItem()])
+    await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx(), fetchWatchlistItem(), loadJournal()])
   } finally {
     if (requestId === pageRequestId) loading.value = false
   }
@@ -1519,6 +1551,33 @@ async function toggleWatchlist() {
         </div>
       </div>
 
+      <!-- Position journal: investment thesis notes -->
+      <div v-if="summary" class="sim-wrap">
+        <button class="sim-toggle" @click="showJournal = !showJournal">
+          <i class="pi pi-book"/>
+          {{ t('journal.title') }}
+          <span v-if="journalSavedNotes" class="journal-has-notes"/>
+          <i :class="showJournal ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron"/>
+        </button>
+
+        <div v-if="showJournal" class="sim-body">
+          <textarea
+              v-model="journalNotes"
+              :placeholder="t('journal.placeholder')"
+              class="journal-textarea"
+              rows="5"
+          />
+          <Button
+              :disabled="!journalDirty"
+              :label="t('journal.save')"
+              :loading="journalSaving"
+              fluid
+              size="small"
+              @click="saveJournal"
+          />
+        </div>
+      </div>
+
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">
         <div class="dividends-header">
@@ -2612,5 +2671,33 @@ async function toggleWatchlist() {
   display: block;
   font-size: 0.7rem;
   margin-top: 0.3rem;
+}
+
+/* ── Journal ── */
+.journal-textarea {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.6rem;
+  resize: vertical;
+}
+
+.journal-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.journal-has-notes {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--neon-blue);
+  display: inline-block;
+  margin-left: 4px;
 }
 </style>

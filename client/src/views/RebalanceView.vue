@@ -6,19 +6,55 @@ import {useRouter} from 'vue-router'
 import Button from 'primevue/button'
 import InputNumber from 'primevue/inputnumber'
 import {useI18n} from '@/composables/useI18n'
+import {useToast} from 'primevue/usetoast'
+import api from '@/composables/useApi'
 
 const router = useRouter()
 const portfolio = usePortfolioStore()
 const {t} = useI18n()
+const toast = useToast()
 
 // User-editable target allocations (0–100 per ticker)
 const targets = ref({})
 const totalCash = ref(null) // extra cash to deploy (optional)
 
+// Saved drift-alert config (persisted server-side, checked by cron)
+const driftThreshold = ref(5)
+const driftEnabled = ref(false)
+const savingTargets = ref(false)
+
 onMounted(async () => {
   if (!portfolio.positions.length) await portfolio.fetchPortfolio()
   initTargets()
+  try {
+    const saved = await api.get('/portfolio/rebalance-targets')
+    if (saved?.targets?.length) {
+      driftThreshold.value = saved.threshold ?? 5
+      driftEnabled.value = Boolean(saved.enabled)
+      for (const target of saved.targets) {
+        if (target.ticker in targets.value) targets.value[target.ticker] = target.percent
+      }
+    }
+  } catch {}
 })
+
+async function saveTargets() {
+  savingTargets.value = true
+  try {
+    const payload = {
+      targets: Object.entries(targets.value).map(([ticker, percent]) => ({ticker, percent})),
+      threshold: driftThreshold.value,
+      enabled: true,
+    }
+    await api.put('/portfolio/rebalance-targets', payload)
+    driftEnabled.value = true
+    toast.add({severity: 'success', summary: t('rebalance.targetsSaved'), life: 2500})
+  } catch (err) {
+    toast.add({severity: 'error', summary: t('rebalance.targetsSaveFailed'), detail: err.message, life: 3000})
+  } finally {
+    savingTargets.value = false
+  }
+}
 
 // Initialise targets to the current actual allocation % (rounded to 1 decimal)
 function initTargets() {
@@ -170,6 +206,29 @@ function formatShares(n) {
                 class="text-muted">{{ t('rebalance.unallocated', {amount: unallocated.toFixed(1)}) }}</span>
           <span v-if="!targetSumOk && targetSum > 0" class="err-msg">{{ t('rebalance.mustSum') }}</span>
         </div>
+
+        <!-- Persist targets + drift alert threshold -->
+        <div class="drift-row">
+          <div class="drift-threshold">
+            <span class="text-muted">{{ t('rebalance.driftThreshold') }}</span>
+            <InputNumber
+                v-model="driftThreshold"
+                :max="50"
+                :min="1"
+                :step="1"
+                size="small"
+                suffix="%"
+            />
+          </div>
+          <Button
+              :disabled="!targetSumOk"
+              :label="driftEnabled ? t('rebalance.updateTargets') : t('rebalance.saveTargets')"
+              :loading="savingTargets"
+              size="small"
+              @click="saveTargets"
+          />
+        </div>
+        <p class="drift-hint text-muted">{{ t('rebalance.driftHint') }}</p>
       </section>
 
       <!-- Action plan -->
@@ -442,5 +501,29 @@ function formatShares(n) {
 
 .empty i {
   font-size: 3rem;
+}
+
+.drift-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.drift-threshold {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.drift-threshold :deep(.p-inputnumber-input) {
+  width: 70px;
+}
+
+.drift-hint {
+  font-size: 0.7rem;
+  margin-top: 0.4rem;
 }
 </style>

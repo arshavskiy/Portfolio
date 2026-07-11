@@ -1,8 +1,62 @@
 const cron = require('node-cron')
 const Position = require('../models/Position')
 const Alert = require('../models/Alert')
-const {getQuotes, getQuote, getDividendCalendar} = require('./stockService')
+const RebalanceTarget = require('../models/RebalanceTarget')
+const {getQuotes, getQuote, getDividendCalendar, getIlsToUsd} = require('./stockService')
 const {sendPush} = require('./pushService')
+
+// Compare each user's live allocation against their saved rebalance targets.
+// Push at most once per day per user when any position drifts past threshold.
+async function checkAllocationDrift() {
+    const configs = await RebalanceTarget.find({enabled: true, 'targets.0': {$exists: true}})
+    if (!configs.length) return
+
+    const dayAgo = Date.now() - 24 * 60 * 60 * 1000
+    for (const config of configs) {
+        if (config.lastNotifiedAt && config.lastNotifiedAt.getTime() > dayAgo) continue
+
+        const positions = await Position.find({user: config.user, shares: {$gt: 0}}).lean()
+        if (!positions.length) continue
+
+        const [quotes, ilsToUsd] = await Promise.all([
+            getQuotes(positions.map((p) => p.ticker)),
+            getIlsToUsd().catch(() => 1),
+        ])
+        const priceByTicker = {}
+        quotes.forEach((q) => { if (q) priceByTicker[q.ticker] = q.price })
+
+        let totalUsd = 0
+        const valueByTicker = {}
+        for (const pos of positions) {
+            const price = priceByTicker[pos.ticker]
+            if (price == null) continue
+            const fx = pos.ticker.endsWith('.TA') ? ilsToUsd : 1
+            const value = price * pos.shares * fx
+            valueByTicker[pos.ticker] = value
+            totalUsd += value
+        }
+        if (totalUsd <= 0) continue
+
+        const drifted = []
+        for (const target of config.targets) {
+            const currentPct = ((valueByTicker[target.ticker] || 0) / totalUsd) * 100
+            const drift = currentPct - target.percent
+            if (Math.abs(drift) >= config.threshold) {
+                drifted.push(`${target.ticker} ${drift > 0 ? '+' : ''}${drift.toFixed(1)}%`)
+            }
+        }
+        if (!drifted.length) continue
+
+        config.lastNotifiedAt = new Date()
+        await config.save()
+        await sendPush(config.user, {
+            title: 'Portfolio drift alert',
+            body: `Off target: ${drifted.slice(0, 4).join(', ')} — consider rebalancing.`,
+            data: {url: '/rebalance'},
+        }).catch((err) => console.error('[cron] drift push error:', err.message))
+        console.log(`[cron] Drift alert sent (user ${config.user}): ${drifted.join(', ')}`)
+    }
+}
 
 // Push a heads-up the day before a held ticker goes ex-dividend. Buying (or
 // selling) before the ex-date decides dividend eligibility, so the day-before
@@ -137,7 +191,16 @@ function startCronJobs() {
         }
     }, ET)
 
+    // Allocation drift check after US close, Mon–Fri.
+    cron.schedule('30 16 * * 1-5', async () => {
+        try {
+            await checkAllocationDrift()
+        } catch (err) {
+            console.error('[cron] Drift check error:', err.message)
+        }
+    }, ET)
+
   console.log('Cron jobs started')
 }
 
-module.exports = {startCronJobs, checkAlerts, notifyUpcomingDividends}
+module.exports = {startCronJobs, checkAlerts, notifyUpcomingDividends, checkAllocationDrift}
