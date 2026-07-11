@@ -43,7 +43,7 @@ Response shape:
 
 ## Providers
 
-Provider order:
+Provider order (English, default):
 
 1. Marketaux
 2. Finnhub
@@ -51,14 +51,19 @@ Provider order:
 
 Marketaux is preferred because it supports symbol filtering and pagination. Finnhub and Yahoo are treated as first-page fallbacks.
 
+### Russian locale (`lang=ru`)
+
+When the request carries `lang=ru` **and** `GNEWS_API_KEY` is set, GNews is tried first with per-topic Russian search queries (`ruQuery` in `NEWS_TOPICS`, e.g. `фондовый рынок новости`). The English chain above remains the fallback, so Russian users always get articles even without a GNews key — just in English. The client news store (`stores/news.js`) appends `lang=ru` automatically when the app locale is Russian. News cache keys are lang-scoped.
+
 Required server environment variables:
 
 ```env
 MARKETAUX_API_TOKEN=your_marketaux_api_token
 FINNHUB_API_KEY=your_finnhub_api_key
+GNEWS_API_KEY=your_gnews_api_key   # optional: Russian-language articles (free tier: gnews.io)
 ```
 
-Both are optional, but production news quality is best when Marketaux is configured.
+All are optional, but production news quality is best when Marketaux is configured.
 
 ## Frontend Files
 

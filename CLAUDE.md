@@ -37,6 +37,19 @@ cd client && npm run dev   # Vite on :5173
 - **Quote freshness**: Yahoo Finance quotes are cached in-memory (server) with a 5-min TTL. A 90-second client-side TTL controls batch re-fetch on the watchlist. The `X-Cache` header on `/stocks/history` indicates server cache state.
 - **No-trade-today badge**: shown when the market is closed and the quote's `regularMarketTime` is not from today.
 - **Signal breakdown**: momentum score shown as chip breakdown. Always visible on position page, shown in tooltip on watchlist.
+- **i18n**: `i18n/messages.js` holds en + ru trees (must stay key-synced); `useI18n()` returns `t(key, params)`. Locale store persists to localStorage. All user-facing strings go through `t()`.
+
+## Feature inventory (built — do NOT rebuild)
+- **Portfolio history chart**: `GET /portfolio/history?range=` reconstructs daily (or intraday for 1d) portfolio value by replaying transactions × price history — `PortfolioHistoryChart` on Dashboard + desktop views.
+- **Realized gains report**: `GET /portfolio/realized-gains` groups sells + dividends by year; Transactions page "Realized Gains" tab has per-year filter and CSV export (`exportGainsCSV`). Plain transactions CSV export also exists (`exportCSV`).
+- **Dividend calendar**: `GET /portfolio/dividends/calendar` (Yahoo calendarEvents, 12h cache) → `DividendCalendarCard` on both dashboards; 08:00 ET cron pushes ex-div-tomorrow heads-up.
+- **Price targets**: position page renders active alerts as distance-to-target progress bars (`priceTargets` computed in PositionDetailView).
+- **Earnings badges**: quotes carry `earningsTimestamp`; WatchRow shows amber countdown badge when earnings ≤ 7 days out.
+- **Benchmark overlay**: PortfolioCompareChart overlays ^GSPC / ^TA125.TA as dashed toggleable lines (localStorage-persisted).
+- **Russian news**: `GET /stocks/news?lang=ru` uses GNews (needs `GNEWS_API_KEY`) with per-topic `ruQuery`; news store auto-sends lang when locale=ru. Falls back to English chain.
+- **Position journal**: `Position.notes` + GET/PUT `/portfolio/position/notes/:ticker`; collapsible editor on position page.
+- **Drift alerts**: `RebalanceTarget` model (targets + threshold per user); Rebalance page saves them; 16:30 ET cron pushes when live allocation drifts past threshold (once/day max).
+- **Buy/Sell simulators**, **rebalance planner**, **import (Excel/CSV/Word)**, **guided tour**, **groups/tags**, **momentum signal** — all live; see views before adding anything similar.
 
 ## Directory layout
 ```
@@ -58,12 +71,12 @@ Portfolio/
     ├── controllers/    # portfolioController, stockController, watchlistController,
     │                   # alertController, authController, feeProfileController
     ├── routes/         # portfolio, stocks, watchlist, alerts, auth, feeProfiles
-    ├── models/         # User, Position, Transaction, Watchlist, Alert, FeeProfile, PushSubscription
+    ├── models/         # User, Position, Transaction, Watchlist, Alert, FeeProfile, PushSubscription, RebalanceTarget
     └── services/       # stockService (Yahoo + cache), historyService, cronService, pushService
 ```
 
 ## Env vars
-Server needs: `PORT`, `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CORS_ORIGINS`, `CLIENT_URL`, `GOOGLE_CLIENT_ID`  
+Server needs: `PORT`, `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CORS_ORIGINS`, `CLIENT_URL`, `GOOGLE_CLIENT_ID`; news (optional): `MARKETAUX_API_TOKEN`, `FINNHUB_API_KEY`, `GNEWS_API_KEY` (Russian articles)  
 Client needs: `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`
 
 ## Docs

@@ -210,6 +210,49 @@ Dividend totals per ticker plus a grand total.
 }
 ```
 
+### GET /portfolio/dividends/calendar `🔒`
+Upcoming ex-dividend / payment dates for held tickers (Yahoo `calendarEvents` +
+`summaryDetail`, 12h server cache). Events from the last 3 days onward, sorted
+by date. `estimatedPayout` = last per-share dividend × shares held.
+
+**Response `200`**
+```json
+{
+  "events": [
+    {
+      "ticker": "AAPL",
+      "companyName": "Apple Inc.",
+      "exDividendDate": "2026-08-10T00:00:00.000Z",
+      "dividendDate": "2026-08-14T00:00:00.000Z",
+      "dividendRate": 1.04,
+      "dividendYield": 0.0045,
+      "lastDividendValue": 0.26,
+      "shares": 10,
+      "estimatedPayout": 2.60
+    }
+  ]
+}
+```
+
+### GET /portfolio/position/notes/:ticker `🔒`
+Journal notes (investment thesis) for a held position. Returns `{ticker, notes}`;
+`notes` is `""` when no position or no notes.
+
+### PUT /portfolio/position/notes/:ticker `🔒`
+Save journal notes. Body `{ "notes": "..." }` (max 5000 chars). `404` if the
+position doesn't exist.
+
+### GET /portfolio/rebalance-targets `🔒`
+Saved target allocation + drift-alert config. Returns
+`{targets: [{ticker, percent}], threshold, enabled, lastNotifiedAt}` or the
+defaults `{targets: [], threshold: 5, enabled: false}` when nothing saved.
+
+### PUT /portfolio/rebalance-targets `🔒`
+Upsert targets. Body `{targets: [{ticker, percent}], threshold, enabled}`.
+Percents must sum to 100 (±0.5) or the request fails `400`. A daily cron
+(16:30 ET, Mon–Fri) compares live allocation and pushes when any position
+drifts past `threshold` (max one push per day, tracked via `lastNotifiedAt`).
+
 ---
 
 ## Stocks
@@ -233,9 +276,12 @@ Live quote for a single ticker.
 {
   "ticker": "AAPL", "price": 189.50, "change": 1.20, "changePercent": 0.64,
   "open", "high", "low", "previousClose", "volume", "marketCap",
+  "earningsTimestamp": "2026-07-30T20:00:00.000Z",
   "currency": "USD"
 }
 ```
+
+`earningsTimestamp` (next earnings date, may be null) also flows through the enriched watchlist rows — the client shows an earnings-week badge from it.
 
 ### GET /stocks/history/:ticker `🔒`
 OHLCV price history.
@@ -313,6 +359,8 @@ Return normalized financial news articles.
 
 The endpoint uses Marketaux first, then Finnhub, then Yahoo Finance search fallback. `topic=for-you` derives Marketaux symbols from the authenticated user's watchlist. If the watchlist is empty, it resolves to `markets`.
 
+With `lang=ru` and `GNEWS_API_KEY` set, GNews (native Russian articles via per-topic `ruQuery` strings) is tried first; the English chain remains the fallback. The client news store sends `lang=ru` automatically when the app locale is Russian. Cache keys are lang-scoped.
+
 **Query params**
 
 | Param | Values | Default |
@@ -320,6 +368,7 @@ The endpoint uses Marketaux first, then Finnhub, then Yahoo Finance search fallb
 | `topic` | `for-you` `markets` `tech` `financials` `crypto` `energy` `israel` `positive` | `markets` |
 | `limit` | `1` to `24` | `4` |
 | `page` | positive integer | `1` |
+| `lang` | `en` `ru` | `en` |
 
 **Response `200`**
 ```json

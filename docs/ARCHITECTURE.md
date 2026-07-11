@@ -78,6 +78,7 @@ User
  └── ──< Position (user ref)
           ├── ticker, companyName, shares, avgCost
           ├── groups: string[]
+          ├── notes  (journal / investment thesis)
           └── ──< Transaction (user + ticker)
                    ├── type: buy|sell
                    ├── shares, price, date, notes
@@ -97,8 +98,13 @@ User
  │        ├── capitalGainsTax
  │        └── isDefault
  │
- └── ──< PushSubscription (user ref)
-          └── endpoint, keys: { p256dh, auth }
+ ├── ──< PushSubscription (user ref)
+ │        └── endpoint, keys: { p256dh, auth }
+ │
+ └── ──< RebalanceTarget (user ref, one per user)
+          ├── targets: [{ ticker, percent }]   # must sum to ~100
+          ├── threshold (drift % that triggers a push, default 5)
+          └── enabled, lastNotifiedAt          # cron dedupe: max 1 push/day
 ```
 
 ---
@@ -181,12 +187,15 @@ Client HTTP request
 `feeProfileController` owns read-only built-in profiles with stable IDs such as `builtin:blink-plus`. `portfolioController` resolves those IDs before fee calculation, but does not store them in `Transaction.feeProfile` because they are not user-owned MongoDB documents. The calculated `feeAmount`, `taxAmount`, `totalWithFees`, and `netProceeds` are still stored on the transaction.
 
 ### Background Jobs (cronService)
-Two cron schedules registered at startup:
+Cron schedules registered at startup (US-session jobs pinned to `America/New_York`):
 
-| Schedule | Task |
+| Schedule (ET) | Task |
 |----------|------|
-| `*/5 * * * 1-5` (Mon–Fri) | Refresh portfolio quotes cache (market hours filter applied in code) |
-| `*/5 * * * 1-5` | Check all active alerts → trigger + push notify |
+| `*/5 9-16 * * 1-5` | Refresh quotes for every held ticker (chunked to smooth Yahoo spikes) |
+| `55 19 * * 1-5` | After-hours close snapshot (persists final post-market price) |
+| `*/5 * * * *` | Check all active alerts → trigger + push notify |
+| `0 8 * * *` | Ex-dividend heads-up: push the day before a held ticker goes ex-div |
+| `30 16 * * 1-5` | Allocation drift check vs saved RebalanceTarget → push when past threshold (max 1/day) |
 
 ---
 
