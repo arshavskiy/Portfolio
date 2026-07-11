@@ -13,6 +13,7 @@ const MarketsCard           = defineAsyncComponent(() => import('@/components/ch
 const TrendingCard          = defineAsyncComponent(() => import('@/components/charts/TrendingCard.vue'))
 const WatchlistMoversCard   = defineAsyncComponent(() => import('@/components/charts/WatchlistMoversCard.vue'))
 const TopMomentumCard       = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
+const DividendCalendarCard  = defineAsyncComponent(() => import('@/components/charts/DividendCalendarCard.vue'))
 
 const dashboard = useDashboardStore()
 const {t} = useI18n()
@@ -169,6 +170,9 @@ onUnmounted(() => {
 
     <!-- Per-stock comparison: normalized % change, one line per holding -->
     <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
+
+    <!-- Upcoming ex-dividend / payment dates for held tickers -->
+    <DividendCalendarCard v-if="portfolioPositions.length"/>
 
       <div v-if="showEmpty" class="empty text-muted">
         {{ t('dashboard.empty') }}

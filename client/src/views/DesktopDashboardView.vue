@@ -30,6 +30,7 @@ const MarketsCard = defineAsyncComponent(() => import('@/components/charts/Marke
 const WatchlistMoversCard = defineAsyncComponent(() => import('@/components/charts/WatchlistMoversCard.vue'))
 const TopMomentumCard = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
 const TrendingCard = defineAsyncComponent(() => import('@/components/charts/TrendingCard.vue'))
+const DividendCalendarCard = defineAsyncComponent(() => import('@/components/charts/DividendCalendarCard.vue'))
 
 // ── Dashboard store ──
 const dashboard = useDashboardStore()
@@ -260,6 +261,8 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
         </section>
 
         <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
+
+        <DividendCalendarCard v-if="portfolioPositions.length"/>
 
         <div v-if="showEmpty" class="empty text-muted">
           {{ t('dashboard.empty') }}

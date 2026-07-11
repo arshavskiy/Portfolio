@@ -7,6 +7,7 @@ import {useI18n} from '@/composables/useI18n'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useHistoryStore} from '@/stores/history'
 import {useWatchlistStore} from '@/stores/watchlist'
+import {useAlertsStore} from '@/stores/alerts'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, isRegularSessionBar, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
@@ -34,6 +35,7 @@ const router = useRouter()
 const toast = useToast()
 const historyStore = useHistoryStore()
 const watchlistStore = useWatchlistStore()
+const alertsStore = useAlertsStore()
 const {t} = useI18n()
 
 const ticker = computed(() =>
@@ -92,11 +94,29 @@ const chartSelectionHelpDismissed = ref(localStorage.getItem(CHART_SELECTION_HEL
 
 onMounted(async () => {
   loadWatchlistNavContext()
+  alertsStore.fetchAlerts().catch(() => {})
   if (!feeStore.profiles.length) await feeStore.fetchProfiles()
   await loadPositionData()
   startAutoRefresh()
 })
 onUnmounted(() => clearInterval(refreshTimer))
+
+// ── Price targets (active alerts as distance-to-target bars) ──
+const priceTargets = computed(() => {
+  const price = currentPrice.value
+  return alertsStore.forTicker(ticker.value)
+      .filter((a) => a.active)
+      .map((a) => {
+        if (!price || !a.target) return {...a, progress: 0, distancePct: null, hit: false}
+        const distancePct = ((a.target - price) / price) * 100
+        const hit = a.condition === 'above' ? price >= a.target : price <= a.target
+        const progress = hit ? 100 : Math.max(0, Math.min(100,
+            a.condition === 'above' ? (price / a.target) * 100 : (a.target / price) * 100
+        ))
+        return {...a, progress, distancePct, hit}
+      })
+      .sort((a, b) => Math.abs(a.distancePct ?? Infinity) - Math.abs(b.distancePct ?? Infinity))
+})
 
 // Pre-fill sim price with current price once loaded
 watch(currentPrice, (p) => {
@@ -1095,6 +1115,36 @@ async function toggleWatchlist() {
             <span class="chip-label">{{ chip.label }}</span>
             <span class="chip-value">{{ chip.value }}</span>
           </div>
+        </div>
+      </div>
+
+      <!-- Price targets: active alerts with distance-to-target bars -->
+      <div v-if="priceTargets.length" class="price-targets">
+        <div class="targets-head">
+          <h2 class="section-title">{{ t('priceTargets.title') }}</h2>
+          <button class="targets-add" type="button" @click="showAlertModal = true">
+            <i class="pi pi-plus"/>
+          </button>
+        </div>
+        <div v-for="target in priceTargets" :key="target._id" class="target-row">
+          <div class="target-info">
+            <span :class="target.condition === 'above' ? 'gain' : 'loss'" class="target-cond">
+              <i :class="target.condition === 'above' ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"/>
+              {{ useTickerCurrency(target.target, ticker) }}
+            </span>
+            <span v-if="target.hit" class="target-dist gain">{{ t('priceTargets.hit') }}</span>
+            <span v-else-if="target.distancePct != null" class="target-dist text-muted">
+              {{ t('priceTargets.away', {pct: `${target.distancePct >= 0 ? '+' : ''}${target.distancePct.toFixed(1)}%`}) }}
+            </span>
+          </div>
+          <div class="target-bar">
+            <div
+                :class="[target.condition === 'above' ? 'fill-above' : 'fill-below', {'fill-hit': target.hit}]"
+                :style="{width: `${target.progress}%`}"
+                class="target-fill"
+            />
+          </div>
+          <span v-if="target.note" class="target-note text-muted">{{ target.note }}</span>
         </div>
       </div>
 
@@ -2474,5 +2524,93 @@ async function toggleWatchlist() {
 
 .chip-neutral .chip-value {
   color: var(--text-secondary);
+}
+
+/* ── Price targets ── */
+.price-targets {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.9rem;
+}
+
+.targets-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.targets-add {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.8rem;
+}
+
+.target-row {
+  padding: 0.4rem 0;
+}
+
+.target-row + .target-row {
+  border-top: 1px solid var(--border);
+}
+
+.target-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+
+.target-cond {
+  font-size: 0.88rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.target-cond i {
+  font-size: 0.7rem;
+}
+
+.target-dist {
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.target-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.target-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+
+.fill-above {
+  background: linear-gradient(90deg, rgba(0, 195, 106, 0.5), #00c36a);
+}
+
+.fill-below {
+  background: linear-gradient(90deg, rgba(224, 45, 74, 0.5), #e02d4a);
+}
+
+.fill-hit {
+  box-shadow: 0 0 8px currentColor;
+}
+
+.target-note {
+  display: block;
+  font-size: 0.7rem;
+  margin-top: 0.3rem;
 }
 </style>

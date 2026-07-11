@@ -1,8 +1,41 @@
 const cron = require('node-cron')
 const Position = require('../models/Position')
 const Alert = require('../models/Alert')
-const {getQuotes, getQuote} = require('./stockService')
+const {getQuotes, getQuote, getDividendCalendar} = require('./stockService')
 const {sendPush} = require('./pushService')
+
+// Push a heads-up the day before a held ticker goes ex-dividend. Buying (or
+// selling) before the ex-date decides dividend eligibility, so the day-before
+// warning is the actionable one.
+async function notifyUpcomingDividends() {
+    const positions = await Position.find({shares: {$gt: 0}}).lean()
+    if (!positions.length) return
+
+    const tickers = [...new Set(positions.map((p) => p.ticker))]
+    const entries = await getDividendCalendar(tickers)
+
+    const tomorrow = new Date()
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    const tomorrowKey = tomorrow.toISOString().split('T')[0]
+
+    const exDivTomorrow = new Set(
+        entries
+            .filter((e) => e.exDividendDate &&
+                new Date(e.exDividendDate).toISOString().split('T')[0] === tomorrowKey)
+            .map((e) => e.ticker)
+    )
+    if (!exDivTomorrow.size) return
+
+    for (const pos of positions) {
+        if (!exDivTomorrow.has(pos.ticker)) continue
+        await sendPush(pos.user, {
+            title: `${pos.ticker} ex-dividend tomorrow`,
+            body: `${pos.ticker} trades ex-dividend tomorrow — you hold ${pos.shares} shares.`,
+            data: {url: `/position/${pos.ticker}`, ticker: pos.ticker},
+        }).catch((err) => console.error('[cron] dividend push error:', err.message))
+        console.log(`[cron] Ex-dividend notice sent: ${pos.ticker} (user ${pos.user})`)
+    }
+}
 
 // Check every active alert against the latest quote. Trigger + push when the
 // price condition is met, then mark the alert as triggered (one-shot).
@@ -95,7 +128,16 @@ function startCronJobs() {
         }
     })
 
+    // Ex-dividend heads-up once a day at 08:00 ET, before the US session opens.
+    cron.schedule('0 8 * * *', async () => {
+        try {
+            await notifyUpcomingDividends()
+        } catch (err) {
+            console.error('[cron] Dividend notify error:', err.message)
+        }
+    }, ET)
+
   console.log('Cron jobs started')
 }
 
-module.exports = {startCronJobs, checkAlerts}
+module.exports = {startCronJobs, checkAlerts, notifyUpcomingDividends}

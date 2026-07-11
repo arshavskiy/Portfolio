@@ -6,7 +6,7 @@ const FeeProfile = require('../models/FeeProfile')
 // undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
 // feeAmount stays in profile currency; totalWithFees/netProceeds convert it first.
 const Watchlist = require('../models/Watchlist')
-const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd} = require('../services/stockService')
+const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar} = require('../services/stockService')
 const { computeTransactionCosts, getBuiltInFeeProfile } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 
@@ -563,6 +563,44 @@ exports.getDividendSummary = async (req, res) => {
         }))
         const grandTotal = summary.reduce((s, r) => s + r.total, 0)
         res.json({summary, grandTotal})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+// Upcoming ex-dividend / payment dates for held tickers, with an estimated
+// payout based on the last per-share dividend × shares held.
+exports.getDividendCalendar = async (req, res) => {
+    try {
+        const positions = await Position.find({user: req.user._id, shares: {$gt: 0}}).lean()
+        if (!positions.length) return res.json({events: []})
+
+        const entries = await getDividendCalendar(positions.map((p) => p.ticker))
+        const sharesByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.shares]))
+        const nameByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.companyName || null]))
+
+        // Keep events from the last few days onward so a just-passed ex-div
+        // date still shows while its payment date is upcoming.
+        const cutoff = Date.now() - 3 * 86400000
+        const events = entries
+            .map((e) => {
+                const shares = sharesByTicker[e.ticker] ?? 0
+                const estimatedPayout = e.lastDividendValue != null && shares > 0
+                    ? Math.round(e.lastDividendValue * shares * 100) / 100
+                    : null
+                return {...e, shares, companyName: nameByTicker[e.ticker], estimatedPayout}
+            })
+            .filter((e) => {
+                const latest = Math.max(
+                    e.exDividendDate ? new Date(e.exDividendDate).getTime() : 0,
+                    e.dividendDate ? new Date(e.dividendDate).getTime() : 0
+                )
+                return latest >= cutoff
+            })
+            .sort((a, b) =>
+                new Date(a.exDividendDate || a.dividendDate) - new Date(b.exDividendDate || b.dividendDate)
+            )
+        res.json({events})
     } catch (err) {
         res.status(500).json({message: err.message})
     }

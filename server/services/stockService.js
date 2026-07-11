@@ -630,6 +630,47 @@ function invalidateCache(ticker) {
   }
 }
 
+// ── Dividend calendar ──
+// Upcoming ex-dividend / payment dates per ticker via quoteSummary. Dates move
+// rarely, so a long TTL keeps Yahoo traffic negligible even for big portfolios.
+const dividendCalendarCache = new Map()
+const DIVIDEND_CALENDAR_TTL = 12 * 60 * 60 * 1000
+
+async function getDividendCalendar(tickers) {
+  const results = []
+  for (const ticker of tickers) {
+    const symbol = ticker.toUpperCase()
+    const cached = dividendCalendarCache.get(symbol)
+    if (cached && Date.now() - cached.ts < DIVIDEND_CALENDAR_TTL) {
+      if (cached.data) results.push(cached.data)
+      continue
+    }
+    try {
+      const summary = await withRetry(() =>
+          yahooFinance.quoteSummary(symbol, {modules: ['calendarEvents', 'summaryDetail']})
+      )
+      const cal = summary?.calendarEvents
+      const detail = summary?.summaryDetail
+      const perShare = detail?.lastDividendValue ??
+          (detail?.trailingAnnualDividendRate != null ? detail.trailingAnnualDividendRate / 4 : null)
+      const entry = {
+        ticker: symbol,
+        exDividendDate: cal?.exDividendDate || detail?.exDividendDate || null,
+        dividendDate: cal?.dividendDate || null,
+        dividendRate: detail?.dividendRate ?? null,
+        dividendYield: detail?.dividendYield ?? null,
+        lastDividendValue: perShare,
+      }
+      const hasAnyDate = entry.exDividendDate || entry.dividendDate
+      dividendCalendarCache.set(symbol, {data: hasAnyDate ? entry : null, ts: Date.now()})
+      if (hasAnyDate) results.push(entry)
+    } catch {
+      dividendCalendarCache.set(symbol, {data: null, ts: Date.now()})
+    }
+  }
+  return results
+}
+
 // ── Global market indices ──
 const MARKET_GROUPS = {
   US: [
@@ -1079,4 +1120,5 @@ module.exports = {
   getMarketNews,
   getNewsArticle,
   NEWS_TOPICS,
+  getDividendCalendar,
 }

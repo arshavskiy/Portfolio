@@ -729,6 +729,20 @@ export const messages = {
             title: "What's New",
             gotIt: 'Got it',
         },
+        dividendCalendar: {
+            title: 'Dividend Calendar',
+            exDiv: 'Ex-div',
+            payDate: 'Pay date',
+            perShare: '/ share',
+            today: 'Today',
+            tomorrow: 'Tomorrow',
+            inDays: 'In {days}d',
+        },
+        priceTargets: {
+            title: 'Price Targets',
+            away: '{pct} away',
+            hit: 'Target hit',
+        },
     },
     ru: {
         common: {
@@ -1452,6 +1466,20 @@ export const messages = {
         whatsNew: {
             title: 'Что нового',
             gotIt: 'Понятно',
+        },
+        dividendCalendar: {
+            title: 'Календарь дивидендов',
+            exDiv: 'Экс-див',
+            payDate: 'Выплата',
+            perShare: '/ акция',
+            today: 'Сегодня',
+            tomorrow: 'Завтра',
+            inDays: 'Через {days}д',
+        },
+        priceTargets: {
+            title: 'Целевые цены',
+            away: '{pct} до цели',
+            hit: 'Цель достигнута',
         },
     },
 }
