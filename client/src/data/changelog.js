@@ -7,6 +7,7 @@ export const changelog = [
     title: 'Updates',
     changes: [
       "Dividend calendar on the dashboard with ex-dividend push reminders, and price-target progress bars on the position page",
+      "Earnings-week badges on the watchlist, S&P 500 / TA-125 benchmark overlay on the compare chart, Russian-language news feed, a position journal for your investment thesis, and allocation drift push alerts from saved rebalance targets",
     ],
   },
   {
