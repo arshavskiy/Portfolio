@@ -252,6 +252,12 @@ function onGroupsSaved() {
   watchlist.fetchWatchlist(range.value, {force: true})
 }
 
+function groupLabel(group) {
+  if (group === 'Dividend payers') return t('grouping.dividendPayers')
+  if (group === 'No dividend data') return t('grouping.noDividendData')
+  return group
+}
+
 </script>
 
 <template>
@@ -358,7 +364,7 @@ function onGroupsSaved() {
       </div>
       <div class="watch-list">
         <template v-for="(section, sIdx) in grouped" :key="section.group ?? '_all'">
-          <div v-if="section.group" class="market-header">{{ section.group }}</div>
+          <div v-if="section.group" class="market-header">{{ groupLabel(section.group) }}</div>
           <WatchRow
               v-for="(item, iIdx) in section.items"
               :key="`${section.group ?? ''}-${item._id}`"

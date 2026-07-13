@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const {OAuth2Client} = require('google-auth-library')
 const User = require('../models/User')
+const {seedDemoAccount} = require('../services/demoSeedService')
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
@@ -27,6 +28,7 @@ exports.register = async (req, res) => {
     if (exists) return res.status(409).json({message: isEmail ? 'Email already registered' : 'Username already taken'})
     
     const user = await User.create({name, password, ...query})
+    await seedDemoAccount(user)
     const token = signToken(user._id)
     res.status(201).json({ token, user })
   } catch (err) {
@@ -69,6 +71,7 @@ exports.google = async (req, res) => {
     const { sub: googleId, email, name } = payload
 
     let user = await User.findOne({ $or: [{ googleId }, { email }] })
+    let created = false
     if (user) {
       if (!user.googleId) {
         user.googleId = googleId
@@ -76,7 +79,10 @@ exports.google = async (req, res) => {
       }
     } else {
       user = await User.create({ name: name || email, email, googleId })
+      created = true
     }
+
+    if (created) await seedDemoAccount(user)
 
     const token = signToken(user._id)
     res.json({ token, user })

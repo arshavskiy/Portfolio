@@ -1,5 +1,5 @@
 <script setup>
-import {computed, toRef} from 'vue'
+import {computed, toRef, useAttrs} from 'vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
 import {useItemMomentum} from '@/composables/useMomentumScore'
@@ -13,6 +13,8 @@ const props = defineProps({
 const emit = defineEmits(['edit-groups', 'open-stock'])
 const alerts = useAlertsStore()
 const {t} = useI18n()
+const attrs = useAttrs()
+const exposeTourAnchors = computed(() => attrs['data-tour'] === 'wl-row')
 
 // marketState from Yahoo: 'REGULAR' = open, 'PRE' = pre-market, 'POST' = after-hours, 'CLOSED' = closed
 const marketDot = computed(() => {
@@ -137,12 +139,36 @@ const earningsTitle = computed(() => {
   const when = typeof ts === 'number' ? new Date(ts * 1000) : new Date(ts)
   return t('watchlist.earningsOn', {date: when.toLocaleDateString()})
 })
+
+function positiveNumber(value) {
+  const n = Number(value)
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function formatDividendYield(value) {
+  if (value == null) return null
+  const pct = value * 100
+  return `${pct.toFixed(pct >= 10 ? 1 : 2).replace(/\.?0+$/u, '')}%`
+}
+
+const dividendYield = computed(() => positiveNumber(props.item.dividendYield))
+const dividendRate = computed(() => positiveNumber(props.item.dividendRate))
+const hasDividendSupport = computed(() => dividendYield.value != null || dividendRate.value != null)
+const dividendBadgeText = computed(() => formatDividendYield(dividendYield.value) || t('watchlist.dividendBadge'))
+const dividendTitle = computed(() => {
+  const yieldText = formatDividendYield(dividendYield.value)
+  const rateText = dividendRate.value != null ? useTickerCurrency(dividendRate.value, props.item.ticker) : null
+  if (yieldText && rateText) return t('watchlist.dividendTooltipFull', {yield: yieldText, rate: rateText})
+  if (yieldText) return t('watchlist.dividendTooltipYield', {yield: yieldText})
+  if (rateText) return t('watchlist.dividendTooltipRate', {rate: rateText})
+  return ''
+})
 </script>
 
 <template>
   <div :class="{ 'watch-row-held': highlightHeld, 'watch-row-stale': item.stale }" class="watch-row" @click="emit('open-stock', item)">
     <div class="row-left">
-      <span class="ticker">
+      <span :data-tour="exposeTourAnchors ? 'wl-row-identity' : null" class="ticker">
         {{ item.ticker }}
         <span v-if="activeAlerts"
               :title="t('watchlist.activeAlerts', { count: activeAlerts, plural: activeAlerts > 1 ? 's' : '' })"
@@ -153,12 +179,24 @@ const earningsTitle = computed(() => {
         <span :class="signal.cls" :title="tooltipText" class="signal-badge">
           {{ signal.icon }}<span class="signal-score">({{ combinedScore > 0 ? '+' : '' }}{{ combinedScore }})</span>
         </span>
-        <span v-if="earningsInDays != null" :title="earningsTitle" class="earnings-badge">
+        <span
+            v-if="earningsInDays != null"
+            :data-tour="exposeTourAnchors ? 'wl-row-earnings' : null"
+            :title="earningsTitle"
+            class="earnings-badge">
           <i class="pi pi-megaphone"/>
           {{ earningsInDays === 0 ? t('watchlist.earningsToday') : `${earningsInDays}${t('watchlist.daysShort')}` }}
         </span>
+        <span
+            v-if="hasDividendSupport"
+            :data-tour="exposeTourAnchors ? 'wl-row-dividend' : null"
+            :title="dividendTitle"
+            class="dividend-badge">
+          <i class="pi pi-percentage"/>
+          {{ dividendBadgeText }}
+        </span>
       </span>
-      <span class="company text-muted">{{ item.companyName }}</span>
+      <span :data-tour="exposeTourAnchors ? 'wl-row-company' : null" class="company text-muted">{{ item.companyName }}</span>
       <div class="group-tags compact-tags" @click.stop="emit('edit-groups', item)">
         <span v-for="g in item.groups || []" :key="g" class="group-tag">{{ g }}</span>
         <span class="group-tag add-tag">
@@ -167,7 +205,7 @@ const earningsTitle = computed(() => {
       </div>
     </div>
 
-    <div class="row-chart">
+    <div :data-tour="exposeTourAnchors ? 'wl-row-chart' : null" class="row-chart">
       <SparklineChart
           v-if="item.history?.length"
           :data="item.history"
@@ -191,11 +229,14 @@ const earningsTitle = computed(() => {
         </span>
       </div>
       <span class="price-line">
-        <span class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
+        <span :data-tour="exposeTourAnchors ? 'wl-row-price' : null" class="price">{{ useTickerCurrency(item.price, item.ticker) }}</span>
         <!--        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>-->
       </span>
       <span v-if="isStaleQuote" class="badge badge-stale">{{ t('watchlist.noTrade') }}</span>
-      <span :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'" class="badge">
+      <span
+          :data-tour="exposeTourAnchors ? 'wl-row-change' : null"
+          :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'"
+          class="badge">
         {{ usePercent(rangeChangePercent) }}
       </span>
     </div>
@@ -239,7 +280,7 @@ const earningsTitle = computed(() => {
 .row-left {
   display: flex;
   flex-direction: column;
-  flex: 0 0 90px;
+  flex: 0 0 150px;
 }
 
 .ticker {
@@ -284,6 +325,25 @@ const earningsTitle = computed(() => {
 }
 
 .earnings-badge i {
+  font-size: 0.6rem;
+}
+
+.dividend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  background: rgba(0, 195, 106, 0.12);
+  color: #00c36a;
+  vertical-align: middle;
+  line-height: 1.4;
+  margin-left: 4px;
+}
+
+.dividend-badge i {
   font-size: 0.6rem;
 }
 

@@ -113,7 +113,7 @@ User
 
 ### Pages
 - **Dashboard** (`/`) — markets overview, watchlist movers, top momentum, allocation breakdown, portfolio value over time, and portfolio totals (`PortfolioStatsCard`: USD / ILS / combined, with a one-tap ₪↔$ currency toggle persisted to `holdings-combined-currency`)
-- **Watchlist** (`/watchlist`) — the hub for both watched and held stocks. Held rows carry a neon-blue accent; a briefcase toggle filters to holdings-only (persisted via `watchlist-held-only`). The header exposes Add-transaction, Import (watchlist **or** holdings), Rebalance, Export CSV, and Add-to-watchlist. The former standalone Holdings page was removed; `/holdings` redirects here.
+- **Watchlist** (`/watchlist`) — the hub for both watched and held stocks. Held rows carry a neon-blue accent; dividend-paying rows show a green yield badge when quote data includes `dividendYield` or `dividendRate`; a briefcase toggle filters to holdings-only (persisted via `watchlist-held-only`). The header exposes Add-transaction, Import (watchlist **or** holdings), Rebalance, Export CSV, and Add-to-watchlist. The former standalone Holdings page was removed; `/holdings` redirects here.
 - **PositionDetail** (`/position/:ticker`), **Transactions**, **Alerts**, **News**, **Rebalance**, **Profile** — supporting pages
 - **Guided Tour** — `driver.js` walkthrough mounted from `AppLayout`, replayable from Account or by URL parameter; not a route
 - **What's New** — `WhatsNewModal` mounts once in `AppLayout` and pops on load after a release (see below); not a route
@@ -176,6 +176,8 @@ Client HTTP request
 | History cache | `historyStore` (client, reactive Map) | 5 min | Stock price history per ticker+range |
 
 **Watchlist first paint**: `GET /watchlist/skeleton` returns items straight from Mongo (no quotes/history, one query) so the list renders instantly on load; the `watchlistStore` swaps in the full enriched `GET /watchlist` response when it arrives. Skeleton rows show `—` for price/percent and a neutral signal until enrichment lands.
+
+**Watchlist badges and grouping**: enriched `GET /watchlist` rows merge quote fields from `stockService.getQuotes()`. `WatchRow` uses `earningsTimestamp` for the amber `earnings-badge` countdown shown only when the next earnings date is within 7 days. It uses positive `dividendYield` or `dividendRate` for the green dividend marker; the marker displays yield when available and falls back to a compact dividend label for rate-only rows. The `dividend` group mode in `useGrouping.js` splits rows into `Dividend payers` and `No dividend data`, then sorts payers by highest dividend yield and non-payers by ticker.
 
 ### Extended-Hours Quotes
 `stockService` quotes carry Yahoo's pre/post-market fields through unchanged: `preMarketPrice`, `preMarketChange`, `preMarketChangePercent`, `postMarketPrice`, `postMarketChange`, `postMarketChangePercent`. `portfolioController` and `watchlistController` attach these alongside the regular `change`/`changePercent` per position/watchlist item. The client falls back to the extended-hours percent when the market is closed and a pre/post value is present (see `useMarketHours.js` for session-state detection used to decide which figure to show).
@@ -278,6 +280,7 @@ The guided tour introduces the primary portfolio workflow after login.
 
 - **Source of truth**: `client/src/composables/useTour.js` defines the tour steps and navigation handoffs. `client/src/assets/tour.css` contains the `driver.js` theme overrides and highlighted-element styling.
 - **Flow**: starts on Dashboard, highlights navigation and portfolio context, focuses the first available Top Movers item, opens that ticker into the Position page, explains overview/chart controls and the two-click chart range measurement, then continues through Watchlist actions including Import.
+- **Demo data**: `server/services/demoSeedService.js` seeds brand-new password or Google accounts once with watchlist-only `TSLA`, held dividend ticker `O` (Realty Income), and a real `O` buy transaction tagged `Demo`. This gives the first run enough real data to show Dashboard, Watchlist, Position, Transactions, holdings, dividend grouping, and dividend-capable cards without client mocks. `User.demoSeedVersion` and `demoSeededAt` prevent reruns.
 - **Gate**: the first completed or closed tour writes `stockfolio-tour-seen` to localStorage so the walkthrough does not auto-open repeatedly.
 - **Replay**: Account exposes a Start Tour action that clears the seen flag and launches the tour again.
 - **URL parameter**: append `?tour` to any authenticated app URL to force the tour to run, for example `/watchlist?tour` or `/?tour`. The parameter bypasses the seen flag and is removed with `history.replaceState` after launch so refreshes do not keep retriggering it.

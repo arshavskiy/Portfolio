@@ -27,8 +27,9 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - Transaction lots with buy/sell fees, tax amounts, net proceeds, and running average cost.
 - Buy/sell transaction modal with fixed-ticker mode, compact price input, market-price quick fill, sell-all action, and sell proceeds/profit simulation.
 - Fee profiles for broker fees and capital gains tax simulation, including built-in read-only presets such as `בלינק Plus`.
-- Dividend tracking with per-share annual dividend estimates, after-tax estimates, and share-weighted holding-time prorating for currently held shares.
-- Watchlist and stock detail pages with quote/history data.
+- Dividend tracking with per-share annual dividend estimates, after-tax estimates, share-weighted holding-time prorating for currently held shares, and dashboard ex-dividend reminders.
+- Watchlist and stock detail pages with quote/history data, earnings-week badges, and compact dividend yield markers.
+- Watchlist dividend grouping that separates dividend-paying tickers from rows with no dividend data.
 - Custom stock groups (multi-tag) with a group-by toggle on Dashboard, Holdings, and Watchlist.
 - Price alerts via Web Push (VAPID), one-shot trigger, in-app toast notifications.
 - Portfolio value-over-time chart, reconstructed from transaction history.

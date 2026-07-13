@@ -1,5 +1,5 @@
 // Shared grouping logic for positions / watchlist items.
-// mode: 'market' | 'change' | 'pre' | 'post' | 'industry' | 'group'
+// mode: 'market' | 'change' | 'pre' | 'post' | 'dividend' | 'industry' | 'group'
 //
 // Returns an array of { group, items } sections. In 'group' mode a stock with
 // multiple tags appears under EACH of its groups, plus an "Ungrouped" bucket
@@ -50,6 +50,26 @@ function itemSortKey(item) {
 
 function sortItemsAscending(items) {
     return [...items].sort((a, b) => itemSortKey(a).localeCompare(itemSortKey(b)))
+}
+
+function positiveNumber(value) {
+    const n = Number(value)
+    return Number.isFinite(n) && n > 0 ? n : null
+}
+
+export function hasDividendSupport(item) {
+    return positiveNumber(item?.dividendYield) != null || positiveNumber(item?.dividendRate) != null
+}
+
+function dividendYieldOf(item) {
+    return positiveNumber(item?.dividendYield) ?? 0
+}
+
+function sortDividendItems(items) {
+    return [...items].sort((a, b) => {
+        const diff = dividendYieldOf(b) - dividendYieldOf(a)
+        return diff !== 0 ? diff : itemSortKey(a).localeCompare(itemSortKey(b))
+    })
 }
 
 function changeValueOf(item) {
@@ -256,6 +276,19 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         return [{group: null, items: sortedItems}]
     }
 
+    if (mode === 'dividend') {
+        const payers = []
+        const noDividendData = []
+        for (const item of items) {
+            if (hasDividendSupport(item)) payers.push(item)
+            else noDividendData.push(item)
+        }
+        const sections = []
+        if (payers.length) sections.push({group: 'Dividend payers', items: sortDividendItems(payers)})
+        if (noDividendData.length) sections.push({group: 'No dividend data', items: sortItemsAscending(noDividendData)})
+        return sections
+    }
+
     if (mode === 'industry') {
         return buildSingleFieldSections(items, (it) => classifyOf(it, 'industry'))
     }
@@ -285,6 +318,7 @@ export const GROUP_MODES = [
     {label: 'Change', value: 'change'},
     {label: 'Pre/Post', value: 'extended'},
     {label: '▲', value: 'momentum', title: 'Sort by momentum signal'},
+    {label: 'Dividends', value: 'dividend'},
     {label: 'Industry', value: 'industry'},
     {label: 'Groups', value: 'group'},
 ]

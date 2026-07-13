@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema(
           },
       },
       googleId: { type: String, unique: true, sparse: true },
+      demoSeedVersion: {type: Number, default: 0},
+      demoSeededAt: {type: Date},
   },
   { timestamps: true }
 )

@@ -281,7 +281,7 @@ Live quote for a single ticker.
 }
 ```
 
-`earningsTimestamp` (next earnings date, may be null) also flows through the enriched watchlist rows — the client shows an earnings-week badge from it.
+`earningsTimestamp` (next earnings date, may be null) also flows through the enriched watchlist rows. The client shows an amber earnings-week badge beside the ticker when the timestamp is today through 7 days out.
 
 ### GET /stocks/history/:ticker `🔒`
 OHLCV price history.
@@ -425,7 +425,7 @@ The `id` comes from `/stocks/news` article results. If the server cache has expi
 ## Watchlist
 
 ### GET /watchlist `🔒`
-All watched stocks with live quotes and sparkline history.
+All watched stocks with live quotes, sparkline history, and quote metadata used by watchlist badges/grouping.
 
 **Query**: `range=1mo` (sparkline range, same values as stock history)
 
@@ -435,10 +435,13 @@ All watched stocks with live quotes and sparkline history.
   {
     "_id", "ticker", "companyName", "sector", "industry", "addedAt", "groups": ["string"],
     "price", "change", "changePercent", "currency",
+    "dividendRate", "dividendYield", "earningsTimestamp",
     "history": [{ "date", "close" }]
   }
 ]
 ```
+
+`dividendYield > 0` or `dividendRate > 0` means the client treats the row as dividend-supported: it shows a compact dividend marker on the watchlist row and places the row under `Dividend payers` in dividend grouping mode. Rows without positive dividend fields go under `No dividend data`. `earningsTimestamp` drives the amber earnings countdown badge.
 
 ### GET /watchlist/skeleton `🔒`
 Watchlist items straight from the DB — no quotes, no history. Fast first paint; the client renders these rows immediately while `GET /watchlist` loads.

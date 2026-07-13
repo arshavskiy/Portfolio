@@ -2,6 +2,17 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.13',
+    date: 'Jul 13, 2026',
+    title: 'Dividend watchlist and guided demo',
+    changes: [
+      'Watchlist rows now show dividend yield markers when quote data includes dividend support',
+      'New Dividends grouping separates dividend payers from rows without dividend data',
+      'The guided tour now walks through watchlist row data: ticker signals, dividend and earnings badges, sparkline, price, and range change',
+      'Brand-new accounts start with demo watchlist and holding data so the first walkthrough can show real app features immediately',
+    ],
+  },
+  {
     version: '2026.07.11',
     date: 'Jul 11, 2026',
     title: 'Updates',

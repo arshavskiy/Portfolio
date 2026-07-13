@@ -196,3 +196,47 @@ test('group mode sorts items within each group ascending by ticker', () => {
     'ZETA',
   ])
 })
+
+test('dividend grouping separates payers from rows without dividend data', () => {
+  const dividendItems = [
+    {ticker: 'NOPE'},
+    {ticker: 'YIELD', dividendYield: 0.018},
+    {ticker: 'ZERO', dividendYield: 0, dividendRate: 0},
+  ]
+
+  const sections = groupItems(dividendItems, 'dividend', new Date('2026-06-17T12:00:00Z'), 'down')
+
+  assert.deepEqual(sections.map((section) => section.group), ['Dividend payers', 'No dividend data'])
+  assert.deepEqual(sections[0].items.map((item) => item.ticker), ['YIELD'])
+  assert.deepEqual(sections[1].items.map((item) => item.ticker), ['NOPE', 'ZERO'])
+})
+
+test('dividend grouping sorts payers by highest yield then ticker', () => {
+  const dividendItems = [
+    {ticker: 'LOW', dividendYield: 0.012},
+    {ticker: 'Z-SAME', dividendYield: 0.04},
+    {ticker: 'HIGH', dividendYield: 0.07},
+    {ticker: 'A-SAME', dividendYield: 0.04},
+  ]
+
+  const [section] = groupItems(dividendItems, 'dividend', new Date('2026-06-17T12:00:00Z'), 'down')
+
+  assert.deepEqual(section.items.map((item) => item.ticker), [
+    'HIGH',
+    'A-SAME',
+    'Z-SAME',
+    'LOW',
+  ])
+})
+
+test('dividend grouping treats positive annual rate as support when yield is missing', () => {
+  const dividendItems = [
+    {ticker: 'RATE-ONLY', dividendRate: 1.2},
+    {ticker: 'NO-DIV', dividendYield: null, dividendRate: 0},
+  ]
+
+  const sections = groupItems(dividendItems, 'dividend', new Date('2026-06-17T12:00:00Z'), 'down')
+
+  assert.deepEqual(sections[0].items.map((item) => item.ticker), ['RATE-ONLY'])
+  assert.deepEqual(sections[1].items.map((item) => item.ticker), ['NO-DIV'])
+})

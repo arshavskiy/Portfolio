@@ -138,14 +138,63 @@ function watchlistSteps() {
       element: '[data-tour="wl-group"]',
       popover: {
         title: 'Group & sort',
-        description: 'Group by Market, Change, Pre/Post, Industry, or your own tag Groups.',
+        description: 'Group by Market, Change, Pre/Post, Dividends, Industry, or your own tag Groups. Change-style buttons can be tapped again to flip direction.',
       },
     },
     {
       element: '[data-tour="wl-row"]',
       popover: {
         title: 'A stock row',
-        description: 'Live price, day change, a sparkline chart, and a momentum signal badge. Tap a row to open its full position with charts and buy/sell tools.',
+        description: 'Each row is a compact data card. Tap anywhere on it to open the full position with charts and buy/sell tools.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-identity"]',
+      popover: {
+        title: 'Ticker and signals',
+        description: 'The ticker is followed by quick signals: active alerts, momentum score, earnings countdowns, and dividend markers when data is available.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-dividend"]',
+      popover: {
+        title: 'Dividend marker',
+        description: 'This green badge marks dividend-supported tickers. It shows annual yield when available; hover or long-press for the annual dividend detail.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-earnings"]',
+      popover: {
+        title: 'Earnings badge',
+        description: 'This amber badge appears when earnings are due within the next 7 days. Today shows as “Earnings”; future dates show the day count.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-company"]',
+      popover: {
+        title: 'Company name and tags',
+        description: 'The company name sits above your custom tags. Tap the tag row to organize tickers into your own groups.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-chart"]',
+      popover: {
+        title: 'Sparkline',
+        description: 'The mini chart follows the selected watchlist range, with the start and end prices shown underneath.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-price"]',
+      popover: {
+        title: 'Current price',
+        description: 'This is the latest quote in the ticker’s native currency. Israeli tickers use shekels; US stocks and crypto use dollars.',
+      },
+    },
+    {
+      element: '[data-tour="wl-row-change"]',
+      popover: {
+        title: 'Range change',
+        description: 'This pill shows the percent move across the selected row range, so changing 1D, 5D, 1M, 6M, or 1Y updates it.',
       },
     },
     {

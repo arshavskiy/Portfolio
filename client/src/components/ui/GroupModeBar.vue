@@ -16,6 +16,7 @@ const MODE_ICONS = {
   change: 'pi pi-chart-line',
   extended: 'pi pi-clock',
   momentum: 'pi pi-bolt',
+  dividend: 'pi pi-percentage',
   industry: 'pi pi-building',
   group: 'pi pi-tags',
 }
@@ -25,6 +26,7 @@ const MODE_EXPLANATIONS = {
   change: 'grouping.todayChange',
   extended: 'grouping.extended',
   momentum: 'grouping.momentum',
+  dividend: 'grouping.dividend',
   industry: 'grouping.industry',
   group: 'grouping.tags',
 }
@@ -95,7 +97,7 @@ function iconFor(opt) {
 <style scoped>
 .group-bar {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px;
   width: 100%;
   min-width: 0;
