@@ -10,6 +10,7 @@ export const changelog = [
       'New Dividends grouping separates dividend payers from rows without dividend data',
       'The guided tour now walks through watchlist row data: ticker signals, dividend and earnings badges, sparkline, price, and range change',
       'Brand-new accounts start with demo watchlist and holding data so the first walkthrough can show real app features immediately',
+      'Dashboard portfolio value charts now show the portfolio P/L percent beside the section title',
     ],
   },
   {

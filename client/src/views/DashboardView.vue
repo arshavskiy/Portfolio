@@ -1,9 +1,10 @@
 <script setup>
-import {defineAsyncComponent, onMounted, onUnmounted} from 'vue'
+import {computed, defineAsyncComponent, onMounted, onUnmounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
 import PortfolioStatsCard from '@/components/ui/PortfolioStatsCard.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import {gainLossClass, usePercent} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
 
 const BreakdownCard         = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
@@ -34,6 +35,8 @@ const {
   historyLoading,
   historyRange,
 } = storeToRefs(dashboard)
+
+const historyChangePercent = computed(() => portfolioCombinedUsd.value?.pnlPercent ?? null)
 
 const HISTORY_RANGES = [
   {label: '1D', value: '1d'},
@@ -147,7 +150,14 @@ onUnmounted(() => {
       <!-- Portfolio value over time -->
       <section v-if="portfolioPositions.length" class="history-card">
         <div class="history-head">
-          <h2 class="section-title">{{ t('dashboard.portfolioValue') }}</h2>
+          <div class="history-title-row">
+            <div>
+              <h2 class="section-title">{{ t('dashboard.portfolioValue') }}</h2>
+            </div>
+            <div v-if="historyChangePercent != null" :class="gainLossClass(historyChangePercent)" class="history-change">
+              {{ usePercent(historyChangePercent) }}
+            </div>
+          </div>
           <div class="toggle-group">
             <button
                 v-for="opt in HISTORY_RANGES"
@@ -209,13 +219,17 @@ onUnmounted(() => {
 }
 
 .history-head {
+  padding: 0 0.25rem;
+}
+
+.history-title-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-  padding: 0 0.25rem;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+}
+
+.history-change {
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .section-title {
@@ -239,6 +253,7 @@ onUnmounted(() => {
   display: flex;
   gap: 0.25rem;
   flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
 .toggle-btn {
