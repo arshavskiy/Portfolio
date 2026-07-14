@@ -10,6 +10,10 @@ import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import {useI18n} from '@/composables/useI18n'
 
+defineProps({
+  embedded: {type: Boolean, default: false},
+})
+
 const {locale, t} = useI18n()
 
 // ── Tab state ──────────────────────────────────────────────────────────────
@@ -157,7 +161,7 @@ watch(activeTab, (tab) => {
 <template>
   <div class="transactions">
     <header class="page-header">
-      <h1 class="gradient-title">{{ t('common.history') }}</h1>
+      <h1 v-if="!embedded" class="gradient-title">{{ t('common.history') }}</h1>
       <Button
           v-if="activeTab === 'history'"
           :disabled="!filtered.length"

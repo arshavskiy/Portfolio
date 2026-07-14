@@ -3,6 +3,8 @@ const auth = require('../middleware/auth')
 const {
     getPortfolio,
     getHistory,
+    getReturnMetrics,
+    getRiskExposure,
     getGroups,
     addTransaction,
     getTransactions,
@@ -22,6 +24,8 @@ const {
 router.use(auth)
 router.get('/', getPortfolio)
 router.get('/history', getHistory)
+router.get('/return-metrics', getReturnMetrics)
+router.get('/risk', getRiskExposure)
 router.get('/groups', getGroups)
 router.post('/transaction', addTransaction)
 router.get('/transactions', getTransactions)

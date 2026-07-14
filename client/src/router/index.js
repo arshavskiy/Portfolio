@@ -23,6 +23,12 @@ const routes = [
             meta: {requiresAuth: true}
         },
       { path: 'watchlist', name: 'Watchlist', component: () => import('@/views/WatchlistView.vue'), meta: { requiresAuth: true } },
+      {
+        path: 'insights',
+        name: 'Insights',
+        component: () => import('@/views/InsightsView.vue'),
+        meta: {requiresAuth: true}
+      },
       { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
       { path: 'transactions-alerts', name: 'TransactionsAlerts', component: () => import('@/views/DesktopTransactionsAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'stock/:ticker', redirect: to => `/position/${encodeURIComponent(to.params.ticker)}` },

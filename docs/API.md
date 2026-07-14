@@ -155,6 +155,35 @@ Portfolio value over time (daily, replayed from transactions).
 ]
 ```
 
+### GET /portfolio/return-metrics `🔒`
+Money-weighted (XIRR) and time-weighted (TWR) return, combined across currencies in USD. XIRR treats buys/DRIP as outflows, sells and cash dividends as inflows, and current portfolio value as a final inflow at today's date. TWR chain-links the daily value series from `GET /portfolio/history`.
+
+**Query params**
+
+| Param | Values | Default |
+|-------|--------|---------|
+| `range` | `1mo` `3mo` `6mo` `1y` `all` | `all` |
+
+**Response `200`**
+```json
+{ "irr": 12.4, "twr": 9.8 }
+```
+`irr`/`twr` are percentages, or `null` if there aren't enough transactions to compute them.
+
+### GET /portfolio/risk `🔒`
+Sector allocation and portfolio-weighted beta, with values needed to run a client-side stress-test projection. Positions without a fetched beta fall back to `1.0` (market-average).
+
+**Response `200`**
+```json
+{
+  "sectors": [
+    { "sector": "Technology", "valueUsd": 5000, "percent": 62.5 }
+  ],
+  "weightedBeta": 1.12,
+  "totalValueUsd": 8000
+}
+```
+
 ### GET /portfolio/groups `🔒`
 Return all distinct group tags across the user's positions **and** watchlist items, sorted alphabetically.
 
@@ -432,6 +461,24 @@ The `id` comes from `/stocks/news` article results. If the server cache has expi
   }
 }
 ```
+
+### POST /stocks/ai-ask `🔒`
+Ask a natural-language question about the user's portfolio; answered by an OpenAI chat completion given context built from current holdings, watchlist items, and recent news for all of those tickers. The context clearly separates owned vs. watched stocks. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Rate-limited to 20 requests/user/day (in-memory counter, resets on server restart).
+
+**Body**
+```json
+{ "question": "Why is my portfolio down today?" }
+```
+Question is capped at 500 characters.
+
+**Response `200`**
+```json
+{ "answer": "...", "usage": { "promptTokens": 512, "completionTokens": 87 } }
+```
+**Response `400`** — empty question
+**Response `429`** — daily limit reached
+**Response `503`** — AI Q&A not configured (no API key)
+**Response `502`** — upstream OpenAI request failed
 
 ---
 

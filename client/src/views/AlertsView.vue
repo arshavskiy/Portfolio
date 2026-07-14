@@ -9,6 +9,10 @@ import Button from 'primevue/button'
 import ToggleSwitch from 'primevue/toggleswitch'
 import {useI18n} from '@/composables/useI18n'
 
+defineProps({
+  embedded: {type: Boolean, default: false},
+})
+
 const router = useRouter()
 const toast = useToast()
 const alerts = useAlertsStore()
@@ -54,7 +58,7 @@ async function remove(alert) {
 
 <template>
   <div class="alerts-page safe-bottom">
-    <header class="page-header">
+    <header v-if="!embedded" class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <h1 class="gradient-title">{{ t('alerts.title') }}</h1>
     </header>

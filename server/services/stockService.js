@@ -586,12 +586,14 @@ async function getTickerProfile(ticker, fallbackName = null) {
     companyName: cleanProfileValue(fallbackName),
     sector: null,
     industry: null,
+      beta: null,
   }
-  
+
   try {
     const summary = await yahooFinance.quoteSummary(symbol, {
-      modules: ['price', 'assetProfile', 'summaryProfile'],
+        modules: ['price', 'assetProfile', 'summaryProfile', 'defaultKeyStatistics'],
     })
+      const beta = summary?.defaultKeyStatistics?.beta
     profile = {
       companyName: cleanProfileValue(
           summary?.price?.shortName ||
@@ -610,6 +612,7 @@ async function getTickerProfile(ticker, fallbackName = null) {
           summary?.summaryProfile?.industryDisp ||
           summary?.summaryProfile?.industry
       ),
+        beta: typeof beta === 'number' && Number.isFinite(beta) ? beta : null,
     }
   } catch {
     try {

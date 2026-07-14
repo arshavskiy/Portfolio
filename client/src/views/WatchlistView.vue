@@ -23,6 +23,7 @@ import RangeBar from '@/components/ui/RangeBar.vue'
 import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import WatchlistActionsMenu from '@/components/ui/WatchlistActionsMenu.vue'
 import {useI18n} from '@/composables/useI18n'
 
 const watchlist = useWatchlistStore()
@@ -94,6 +95,79 @@ const heldCount = computed(() => {
   const heldTickers = new Set(portfolio.positions.map((position) => String(position.ticker || '').toUpperCase()))
   return watchlist.items.filter((item) => heldTickers.has(String(item.ticker || '').toUpperCase())).length
 })
+
+const headerActions = computed(() => [
+  {
+    key: 'held-filter',
+    visible: heldCount.value > 0,
+    icon: 'pi pi-briefcase',
+    label: heldOnly.value ? t('watchlist.showAll') : t('watchlist.showHoldingsOnly'),
+    dataTour: 'wl-held-filter',
+    buttonClass: 'held-filter-btn',
+    onClick: () => {
+      heldOnly.value = !heldOnly.value
+    },
+  },
+  {
+    key: 'rebalance',
+    visible: portfolio.positions.length > 0,
+    icon: 'pi pi-sliders-h',
+    label: t('watchlist.rebalance'),
+    onClick: () => router.push('/rebalance'),
+  },
+  {
+    key: 'import',
+    icon: 'pi pi-upload',
+    label: t('watchlist.importFromFile'),
+    dataTour: 'wl-import',
+    onClick: (event) => importMenu.value?.toggle(event),
+    children: [
+      {
+        key: 'import-watchlist',
+        icon: 'pi pi-eye',
+        label: t('watchlist.importWatchlist'),
+        onClick: () => {
+          importMode.value = 'watchlist';
+          showImportModal.value = true
+        },
+      },
+      {
+        key: 'import-holdings',
+        icon: 'pi pi-briefcase',
+        label: t('watchlist.importHoldings'),
+        onClick: () => {
+          importMode.value = 'holdings';
+          showImportModal.value = true
+        },
+      },
+    ],
+  },
+  {
+    key: 'export',
+    visible: watchlist.items.length > 0,
+    icon: 'pi pi-download',
+    label: t('watchlist.downloadCsv'),
+    onClick: exportCsv,
+  },
+  {
+    key: 'add-transaction',
+    icon: 'pi pi-dollar',
+    label: t('watchlist.addTransaction'),
+    dataTour: 'wl-add-transaction',
+    onClick: () => {
+      showTxModal.value = true
+    },
+  },
+  {
+    key: 'add-watchlist',
+    icon: 'pi pi-eye',
+    label: t('watchlist.addToWatchlist'),
+    dataTour: 'wl-add-watchlist',
+    onClick: () => {
+      showModal.value = true
+    },
+  },
+])
 
 const filteredItems = computed(() => {
   const q = searchQuery.value.trim().toLowerCase()
@@ -277,56 +351,8 @@ function groupLabel(group) {
           </div>
         </div>
         <div class="header-actions" data-tour="wl-actions">
-          <Button
-              v-if="heldCount"
-              v-tooltip.bottom="heldOnly ? t('watchlist.showAll') : t('watchlist.showHoldingsOnly')"
-              :outlined="!heldOnly"
-              class="held-filter-btn"
-              data-tour="wl-held-filter"
-              icon="pi pi-briefcase"
-              size="small"
-              @click="heldOnly = !heldOnly"
-          />
-          <Button
-              v-if="portfolio.positions.length"
-              v-tooltip.bottom="t('watchlist.rebalance')"
-              icon="pi pi-sliders-h"
-              size="small"
-              text
-              @click="router.push('/rebalance')"
-          />
-          <span class="tour-action-anchor" data-tour="wl-import">
-            <Button
-                v-tooltip.bottom="t('watchlist.importFromFile')"
-                icon="pi pi-upload"
-                size="small"
-                text
-                @click="importMenu.toggle($event)"
-            />
-          </span>
+          <WatchlistActionsMenu :actions="headerActions"/>
           <Menu ref="importMenu" :model="importMenuItems" popup/>
-          <Button
-              v-if="watchlist.items.length"
-              v-tooltip.bottom="t('watchlist.downloadCsv')"
-              icon="pi pi-download"
-              size="small"
-              text
-              @click="exportCsv"
-          />
-          <Button
-              v-tooltip.bottom="t('watchlist.addTransaction')"
-              data-tour="wl-add-transaction"
-              icon="pi pi-dollar"
-              size="small"
-              text
-              @click="showTxModal = true"
-          />
-          <Button v-tooltip.bottom="t('watchlist.addToWatchlist')"
-                  data-tour="wl-add-watchlist"
-                  icon="pi pi-eye"
-                  size="small"
-                  text
-                  @click="showModal = true"/>
         </div>
       </div>
 

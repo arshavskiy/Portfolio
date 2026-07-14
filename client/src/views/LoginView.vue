@@ -176,6 +176,16 @@ const features = computed(() => [
     title: t('login.features.importTitle'),
     text: t('login.features.importText')
   },
+  {
+    icon: 'pi pi-chart-pie',
+    title: t('login.features.insightsTitle'),
+    text: t('login.features.insightsText')
+  },
+  {
+    icon: 'pi pi-comments',
+    title: t('login.features.aiChatTitle'),
+    text: t('login.features.aiChatText')
+  },
 ])
 
 async function submit() {

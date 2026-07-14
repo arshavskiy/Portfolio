@@ -141,6 +141,11 @@ function logout() {
               <span>{{ t('account.priceAlerts') }}</span>
               <i class="pi pi-chevron-right text-muted" />
             </button>
+            <button class="menu-item" @click="goTransactions">
+              <i class="pi pi-list menu-icon"/>
+              <span>{{ t('common.history') }}</span>
+              <i class="pi pi-chevron-right text-muted"/>
+            </button>
           </div>
 
           <!-- App -->

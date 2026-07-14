@@ -7,6 +7,7 @@ const positionSchema = new mongoose.Schema(
     companyName: { type: String },
       sector: {type: String},
       industry: {type: String},
+      beta: {type: Number},
     shares: { type: Number, required: true, min: 0 },
     avgCost: { type: Number, required: true, min: 0 },
       groups: {type: [String], default: []},

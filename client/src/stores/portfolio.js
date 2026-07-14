@@ -7,6 +7,8 @@ export const usePortfolioStore = defineStore('portfolio', () => {
   const totals = ref([])
   const combinedUsd = ref(null)
   const loading = ref(false)
+    const returnMetrics = ref(null)
+    const riskExposure = ref(null)
 
   async function fetchPortfolio() {
     loading.value = true
@@ -19,6 +21,16 @@ export const usePortfolioStore = defineStore('portfolio', () => {
       loading.value = false
     }
   }
+    
+    async function fetchReturnMetrics() {
+        returnMetrics.value = await api.get('/portfolio/return-metrics')
+        return returnMetrics.value
+    }
+    
+    async function fetchRiskExposure() {
+        riskExposure.value = await api.get('/portfolio/risk')
+        return riskExposure.value
+    }
 
   async function addTransaction(payload) {
     const data = await api.post('/portfolio/transaction', payload)
@@ -30,6 +42,18 @@ export const usePortfolioStore = defineStore('portfolio', () => {
     await api.delete(`/portfolio/position/${id}`)
     await fetchPortfolio()
   }
-
-  return { positions, totals, combinedUsd, loading, fetchPortfolio, addTransaction, deletePosition }
+    
+    return {
+        positions,
+        totals,
+        combinedUsd,
+        loading,
+        returnMetrics,
+        riskExposure,
+        fetchPortfolio,
+        fetchReturnMetrics,
+        fetchRiskExposure,
+        addTransaction,
+        deletePosition
+    }
 })

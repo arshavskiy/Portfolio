@@ -9,6 +9,7 @@ const Watchlist = require('../models/Watchlist')
 const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar} = require('../services/stockService')
 const { computeTransactionCosts, getBuiltInFeeProfile } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
+const {computeXirr, computeTwr} = require('../services/returnMetrics')
 
 // Recompute a position's shares + avg cost by replaying all of its transactions
 // (avg-cost method). Deletes the position if no shares remain; creates nothing.
@@ -189,11 +190,100 @@ exports.getPortfolio = async (req, res) => {
   }
 }
 
+// Sector allocation + portfolio-weighted beta, with a simple linear
+// stress-test projection (projectedValue = value * (1 + beta * shockPct)).
+// Positions missing a fetched beta fall back to 1.0 (market-average),
+// matching Yahoo's own convention for unavailable betas.
+exports.getRiskExposure = async (req, res) => {
+    try {
+        const positions = await Position.find({user: req.user._id}).lean()
+        if (!positions.length) return res.json({sectors: [], weightedBeta: null, totalValueUsd: 0})
+        
+        const tickers = positions.map((p) => p.ticker)
+        const [quotes, ilsToUsd] = await Promise.all([getQuotes(tickers), getIlsToUsd()])
+        const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
+        
+        const enriched = positions.map((p) => {
+            const fx = p.ticker.toUpperCase().endsWith('.TA') ? ilsToUsd : 1
+            const price = quoteMap[p.ticker]?.price || 0
+            const valueUsd = price * p.shares * fx
+            const beta = typeof p.beta === 'number' && Number.isFinite(p.beta) ? p.beta : 1
+            return {ticker: p.ticker, sector: p.sector || 'Unknown', valueUsd, beta}
+        })
+        
+        const totalValueUsd = enriched.reduce((sum, p) => sum + p.valueUsd, 0)
+        if (totalValueUsd <= 0) return res.json({sectors: [], weightedBeta: null, totalValueUsd: 0})
+        
+        const sectorTotals = {}
+        for (const p of enriched) {
+            sectorTotals[p.sector] = (sectorTotals[p.sector] || 0) + p.valueUsd
+        }
+        const sectors = Object.entries(sectorTotals)
+            .map(([sector, valueUsd]) => ({sector, valueUsd, percent: (valueUsd / totalValueUsd) * 100}))
+            .sort((a, b) => b.valueUsd - a.valueUsd)
+        
+        const weightedBeta = enriched.reduce((sum, p) => sum + p.beta * (p.valueUsd / totalValueUsd), 0)
+        
+        res.json({sectors, weightedBeta, totalValueUsd})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
 exports.getHistory = async (req, res) => {
     try {
         const range = req.query.range || '1mo'
         const points = await getPortfolioHistory(req.user._id, range)
         res.json(points)
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+// Money-weighted (XIRR) and time-weighted (TWR) return, combined across
+// currencies in USD. XIRR treats buys/DRIP as outflows, sells and cash
+// dividends as inflows, and current portfolio value as a final inflow at
+// today's date. TWR chain-links the daily value series from historyService.
+exports.getReturnMetrics = async (req, res) => {
+    try {
+        const range = req.query.range || 'all'
+        const [txs, positions, ilsToUsd, dailySeries] = await Promise.all([
+            Transaction.find({user: req.user._id}).sort({date: 1}).lean(),
+            Position.find({user: req.user._id}).lean(),
+            getIlsToUsd(),
+            getPortfolioHistory(req.user._id, range),
+        ])
+        if (!txs.length) return res.json({irr: null, twr: null})
+        
+        const fx = (ticker) => (ticker.toUpperCase().endsWith('.TA') ? ilsToUsd : 1)
+        
+        const cashFlows = txs
+            .map((t) => {
+                const amountNative = t.type === 'sell' ? (t.netProceeds ?? t.total) : -(t.totalWithFees ?? t.total)
+                if (t.type === 'dividend' && t.drip) return null // DRIP: no cash movement, shares only
+                if (t.type === 'dividend' && !t.drip) return {date: t.date, amount: (t.total || 0) * fx(t.ticker)}
+                return {date: t.date, amount: amountNative * fx(t.ticker)}
+            })
+            .filter(Boolean)
+        
+        if (positions.length) {
+            const tickers = positions.map((p) => p.ticker)
+            const quotes = await getQuotes(tickers)
+            const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
+            const currentValueUsd = positions.reduce((sum, p) => {
+                const price = quoteMap[p.ticker]?.price || 0
+                return sum + price * p.shares * fx(p.ticker)
+            }, 0)
+            cashFlows.push({date: new Date(), amount: currentValueUsd})
+        }
+        
+        const irr = computeXirr(cashFlows)
+        const twr = computeTwr(dailySeries)
+        
+        res.json({
+            irr: irr != null ? irr * 100 : null,
+            twr,
+        })
     } catch (err) {
         res.status(500).json({message: err.message})
     }
@@ -266,6 +356,7 @@ exports.addTransaction = async (req, res) => {
           position.companyName = position.companyName || profile?.companyName || symbol
           position.sector = position.sector || profile?.sector || null
           position.industry = position.industry || profile?.industry || null
+          position.beta = position.beta ?? profile?.beta ?? null
         // Merge any newly provided tags into the existing position (union).
         if (normalizedGroups.length) {
           position.groups = normalizeGroups([...(position.groups || []), ...normalizedGroups])
@@ -278,6 +369,7 @@ exports.addTransaction = async (req, res) => {
             companyName: profile?.companyName || symbol,
             sector: profile?.sector,
             industry: profile?.industry,
+            beta: profile?.beta ?? null,
             shares,
             avgCost: price,
           groups: normalizedGroups,
@@ -315,6 +407,7 @@ exports.addTransaction = async (req, res) => {
             position.companyName = position.companyName || profile?.companyName || symbol
             position.sector = position.sector || profile?.sector || null
             position.industry = position.industry || profile?.industry || null
+            position.beta = position.beta ?? profile?.beta ?? null
             await position.save()
         }
         // Cash dividend: no position change; transaction is the record

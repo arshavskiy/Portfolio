@@ -64,6 +64,8 @@ Portfolio/
     └── services/
         ├── stockService.js   # Yahoo Finance + in-memory cache
         ├── historyService.js # Portfolio value replay
+        ├── returnMetrics.js  # XIRR + TWR calc
+        ├── aiInsightsService.js # OpenAI portfolio Q&A
         ├── cronService.js    # Scheduled jobs
         └── pushService.js    # Web Push dispatch
 ```
@@ -77,6 +79,7 @@ User
  ├── name, email, password (hashed)
  └── ──< Position (user ref)
           ├── ticker, companyName, shares, avgCost
+          ├── sector, industry, beta
           ├── groups: string[]
           ├── notes  (journal / investment thesis)
           └── ──< Transaction (user + ticker)
@@ -113,8 +116,10 @@ User
 
 ### Pages
 - **Dashboard** (`/`) — markets overview, watchlist movers, top momentum, allocation breakdown, portfolio value over time, and portfolio totals (`PortfolioStatsCard`: USD / ILS / combined, with a one-tap ₪↔$ currency toggle persisted to `holdings-combined-currency`)
-- **Watchlist** (`/watchlist`) — the hub for both watched and held stocks. Held rows carry a neon-blue accent; dividend-paying rows show a green yield badge when quote data includes `dividendYield` or `dividendRate`; a briefcase toggle filters to holdings-only (persisted via `watchlist-held-only`). The header exposes Add-transaction, Import (watchlist **or** holdings), Rebalance, Export CSV, and Add-to-watchlist. The former standalone Holdings page was removed; `/holdings` redirects here.
-- **PositionDetail** (`/position/:ticker`), **Transactions**, **Alerts**, **News**, **Rebalance**, **Profile** — supporting pages
+- **Watchlist** (`/watchlist`) — the hub for both watched and held stocks. Held rows carry a neon-blue accent; dividend-paying rows show a green yield badge when quote data includes `dividendYield` or `dividendRate`; a briefcase toggle filters to holdings-only (persisted via `watchlist-held-only`). The header exposes Add-transaction, Import (watchlist **or** holdings), Rebalance, Export CSV, and Add-to-watchlist — on desktop as an inline row, on mobile collapsed into a single `⋮` dropdown (`WatchlistActionsMenu.vue`) teleported next to the Account icon. The former standalone Holdings page was removed; `/holdings` redirects here.
+- **Insights** (`/insights`) — a persistent AI chat (`AskPortfolioPanel.vue`) sits above Income, Health, Reports, Scenario tabs, rendered as folder-style tabs (active tab welds into the panel below; horizontal-scroll pill row on mobile). Health surfaces IRR/TWR (`returnMetrics.js`) and sector/beta risk exposure with a stress-test slider (`GET /portfolio/risk`). Full nav-level page: mobile `BottomNav` + desktop sidebar, with a guided-tour step.
+- **PositionDetail** (`/position/:ticker`), **Transactions**, **Alerts**, **News**, **Rebalance** — supporting pages
+- **Account modal** — `AccountModal.vue`, opened from a fixed top-right icon (mobile) or a sidebar button (desktop), not a route. Transaction History and Price Alerts open as their own stacked dialogs from inside it, reusing `TransactionsView`/`AlertsView` via an `embedded` prop. `/account` still exists as a deep-link fallback page (`AccountView.vue`).
 - **Guided Tour** — `driver.js` walkthrough mounted from `AppLayout`, replayable from Account or by URL parameter; not a route
 - **What's New** — `WhatsNewModal` mounts once in `AppLayout` and pops on load after a release (see below); not a route
 
@@ -309,6 +314,7 @@ VAPID_SUBJECT=mailto:...
 CORS_ORIGINS=http://localhost:5173
 CLIENT_URL=http://localhost:5173
 GOOGLE_CLIENT_ID=...apps.googleusercontent.com
+OPENAI_API_KEY=...          # optional: enables POST /stocks/ai-ask
 ```
 
 ### Client (`client/.env`)

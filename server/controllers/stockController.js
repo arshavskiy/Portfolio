@@ -13,6 +13,7 @@ const {
   NEWS_TOPICS,
   getIlsToUsd,
 } = require('../services/stockService')
+const {askAboutPortfolio} = require('../services/aiInsightsService')
 
 const HISTORY_TTL_SECONDS = {
   '1d': 120,
@@ -99,6 +100,15 @@ exports.getNewsArticle = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
+}
+
+exports.askPortfolioQuestion = async (req, res) => {
+    try {
+        const {answer, usage} = await askAboutPortfolio(req.user._id, req.body.question)
+        res.json({answer, usage})
+    } catch (err) {
+        res.status(err.status || 500).json({message: err.message})
+    }
 }
 
 exports.getQuote = async (req, res) => {

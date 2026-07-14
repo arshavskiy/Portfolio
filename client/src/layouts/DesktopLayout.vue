@@ -9,6 +9,8 @@ import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
 import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 
+const emit = defineEmits(['open-account'])
+
 const route = useRoute()
 const focus = useDesktopFocusStore()
 const {t} = useI18n()
@@ -24,11 +26,15 @@ const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)
 const navItems = computed(() => [
   {key: 'dashboard', name: t('common.dashboard'), to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
   {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
-  {key: 'history', name: t('common.historyAlerts'), to: '/history-alerts', icon: 'pi pi-list', tourKey: 'history'},
+  {key: 'insights', name: t('common.insights'), to: '/insights', icon: 'pi pi-chart-pie', tourKey: 'insights'},
   {key: 'news', name: t('common.news'), to: '/news', icon: 'pi pi-globe', tourKey: 'news'},
-  {key: 'account', name: t('common.account'), to: '/account', icon: 'pi pi-user', tourKey: 'account'},
   {key: 'about', name: t('common.about'), to: '/help', icon: 'pi pi-info-circle', tourKey: 'about'},
 ])
+
+function openAccount() {
+  trackEvent('nav_click', {nav_item: 'account'})
+  emit('open-account')
+}
 
 function isActive(item) {
   if (item.to === '/') return route.path === '/'
@@ -58,6 +64,18 @@ function isActive(item) {
           <i :class="item.icon"/>
           <span class="sidebar-label">{{ item.name }}</span>
         </RouterLink>
+      </div>
+
+      <div class="sidebar-footer">
+        <button
+            class="sidebar-item"
+            data-tour="nav-account"
+            type="button"
+            @click="openAccount"
+        >
+          <i class="pi pi-user"/>
+          <span class="sidebar-label">{{ t('common.account') }}</span>
+        </button>
       </div>
     </nav>
 
@@ -164,13 +182,25 @@ function isActive(item) {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  width: 100%;
   padding: 0.6rem 0.85rem;
+  border: none;
   border-radius: 10px;
+  background: none;
   color: var(--text-secondary);
   text-decoration: none;
+  font: inherit;
   font-size: 0.88rem;
   font-weight: 500;
+  text-align: left;
+  cursor: pointer;
   transition: background 0.15s, color 0.15s;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 0.5rem 8px;
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-item i {

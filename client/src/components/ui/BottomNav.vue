@@ -14,9 +14,8 @@ function trackNav(tab) {
 const tabs = computed(() => [
   {key: 'dashboard', to: '/', icon: 'pi pi-chart-bar', label: t('common.dashboard'), tourKey: 'dashboard'},
   {key: 'watchlist', to: '/watchlist', icon: 'pi pi-eye', label: t('common.watchlist'), tourKey: 'watchlist'},
-  {key: 'transactions', to: '/transactions', icon: 'pi pi-list', label: t('common.history'), tourKey: 'history'},
+  {key: 'insights', to: '/insights', icon: 'pi pi-chart-pie', label: t('common.insights'), tourKey: 'insights'},
   {key: 'news', to: '/news', icon: 'pi pi-globe', label: t('common.news'), tourKey: 'news'},
-  {key: 'account', to: '/account', icon: 'pi pi-user', label: t('common.account'), tourKey: 'account'},
   {key: 'about', to: '/help', icon: 'pi pi-info-circle', label: t('common.about')},
 ])
 

@@ -2,6 +2,17 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.15',
+    date: 'Jul 15, 2026',
+    title: 'Insights page and AI portfolio chat',
+    changes: [
+      "New Insights page — money- and time-weighted return (IRR/TWR), sector & beta risk exposure with a stress-test simulator, and dividend income forecasts, plus a what-if buy scenario tool",
+      "Ask About Your Portfolio — a persistent AI chat on the Insights page that answers questions about your holdings and watchlist, with token usage shown per reply",
+      "Account is now a modal you open from anywhere instead of a separate page — Transaction History and Price Alerts open as their own dialogs from it",
+      "On mobile, the Watchlist's action buttons collapse into a single menu next to the Account icon to keep the header clean",
+    ],
+  },
+  {
     version: '2026.07.14',
     date: 'Jul 14, 2026',
     title: 'Updates',

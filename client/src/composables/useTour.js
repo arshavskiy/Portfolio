@@ -25,10 +25,10 @@ function navSteps() {
       },
     },
     {
-      element: '[data-tour="nav-history"]',
+      element: '[data-tour="nav-insights"]',
       popover: {
-        title: 'History',
-        description: 'Every buy, sell, and dividend lives here, with realized gains and fee/tax tracking.',
+        title: 'Insights',
+        description: 'Dividend income forecasts, return metrics (IRR/TWR), sector & beta risk, a stress-test simulator, and AI Q&A about your portfolio.',
       },
     },
     {
@@ -42,7 +42,7 @@ function navSteps() {
       element: '[data-tour="nav-account"]',
       popover: {
         title: 'Account',
-        description: 'Fee profiles, install, and everything else lives here.',
+        description: 'Transaction history, fee profiles, install, and everything else lives here.',
       },
     },
     {
@@ -114,17 +114,17 @@ function positionSteps() {
 function watchlistSteps() {
   return [
     {
-      element: '[data-tour="wl-actions"]',
+      element: '[data-tour="wl-actions"], [data-tour="wl-actions-menu"]',
+      onHighlightStarted: (el) => {
+        // On mobile the actions collapse behind a "⋮" trigger — open it so the
+        // popup menu (import, add, etc.) is visible while this step is shown.
+        if (el?.matches('[data-tour="wl-actions-menu"]')) {
+          el.querySelector('button')?.click()
+        }
+      },
       popover: {
         title: 'Watchlist actions',
-        description: 'The header actions collect importing, exporting, adding tickers, and logging trades.',
-      },
-    },
-    {
-      element: '[data-tour="wl-import"]',
-      popover: {
-        title: 'Import files',
-        description: 'Click this upload button to open the import modal, then choose watchlist or holdings and map the uploaded file.',
+        description: 'Importing, exporting, adding tickers, and logging trades all live here.',
       },
     },
     {
@@ -284,6 +284,12 @@ export function useTour() {
       onCloseClick: () => complete(onClose),
       onDestroyStarted: () => complete(onClose),
       onNextClick: () => {
+        // If a step opened a popup (e.g. the watchlist actions dropdown),
+        // close it before moving on so it doesn't linger over the next step —
+        // PrimeVue's Menu toggles closed on a second click of its own trigger.
+        if (document.querySelector('.p-menu')) {
+          document.querySelector('[data-tour="wl-actions-menu"] button')?.click()
+        }
         if (d.isLastStep()) complete(onDone)
         else d.moveNext()
       },
