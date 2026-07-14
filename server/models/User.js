@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
       username: {type: String, unique: true, sparse: true, lowercase: true, trim: true},
       password: {
           type: String,
-          required: function () { return !this.googleId },
+          required: function () { return !this.googleId && !this.magicLinkOnly },
           minlength: 8,
           validate: {
               validator: function (value) {
@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema(
           },
       },
       googleId: { type: String, unique: true, sparse: true },
+      magicLinkOnly: {type: Boolean, default: false},
       demoSeedVersion: {type: Number, default: 0},
       demoSeededAt: {type: Date},
   },

@@ -18,7 +18,7 @@ async function main() {
 
   let user = await User.findOne({email: email.toLowerCase().trim()})
   if (!user) {
-    user = await User.create({name, email: email.toLowerCase().trim()})
+    user = await User.create({name, email: email.toLowerCase().trim(), magicLinkOnly: true})
     await seedDemoAccount(user)
   }
 
