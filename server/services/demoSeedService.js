@@ -4,13 +4,50 @@ const Transaction = require('../models/Transaction')
 
 const DEMO_SEED_VERSION = 1
 
-const WATCHLIST_DEMO = {
-  ticker: 'TSLA',
-  companyName: 'Tesla, Inc.',
-  sector: 'Consumer Cyclical',
-  industry: 'Auto Manufacturers',
-  groups: ['Demo', 'Watchlist'],
-}
+const WATCHLIST_DEMO = [
+  {
+    ticker: 'AAPL',
+    companyName: 'Apple Inc.',
+    sector: 'Technology',
+    industry: 'Consumer Electronics',
+    groups: ['Demo', 'Watchlist'],
+  },
+  {
+    ticker: 'MSFT',
+    companyName: 'Microsoft Corporation',
+    sector: 'Technology',
+    industry: 'Software - Infrastructure',
+    groups: ['Demo', 'Watchlist'],
+  },
+  {
+    ticker: 'GOOGL',
+    companyName: 'Alphabet Inc.',
+    sector: 'Communication Services',
+    industry: 'Internet Content & Information',
+    groups: ['Demo', 'Watchlist'],
+  },
+  {
+    ticker: 'AMZN',
+    companyName: 'Amazon.com, Inc.',
+    sector: 'Consumer Cyclical',
+    industry: 'Internet Retail',
+    groups: ['Demo', 'Watchlist'],
+  },
+  {
+    ticker: 'NVDA',
+    companyName: 'NVIDIA Corporation',
+    sector: 'Technology',
+    industry: 'Semiconductors',
+    groups: ['Demo', 'Watchlist'],
+  },
+  {
+    ticker: '^GSPC',
+    companyName: 'S&P 500',
+    sector: 'Index',
+    industry: 'Index',
+    groups: ['Demo', 'Watchlist', 'Index'],
+  },
+]
 
 const HOLDING_DEMO = {
   ticker: 'O',
@@ -44,10 +81,10 @@ async function seedDemoAccount(user) {
     return false
   }
 
-  await Watchlist.create({
+  await Watchlist.insertMany(WATCHLIST_DEMO.map((item) => ({
     user: userId,
-    ...WATCHLIST_DEMO,
-  })
+    ...item,
+  })))
 
   await Position.create({
     user: userId,

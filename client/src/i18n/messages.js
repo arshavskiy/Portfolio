@@ -140,6 +140,7 @@ export const messages = {
             weakPasswordDetail: 'Password must be at least 8 characters and include a number and a special character',
             registrationFailed: 'Registration failed',
             googleFailed: 'Google sign-in failed',
+            signingIn: 'Signing you in...',
         },
         register: {
             heroTitleLine1: 'Build your market workspace,',
@@ -901,6 +902,7 @@ export const messages = {
             weakPasswordDetail: 'Пароль должен содержать минимум 8 символов, цифру и специальный символ',
             registrationFailed: 'Не удалось зарегистрироваться',
             googleFailed: 'Не удалось войти через Google',
+            signingIn: 'Выполняется вход...',
         },
         register: {
             heroTitleLine1: 'Создайте свое рыночное рабочее место,',

@@ -32,6 +32,12 @@ export const useAuthStore = defineStore('auth', () => {
     setAuth(data.token, data.user)
     return data
   }
+
+  async function loginWithMagicLink(magicToken) {
+    const data = await api.post('/auth/magic-link', { token: magicToken })
+    setAuth(data.token, data.user)
+    return data
+  }
     
     // Refresh the current user from the server (cached localStorage copy may be
     // missing/stale). Keeps token; updates user.
@@ -52,5 +58,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('user')
   }
     
-    return {token, user, isAuthenticated, login, register, loginWithGoogle, logout, fetchMe}
+    return {token, user, isAuthenticated, login, register, loginWithGoogle, loginWithMagicLink, logout, fetchMe}
 })

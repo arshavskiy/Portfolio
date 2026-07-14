@@ -1,6 +1,6 @@
 <script setup>
 import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
-import {useRouter} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {useToast} from 'primevue/usetoast'
 import {useAuthStore} from '@/stores/auth'
 import InputText from 'primevue/inputtext'
@@ -11,6 +11,7 @@ import {useI18n} from '@/composables/useI18n'
 
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const router = useRouter()
+const route = useRoute()
 const toast = useToast()
 const auth = useAuthStore()
 const {locale, t} = useI18n()
@@ -20,6 +21,7 @@ const name = ref('')
 const identifier = ref('')
 const password = ref('')
 const loading = ref(false)
+const magicLinkLoading = ref(false)
 const googleButtonLogin = ref(null)
 const googleButtonRegister = ref(null)
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
@@ -105,6 +107,9 @@ onMounted(() => {
   }, 2600)
 
   loadGoogleScript()
+
+  const magicToken = route.query.magic
+  if (magicToken) consumeMagicLink(magicToken)
 })
 onUnmounted(() => {
   clearInterval(slideTimer)
@@ -213,6 +218,19 @@ function switchMode(nextMode) {
   loading.value = false
 }
 
+async function consumeMagicLink(magicToken) {
+  magicLinkLoading.value = true
+  try {
+    await auth.loginWithMagicLink(magicToken)
+    router.replace('/')
+  } catch (err) {
+    toast.add({severity: 'error', summary: t('login.loginFailed'), detail: err.message, life: 3000})
+    router.replace('/login')
+  } finally {
+    magicLinkLoading.value = false
+  }
+}
+
 async function handleGoogleCredential(response) {
   loading.value = true
   try {
@@ -268,7 +286,11 @@ watch(locale, updateLoginHead)
 </script>
 
 <template>
-  <div class="landing">
+  <div v-if="magicLinkLoading" class="magic-loading">
+    <i class="pi pi-spin pi-spinner"/>
+    <span>{{ t('login.signingIn') }}</span>
+  </div>
+  <div v-else class="landing">
     <main class="landing-main">
       <!-- Hero / marketing -->
       <section class="hero" aria-labelledby="login-hero-title">
@@ -655,6 +677,22 @@ watch(locale, updateLoginHead)
 </template>
 
 <style scoped>
+.magic-loading {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.magic-loading i {
+  font-size: 1.6rem;
+  color: var(--accent);
+}
+
 .landing {
   min-height: 100dvh;
   background: var(--bg-primary);

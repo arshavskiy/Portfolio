@@ -52,6 +52,8 @@ cd client && npm run dev   # Vite on :5173
 - **Position journal**: `Position.notes` + GET/PUT `/portfolio/position/notes/:ticker`; collapsible editor on position page.
 - **Drift alerts**: `RebalanceTarget` model (targets + threshold per user); Rebalance page saves them; 16:30 ET cron pushes when live allocation drifts past threshold (once/day max).
 - **Buy/Sell simulators**, **rebalance planner**, **import (Excel/CSV/Word)**, **guided tour**, **groups/tags**, **momentum signal** — all live; see views before adding anything similar.
+- **Demo watchlist seed**: `seedDemoAccount()` in `demoSeedService.js` gives every new user (register/Google/magic-link) a starter watchlist of AAPL, MSFT, GOOGL, AMZN, NVDA, ^GSPC plus one demo holding (`O`). Gated by `User.demoSeedVersion`.
+- **Magic-link sign-in**: `POST /auth/magic-link` exchanges a token for a JWT — reusable, 7-day expiry (Mongo TTL index auto-deletes expired `MagicLinkToken` docs). No self-serve endpoint generates tokens; run `cd server && npm run magic-link -- "Name" email@example.com` to create a user (demo-seeded) + printable `/login?magic=<token>` URL. Client auto-consumes `?magic=` on `LoginView` mount via `auth.loginWithMagicLink()`.
 
 ## Directory layout
 ```

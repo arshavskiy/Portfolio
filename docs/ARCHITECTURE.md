@@ -10,7 +10,7 @@
 | Server | Node.js, Express.js |
 | Database | MongoDB Atlas (Mongoose ODM) |
 | External Data | Yahoo Finance (via `yahoo-finance2`) |
-| Auth | JWT (jsonwebtoken) + bcrypt, Google Sign-In (google-auth-library) |
+| Auth | JWT (jsonwebtoken) + bcrypt, Google Sign-In (google-auth-library), magic-link tokens |
 | Push | Web Push API + VAPID (web-push library) |
 | Background Jobs | node-cron |
 | PWA | Workbox (injectManifest) |
@@ -280,7 +280,8 @@ The guided tour introduces the primary portfolio workflow after login.
 
 - **Source of truth**: `client/src/composables/useTour.js` defines the tour steps and navigation handoffs. `client/src/assets/tour.css` contains the `driver.js` theme overrides and highlighted-element styling.
 - **Flow**: starts on Dashboard, highlights navigation and portfolio context, focuses the first available Top Movers item, opens that ticker into the Position page, explains overview/chart controls and the two-click chart range measurement, then continues through Watchlist actions including Import.
-- **Demo data**: `server/services/demoSeedService.js` seeds brand-new password or Google accounts once with watchlist-only `TSLA`, held dividend ticker `O` (Realty Income), and a real `O` buy transaction tagged `Demo`. This gives the first run enough real data to show Dashboard, Watchlist, Position, Transactions, holdings, dividend grouping, and dividend-capable cards without client mocks. `User.demoSeedVersion` and `demoSeededAt` prevent reruns.
+- **Demo data**: `server/services/demoSeedService.js` seeds brand-new password, Google, or magic-link accounts once with a starter watchlist (AAPL, MSFT, GOOGL, AMZN, NVDA, ^GSPC), held dividend ticker `O` (Realty Income), and a real `O` buy transaction tagged `Demo`. This gives the first run enough real data to show Dashboard, Watchlist, Position, Transactions, holdings, dividend grouping, and dividend-capable cards without client mocks. `User.demoSeedVersion` and `demoSeededAt` prevent reruns.
+- **Magic-link sign-in**: `server/scripts/createMagicLink.js` (`npm run magic-link -- "Name" email@example.com`) creates/reuses a user, demo-seeds it, and issues a `MagicLinkToken` (random 32-byte hex, 7-day expiry, Mongo TTL index for cleanup). `POST /auth/magic-link` exchanges the token for a JWT — reusable until expiry, not single-use. `LoginView.vue` reads `?magic=<token>` on mount and calls `authStore.loginWithMagicLink()` automatically, showing a full-screen spinner instead of the login form. No HTTP endpoint issues tokens — CLI-only, since there's no admin-role concept on `User`.
 - **Gate**: the first completed or closed tour writes `stockfolio-tour-seen` to localStorage so the walkthrough does not auto-open repeatedly.
 - **Replay**: Account exposes a Start Tour action that clears the seen flag and launches the tour again.
 - **URL parameter**: append `?tour` to any authenticated app URL to force the tour to run, for example `/watchlist?tour` or `/?tour`. The parameter bypasses the seen flag and is removed with `history.replaceState` after launch so refreshes do not keep retriggering it.

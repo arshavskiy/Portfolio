@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken')
 const {OAuth2Client} = require('google-auth-library')
 const User = require('../models/User')
+const MagicLinkToken = require('../models/MagicLinkToken')
 const {seedDemoAccount} = require('../services/demoSeedService')
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
@@ -51,6 +52,25 @@ exports.login = async (req, res) => {
     res.json({ token, user })
   } catch (err) {
     res.status(500).json({ message: err.message })
+  }
+}
+
+exports.magicLink = async (req, res) => {
+  try {
+    const {token} = req.body
+    if (!token) return res.status(400).json({message: 'Missing token'})
+
+    const record = await MagicLinkToken.findOne({token})
+    if (!record || record.expiresAt < new Date())
+      return res.status(401).json({message: 'Invalid or expired link'})
+
+    const user = await User.findById(record.user)
+    if (!user) return res.status(401).json({message: 'Invalid or expired link'})
+
+    const jwtToken = signToken(user._id)
+    res.json({token: jwtToken, user})
+  } catch (err) {
+    res.status(500).json({message: err.message})
   }
 }
 

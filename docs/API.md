@@ -31,6 +31,19 @@ Authenticate and receive a JWT.
 { "token": "jwt", "user": { "_id", "name", "email" } }
 ```
 
+### POST /auth/magic-link
+Exchange a magic-link token for a JWT. Tokens are reusable until `expiresAt` (7 days from creation), generated via `npm run magic-link -- "Name" email@example.com` in `server/`. Not user self-serve — no HTTP endpoint creates tokens, only the CLI script.
+
+**Body**
+```json
+{ "token": "string" }
+```
+**Response `200`**
+```json
+{ "token": "jwt", "user": { "_id", "name", "email" } }
+```
+**Response `401`** — invalid or expired token
+
 ### GET /auth/me `🔒`
 Return the currently authenticated user.
 
