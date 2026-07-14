@@ -2,6 +2,14 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.14',
+    date: 'Jul 14, 2026',
+    title: 'Updates',
+    changes: [
+      "Magic-link sign-in for demo invites, and a broader default watchlist (AAPL, MSFT, GOOGL, AMZN, NVDA, S&P 500) for new accounts",
+    ],
+  },
+  {
     version: '2026.07.13',
     date: 'Jul 13, 2026',
     title: 'Dividend watchlist and guided demo',
