@@ -3,7 +3,9 @@ const Position = require('../models/Position')
 const Watchlist = require('../models/Watchlist')
 const Transaction = require('../models/Transaction')
 const AiChatMessage = require('../models/AiChatMessage')
-const {getQuotes, getMarketNews, getHistory} = require('./stockService')
+const {getQuotes, getMarketNews, getHistory, getIlsToUsd} = require('./stockService')
+const {getPortfolioHistory} = require('./historyService')
+const {computeXirr, computeTwr} = require('./returnMetrics')
 
 const HISTORY_LIMIT = 50
 
@@ -12,6 +14,16 @@ const DAILY_LIMIT = 20
 const QUESTION_MAX_LENGTH = 500
 const MAX_TOOL_ROUNDS = 4
 const VALID_RANGES = ['1mo', '3mo', '6mo', '1y', '5y', 'max']
+
+function round(value, digits = 2) {
+    if (value == null || !Number.isFinite(value)) return null
+    const factor = 10 ** digits
+    return Math.round(value * factor) / factor
+}
+
+function tickerFx(ticker, ilsToUsd) {
+    return String(ticker || '').toUpperCase().endsWith('.TA') ? ilsToUsd : 1
+}
 
 // Per-user daily request counter, in-memory — mirrors the quote/news cache
 // pattern already used elsewhere in this service layer. Resets on restart,
@@ -161,6 +173,35 @@ const TOOLS = [
             parameters: {type: 'object', properties: {}},
         },
     },
+    {
+        type: 'function',
+        function: {
+            name: 'get_portfolio_summary',
+            description: 'Get current portfolio value, cost, P&L, day P&L, largest positions, dividend payers, and watchlist count. Use this for overview, concentration, allocation, and "what should I look at" questions.',
+            parameters: {type: 'object', properties: {}},
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'get_risk_exposure',
+            description: 'Get sector allocation and portfolio-weighted beta. Use this for diversification, concentration, sector exposure, beta, and stress-test questions.',
+            parameters: {type: 'object', properties: {}},
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'get_return_metrics',
+            description: 'Get money-weighted return (IRR/XIRR) and time-weighted return (TWR), optionally over a range. Use this for performance quality, IRR, TWR, and portfolio return questions.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    range: {type: 'string', enum: ['1mo', '3mo', '6mo', '1y', 'max', 'all'], description: 'Lookback range for the daily TWR series. Defaults to all.'},
+                },
+            },
+        },
+    },
 ]
 
 async function toolGetPriceReturn(userId, args) {
@@ -247,11 +288,145 @@ async function toolGetDividendSummary(userId) {
     return {summary, grandTotal}
 }
 
+async function toolGetPortfolioSummary(userId) {
+    const [positions, watchlist, ilsToUsd] = await Promise.all([
+        Position.find({user: userId}).lean(),
+        Watchlist.find({user: userId}).lean(),
+        getIlsToUsd(),
+    ])
+    if (!positions.length) {
+        return {
+            totalValueUsd: 0,
+            totalCostUsd: 0,
+            pnlUsd: 0,
+            pnlPercent: null,
+            dayPnlUsd: 0,
+            dayPnlPercent: null,
+            positions: [],
+            watchlistCount: watchlist.length,
+        }
+    }
+
+    const quotes = await getQuotes(positions.map((p) => p.ticker))
+    const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
+    const enriched = positions.map((p) => {
+        const q = quoteMap[p.ticker] || {}
+        const fx = tickerFx(p.ticker, ilsToUsd)
+        const price = q.price || 0
+        const valueUsd = price * p.shares * fx
+        const costUsd = (p.avgCost || 0) * p.shares * fx
+        const dayPnlUsd = (q.change || 0) * p.shares * fx
+        const pnlUsd = valueUsd - costUsd
+        return {
+            ticker: p.ticker,
+            companyName: p.companyName || p.ticker,
+            sector: p.sector || 'Unknown',
+            shares: p.shares,
+            valueUsd: round(valueUsd),
+            costUsd: round(costUsd),
+            pnlUsd: round(pnlUsd),
+            pnlPercent: costUsd > 0 ? round((pnlUsd / costUsd) * 100) : null,
+            dayPnlUsd: round(dayPnlUsd),
+            dayPnlPercent: valueUsd - dayPnlUsd > 0 ? round((dayPnlUsd / (valueUsd - dayPnlUsd)) * 100) : null,
+            dividendYield: q.dividendYield ?? null,
+        }
+    })
+
+    const totalValueUsd = enriched.reduce((sum, p) => sum + (p.valueUsd || 0), 0)
+    const totalCostUsd = enriched.reduce((sum, p) => sum + (p.costUsd || 0), 0)
+    const dayPnlUsd = enriched.reduce((sum, p) => sum + (p.dayPnlUsd || 0), 0)
+    const heldTickers = new Set(positions.map((p) => p.ticker))
+    const watchOnlyCount = watchlist.filter((w) => !heldTickers.has(w.ticker)).length
+
+    return {
+        totalValueUsd: round(totalValueUsd),
+        totalCostUsd: round(totalCostUsd),
+        pnlUsd: round(totalValueUsd - totalCostUsd),
+        pnlPercent: totalCostUsd > 0 ? round(((totalValueUsd - totalCostUsd) / totalCostUsd) * 100) : null,
+        dayPnlUsd: round(dayPnlUsd),
+        dayPnlPercent: totalValueUsd - dayPnlUsd > 0 ? round((dayPnlUsd / (totalValueUsd - dayPnlUsd)) * 100) : null,
+        largestPositions: enriched
+            .map((p) => ({...p, allocationPercent: totalValueUsd > 0 ? round(((p.valueUsd || 0) / totalValueUsd) * 100) : null}))
+            .sort((a, b) => (b.valueUsd || 0) - (a.valueUsd || 0))
+            .slice(0, 8),
+        dividendPayerCount: enriched.filter((p) => Number(p.dividendYield) > 0).length,
+        positionCount: positions.length,
+        watchOnlyCount,
+    }
+}
+
+async function toolGetRiskExposure(userId) {
+    const positions = await Position.find({user: userId}).lean()
+    if (!positions.length) return {sectors: [], weightedBeta: null, totalValueUsd: 0}
+
+    const [quotes, ilsToUsd] = await Promise.all([getQuotes(positions.map((p) => p.ticker)), getIlsToUsd()])
+    const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
+    const enriched = positions.map((p) => {
+        const valueUsd = (quoteMap[p.ticker]?.price || 0) * p.shares * tickerFx(p.ticker, ilsToUsd)
+        const beta = typeof p.beta === 'number' && Number.isFinite(p.beta) ? p.beta : 1
+        return {ticker: p.ticker, sector: p.sector || 'Unknown', valueUsd, beta}
+    })
+    const totalValueUsd = enriched.reduce((sum, p) => sum + p.valueUsd, 0)
+    if (totalValueUsd <= 0) return {sectors: [], weightedBeta: null, totalValueUsd: 0}
+
+    const sectorTotals = {}
+    for (const p of enriched) sectorTotals[p.sector] = (sectorTotals[p.sector] || 0) + p.valueUsd
+
+    return {
+        totalValueUsd: round(totalValueUsd),
+        weightedBeta: round(enriched.reduce((sum, p) => sum + p.beta * (p.valueUsd / totalValueUsd), 0), 3),
+        sectors: Object.entries(sectorTotals)
+            .map(([sector, valueUsd]) => ({sector, valueUsd: round(valueUsd), percent: round((valueUsd / totalValueUsd) * 100)}))
+            .sort((a, b) => b.valueUsd - a.valueUsd),
+    }
+}
+
+async function toolGetReturnMetrics(userId, args) {
+    const range = ['1mo', '3mo', '6mo', '1y', 'max', 'all'].includes(args?.range) ? args.range : 'all'
+    const [txs, positions, ilsToUsd, dailySeries] = await Promise.all([
+        Transaction.find({user: userId}).sort({date: 1}).lean(),
+        Position.find({user: userId}).lean(),
+        getIlsToUsd(),
+        getPortfolioHistory(userId, range),
+    ])
+    if (!txs.length) return {range, irr: null, twr: null}
+
+    const cashFlows = txs
+        .map((t) => {
+            const amountNative = t.type === 'sell' ? (t.netProceeds ?? t.total) : -(t.totalWithFees ?? t.total)
+            if (t.type === 'dividend' && t.drip) return null
+            if (t.type === 'dividend' && !t.drip) return {date: t.date, amount: (t.total || 0) * tickerFx(t.ticker, ilsToUsd)}
+            return {date: t.date, amount: amountNative * tickerFx(t.ticker, ilsToUsd)}
+        })
+        .filter(Boolean)
+
+    if (positions.length) {
+        const quotes = await getQuotes(positions.map((p) => p.ticker))
+        const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
+        cashFlows.push({
+            date: new Date(),
+            amount: positions.reduce((sum, p) => sum + (quoteMap[p.ticker]?.price || 0) * p.shares * tickerFx(p.ticker, ilsToUsd), 0),
+        })
+    }
+
+    const irr = computeXirr(cashFlows)
+    return {
+        range,
+        irr: irr != null ? round(irr * 100) : null,
+        twr: round(computeTwr(dailySeries)),
+        cashFlowCount: cashFlows.length,
+        historyPointCount: dailySeries.length,
+    }
+}
+
 const TOOL_HANDLERS = {
     get_price_return: toolGetPriceReturn,
     get_transactions: toolGetTransactions,
     get_realized_gains: toolGetRealizedGains,
     get_dividend_summary: toolGetDividendSummary,
+    get_portfolio_summary: toolGetPortfolioSummary,
+    get_risk_exposure: toolGetRiskExposure,
+    get_return_metrics: toolGetReturnMetrics,
 }
 
 async function runTool(userId, name, argsJson) {
@@ -303,7 +478,9 @@ async function askAboutPortfolio(userId, question) {
                 'Answer questions about the user\'s holdings AND watchlist using the context provided plus the ' +
                 'tools available to you — call get_price_return for any "best/worst performer over X" or ' +
                 'historical-return question (it is NOT in the static context), get_transactions/get_realized_gains/' +
-                'get_dividend_summary for questions about trade history, gains, or dividends received. The static ' +
+                'get_dividend_summary for questions about trade history, gains, or dividends received, ' +
+                'get_portfolio_summary for current value/P&L/concentration, get_risk_exposure for sector/beta ' +
+                'questions, and get_return_metrics for IRR/TWR/performance questions. The static ' +
                 'context clearly separates stocks the user owns from stocks they are only watching; keep that ' +
                 'distinction clear in your answer. Be concise (3-5 sentences). You are not a licensed financial ' +
                 'advisor — do not give personalized investment recommendations; describe what the data shows instead.',

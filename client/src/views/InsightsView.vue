@@ -18,7 +18,6 @@ const shockPercent = ref(-10)
 const tabs = computed(() => [
   {key: 'income', icon: 'pi pi-calendar', label: t('insights.tabs.income')},
   {key: 'health', icon: 'pi pi-chart-pie', label: t('insights.tabs.health')},
-  {key: 'reports', icon: 'pi pi-file-export', label: t('insights.tabs.reports')},
   {key: 'scenario', icon: 'pi pi-calculator', label: t('insights.tabs.scenario')},
 ])
 
@@ -749,11 +748,28 @@ onMounted(() => {
 }
 
 @media (max-width: 760px) {
-  .metric-grid,
   .report-grid,
   .income-layout,
   .scenario-controls {
     grid-template-columns: 1fr;
+  }
+
+  .insights-page {
+    padding: 0.75rem;
+  }
+
+  .insights-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .insights-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .subtitle {
+    margin-top: 0.25rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
   }
 
   .insights-tabs {
@@ -763,8 +779,8 @@ onMounted(() => {
     scroll-snap-type: x proximity;
     -webkit-overflow-scrolling: touch;
     gap: 0.25rem;
-    margin-inline: -1rem;
-    padding-inline: 1rem;
+    margin-inline: -0.75rem;
+    padding-inline: 0.75rem;
   }
 
   .insights-tabs::-webkit-scrollbar {
@@ -774,7 +790,8 @@ onMounted(() => {
   .insights-tabs button {
     flex: 0 0 auto;
     scroll-snap-align: start;
-    padding: 0.5rem 0.4rem;
+    min-height: 40px;
+    padding: 0.45rem 0.55rem;
     font-size: 0.7rem;
     gap: 0.3rem;
   }
@@ -784,16 +801,102 @@ onMounted(() => {
   }
 
   .tab-body {
-    border-radius: 0 8px 8px 8px;
-    padding: 0.85rem;
+    margin-inline: -0.75rem;
+    border-right: none;
+    border-left: none;
+    border-radius: 0;
+    padding: 0.75rem;
+  }
+
+  .insights-section {
+    gap: 0.75rem;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .metric-card {
+    min-height: 96px;
+    padding: 0.65rem;
+  }
+
+  .metric-card span {
+    font-size: 0.68rem;
+    line-height: 1.25;
+  }
+
+  .metric-card strong {
+    font-size: 1.15rem;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+
+  .metric-card small {
+    font-size: 0.72rem;
+    line-height: 1.3;
+  }
+
+  .forecast-panel,
+  .contributors-panel,
+  .report-card {
+    padding: 0.8rem;
+  }
+
+  .section-heading h2,
+  .report-card h3 {
+    font-size: 1rem;
+  }
+
+  .section-heading p,
+  .report-card p {
+    font-size: 0.82rem;
   }
 
   .month-row {
     flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.65rem 0;
   }
 
   .month-tickers {
     justify-content: flex-start;
+  }
+
+  .contributor-row {
+    gap: 0.65rem;
+  }
+
+  .contributor-row > div:first-child {
+    min-width: 0;
+  }
+
+  .contributor-row > div:first-child span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .right-value {
+    flex-shrink: 0;
+  }
+
+  .shock-control {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem 0.65rem;
+  }
+
+  .shock-control input[type='range'] {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}
+
+@media (max-width: 380px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
