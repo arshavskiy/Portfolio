@@ -1,7 +1,10 @@
 const OpenAI = require('openai')
 const Position = require('../models/Position')
 const Watchlist = require('../models/Watchlist')
+const AiChatMessage = require('../models/AiChatMessage')
 const {getQuotes, getMarketNews} = require('./stockService')
+
+const HISTORY_LIMIT = 50
 
 const MODEL = 'gpt-4o-mini'
 const DAILY_LIMIT = 20
@@ -105,23 +108,25 @@ async function askAboutPortfolio(userId, question) {
         err.status = 503
         throw err
     }
-    
+
     const trimmed = String(question || '').trim().slice(0, QUESTION_MAX_LENGTH)
     if (!trimmed) {
         const err = new Error('question is required')
         err.status = 400
         throw err
     }
-    
+
     if (!checkAndIncrementLimit(userId)) {
         const err = new Error('Daily question limit reached')
         err.status = 429
         throw err
     }
     
+    await AiChatMessage.create({user: userId, role: 'user', text: trimmed})
+
     const {contextText, tickers} = await buildPortfolioContext(userId)
     const newsText = await buildNewsContext(tickers)
-    
+
     let completion
     try {
         completion = await openai.chat.completions.create({
@@ -148,16 +153,30 @@ async function askAboutPortfolio(userId, question) {
         // the user out.
         const err = new Error('AI Q&A upstream request failed - ' + cause.message);
         err.status = 502
+        await AiChatMessage.create({user: userId, role: 'error', text: err.message})
         throw err
     }
     
-    return {
-        answer: completion.choices[0]?.message?.content?.trim() || '',
-        usage: {
-            promptTokens: completion.usage?.prompt_tokens ?? null,
-            completionTokens: completion.usage?.completion_tokens ?? null,
-        },
+    const answer = completion.choices[0]?.message?.content?.trim() || ''
+    const usage = {
+        promptTokens: completion.usage?.prompt_tokens ?? null,
+        completionTokens: completion.usage?.completion_tokens ?? null,
     }
+    await AiChatMessage.create({user: userId, role: 'assistant', text: answer, usage})
+    
+    return {answer, usage}
 }
 
-module.exports = {askAboutPortfolio}
+async function getChatHistory(userId) {
+    const messages = await AiChatMessage.find({user: userId})
+        .sort({createdAt: 1})
+        .limit(HISTORY_LIMIT)
+        .lean()
+    return messages.map((m) => ({role: m.role, text: m.text, usage: m.usage, createdAt: m.createdAt}))
+}
+
+async function clearChatHistory(userId) {
+    await AiChatMessage.deleteMany({user: userId})
+}
+
+module.exports = {askAboutPortfolio, getChatHistory, clearChatHistory}

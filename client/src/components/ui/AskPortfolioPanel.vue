@@ -1,13 +1,14 @@
 <script setup>
-import {nextTick, ref} from 'vue'
+import {nextTick, onMounted, ref} from 'vue'
+import {storeToRefs} from 'pinia'
 import {useI18n} from '@/composables/useI18n'
-import api from '@/composables/useApi'
+import {useAiChatStore} from '@/stores/aiChat'
 
 const {t} = useI18n()
+const chat = useAiChatStore()
+const {sending, loading, loaded, days, activeDay, activeDayMessages} = storeToRefs(chat)
 
 const askQuestion = ref('')
-const askLoading = ref(false)
-const messages = ref([]) // [{role: 'user' | 'assistant' | 'error', text}]
 const chatBox = ref(null)
 
 async function scrollToBottom() {
@@ -17,22 +18,26 @@ async function scrollToBottom() {
 
 async function submitAskQuestion() {
   const question = askQuestion.value.trim()
-  if (!question || askLoading.value) return
-  messages.value.push({role: 'user', text: question})
+  if (!question || sending.value) return
   askQuestion.value = ''
-  askLoading.value = true
   scrollToBottom()
   try {
-    const {answer, usage} = await api.post('/stocks/ai-ask', {question})
-    messages.value.push({role: 'assistant', text: answer, usage})
-  } catch (err) {
-    const key = err.status === 429 ? 'insights.askLimitReached' : 'insights.askError'
-    messages.value.push({role: 'error', text: t(key)})
+    await chat.sendMessage(question, {errorText: t('insights.askError'), limitText: t('insights.askLimitReached')})
+  } catch {
+    // error message already appended to the chat by the store
   } finally {
-    askLoading.value = false
     scrollToBottom()
   }
 }
+
+function pickDay(day) {
+  chat.selectDay(day)
+  scrollToBottom()
+}
+
+onMounted(() => {
+  if (!loaded.value) chat.fetchHistory().then(scrollToBottom).catch(() => {})
+})
 </script>
 
 <template>
@@ -42,16 +47,35 @@ async function submitAskQuestion() {
       <p>{{ t('insights.portfolioReviewText') }}</p>
     </div>
 
-    <div v-if="messages.length || askLoading" ref="chatBox" class="ask-chat">
-      <div v-for="(msg, i) in messages" :key="i" :class="`chat-msg chat-msg-${msg.role}`">
+    <div v-if="days.length > 1" class="ask-day-picker">
+      <div class="ask-day-pills">
+        <button
+            v-for="d in days"
+            :key="d.day"
+            :class="{active: (activeDay || days[days.length - 1].day) === d.day}"
+            type="button"
+            @click="pickDay(d.day)"
+        >
+          {{ d.label }}
+        </button>
+      </div>
+      <select
+          :value="activeDay || days[days.length - 1].day"
+          class="ask-day-select"
+          @change="pickDay($event.target.value)"
+      >
+        <option v-for="d in days" :key="d.day" :value="d.day">{{ d.label }}</option>
+      </select>
+    </div>
+
+    <div v-if="activeDayMessages.length || sending" ref="chatBox" class="ask-chat">
+      <div v-for="(msg, i) in activeDayMessages" :key="i" :class="`chat-msg chat-msg-${msg.role}`">
         <p>{{ msg.text }}</p>
-        <span v-if="msg.usage" class="chat-msg-tokens">
-          {{
-            t('insights.askTokens', {inTok: msg.usage.promptTokens ?? '—', outTok: msg.usage.completionTokens ?? '—'})
-          }}
+        <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
+          {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
         </span>
       </div>
-      <div v-if="askLoading" class="chat-msg chat-msg-assistant chat-msg-thinking">
+      <div v-if="sending" class="chat-msg chat-msg-assistant chat-msg-thinking">
         <span class="thinking-dots"><span/><span/><span/></span>
       </div>
     </div>
@@ -59,11 +83,11 @@ async function submitAskQuestion() {
     <form class="ask-form" @submit.prevent="submitAskQuestion">
       <input
           v-model="askQuestion"
-          :disabled="askLoading"
+          :disabled="sending"
           :placeholder="t('insights.askPlaceholder')"
           type="text"
       >
-      <button :class="{thinking: askLoading}" :disabled="askLoading || !askQuestion.trim()" type="submit">
+      <button :class="{thinking: sending}" :disabled="sending || !askQuestion.trim()" type="submit">
         <i class="pi pi-send"/>
       </button>
     </form>
@@ -80,6 +104,62 @@ async function submitAskQuestion() {
   background: var(--bg-secondary);
   padding: 1rem;
   margin-bottom: 1rem;
+}
+
+.ask-day-picker {
+  display: flex;
+}
+
+.ask-day-pills {
+  display: none;
+}
+
+.ask-day-select {
+  flex: 1;
+  min-height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0 0.6rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+@media (min-width: 760px) {
+  .ask-day-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .ask-day-select {
+    display: none;
+  }
+
+  .ask-day-pills button {
+    flex: 0 0 auto;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+
+  .ask-day-pills button:hover {
+    color: var(--text-primary);
+  }
+
+  .ask-day-pills button.active {
+    color: var(--neon-blue);
+    border-color: rgba(0, 207, 255, 0.45);
+    background: rgba(0, 207, 255, 0.1);
+  }
 }
 
 .ask-chat {
