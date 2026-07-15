@@ -10,6 +10,8 @@ export const changelog = [
       "Ask About Your Portfolio — a persistent AI chat on the Insights page that answers questions about your holdings and watchlist, with token usage shown per reply",
       "Account is now a modal you open from anywhere instead of a separate page — Transaction History and Price Alerts open as their own dialogs from it",
       "On mobile, the Watchlist's action buttons collapse into a single menu next to the Account icon to keep the header clean",
+      "The AI chat can now look up price history, trade history, realized gains, and dividend totals on demand — ask it things like \"best watchlist stock over 3 months\" or \"how much did I make selling AAPL last year\"",
+      "The AI chat panel is now collapsed by default on Insights so it doesn't push the rest of the page down",
     ],
   },
   {

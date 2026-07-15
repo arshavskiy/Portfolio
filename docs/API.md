@@ -463,7 +463,16 @@ The `id` comes from `/stocks/news` article results. If the server cache has expi
 ```
 
 ### POST /stocks/ai-ask `🔒`
-Ask a natural-language question about the user's portfolio; answered by an OpenAI chat completion given context built from current holdings, watchlist items, and recent news for all of those tickers. The context clearly separates owned vs. watched stocks. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Rate-limited to 20 requests/user/day (in-memory counter, resets on server restart).
+Ask a natural-language question about the user's portfolio; answered by an OpenAI chat completion (`gpt-4o-mini`) given a small static context (current holdings, watchlist items, recent news — owned vs. watched clearly separated) plus tool-calling access to the user's own data. The model calls tools on demand rather than everything being pre-loaded into the prompt:
+
+| Tool | Purpose |
+|------|---------|
+| `get_price_return` | % price change for one or more tickers over `1mo`/`3mo`/`6mo`/`1y`/`5y`/`max`, from daily closes — powers "best/worst performer over X" questions |
+| `get_transactions` | Raw buy/sell/dividend history, optionally filtered by ticker |
+| `get_realized_gains` | Avg-cost realized gains/losses from sells, grouped by year |
+| `get_dividend_summary` | Total dividends received per ticker, all-time |
+
+Up to 4 tool-call rounds run before the final answer is returned. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Rate-limited to 20 requests/user/day (in-memory counter, resets on server restart).
 
 **Body**
 ```json

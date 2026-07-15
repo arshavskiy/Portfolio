@@ -6,10 +6,11 @@ import {useAiChatStore} from '@/stores/aiChat'
 
 const {t} = useI18n()
 const chat = useAiChatStore()
-const {sending, loading, loaded, days, activeDay, activeDayMessages} = storeToRefs(chat)
+const {messages, sending, loaded} = storeToRefs(chat)
 
 const askQuestion = ref('')
 const chatBox = ref(null)
+const expanded = ref(false)
 
 async function scrollToBottom() {
   await nextTick()
@@ -19,6 +20,7 @@ async function scrollToBottom() {
 async function submitAskQuestion() {
   const question = askQuestion.value.trim()
   if (!question || sending.value) return
+  expanded.value = true
   askQuestion.value = ''
   scrollToBottom()
   try {
@@ -30,67 +32,46 @@ async function submitAskQuestion() {
   }
 }
 
-function pickDay(day) {
-  chat.selectDay(day)
-  scrollToBottom()
-}
-
 onMounted(() => {
-  if (!loaded.value) chat.fetchHistory().then(scrollToBottom).catch(() => {})
+  if (!loaded.value) chat.fetchHistory().then(() => { if (messages.value.length) scrollToBottom() }).catch(() => {})
 })
 </script>
 
 <template>
   <article class="ask-panel">
-    <div class="section-heading">
-      <h2>{{ t('insights.portfolioReview') }}</h2>
-      <p>{{ t('insights.portfolioReviewText') }}</p>
-    </div>
+    <button class="ask-panel-header" type="button" @click="expanded = !expanded">
+      <div class="ask-panel-heading">
+        <h2>{{ t('insights.portfolioReview') }}</h2>
+        <p>{{ t('insights.portfolioReviewText') }}</p>
+      </div>
+      <i :class="expanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="ask-panel-toggle"/>
+    </button>
 
-    <div v-if="days.length > 1" class="ask-day-picker">
-      <div class="ask-day-pills">
-        <button
-            v-for="d in days"
-            :key="d.day"
-            :class="{active: (activeDay || days[days.length - 1].day) === d.day}"
-            type="button"
-            @click="pickDay(d.day)"
+    <div v-show="expanded" class="ask-panel-body">
+      <div v-if="messages.length || sending" ref="chatBox" class="ask-chat">
+        <div v-for="(msg, i) in messages" :key="i" :class="`chat-msg chat-msg-${msg.role}`">
+          <p>{{ msg.text }}</p>
+          <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
+            {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
+          </span>
+        </div>
+        <div v-if="sending" class="chat-msg chat-msg-assistant chat-msg-thinking">
+          <span class="thinking-dots"><span/><span/><span/></span>
+        </div>
+      </div>
+
+      <form class="ask-form" @submit.prevent="submitAskQuestion">
+        <input
+            v-model="askQuestion"
+            :disabled="sending"
+            :placeholder="t('insights.askPlaceholderShort')"
+            type="text"
         >
-          {{ d.label }}
+        <button :class="{thinking: sending}" :disabled="sending || !askQuestion.trim()" type="submit">
+          <i class="pi pi-send"/>
         </button>
-      </div>
-      <select
-          :value="activeDay || days[days.length - 1].day"
-          class="ask-day-select"
-          @change="pickDay($event.target.value)"
-      >
-        <option v-for="d in days" :key="d.day" :value="d.day">{{ d.label }}</option>
-      </select>
+      </form>
     </div>
-
-    <div v-if="activeDayMessages.length || sending" ref="chatBox" class="ask-chat">
-      <div v-for="(msg, i) in activeDayMessages" :key="i" :class="`chat-msg chat-msg-${msg.role}`">
-        <p>{{ msg.text }}</p>
-        <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
-          {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
-        </span>
-      </div>
-      <div v-if="sending" class="chat-msg chat-msg-assistant chat-msg-thinking">
-        <span class="thinking-dots"><span/><span/><span/></span>
-      </div>
-    </div>
-
-    <form class="ask-form" @submit.prevent="submitAskQuestion">
-      <input
-          v-model="askQuestion"
-          :disabled="sending"
-          :placeholder="t('insights.askPlaceholder')"
-          type="text"
-      >
-      <button :class="{thinking: sending}" :disabled="sending || !askQuestion.trim()" type="submit">
-        <i class="pi pi-send"/>
-      </button>
-    </form>
   </article>
 </template>
 
@@ -98,101 +79,91 @@ onMounted(() => {
 .ask-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-secondary);
-  padding: 1rem;
   margin-bottom: 1rem;
+  overflow: hidden;
 }
 
-.ask-day-picker {
+.ask-panel-header {
   display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0.85rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
 }
 
-.ask-day-pills {
-  display: none;
-}
-
-.ask-day-select {
+.ask-panel-heading {
   flex: 1;
-  min-height: 36px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 0.6rem;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-size: 0.78rem;
-  font-weight: 600;
+  min-width: 0;
 }
 
-@media (min-width: 760px) {
-  .ask-day-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
+.ask-panel-heading h2 {
+  margin: 0;
+  font-size: 0.95rem;
+}
 
-  .ask-day-select {
-    display: none;
-  }
+.ask-panel-heading p {
+  margin: 0.15rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
-  .ask-day-pills button {
-    flex: 0 0 auto;
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.3rem 0.75rem;
-    background: var(--bg-primary);
-    color: var(--text-secondary);
-    font-size: 0.72rem;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: color 0.2s, border-color 0.2s, background 0.2s;
-  }
+.ask-panel-toggle {
+  flex-shrink: 0;
+  color: var(--neon-blue);
+  font-size: 0.9rem;
+}
 
-  .ask-day-pills button:hover {
-    color: var(--text-primary);
-  }
-
-  .ask-day-pills button.active {
-    color: var(--neon-blue);
-    border-color: rgba(0, 207, 255, 0.45);
-    background: rgba(0, 207, 255, 0.1);
-  }
+.ask-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 0 1rem 1rem;
 }
 
 .ask-chat {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 280px;
+  max-height: 45vh;
   overflow-y: auto;
   border-radius: 8px;
   background: var(--bg-primary);
   border: 1px solid var(--border);
-  padding: 0.75rem 0.85rem;
+  padding: 0.65rem 0.7rem;
   scroll-behavior: smooth;
 }
 
 .chat-msg {
-  max-width: 85%;
+  max-width: 90%;
   animation: ask-fade-in 0.25s ease;
 }
 
 .chat-msg p {
   margin: 0;
-  padding: 0.5rem 0.7rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 10px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   line-height: 1.5;
   white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .chat-msg-tokens {
   display: block;
   margin-top: 0.2rem;
-  font-size: 0.68rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
 }
 
@@ -262,12 +233,14 @@ onMounted(() => {
 
 .ask-form input {
   flex: 1;
+  min-width: 0;
   min-height: 42px;
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0 0.7rem;
   color: var(--text-primary);
   background: var(--bg-secondary);
+  font-size: 0.85rem;
 }
 
 .ask-form button {
@@ -277,6 +250,7 @@ onMounted(() => {
   gap: 0.4rem;
   min-height: 42px;
   width: 42px;
+  flex-shrink: 0;
   border: 1px solid rgba(0, 207, 255, 0.45);
   border-radius: 8px;
   color: var(--neon-blue);
