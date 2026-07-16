@@ -694,6 +694,13 @@ onMounted(() => {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.9fr);
   gap: 0.75rem;
+  max-height: calc(100dvh - 20rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  padding-right: 0.25rem;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
 }
 
 .forecast-panel,
