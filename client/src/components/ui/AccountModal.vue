@@ -60,12 +60,29 @@ async function install() {
 
 const summary = computed(() => portfolio.combinedUsd)
 const positionCount = computed(() => portfolio.positions.length)
+const userType = computed(() => auth.user?.userType || 'regular')
+const userTypeLabel = computed(() => t(`account.userTypes.${userType.value}`))
+const aiUsageSummary = computed(() => auth.user?.aiUsageSummary || {
+  todayCount: 0,
+  dailyLimit: userType.value === 'regular' ? 3 : null,
+  unlimited: userType.value !== 'regular',
+})
+const aiUsageLabel = computed(() =>
+  aiUsageSummary.value.unlimited
+    ? `${aiUsageSummary.value.todayCount} · ${t('account.unlimited')}`
+    : `${aiUsageSummary.value.todayCount}/${aiUsageSummary.value.dailyLimit}`
+)
 
 const memberSince = computed(() => {
   const d = auth.user?.createdAt
   if (!d) return null
   return new Date(d).toLocaleDateString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {month: 'short', year: 'numeric'})
 })
+
+function handleShow() {
+  auth.fetchMe().catch(() => {})
+  if (!portfolio.positions.length) portfolio.fetchPortfolio().catch(() => {})
+}
 
 function logout() {
   visible.value = false
@@ -80,7 +97,7 @@ function logout() {
       :draggable="false"
       :style="{ width: '95vw', maxWidth: '520px' }"
       modal
-      @show="() => { if (!auth.user?.name || (!auth.user?.email && !auth.user?.username)) auth.fetchMe().catch(() => {}); if (!portfolio.positions.length) portfolio.fetchPortfolio().catch(() => {}) }"
+      @show="handleShow"
   >
     <template #header>
       <span class="gradient-title">{{ t('common.account') }}</span>
@@ -90,16 +107,27 @@ function logout() {
       <!-- Identity card -->
       <div class="profile-card">
         <div class="profile-info">
-          <p class="profile-name">{{ auth.user?.name || t('common.account') }}</p>
+          <div class="profile-name-row">
+            <p class="profile-name">{{ auth.user?.name || t('common.account') }}</p>
+            <span :class="`type-chip type-chip-${userType}`">{{ userTypeLabel }}</span>
+          </div>
           <p class="profile-email text-muted">
             {{ auth.user?.email || (auth.user?.username ? '@' + auth.user.username : '—') }}</p>
           <p v-if="memberSince" class="member-since text-muted">{{
               t('account.memberSince', {date: memberSince})
             }}</p>
+          <div class="profile-meta">
+            <span class="meta-pill">
+              {{ t('account.userType') }}: {{ userTypeLabel }}
+            </span>
+            <span class="meta-pill">
+              {{ t('account.aiCallsToday') }}: {{ aiUsageLabel }}
+            </span>
+          </div>
         </div>
         <Button
             :label="t('account.signOut')"
-            class="sign-out-btn"
+            class="sign-out-btn w-[120px]"
             severity="danger"
             @click="logout"
         />
@@ -228,6 +256,13 @@ function logout() {
   min-width: 0;
 }
 
+.profile-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
 .profile-name {
   font-weight: 700;
   font-size: 1.15rem;
@@ -243,6 +278,61 @@ function logout() {
 .member-since {
   font-size: 0.72rem;
   margin-top: 4px;
+}
+
+.profile-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.meta-pill,
+.type-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.meta-pill {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-secondary);
+}
+
+.type-chip-regular {
+  background: rgba(0, 207, 255, 0.12);
+  border-color: rgba(0, 207, 255, 0.35);
+  color: var(--neon-blue);
+}
+
+.type-chip-pro {
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.35);
+  color: #4ade80;
+}
+
+.type-chip-max {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.type-chip-admin {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
+.type-chip-plan {
+  background: rgba(168, 85, 247, 0.14);
+  border-color: rgba(168, 85, 247, 0.35);
+  color: #c084fc;
 }
 
 .stats-card {

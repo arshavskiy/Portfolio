@@ -50,9 +50,14 @@ exports.getTrending = async (req, res) => {
 exports.getMarketNews = async (req, res) => {
   try {
     const topic = NEWS_TOPICS[req.query.topic] ? req.query.topic : 'markets'
-    let symbols = []
+    const requestedSymbols = String(req.query.symbols || '')
+      .split(',')
+      .map((symbol) => symbol.trim().toUpperCase())
+      .filter(Boolean)
+      .slice(0, 20)
+    let symbols = requestedSymbols
     let resolvedTopic = topic
-    if (topic === 'for-you') {
+    if (!symbols.length && topic === 'for-you') {
       const watchlist = await Watchlist.find({ user: req.user._id }).sort({ addedAt: -1 }).limit(20)
       symbols = watchlist.map((item) => item.ticker).filter(Boolean)
       if (!symbols.length) resolvedTopic = 'markets'

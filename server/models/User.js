@@ -1,6 +1,12 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcryptjs')
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
+const USER_TYPES = ['regular', 'pro', 'max', 'admin', 'plan']
+const REGULAR_AI_DAILY_LIMIT = 3
+
+function currentDayKey() {
+  return new Date().toISOString().split('T')[0]
+}
 
 const userSchema = new mongoose.Schema(
   {
@@ -21,6 +27,11 @@ const userSchema = new mongoose.Schema(
       },
       googleId: { type: String, unique: true, sparse: true },
       magicLinkOnly: {type: Boolean, default: false},
+      userType: {type: String, enum: USER_TYPES, default: 'regular'},
+      aiUsage: {
+          dayKey: {type: String, default: null},
+          questionCount: {type: Number, default: 0},
+      },
       demoSeedVersion: {type: Number, default: 0},
       demoSeededAt: {type: Date},
   },
@@ -45,7 +56,16 @@ userSchema.methods.comparePassword = function (candidate) {
 
 userSchema.methods.toJSON = function () {
   const obj = this.toObject()
+  const usage = obj.aiUsage || {}
+  const todayCount = usage.dayKey === currentDayKey() ? (Number.isFinite(usage.questionCount) ? usage.questionCount : 0) : 0
+  const resolvedUserType = obj.userType || 'regular'
   delete obj.password
+  delete obj.aiUsage
+  obj.aiUsageSummary = {
+    todayCount,
+    dailyLimit: resolvedUserType === 'regular' ? REGULAR_AI_DAILY_LIMIT : null,
+    unlimited: resolvedUserType !== 'regular',
+  }
   return obj
 }
 

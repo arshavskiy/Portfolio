@@ -21,6 +21,7 @@ import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AlertModal from '@/components/ui/AlertModal.vue'
 import DividendModal from '@/components/ui/DividendModal.vue'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
+import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 import StockChart from '@/components/charts/StockChart.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
@@ -77,6 +78,9 @@ const now = ref(new Date())
 const selectedRange = ref('1d')
 const chartMode = ref('line')
 const watchlistNavTickers = ref([])
+const tickerNewsArticles = ref([])
+const tickerNewsLoading = ref(false)
+const tickerNewsError = ref('')
 let refreshTimer = null
 let pageRequestId = 0
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
@@ -164,6 +168,8 @@ watch(ticker, async () => {
   companyName.value = ''
   watchedItem.value = null
   selectedChartPoints.value = []
+  tickerNewsArticles.value = []
+  tickerNewsError.value = ''
   await loadPositionData()
   startAutoRefresh()
 })
@@ -172,10 +178,29 @@ async function loadPositionData() {
   const requestId = ++pageRequestId
   loading.value = true
   try {
-    await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx(), fetchWatchlistItem(), loadJournal()])
+    await Promise.all([fetchLots(), fetchQuote(), loadHistory(), loadFx(), fetchWatchlistItem(), loadJournal(), loadTickerNews()])
   } finally {
     if (requestId === pageRequestId) loading.value = false
   }
+}
+
+async function loadTickerNews() {
+  tickerNewsLoading.value = true
+  tickerNewsError.value = ''
+  try {
+    const data = await api.get(`/stocks/news?symbols=${encodeURIComponent(ticker.value)}&limit=3`)
+    tickerNewsArticles.value = Array.isArray(data?.articles) ? data.articles : []
+  } catch (err) {
+    tickerNewsArticles.value = []
+    tickerNewsError.value = err.message || t('positionDetail.newsLoadFailed')
+  } finally {
+    tickerNewsLoading.value = false
+  }
+}
+
+function openNewsArticle(article) {
+  if (!article?.url) return
+  window.open(article.url, '_blank', 'noopener,noreferrer')
 }
 
 async function fetchLots() {
@@ -1610,11 +1635,35 @@ async function toggleWatchlist() {
         </div>
       </div>
 
-      <div v-if="!lots.length" class="empty">
-        <i class="pi pi-list"/>
-        <p class="text-muted">{{ t('positionDetail.noTransactionsYet') }}</p>
-        <Button :label="t('positionDetail.addTransaction')" @click="showModal = true"/>
+      <div v-if="tickerNewsLoading || tickerNewsError || tickerNewsArticles.length" class="ticker-news-section">
+        <div class="ticker-news-header">
+          <h2 class="section-title">{{ t('positionDetail.tickerNews') }}</h2>
+        </div>
+
+        <div v-if="tickerNewsLoading" class="ticker-news-loading">
+          <AppLoader />
+        </div>
+
+        <div v-else-if="tickerNewsError" class="ticker-news-error text-muted">
+          <i class="pi pi-exclamation-triangle" />
+          <p>{{ tickerNewsError }}</p>
+        </div>
+
+        <div v-else class="ticker-news-list">
+          <NewsArticleCard
+            v-for="article in tickerNewsArticles"
+            :key="article.url || article.title"
+            :article="article"
+            @open="openNewsArticle"
+          />
+        </div>
       </div>
+
+<!--      <div v-if="!lots.length" class="empty">-->
+<!--        <i class="pi pi-list"/>-->
+<!--        <p class="text-muted">{{ t('positionDetail.noTransactionsYet') }}</p>-->
+<!--        <Button :label="t('positionDetail.addTransaction')" @click="showModal = true"/>-->
+<!--      </div>-->
 
       <div v-else class="lots-list">
         <h2 class="section-title">{{ t('positionDetail.lots') }}</h2>
@@ -2474,6 +2523,42 @@ async function toggleWatchlist() {
 
 .dividends-section {
   margin-top: 1.5rem;
+}
+
+.ticker-news-section {
+  margin-top: 1.5rem;
+}
+
+.ticker-news-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.ticker-news-loading {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticker-news-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+}
+
+.ticker-news-error p {
+  margin: 0;
+}
+
+.ticker-news-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
 }
 
 .dividends-header {

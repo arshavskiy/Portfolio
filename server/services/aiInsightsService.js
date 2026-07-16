@@ -1,4 +1,5 @@
 const OpenAI = require('openai')
+const User = require('../models/User')
 const Position = require('../models/Position')
 const Watchlist = require('../models/Watchlist')
 const Transaction = require('../models/Transaction')
@@ -10,10 +11,11 @@ const {computeXirr, computeTwr} = require('./returnMetrics')
 const HISTORY_LIMIT = 50
 
 const MODEL = 'gpt-4o-mini'
-const DAILY_LIMIT = 20
+const REGULAR_DAILY_LIMIT = 3
 const QUESTION_MAX_LENGTH = 500
 const MAX_TOOL_ROUNDS = 4
 const VALID_RANGES = ['1mo', '3mo', '6mo', '1y', '5y', 'max']
+const UNLIMITED_USER_TYPES = new Set(['pro', 'max', 'admin', 'plan'])
 
 function round(value, digits = 2) {
     if (value == null || !Number.isFinite(value)) return null
@@ -25,27 +27,35 @@ function tickerFx(ticker, ilsToUsd) {
     return String(ticker || '').toUpperCase().endsWith('.TA') ? ilsToUsd : 1
 }
 
-// Per-user daily request counter, in-memory — mirrors the quote/news cache
-// pattern already used elsewhere in this service layer. Resets on restart,
-// which is an acceptable tradeoff for a soft cost guard rather than a hard
-// billing limit.
-const requestCounts = new Map() // userId -> {count, dayKey}
-
-function dayKey() {
-    return new Date().toISOString().split('T')[0]
+function dayKey(now = new Date()) {
+    return now.toISOString().split('T')[0]
 }
 
-function checkAndIncrementLimit(userId) {
-    const key = String(userId)
-    const today = dayKey()
-    const entry = requestCounts.get(key)
-    if (!entry || entry.dayKey !== today) {
-        requestCounts.set(key, {count: 1, dayKey: today})
-        return true
+async function consumeQuestionQuota(userId, now = new Date()) {
+    const user = await User.findById(userId)
+    if (!user) {
+        const err = new Error('User not found')
+        err.status = 404
+        throw err
     }
-    if (entry.count >= DAILY_LIMIT) return false
-    entry.count++
-    return true
+
+    const resolvedUserType = user.userType || 'regular'
+
+    const today = dayKey(now)
+    const currentUsage = user.aiUsage || {}
+    const currentDayKey = currentUsage.dayKey || null
+    const currentQuestionCount = Number.isFinite(currentUsage.questionCount) ? currentUsage.questionCount : 0
+    const nextQuestionCount = currentDayKey === today ? currentQuestionCount + 1 : 1
+
+    if (!UNLIMITED_USER_TYPES.has(resolvedUserType) && currentDayKey === today && currentQuestionCount >= REGULAR_DAILY_LIMIT) {
+        const err = new Error('Daily question limit reached')
+        err.status = 429
+        throw err
+    }
+
+    user.aiUsage = {dayKey: today, questionCount: nextQuestionCount}
+    await user.save()
+    return resolvedUserType
 }
 
 let client = null
@@ -460,12 +470,6 @@ async function askAboutPortfolio(userId, question) {
         throw err
     }
 
-    if (!checkAndIncrementLimit(userId)) {
-        const err = new Error('Daily question limit reached')
-        err.status = 429
-        throw err
-    }
-
     await AiChatMessage.create({user: userId, role: 'user', text: trimmed})
 
     const {contextText, tickers} = await buildPortfolioContext(userId)
@@ -531,6 +535,15 @@ async function askAboutPortfolio(userId, question) {
     }
 
     const answer = completion.choices[0]?.message?.content?.trim() || ''
+    if (!answer) {
+        const err = new Error('AI Q&A returned an empty response')
+        err.status = 502
+        await AiChatMessage.create({user: userId, role: 'error', text: err.message})
+        throw err
+    }
+
+    await consumeQuestionQuota(userId)
+
     const usage = {promptTokens: totalPromptTokens || null, completionTokens: totalCompletionTokens || null}
     await AiChatMessage.create({user: userId, role: 'assistant', text: answer, usage})
 
@@ -549,4 +562,4 @@ async function clearChatHistory(userId) {
     await AiChatMessage.deleteMany({user: userId})
 }
 
-module.exports = {askAboutPortfolio, getChatHistory, clearChatHistory}
+module.exports = {askAboutPortfolio, getChatHistory, clearChatHistory, dayKey}
