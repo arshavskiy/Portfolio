@@ -1,8 +1,11 @@
 const Watchlist = require('../models/Watchlist')
 const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
+const Alert = require('../models/Alert')
+const {getQuotes} = require('./stockService')
 
 const DEMO_SEED_VERSION = 1
+const ALERT_ABOVE_PCT = 0.05 // demo alert target: 5% above the live price at signup time
 
 const WATCHLIST_DEMO = [
   {
@@ -86,6 +89,31 @@ async function seedDemoAccount(user) {
     ...item,
   })))
 
+  // One "above" alert per watchlist stock (excluding the index), targeted at
+  // 5% above the live price so it's never stale regardless of signup date.
+  // Best-effort: a quote failure for one ticker just skips that alert.
+  const alertTickers = WATCHLIST_DEMO.filter((item) => !item.ticker.startsWith('^')).map((item) => item.ticker)
+  try {
+    const quotes = await getQuotes(alertTickers)
+    const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
+    const alertDocs = alertTickers
+      .map((ticker) => {
+        const price = quoteMap[ticker]?.price
+        if (!price) return null
+        return {
+          user: userId,
+          ticker,
+          condition: 'above',
+          target: Math.round(price * (1 + ALERT_ABOVE_PCT) * 100) / 100,
+          note: 'Demo alert for the guided tour.',
+        }
+      })
+      .filter(Boolean)
+    if (alertDocs.length) await Alert.insertMany(alertDocs)
+  } catch {
+    // Quote fetch failing shouldn't block account seeding — alerts are a nice-to-have here.
+  }
+
   await Position.create({
     user: userId,
     ...HOLDING_DEMO,
@@ -103,6 +131,26 @@ async function seedDemoAccount(user) {
     date: daysAgo(30),
     notes: 'Demo dividend holding buy for the guided tour.',
   })
+
+  // A "below" alert on the O holding, set well above the live price so it's
+  // guaranteed true — the alert cron (runs every 5 min) fires it on its next
+  // pass, giving the new user a real triggered-alert notification to see
+  // during the guided tour instead of an empty Alerts page.
+  try {
+    const [ownedQuote] = await getQuotes([HOLDING_DEMO.ticker])
+    const ownedPrice = ownedQuote?.price
+    if (ownedPrice) {
+      await Alert.create({
+        user: userId,
+        ticker: HOLDING_DEMO.ticker,
+        condition: 'below',
+        target: Math.round(ownedPrice * 1.5 * 100) / 100,
+        note: 'Demo alert — triggers automatically so you can see how alerts work.',
+      })
+    }
+  } catch {
+    // Best-effort, same as the watchlist alerts above.
+  }
 
   user.demoSeedVersion = DEMO_SEED_VERSION
   user.demoSeededAt = new Date()

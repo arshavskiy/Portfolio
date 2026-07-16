@@ -676,6 +676,54 @@ async function getDividendCalendar(tickers) {
   return results
 }
 
+// Real payout cadence per ticker, read directly from Yahoo's trailing-12-month
+// dividend event history (actual ex-div dates + amounts) rather than inferred
+// from a rate ratio — chart()'s summaryDetail/calendarEvents modules don't
+// actually expose a per-payment amount field despite their names suggesting
+// otherwise, so the event history is the only reliable source for this.
+const dividendFrequencyCache = new Map()
+const FREQUENCY_VALUES = [1, 2, 4, 12] // annual, semi-annual, quarterly, monthly
+
+function nearestFrequency(paymentCount) {
+  if (paymentCount <= 0) return null
+  let closest = null
+  let closestDiff = Infinity
+  for (const f of FREQUENCY_VALUES) {
+    const diff = Math.abs(paymentCount - f)
+    if (diff < closestDiff) { closest = f; closestDiff = diff }
+  }
+  return closest
+}
+
+async function getDividendFrequency(tickers) {
+  const map = {}
+  for (const ticker of tickers) {
+    const symbol = ticker.toUpperCase()
+    const cached = dividendFrequencyCache.get(symbol)
+    if (cached && Date.now() - cached.ts < DIVIDEND_CALENDAR_TTL) {
+      map[symbol] = cached.data
+      continue
+    }
+    try {
+      const period1 = new Date()
+      period1.setFullYear(period1.getFullYear() - 1)
+      const result = await withRetry(() =>
+          yahooFinance.chart(symbol, {period1, period2: new Date(), interval: '1d', events: 'div'})
+      )
+      const dividends = result?.events?.dividends || []
+      const months = [...new Set(dividends.map((d) => new Date(d.date).getMonth()))]
+      const frequency = nearestFrequency(dividends.length)
+      const data = frequency ? {frequency, months} : null
+      dividendFrequencyCache.set(symbol, {data, ts: Date.now()})
+      map[symbol] = data
+    } catch {
+      dividendFrequencyCache.set(symbol, {data: null, ts: Date.now()})
+      map[symbol] = null
+    }
+  }
+  return map
+}
+
 // ── Global market indices ──
 const MARKET_GROUPS = {
   US: [
@@ -1189,4 +1237,5 @@ module.exports = {
   getNewsArticle,
   NEWS_TOPICS,
   getDividendCalendar,
+  getDividendFrequency,
 }

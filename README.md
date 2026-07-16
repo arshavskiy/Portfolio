@@ -27,11 +27,12 @@ The repository is split into a Vite/Vue frontend and an Express/MongoDB backend.
 - Transaction lots with buy/sell fees, tax amounts, net proceeds, and running average cost.
 - Buy/sell transaction modal with fixed-ticker mode, compact price input, market-price quick fill, sell-all action, and sell proceeds/profit simulation.
 - Fee profiles for broker fees and capital gains tax simulation, including built-in read-only presets such as `בלינק Plus`.
-- Dividend tracking with per-share annual dividend estimates, after-tax estimates, share-weighted holding-time prorating for currently held shares, and dashboard ex-dividend reminders.
+- Dividend tracking with per-share annual dividend estimates, after-tax estimates, share-weighted holding-time prorating for currently held shares, dashboard ex-dividend reminders, and Insights forecasts that use detected payout cadence when Yahoo dividend history is available.
 - Watchlist and stock detail pages with quote/history data, earnings-week badges, and compact dividend yield markers.
 - Watchlist dividend grouping that separates dividend-paying tickers from rows with no dividend data.
 - Custom stock groups (multi-tag) with a group-by toggle on Dashboard, Holdings, and Watchlist.
 - Price alerts via Web Push (VAPID), one-shot trigger, in-app toast notifications.
+- Demo account seeding for new password, Google, and magic-link users, including starter watchlist stocks, one dividend holding, and live-price demo alerts for the guided tour.
 - Portfolio value-over-time chart, reconstructed from transaction history.
 - Bulk import of holdings or watchlist from `.xlsx`/`.xls`/`.csv`/`.docx` files, with column auto-mapping and a downloadable template.
 - Extended-hours (pre-market/after-hours) price and change data alongside regular session quotes.
@@ -106,6 +107,7 @@ Deploy `server/` to Railway. Set `CLIENT_URL` to the Vercel app URL and configur
 - `GET /api/portfolio`
 - `POST /api/portfolio/transaction`
 - `GET /api/portfolio/transactions`
+- `GET /api/portfolio/dividends/frequency`
 - `PUT /api/portfolio/transaction/:id`
 - `DELETE /api/portfolio/position/:id`
 - `GET /api/stocks/search`

@@ -9,6 +9,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
   const loading = ref(false)
     const returnMetrics = ref(null)
     const riskExposure = ref(null)
+    const dividendFrequencies = ref({})
 
   async function fetchPortfolio() {
     loading.value = true
@@ -32,6 +33,12 @@ export const usePortfolioStore = defineStore('portfolio', () => {
         return riskExposure.value
     }
 
+    async function fetchDividendFrequencies() {
+        const data = await api.get('/portfolio/dividends/frequency')
+        dividendFrequencies.value = data.frequencies || {}
+        return dividendFrequencies.value
+    }
+
   async function addTransaction(payload) {
     const data = await api.post('/portfolio/transaction', payload)
     await fetchPortfolio()
@@ -50,9 +57,11 @@ export const usePortfolioStore = defineStore('portfolio', () => {
         loading,
         returnMetrics,
         riskExposure,
+        dividendFrequencies,
         fetchPortfolio,
         fetchReturnMetrics,
         fetchRiskExposure,
+        fetchDividendFrequencies,
         addTransaction,
         deletePosition
     }

@@ -2,6 +2,17 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.16',
+    date: 'Jul 16, 2026',
+    title: 'Smarter dividend forecasts and demo alerts',
+    changes: [
+      'Insights dividend income now uses detected payout schedules when dividend history is available, so monthly forecasts land in expected payment months instead of being spread evenly',
+      'Mixed-currency portfolios can switch Insights income values between USD and ILS, matching the dashboard currency toggle',
+      'Insights cards and Ask Portfolio chat got a cleaner compact visual refresh, with prompt chips and the scenario tab hidden while they are being polished',
+      'New demo accounts now include starter price alerts based on live quotes, giving the guided tour a real alerts flow to show',
+    ],
+  },
+  {
     version: '2026.07.15',
     date: 'Jul 15, 2026',
     title: 'Insights page and AI portfolio chat',

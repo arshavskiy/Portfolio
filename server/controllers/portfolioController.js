@@ -6,7 +6,7 @@ const FeeProfile = require('../models/FeeProfile')
 // undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
 // feeAmount stays in profile currency; totalWithFees/netProceeds convert it first.
 const Watchlist = require('../models/Watchlist')
-const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar} = require('../services/stockService')
+const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar, getDividendFrequency} = require('../services/stockService')
 const { computeTransactionCosts, getBuiltInFeeProfile } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 const {computeXirr, computeTwr} = require('../services/returnMetrics')
@@ -694,6 +694,21 @@ exports.getDividendCalendar = async (req, res) => {
                 new Date(a.exDividendDate || a.dividendDate) - new Date(b.exDividendDate || b.dividendDate)
             )
         res.json({events})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+// Real payout frequency per held dividend-paying ticker (1/2/4/12 times a
+// year, or null if it can't be determined), so the Insights income forecast
+// can place estimated payments in the right months instead of spreading the
+// annualized rate evenly across all 12.
+exports.getDividendFrequencies = async (req, res) => {
+    try {
+        const positions = await Position.find({user: req.user._id, shares: {$gt: 0}}).lean()
+        if (!positions.length) return res.json({frequencies: {}})
+        const frequencies = await getDividendFrequency(positions.map((p) => p.ticker))
+        res.json({frequencies})
     } catch (err) {
         res.status(500).json({message: err.message})
     }

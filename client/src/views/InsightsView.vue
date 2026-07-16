@@ -1,24 +1,44 @@
 <script setup>
 import {computed, onMounted, ref} from 'vue'
 import {storeToRefs} from 'pinia'
+import {useStorage} from '@vueuse/core'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useCurrency, usePercent, useTickerCurrency, gainLossClass} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
 import AskPortfolioPanel from '@/components/ui/AskPortfolioPanel.vue'
 
 const portfolio = usePortfolioStore()
-const {positions, combinedUsd, loading, returnMetrics, riskExposure} = storeToRefs(portfolio)
+const {positions, combinedUsd, loading, returnMetrics, riskExposure, dividendFrequencies} = storeToRefs(portfolio)
 const {t} = useI18n()
+
+// Only offer the toggle when the portfolio actually mixes USD and ILS
+// positions — same persisted key/pattern as PortfolioStatsCard's toggle.
+const hasMixedCurrency = computed(() => {
+  const currencies = new Set(positions.value.map((p) => (p.ticker?.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD')))
+  return currencies.size > 1
+})
+const displayCurrency = useStorage('holdings-combined-currency', 'ILS')
+const activeCurrency = computed(() => (hasMixedCurrency.value ? displayCurrency.value : 'USD'))
+
+function displayAmount(usdValue) {
+  if (activeCurrency.value !== 'ILS') return useCurrency(usdValue, 'USD')
+  const rate = numberValue(combinedUsd.value?.ilsToUsd)
+  if (!rate) return useCurrency(usdValue, 'USD')
+  return useCurrency(usdValue / rate, 'ILS')
+}
 
 const activeTab = ref('income')
 const scenarioTicker = ref('')
 const scenarioAmount = ref(500)
 const shockPercent = ref(-10)
 
+// Scenario tab hidden for now — flip back on when it's ready to ship again.
+const SHOW_SCENARIO_TAB = false
+
 const tabs = computed(() => [
   {key: 'income', icon: 'pi pi-calendar', label: t('insights.tabs.income')},
   {key: 'health', icon: 'pi pi-chart-pie', label: t('insights.tabs.health')},
-  {key: 'scenario', icon: 'pi pi-calculator', label: t('insights.tabs.scenario')},
+  ...(SHOW_SCENARIO_TAB ? [{key: 'scenario', icon: 'pi pi-calculator', label: t('insights.tabs.scenario')}] : []),
 ])
 
 const reportCards = computed(() => [
@@ -49,16 +69,26 @@ const portfolioValueUsd = computed(() => {
   return positions.value.reduce((sum, position) => sum + numberValue(position.valueUsd || position.value), 0)
 })
 
+// Fallback when Yahoo's trailing-12mo dividend history doesn't give us
+// enough data to detect real cadence — quarterly is the most common payout
+// schedule among dividend payers, spread evenly from the current month.
+const DEFAULT_DIVIDEND_FREQUENCY = 4
+
 const dividendPositions = computed(() =>
     positions.value
         .map((position) => {
           const annualNative = numberValue(position.dividendRate) * numberValue(position.shares)
           const annualUsd = annualNative * fxRate(position)
+          const detected = dividendFrequencies.value[position.ticker?.toUpperCase()]
+          const frequency = detected?.frequency || DEFAULT_DIVIDEND_FREQUENCY
           return {
             ...position,
             annualNative,
             annualUsd,
-            monthlyUsd: annualUsd / 12,
+            frequency,
+            payoutMonths: detected?.months || null, // real months, when known
+            perPaymentNative: annualNative / frequency,
+            perPaymentUsd: annualUsd / frequency,
             yieldValue: dividendYield(position),
           }
         })
@@ -74,18 +104,26 @@ const incomeYield = computed(() =>
     portfolioValueUsd.value > 0 ? (annualIncomeUsd.value / portfolioValueUsd.value) * 100 : null
 )
 
+// Places each position's estimated payment only in the months matching its
+// real payout cadence. When Yahoo's dividend history gives us the actual
+// calendar months a ticker has paid in, those are used directly; otherwise
+// payments are spaced evenly by frequency starting from the current month.
 const forecastMonths = computed(() => {
   const formatter = new Intl.DateTimeFormat(undefined, {month: 'short', year: 'numeric'})
   return Array.from({length: 12}, (_, index) => {
     const date = new Date()
     date.setMonth(date.getMonth() + index)
-    const items = dividendPositions.value.map((position) => ({
-      ticker: position.ticker,
-      amountUsd: position.monthlyUsd,
-      amountNative: position.annualNative / 12,
-      currency: position.currency,
-      yieldValue: position.yieldValue,
-    }))
+    const items = dividendPositions.value
+        .filter((position) => position.payoutMonths
+            ? position.payoutMonths.includes(date.getMonth())
+            : index % Math.max(1, Math.round(12 / position.frequency)) === 0)
+        .map((position) => ({
+          ticker: position.ticker,
+          amountUsd: position.perPaymentUsd,
+          amountNative: position.perPaymentNative,
+          currency: position.currency,
+          yieldValue: position.yieldValue,
+        }))
 
     return {
       key: `${date.getFullYear()}-${date.getMonth()}`,
@@ -154,6 +192,8 @@ onMounted(() => {
   })
   if (!riskExposure.value) portfolio.fetchRiskExposure().catch(() => {
   })
+  if (!Object.keys(dividendFrequencies.value).length) portfolio.fetchDividendFrequencies().catch(() => {
+  })
 })
 </script>
 
@@ -194,18 +234,35 @@ onMounted(() => {
 
       <template v-else>
         <section v-if="activeTab === 'income'" class="insights-section">
+          <div class="section-heading section-heading-row">
+            <h2>{{ t('insights.dividendIncomeTitle') }}</h2>
+            <button
+                v-if="hasMixedCurrency"
+                class="currency-toggle"
+                type="button"
+                :title="t('dashboard.switchCurrency', {currency: displayCurrency === 'ILS' ? 'USD' : 'ILS'})"
+                @click="displayCurrency = displayCurrency === 'ILS' ? 'USD' : 'ILS'"
+            >
+              {{ displayCurrency === 'ILS' ? '$' : '₪' }}
+            </button>
+          </div>
           <div class="metric-grid">
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-dollar metric-icon"/>
               <span>{{ t('insights.annualIncome') }}</span>
-              <strong>{{ useCurrency(annualIncomeUsd, 'USD') }}</strong>
+              <strong class="metric-value-glow">{{ displayAmount(annualIncomeUsd) }}</strong>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-percentage metric-icon"/>
               <span>{{ t('insights.incomeYield') }}</span>
-              <strong>{{ incomeYield == null ? '—' : usePercent(incomeYield) }}</strong>
+              <strong :class="incomeYield != null ? gainLossClass(incomeYield) : ''">
+                {{ incomeYield == null ? '—' : usePercent(incomeYield) }}
+              </strong>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-users metric-icon"/>
               <span>{{ t('insights.dividendPayers') }}</span>
-              <strong>{{ dividendPositions.length }} / {{ positions.length }}</strong>
+              <strong class="metric-value-glow">{{ dividendPositions.length }} / {{ positions.length }}</strong>
             </article>
           </div>
 
@@ -225,7 +282,7 @@ onMounted(() => {
                 <article v-for="month in forecastMonths" :key="month.key" class="month-row">
                   <div class="month-total">
                     <span>{{ month.label }}</span>
-                    <strong>{{ useCurrency(month.totalUsd, 'USD') }}</strong>
+                    <strong>{{ displayAmount(month.totalUsd) }}</strong>
                   </div>
                   <div class="month-tickers">
                   <span v-for="item in month.items.slice(0, 4)" :key="item.ticker">
@@ -246,7 +303,7 @@ onMounted(() => {
                   <span>{{ position.companyName || position.sector || '—' }}</span>
                 </div>
                 <div class="right-value">
-                  <strong>{{ useCurrency(position.annualUsd, 'USD') }}</strong>
+                  <strong>{{ displayAmount(position.annualUsd) }}</strong>
                   <span>{{ usePercent(position.yieldValue) }}</span>
                 </div>
               </article>
@@ -259,38 +316,48 @@ onMounted(() => {
             <h2>{{ t('insights.portfolioHealth') }}</h2>
           </div>
           <div class="metric-grid">
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-star-fill metric-icon"/>
               <span>{{ t('insights.largestPosition') }}</span>
-              <strong>{{ largestPosition?.ticker || '—' }}</strong>
+              <strong class="metric-value-glow">{{ largestPosition?.ticker || '—' }}</strong>
               <small>{{
                   largestPosition ? t('insights.ofPortfolio', {value: usePercent(largestPosition.allocation)}) : '—'
                 }}</small>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-th-large metric-icon"/>
               <span>{{ t('insights.sectorSpread') }}</span>
-              <strong>{{ sectorCount }}</strong>
+              <strong class="metric-value-glow">{{ sectorCount }}</strong>
               <small>{{ t('insights.sectorsTracked', {count: sectorCount}) }}</small>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-percentage metric-icon"/>
               <span>{{ t('insights.dividendCoverage') }}</span>
-              <strong>{{ usePercent((dividendPositions.length / positions.length) * 100) }}</strong>
+              <strong class="metric-value-glow">{{ usePercent((dividendPositions.length / positions.length) * 100) }}</strong>
               <small>{{
                   t('insights.payersOfTotal', {payers: dividendPositions.length, total: positions.length})
                 }}</small>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-wallet metric-icon"/>
               <span>{{ t('insights.moneyWeightedReturn') }}</span>
-              <strong>{{ returnMetrics?.irr == null ? '—' : usePercent(returnMetrics.irr) }}</strong>
+              <strong :class="returnMetrics?.irr != null ? gainLossClass(returnMetrics.irr) : ''">
+                {{ returnMetrics?.irr == null ? '—' : usePercent(returnMetrics.irr) }}
+              </strong>
               <small>{{ t('insights.moneyWeightedReturnHint') }}</small>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-chart-line metric-icon"/>
               <span>{{ t('insights.timeWeightedReturn') }}</span>
-              <strong>{{ returnMetrics?.twr == null ? '—' : usePercent(returnMetrics.twr) }}</strong>
+              <strong :class="returnMetrics?.twr != null ? gainLossClass(returnMetrics.twr) : ''">
+                {{ returnMetrics?.twr == null ? '—' : usePercent(returnMetrics.twr) }}
+              </strong>
               <small>{{ t('insights.timeWeightedReturnHint') }}</small>
             </article>
-            <article class="metric-card">
+            <article class="metric-card metric-card-accent">
+              <i class="pi pi-bolt metric-icon"/>
               <span>{{ t('insights.weightedBeta') }}</span>
-              <strong>{{ riskExposure?.weightedBeta == null ? '—' : riskExposure.weightedBeta.toFixed(2) }}</strong>
+              <strong class="metric-value-glow">{{ riskExposure?.weightedBeta == null ? '—' : riskExposure.weightedBeta.toFixed(2) }}</strong>
               <small>{{ t('insights.weightedBetaHint') }}</small>
             </article>
           </div>
@@ -318,17 +385,19 @@ onMounted(() => {
             <div class="shock-control">
               <span>{{ t('insights.marketShock') }}</span>
               <input v-model.number="shockPercent" max="0" min="-50" step="5" type="range">
-              <strong>{{ shockPercent }}%</strong>
+              <strong class="loss">{{ shockPercent }}%</strong>
             </div>
             <div v-if="stressTest" class="metric-grid">
-              <article class="metric-card">
+              <article class="metric-card metric-card-accent">
+                <i class="pi pi-shield metric-icon"/>
                 <span>{{ t('insights.projectedValue') }}</span>
-                <strong>{{ useCurrency(stressTest.projectedValue, 'USD') }}</strong>
+                <strong class="metric-value-glow">{{ displayAmount(stressTest.projectedValue) }}</strong>
               </article>
-              <article class="metric-card">
+              <article class="metric-card metric-card-accent">
+                <i class="pi pi-arrow-down-left metric-icon"/>
                 <span>{{ t('insights.projectedChange') }}</span>
                 <strong :class="gainLossClass(stressTest.projectedChange)">
-                  {{ useCurrency(stressTest.projectedChange, 'USD') }}
+                  {{ displayAmount(stressTest.projectedChange) }}
                 </strong>
               </article>
             </div>
@@ -385,7 +454,7 @@ onMounted(() => {
             </article>
             <article class="metric-card">
               <span>{{ t('insights.incomeDelta') }}</span>
-              <strong>{{ useCurrency(scenario.incomeDelta, 'USD') }}</strong>
+              <strong>{{ displayAmount(scenario.incomeDelta) }}</strong>
               <small>{{ t('insights.annualIncome') }}</small>
             </article>
           </div>
@@ -416,6 +485,35 @@ onMounted(() => {
   font-size: 1.75rem;
 }
 
+.section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.currency-toggle {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.currency-toggle:hover {
+  border-color: var(--neon-blue);
+  color: var(--neon-blue);
+}
+
 .subtitle,
 .section-heading p,
 .empty-state span,
@@ -433,9 +531,8 @@ onMounted(() => {
 }
 
 .insights-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.35rem;
+  display: flex;
+  gap: 0.3rem;
   margin-bottom: 0;
 }
 
@@ -451,14 +548,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  min-height: 44px;
-  padding: 0.55rem 0.7rem;
+  flex: 0 0 auto;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.4rem 0.85rem;
   border: 1px solid var(--border);
   border-bottom: none;
   border-radius: 8px 8px 0 0;
   background: var(--bg-primary);
   color: var(--text-secondary);
+  font-size: 0.82rem;
   font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
@@ -473,6 +572,10 @@ onMounted(() => {
   color: var(--neon-blue);
   background: var(--bg-secondary);
   position: relative;
+}
+
+.insights-tabs button.active i {
+  filter: drop-shadow(0 0 4px var(--neon-blue));
 }
 
 .insights-tabs button.active::after {
@@ -532,12 +635,47 @@ onMounted(() => {
   flex-direction: column;
   gap: 0.3rem;
   padding: 0.5rem;
-  transition: border-color 0.2s, transform 0.15s;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
 }
 
 .metric-card:hover {
   border-color: rgba(0, 207, 255, 0.35);
   transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 207, 255, 0.08);
+}
+
+.metric-card-accent::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #00cfff 0%, #a855f7 100%);
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.metric-card-accent:hover::before {
+  opacity: 1;
+}
+
+.metric-icon {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.6rem;
+  color: var(--neon-blue);
+  font-size: 0.95rem;
+  opacity: 0.35;
+}
+
+.metric-value-glow {
+  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .metric-card span {
@@ -545,6 +683,7 @@ onMounted(() => {
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+  padding-right: 1.3rem;
 }
 
 .metric-card strong {
@@ -560,12 +699,15 @@ onMounted(() => {
 .forecast-panel,
 .contributors-panel,
 .report-card {
-  padding: 1rem;
+  padding: 0.85rem;
 }
 
 .section-heading h2,
 .report-card h3 {
   margin: 0;
+  padding-left: 0.65rem;
+  border-left: 3px solid transparent;
+  border-image: linear-gradient(180deg, #00cfff 0%, #a855f7 100%) 1;
 }
 
 .section-heading p,
@@ -590,8 +732,9 @@ onMounted(() => {
 .contributor-row {
   display: flex;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.75rem 0;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
   border-top: 1px solid var(--border);
 }
 
@@ -601,6 +744,14 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.month-total span {
+  font-size: 0.78rem;
+}
+
+.month-total strong {
+  font-size: 0.9rem;
 }
 
 .month-tickers {
@@ -841,7 +992,7 @@ onMounted(() => {
   .forecast-panel,
   .contributors-panel,
   .report-card {
-    padding: 0.8rem;
+    padding: 0.6rem;
   }
 
   .section-heading h2,
@@ -855,13 +1006,21 @@ onMounted(() => {
   }
 
   .month-row {
-    flex-direction: column;
-    gap: 0.55rem;
-    padding: 0.65rem 0;
+    gap: 0.5rem;
+    padding: 0.45rem 0;
+  }
+
+  .month-total {
+    flex-shrink: 0;
   }
 
   .month-tickers {
-    justify-content: flex-start;
+    justify-content: flex-end;
+  }
+
+  .month-tickers span {
+    padding: 0.15rem 0.35rem;
+    font-size: 0.68rem;
   }
 
   .contributor-row {

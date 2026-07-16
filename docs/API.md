@@ -276,6 +276,27 @@ by date. `estimatedPayout` = last per-share dividend × shares held.
 }
 ```
 
+### GET /portfolio/dividends/frequency `🔒`
+Detected dividend payout cadence for currently held tickers, based on Yahoo
+trailing-12-month dividend event history. Used by the Insights income forecast
+to place estimated payouts in likely payment months instead of spreading annual
+income evenly across all 12 months. Values are cached with the dividend calendar
+TTL. A ticker maps to `null` when cadence cannot be determined.
+
+**Response `200`**
+```json
+{
+  "frequencies": {
+    "O": { "frequency": 12, "months": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+    "AAPL": { "frequency": 4, "months": [1, 4, 7, 10] },
+    "UNKNOWN": null
+  }
+}
+```
+
+`frequency` is the nearest supported annual cadence: `1`, `2`, `4`, or `12`.
+`months` uses JavaScript month indexes (`0` = January).
+
 ### GET /portfolio/position/notes/:ticker `🔒`
 Journal notes (investment thesis) for a held position. Returns `{ticker, notes}`;
 `notes` is `""` when no position or no notes.

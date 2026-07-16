@@ -16,6 +16,9 @@ const askQuestion = ref('')
 const chatBox = ref(null)
 const expanded = ref(true)
 
+// Prompt-chip suggestions hidden for now — flip back on when ready to ship again.
+const SHOW_PROMPT_CHIPS = false
+
 const promptChips = computed(() => [
   t('insights.askPromptPerformance'),
   t('insights.askPromptRisk'),
@@ -119,19 +122,31 @@ onMounted(() => {
       </div>
 
       <div v-if="messages.length || sending" ref="chatBox" class="ask-chat">
-        <div v-for="(msg, i) in messages" :key="i" :class="`chat-msg chat-msg-${msg.role}`">
-          <p>
-            <template v-for="(seg, si) in splitTickers(msg.text)" :key="si">
-              <RouterLink v-if="seg.ticker" :to="`/position/${encodeURIComponent(seg.ticker)}`" class="chat-ticker-link">{{ seg.label }}</RouterLink>
-              <template v-else>{{ seg.text }}</template>
-            </template>
-          </p>
-          <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
-            {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
-          </span>
+        <div v-for="(msg, i) in messages" :key="i" :class="`chat-row chat-row-${msg.role}`">
+          <div class="chat-avatar">
+            <i :class="msg.role === 'user' ? 'pi pi-user' : msg.role === 'error' ? 'pi pi-exclamation-triangle' : 'pi pi-sparkles'"/>
+          </div>
+          <div class="chat-bubble-col">
+            <p class="chat-bubble">
+              <template v-for="(seg, si) in splitTickers(msg.text)" :key="si">
+                <RouterLink v-if="seg.ticker" :to="`/position/${encodeURIComponent(seg.ticker)}`" class="chat-ticker-link">{{ seg.label }}</RouterLink>
+                <template v-else>{{ seg.text }}</template>
+              </template>
+            </p>
+            <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
+              {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
+            </span>
+          </div>
         </div>
-        <div v-if="sending" class="chat-msg chat-msg-assistant chat-msg-thinking">
-          <span class="thinking-dots"><span/><span/><span/></span>
+        <div v-if="sending" class="chat-row chat-row-assistant">
+          <div class="chat-avatar">
+            <i class="pi pi-sparkles"/>
+          </div>
+          <div class="chat-bubble-col">
+            <p class="chat-bubble chat-bubble-thinking">
+              <span class="thinking-dots"><span/><span/><span/></span>
+            </p>
+          </div>
         </div>
       </div>
 
@@ -141,7 +156,7 @@ onMounted(() => {
         <span>{{ t('insights.askEmptyText') }}</span>
       </div>
 
-      <div class="ask-prompts">
+      <div v-if="SHOW_PROMPT_CHIPS" class="ask-prompts">
         <button
             v-for="prompt in promptChips"
             :key="prompt"
@@ -338,15 +353,64 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
-.chat-msg {
-  max-width: 90%;
+.chat-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 92%;
   animation: ask-fade-in 0.25s ease;
 }
 
-.chat-msg p {
+.chat-row-user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.chat-row-assistant,
+.chat-row-error {
+  align-self: flex-start;
+}
+
+.chat-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+}
+
+.chat-row-user .chat-avatar {
+  background: rgba(0, 207, 255, 0.16);
+  color: var(--neon-blue);
+}
+
+.chat-row-assistant .chat-avatar {
+  background: linear-gradient(135deg, #00cfff 0%, #a855f7 100%);
+  color: #050505;
+}
+
+.chat-row-error .chat-avatar {
+  background: rgba(255, 51, 102, 0.16);
+  color: var(--neon-red);
+}
+
+.chat-bubble-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.chat-row-user .chat-bubble-col {
+  align-items: flex-end;
+}
+
+.chat-bubble {
   margin: 0;
-  padding: 0.5rem 0.65rem;
-  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
   font-size: 0.82rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -371,52 +435,30 @@ onMounted(() => {
   color: var(--text-secondary);
 }
 
-.chat-msg-user {
-  align-self: flex-end;
-}
-
-.chat-msg-user p {
+.chat-row-user .chat-bubble {
   background: rgba(0, 207, 255, 0.14);
   border: 1px solid rgba(0, 207, 255, 0.3);
   color: var(--text-primary);
   border-bottom-right-radius: 3px;
 }
 
-.chat-msg-assistant {
-  align-self: flex-start;
-}
-
-.chat-msg-assistant p {
+.chat-row-assistant .chat-bubble {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-primary);
   border-bottom-left-radius: 3px;
 }
 
-.chat-msg-error {
-  align-self: flex-start;
-}
-
-.chat-msg-error p {
+.chat-row-error .chat-bubble {
   background: rgba(255, 51, 102, 0.1);
   border: 1px solid rgba(255, 51, 102, 0.35);
   color: var(--neon-red);
   border-bottom-left-radius: 3px;
 }
 
-.chat-msg-thinking {
-  align-self: flex-start;
-}
-
-.chat-msg-thinking .thinking-dots {
+.chat-bubble-thinking {
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
   padding: 0.6rem 0.8rem;
-  border-radius: 10px;
-  border-bottom-left-radius: 3px;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
 }
 
 @keyframes ask-fade-in {
@@ -581,11 +623,18 @@ onMounted(() => {
     white-space: nowrap;
   }
 
-  .chat-msg {
+  .chat-row {
     max-width: 96%;
+    gap: 0.4rem;
   }
 
-  .chat-msg p {
+  .chat-avatar {
+    width: 22px;
+    height: 22px;
+    font-size: 0.62rem;
+  }
+
+  .chat-bubble {
     padding: 0.5rem 0.6rem;
     font-size: 0.8rem;
   }
