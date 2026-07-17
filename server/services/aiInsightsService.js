@@ -537,12 +537,13 @@ async function askAboutPortfolio(userId, question) {
             })
         }
     } catch (cause) {
-        // Re-thrown with a 502 regardless of the upstream status — a raw 401/403
-        // from OpenAI must never reach the client as-is, since useApi.js treats
-        // any 401 response from *this* API as "your session expired" and logs
-        // the user out. Real cause is logged server-side since the client never sees it.
+        // Re-thrown with a 502 and a generic message regardless of the upstream
+        // status/text — a raw 401/403 from OpenAI (which includes the API key
+        // in its message) must never reach the client or get stored, since
+        // useApi.js treats any 401 response from *this* API as "your session
+        // expired" and logs the user out. Real cause is logged server-side only.
         console.error('[ai-ask] upstream OpenAI failure:', cause.status, cause.message)
-        const err = new Error('AI Q&A upstream request failed - ' + cause.message)
+        const err = new Error('AI Q&A upstream request failed')
         err.status = 502
         await AiChatMessage.create({user: userId, role: 'error', text: err.message})
         throw err
@@ -616,7 +617,7 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
         })
     } catch (cause) {
         console.error('[ai-daily-summary] upstream OpenAI failure:', cause.status, cause.message)
-        const err = new Error('AI daily summary upstream request failed - ' + cause.message)
+        const err = new Error('AI daily summary upstream request failed')
         err.status = 502
         throw err
     }
