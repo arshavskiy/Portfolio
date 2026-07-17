@@ -10,6 +10,7 @@ export const changelog = [
       "New Daily Summary card on the Dashboard — an AI recap of your holdings, watchlist, and today's markets, dismissible, refreshable, and available in Russian",
       'AI chat and the daily summary now link recognized tickers straight to their position page',
       'Position page news can now load more articles instead of stopping at 3',
+      "The AI portfolio chat now looks and feels like a real messaging app. The Login page preview got a more realistic phone mockup and now shows off the new AI Daily Summary feature.",
     ],
   },
   {
