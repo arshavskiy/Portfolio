@@ -273,14 +273,15 @@ onMounted(() => {
 .ask-chat {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   max-height: 62vh;
   overflow-y: auto;
-  border-radius: 8px;
+  border-radius: 20px;
   background: var(--bg-primary);
   border: 1px solid var(--border);
-  padding: 0.65rem 0.7rem;
+  padding: 0.85rem 0.75rem;
   scroll-behavior: smooth;
+  box-shadow: inset 0 1px 12px rgba(0, 0, 0, 0.25);
 }
 
 .ask-empty {
@@ -341,9 +342,9 @@ onMounted(() => {
 
 .chat-row {
   display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  max-width: 92%;
+  align-items: flex-end;
+  gap: 0.4rem;
+  max-width: 85%;
   animation: ask-fade-in 0.25s ease;
 }
 
@@ -395,8 +396,8 @@ onMounted(() => {
 
 .chat-bubble {
   margin: 0;
-  padding: 0.55rem 0.7rem;
-  border-radius: 12px;
+  padding: 0.6rem 0.85rem;
+  border-radius: 18px;
   font-size: 0.82rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -432,24 +433,25 @@ onMounted(() => {
 }
 
 .chat-row-user .chat-bubble {
-  background: rgba(0, 207, 255, 0.14);
-  border: 1px solid rgba(0, 207, 255, 0.3);
-  color: var(--text-primary);
-  border-bottom-right-radius: 3px;
+  background: linear-gradient(135deg, #00cfff 0%, #0891b2 100%);
+  border: none;
+  color: #052027;
+  font-weight: 500;
+  border-bottom-right-radius: 5px;
 }
 
 .chat-row-assistant .chat-bubble {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  border-bottom-left-radius: 3px;
+  border-bottom-left-radius: 5px;
 }
 
 .chat-row-error .chat-bubble {
   background: rgba(255, 51, 102, 0.1);
   border: 1px solid rgba(255, 51, 102, 0.35);
   color: var(--neon-red);
-  border-bottom-left-radius: 3px;
+  border-bottom-left-radius: 5px;
 }
 
 .chat-bubble-thinking {
@@ -478,8 +480,8 @@ onMounted(() => {
   min-width: 0;
   min-height: 42px;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0 0.7rem;
+  border-radius: 999px;
+  padding: 0 1rem;
   color: var(--text-primary);
   background: var(--bg-secondary);
   font-size: 0.85rem;
@@ -493,18 +495,17 @@ onMounted(() => {
   min-height: 42px;
   width: 42px;
   flex-shrink: 0;
-  border: 1px solid rgba(0, 207, 255, 0.45);
-  border-radius: 8px;
-  color: var(--neon-blue);
-  background: rgba(0, 207, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: #052027;
+  background: linear-gradient(135deg, #00cfff 0%, #0891b2 100%);
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .ask-form button:hover:not(:disabled) {
-  background: rgba(0, 207, 255, 0.18);
-  box-shadow: 0 0 10px rgba(0, 207, 255, 0.3);
+  box-shadow: 0 0 14px rgba(0, 207, 255, 0.5);
 }
 
 .ask-form button:disabled {

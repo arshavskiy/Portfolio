@@ -83,7 +83,7 @@ function updateLoginHead() {
 }
 
 // ── Animated phone slideshow ──
-const SLIDE_COUNT = 9
+const SLIDE_COUNT = 10
 const slide = ref(0)
 let slideTimer = null
 
@@ -185,6 +185,11 @@ const features = computed(() => [
     icon: 'pi pi-comments',
     title: t('login.features.aiChatTitle'),
     text: t('login.features.aiChatText')
+  },
+  {
+    icon: 'pi pi-sparkles',
+    title: t('login.features.dailySummaryTitle'),
+    text: t('login.features.dailySummaryText')
   },
 ])
 
@@ -322,7 +327,12 @@ watch(locale, updateLoginHead)
           <div :aria-label="t('login.appPreview')" class="app-preview">
             <div aria-hidden="true" class="mockup">
               <div class="phone">
-                <div class="phone-notch"/>
+                <div class="phone-btn phone-btn-power"/>
+                <div class="phone-btn phone-btn-vol-up"/>
+                <div class="phone-btn phone-btn-vol-down"/>
+                <div class="phone-notch">
+                  <span class="phone-camera"/>
+                </div>
                 <div class="phone-screen">
                   <div class="slides">
 
@@ -551,6 +561,16 @@ watch(locale, updateLoginHead)
                     </div>
                   </div>
 
+                  <!-- 9 · AI Daily Summary -->
+                  <div v-show="slide === 9" class="slide">
+                    <div class="mk-header">
+                      <span class="mk-title gradient-title"><i class="pi pi-sparkles" style="font-size:0.9em;margin-right:6px"/>{{ t('login.slides.dailySummary') }}</span>
+                    </div>
+                    <div class="mk-summary-card">
+                      <p class="mk-summary-text">{{ t('login.slides.dailySummarySample') }}</p>
+                    </div>
+                  </div>
+
                 </div>
 
                   <!-- progress dots -->
@@ -558,6 +578,7 @@ watch(locale, updateLoginHead)
                     <span v-for="n in SLIDE_COUNT" :key="n" class="mk-dot" :class="{ active: slide === n - 1 }"/>
                   </div>
                 </div>
+                <div class="phone-home-indicator"/>
               </div>
             </div>
           </div>
@@ -784,17 +805,19 @@ watch(locale, updateLoginHead)
   display: flex;
   justify-content: center;
   margin: 0 0 2rem;
+  min-height: 300px;
 }
 
 .phone {
   position: relative;
   width: 230px;
-  background: #0a0a0a;
-  border: 2px solid #2a2a2a;
-  border-radius: 28px;
-  padding: 12px 10px;
+  background: linear-gradient(155deg, #1c1c1e 0%, #0a0a0a 55%);
+  border: 3px solid #050505;
+  border-radius: 38px;
+  padding: 14px 10px 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
-  0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+  0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+  0 2px 0 rgba(255, 255, 255, 0.06) inset,
   0 0 60px rgba(0, 207, 255, 0.08);
   transform: rotate(-3deg);
   transition: transform 0.3s;
@@ -804,22 +827,74 @@ watch(locale, updateLoginHead)
   transform: rotate(0deg);
 }
 
+.phone-btn {
+  position: absolute;
+  background: linear-gradient(90deg, #1a1a1a, #050505);
+  border-radius: 2px;
+}
+
+.phone-btn-power {
+  right: -3px;
+  top: 90px;
+  width: 3px;
+  height: 46px;
+}
+
+.phone-btn-vol-up {
+  left: -3px;
+  top: 70px;
+  width: 3px;
+  height: 28px;
+}
+
+.phone-btn-vol-down {
+  left: -3px;
+  top: 105px;
+  width: 3px;
+  height: 28px;
+}
+
 .phone-notch {
   position: absolute;
-  top: 7px;
+  top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 70px;
-  height: 5px;
-  background: #2a2a2a;
-  border-radius: 3px;
+  width: 84px;
+  height: 20px;
+  background: #050505;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  z-index: 2;
+}
+
+.phone-camera {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #1a1a2e;
+  box-shadow: 0 0 0 1px rgba(0, 207, 255, 0.25), inset 0 0 2px rgba(0, 207, 255, 0.4);
 }
 
 .phone-screen {
-  margin-top: 10px;
+  margin-top: 26px;
   display: flex;
   flex-direction: column;
   gap: 7px;
+  position: relative;
+}
+
+.phone-home-indicator {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 4px;
+  border-radius: 999px;
+  background: #3a3a3c;
 }
 
 .mk-header {
@@ -1566,6 +1641,21 @@ watch(locale, updateLoginHead)
   color: var(--text-secondary);
   text-align: center;
   margin-top: 4px;
+}
+
+/* ── AI Daily Summary slide ── */
+.mk-summary-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: linear-gradient(135deg, rgba(0, 207, 255, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+}
+
+.mk-summary-text {
+  margin: 0;
+  font-size: 0.62rem;
+  line-height: 1.55;
+  color: var(--text-primary);
 }
 
 /* ── Chart slide ── */
