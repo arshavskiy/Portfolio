@@ -2,6 +2,17 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.17',
+    date: 'Jul 17, 2026',
+    title: 'AI daily summary and a cleaner Insights page',
+    changes: [
+      'Insights page now shows one section at a time (Insights, Income, Health) via header tabs, with the AI chat scoped to its own tab',
+      "New Daily Summary card on the Dashboard — an AI recap of your holdings, watchlist, and today's markets, dismissible, refreshable, and available in Russian",
+      'AI chat and the daily summary now link recognized tickers straight to their position page',
+      'Position page news can now load more articles instead of stopping at 3',
+    ],
+  },
+  {
     version: '2026.07.16',
     date: 'Jul 16, 2026',
     title: 'Smarter dividend forecasts and demo alerts',
