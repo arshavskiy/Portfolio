@@ -5,16 +5,41 @@ import {useI18n} from '@/composables/useI18n'
 import {useAiChatStore} from '@/stores/aiChat'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useWatchlistStore} from '@/stores/watchlist'
+import {useTickerLinkify} from '@/composables/useTickerLinkify'
 
 const {t} = useI18n()
 const chat = useAiChatStore()
 const portfolio = usePortfolioStore()
 const watchlist = useWatchlistStore()
 const {messages, sending, loaded} = storeToRefs(chat)
+const {splitTickers} = useTickerLinkify()
 
 const askQuestion = ref('')
 const chatBox = ref(null)
-const expanded = ref(true)
+const showAllHistory = ref(false)
+const justSent = ref(false)
+
+// Recent messages shown by default; older turns hidden behind the history toggle.
+const RECENT_MESSAGE_COUNT = 6
+
+const visibleMessages = computed(() => {
+  if (showAllHistory.value || messages.value.length <= RECENT_MESSAGE_COUNT) return messages.value
+  return messages.value.slice(-RECENT_MESSAGE_COUNT)
+})
+
+const hiddenHistoryCount = computed(() => messages.value.length - visibleMessages.value.length)
+
+function formatMessageDate(createdAt) {
+  if (!createdAt) return ''
+  const date = new Date(createdAt)
+  if (Number.isNaN(date.getTime())) return ''
+  const now = new Date()
+  const sameDay = date.toDateString() === now.toDateString()
+  return sameDay
+      ? date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})
+      : date.toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) + ' ' +
+        date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})
+}
 
 // Prompt-chip suggestions hidden for now — flip back on when ready to ship again.
 const SHOW_PROMPT_CHIPS = false
@@ -25,44 +50,6 @@ const promptChips = computed(() => [
   t('insights.askPromptIncome'),
 ])
 
-// Tickers the user actually tracks — only these get linkified in chat text,
-// so we never turn a stray capitalized word (e.g. "OK", "IT") into a link.
-const knownTickers = computed(() => {
-  const map = new Map()
-  for (const p of portfolio.positions) {
-    if (p.ticker) map.set(p.ticker.toUpperCase(), p.ticker.toUpperCase())
-  }
-  for (const w of watchlist.items) {
-    if (w.ticker) map.set(w.ticker.toUpperCase(), w.ticker.toUpperCase())
-  }
-  return map
-})
-
-// Splits a message into {text} / {ticker} segments so the template can
-// render known tickers as links to their position page and everything else
-// as plain text. Matches whole-word uppercase-ish symbols only (1-6 chars,
-// optional leading ^ for indices) to avoid false hits inside normal words.
-function splitTickers(text) {
-  if (!knownTickers.value.size) return [{text}]
-  const pattern = /(^|[^A-Z0-9.^-])(\^?[A-Z0-9]{1,8}(?:[.-][A-Z0-9]{1,5})?)(?![A-Z0-9.-])/gi
-  const segments = []
-  let lastIndex = 0
-  let match
-  while ((match = pattern.exec(text))) {
-    const prefix = match[1]
-    const label = match[2]
-    const tickerStart = match.index + prefix.length
-    const candidate = label.toUpperCase()
-    const ticker = knownTickers.value.get(candidate)
-    if (!ticker) continue
-    if (tickerStart > lastIndex) segments.push({text: text.slice(lastIndex, tickerStart)})
-    segments.push({ticker, label})
-    lastIndex = tickerStart + label.length
-  }
-  if (lastIndex < text.length) segments.push({text: text.slice(lastIndex)})
-  return segments.length ? segments : [{text}]
-}
-
 async function scrollToBottom() {
   await nextTick()
   if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight
@@ -71,8 +58,9 @@ async function scrollToBottom() {
 async function submitAskQuestion() {
   const question = askQuestion.value.trim()
   if (!question || sending.value) return
-  expanded.value = true
   askQuestion.value = ''
+  justSent.value = true
+  setTimeout(() => { justSent.value = false }, 500)
   scrollToBottom()
   try {
     await chat.sendMessage(question, {errorText: t('insights.askError'), limitText: t('insights.askLimitReached')})
@@ -102,19 +90,15 @@ onMounted(() => {
 
 <template>
   <article class="ask-panel">
-    <button class="ask-panel-header" type="button" @click="expanded = !expanded">
-      <div class="ask-panel-heading">
-        <div class="ask-title-row">
-          <h2>{{ t('insights.portfolioReview') }}</h2>
-        </div>
-        <p>{{ t('insights.portfolioReviewText') }}</p>
-      </div>
-      <i :class="expanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="ask-panel-toggle"/>
-    </button>
-
-    <div v-show="expanded" class="ask-panel-body">
+    <div class="ask-panel-body">
       <div class="ask-body-top">
-        <span>{{ messages.length ? t('insights.askHistoryLabel') : t('insights.askStarterLabel') }}</span>
+        <div class="ask-body-left">
+          <span>{{ messages.length ? t('insights.askHistoryLabel') : t('insights.askStarterLabel') }}</span>
+          <button v-if="messages.length > RECENT_MESSAGE_COUNT" :class="{active: showAllHistory}" class="ask-history-toggle" type="button" @click="showAllHistory = !showAllHistory">
+            <i class="pi pi-history"/>
+            <span>{{ showAllHistory ? t('insights.askHideHistory') : t('insights.askShowHistory') }}</span>
+          </button>
+        </div>
         <button v-if="messages.length" :disabled="sending" class="ask-clear" type="button" @click="clearChat">
           <i class="pi pi-trash"/>
           <span>{{ t('insights.askClear') }}</span>
@@ -122,7 +106,10 @@ onMounted(() => {
       </div>
 
       <div v-if="messages.length || sending" ref="chatBox" class="ask-chat">
-        <div v-for="(msg, i) in messages" :key="i" :class="`chat-row chat-row-${msg.role}`">
+        <div v-if="hiddenHistoryCount > 0" class="ask-history-hint">
+          {{ t('insights.askHiddenHistory', {count: hiddenHistoryCount}) }}
+        </div>
+        <div v-for="(msg, i) in visibleMessages" :key="i" :class="`chat-row chat-row-${msg.role}`">
           <div class="chat-avatar">
             <i :class="msg.role === 'user' ? 'pi pi-user' : msg.role === 'error' ? 'pi pi-exclamation-triangle' : 'pi pi-sparkles'"/>
           </div>
@@ -133,9 +120,12 @@ onMounted(() => {
                 <template v-else>{{ seg.text }}</template>
               </template>
             </p>
-            <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
-              {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
-            </span>
+            <div class="chat-meta">
+              <span v-if="msg.createdAt" class="chat-msg-date">{{ formatMessageDate(msg.createdAt) }}</span>
+              <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
+                {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
+              </span>
+            </div>
           </div>
         </div>
         <div v-if="sending" class="chat-row chat-row-assistant">
@@ -175,7 +165,7 @@ onMounted(() => {
             :placeholder="t('insights.askPlaceholderShort')"
             type="text"
         >
-        <button :class="{thinking: sending}" :disabled="sending || !askQuestion.trim()" type="submit">
+        <button :class="{thinking: sending, sent: justSent}" :disabled="sending || !askQuestion.trim()" type="submit">
           <i class="pi pi-send"/>
         </button>
       </form>
@@ -189,64 +179,12 @@ onMounted(() => {
 .ask-panel {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-secondary);
-  margin-bottom: 1rem;
-  overflow: hidden;
-}
-
-.ask-panel-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  border: none;
-  background: none;
-  padding: 0.85rem 1rem;
-  text-align: left;
-  cursor: pointer;
-  color: inherit;
-  font: inherit;
-}
-
-.ask-panel-heading {
-  flex: 1;
-  min-width: 0;
-}
-
-.ask-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
-}
-
-.ask-panel-heading h2 {
-  margin: 0;
-  font-size: 0.95rem;
-}
-
-.ask-panel-heading p {
-  margin: 0.15rem 0 0;
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ask-panel-toggle {
-  flex-shrink: 0;
-  color: var(--neon-blue);
-  font-size: 0.9rem;
 }
 
 .ask-panel-body {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
-  padding: 0 1rem 1rem;
 }
 
 .ask-body-top {
@@ -260,23 +198,71 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.ask-clear {
+.ask-body-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ask-clear,
+.ask-history-toggle {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.22rem 0.45rem;
-  color: var(--text-secondary);
-  background: var(--bg-primary);
   cursor: pointer;
   font: inherit;
   text-transform: none;
 }
 
+.ask-clear {
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: var(--bg-primary);
+}
+
 .ask-clear:hover:not(:disabled) {
   color: var(--text-primary);
   border-color: rgba(0, 207, 255, 0.35);
+}
+
+.ask-history-toggle {
+  border: 1px solid rgba(0, 207, 255, 0.35);
+  color: var(--neon-blue);
+  background: rgba(0, 207, 255, 0.08);
+}
+
+.ask-history-toggle:hover {
+  border-color: var(--neon-blue);
+  background: rgba(0, 207, 255, 0.16);
+}
+
+.ask-history-toggle i {
+  color: var(--neon-blue);
+}
+
+.ask-history-toggle.active {
+  border-color: var(--neon-blue);
+  color: #050505;
+  background: var(--neon-blue);
+}
+
+.ask-history-toggle.active i {
+  color: #050505;
+}
+
+.ask-history-toggle.active:hover {
+  background: var(--neon-blue);
+  opacity: 0.85;
+}
+
+.ask-history-hint {
+  text-align: center;
+  padding: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-style: italic;
 }
 
 .ask-clear:disabled {
@@ -288,7 +274,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 45vh;
+  max-height: 62vh;
   overflow-y: auto;
   border-radius: 8px;
   background: var(--bg-primary);
@@ -428,9 +414,19 @@ onMounted(() => {
   border-bottom-color: var(--neon-blue);
 }
 
-.chat-msg-tokens {
-  display: block;
+.chat-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   margin-top: 0.2rem;
+}
+
+.chat-row-user .chat-meta {
+  justify-content: flex-end;
+}
+
+.chat-msg-date,
+.chat-msg-tokens {
   font-size: 0.65rem;
   color: var(--text-secondary);
 }
@@ -520,6 +516,10 @@ onMounted(() => {
   animation: thinking-pulse 1.4s ease-in-out infinite;
 }
 
+.ask-form button.sent i {
+  animation: send-fly 0.5s ease;
+}
+
 .ask-footnote {
   margin: -0.2rem 0 0;
 }
@@ -530,6 +530,25 @@ onMounted(() => {
   }
   50% {
     box-shadow: 0 0 10px rgba(0, 207, 255, 0.4);
+  }
+}
+
+@keyframes send-fly {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  55% {
+    transform: translate(14px, -14px) scale(0.6);
+    opacity: 0;
+  }
+  56% {
+    transform: translate(-14px, 14px) scale(0.6);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
   }
 }
 
@@ -562,39 +581,12 @@ onMounted(() => {
 }
 
 @media (max-width: 760px) {
-  .ask-panel {
-    margin-bottom: 0.75rem;
-  }
-
-  .ask-panel-header {
-    align-items: flex-start;
-    padding: 0.75rem;
-  }
-
-  .ask-panel-heading h2 {
-    font-size: 0.9rem;
-  }
-
-  .ask-panel-heading p {
-    display: -webkit-box;
-    margin-top: 0.2rem;
-    overflow: hidden;
-    white-space: normal;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
-  .ask-panel-toggle {
-    margin-top: 0.15rem;
-  }
-
   .ask-panel-body {
     gap: 0.55rem;
-    padding: 0 0.75rem 0.75rem;
   }
 
   .ask-chat {
-    max-height: 38vh;
+    max-height: 65vh;
     padding: 0.55rem;
   }
 
@@ -602,7 +594,8 @@ onMounted(() => {
     font-size: 0.68rem;
   }
 
-  .ask-clear span {
+  .ask-clear span,
+  .ask-history-toggle span {
     display: none;
   }
 

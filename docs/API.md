@@ -510,6 +510,18 @@ Question is capped at 500 characters.
 **Response `503`** — AI Q&A not configured (no API key)
 **Response `502`** — upstream OpenAI request failed
 
+### GET /stocks/ai-daily-summary `🔒`
+Canned (non-conversational) daily summary covering how the user's holdings did today, notable watchlist movement, and main market performance. Answered by an OpenAI chat completion (`gpt-4o-mini`, single-shot, no tool-calling) from the same portfolio/watchlist/news context as `ai-ask` plus US market indices. Cached per-user for the calendar day and language (`User.aiDailySummary`, keyed `YYYY-MM-DD:lang`) — repeat calls the same day/language return the cached text without hitting OpenAI again. Does not consume the `ai-ask` daily question quota.
+
+**Query**: `force=true` — bypass the cache and regenerate · `lang=en|ru` — response language, defaults to `en`
+
+**Response `200`**
+```json
+{ "summary": "...", "generatedAt": "2026-07-17T08:00:00.000Z", "cached": true }
+```
+**Response `503`** — AI not configured (no API key)
+**Response `502`** — upstream OpenAI request failed
+
 ---
 
 ## Watchlist

@@ -7,6 +7,7 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 import {gainLossClass, usePercent} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
 
+const DailySummaryCard      = defineAsyncComponent(() => import('@/components/charts/DailySummaryCard.vue'))
 const BreakdownCard         = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
 const PortfolioCompareChart = defineAsyncComponent(() => import('@/components/charts/PortfolioCompareChart.vue'))
@@ -83,6 +84,9 @@ onUnmounted(() => {
     <template v-else>
     <!-- Portfolio totals (USD / ILS / combined) -->
     <PortfolioStatsCard />
+
+    <!-- AI-generated daily summary: holdings, watchlist, markets -->
+    <DailySummaryCard />
 
     <!-- Global markets overview -->
     <MarketsCard />

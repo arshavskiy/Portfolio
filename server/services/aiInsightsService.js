@@ -4,7 +4,7 @@ const Position = require('../models/Position')
 const Watchlist = require('../models/Watchlist')
 const Transaction = require('../models/Transaction')
 const AiChatMessage = require('../models/AiChatMessage')
-const {getQuotes, getMarketNews, getHistory, getIlsToUsd} = require('./stockService')
+const {getQuotes, getMarketNews, getHistory, getIlsToUsd, getMarkets} = require('./stockService')
 const {getPortfolioHistory} = require('./historyService')
 const {computeXirr, computeTwr} = require('./returnMetrics')
 
@@ -122,6 +122,19 @@ async function buildNewsContext(tickers) {
         const articles = Array.isArray(data) ? data : data.articles || []
         if (!articles.length) return ''
         return '\n\nRecent news headlines:\n' + articles.slice(0, 5).map((a) => `- ${a.title}`).join('\n')
+    } catch {
+        return ''
+    }
+}
+
+async function buildMarketsContext() {
+    try {
+        const indices = await getMarkets('US')
+        if (!indices.length) return ''
+        const text = indices
+            .map((m) => `${m.name} (${m.symbol}): ${m.price ?? 'n/a'}, today ${m.changePercent != null ? m.changePercent.toFixed(2) + '%' : 'n/a'}`)
+            .join('\n')
+        return '\n\nMain market indices today:\n' + text
     } catch {
         return ''
     }
@@ -527,7 +540,8 @@ async function askAboutPortfolio(userId, question) {
         // Re-thrown with a 502 regardless of the upstream status — a raw 401/403
         // from OpenAI must never reach the client as-is, since useApi.js treats
         // any 401 response from *this* API as "your session expired" and logs
-        // the user out.
+        // the user out. Real cause is logged server-side since the client never sees it.
+        console.error('[ai-ask] upstream OpenAI failure:', cause.status, cause.message)
         const err = new Error('AI Q&A upstream request failed - ' + cause.message)
         err.status = 502
         await AiChatMessage.create({user: userId, role: 'error', text: err.message})
@@ -550,6 +564,77 @@ async function askAboutPortfolio(userId, question) {
     return {answer, usage}
 }
 
+async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
+    const user = await User.findById(userId)
+    if (!user) {
+        const err = new Error('User not found')
+        err.status = 404
+        throw err
+    }
+
+    const resolvedLang = lang === 'ru' ? 'ru' : 'en'
+    const today = dayKey()
+    const cacheKey = `${today}:${resolvedLang}`
+    const cached = user.aiDailySummary
+    if (!force && cached?.dayKey === cacheKey && cached.text) {
+        return {summary: cached.text, generatedAt: cached.generatedAt, cached: true}
+    }
+
+    const openai = getClient()
+    if (!openai) {
+        const err = new Error('AI Q&A is not configured')
+        err.status = 503
+        throw err
+    }
+
+    const {contextText, tickers} = await buildPortfolioContext(userId)
+    const [newsText, marketsText] = await Promise.all([buildNewsContext(tickers), buildMarketsContext()])
+
+    const languageInstruction = resolvedLang === 'ru'
+        ? ' Write the summary in Russian.'
+        : ' Write the summary in English.'
+
+    const messages = [
+        {
+            role: 'system',
+            content: 'You are a portfolio analysis assistant inside a personal stock tracking app. ' +
+                'Write a short daily summary (4-6 sentences) covering: how the user\'s holdings did today, ' +
+                'anything notable on their watchlist today, and how the main markets performed today. ' +
+                'Use the context provided. Be concise and specific with numbers. You are not a licensed ' +
+                'financial advisor — do not give personalized investment recommendations, describe what the data shows.' +
+                languageInstruction,
+        },
+        {role: 'user', content: contextText + newsText + marketsText},
+    ]
+
+    let completion
+    try {
+        completion = await openai.chat.completions.create({
+            model: MODEL,
+            messages,
+            max_tokens: 300,
+        })
+    } catch (cause) {
+        console.error('[ai-daily-summary] upstream OpenAI failure:', cause.status, cause.message)
+        const err = new Error('AI daily summary upstream request failed - ' + cause.message)
+        err.status = 502
+        throw err
+    }
+
+    const answer = completion.choices[0]?.message?.content?.trim() || ''
+    if (!answer) {
+        const err = new Error('AI daily summary returned an empty response')
+        err.status = 502
+        throw err
+    }
+
+    const generatedAt = new Date()
+    user.aiDailySummary = {dayKey: cacheKey, text: answer, generatedAt}
+    await user.save()
+
+    return {summary: answer, generatedAt, cached: false}
+}
+
 async function getChatHistory(userId) {
     const messages = await AiChatMessage.find({user: userId})
         .sort({createdAt: 1})
@@ -562,4 +647,4 @@ async function clearChatHistory(userId) {
     await AiChatMessage.deleteMany({user: userId})
 }
 
-module.exports = {askAboutPortfolio, getChatHistory, clearChatHistory, dayKey}
+module.exports = {askAboutPortfolio, getChatHistory, clearChatHistory, getDailySummary, dayKey}

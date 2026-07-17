@@ -80,7 +80,11 @@ const chartMode = ref('line')
 const watchlistNavTickers = ref([])
 const tickerNewsArticles = ref([])
 const tickerNewsLoading = ref(false)
+const tickerNewsLoadingMore = ref(false)
 const tickerNewsError = ref('')
+const tickerNewsPage = ref(1)
+const tickerNewsHasMore = ref(false)
+const TICKER_NEWS_PAGE_SIZE = 3
 let refreshTimer = null
 let pageRequestId = 0
 const WATCHLIST_TICKER_KEY = 'watchlist-opened-ticker'
@@ -170,6 +174,8 @@ watch(ticker, async () => {
   selectedChartPoints.value = []
   tickerNewsArticles.value = []
   tickerNewsError.value = ''
+  tickerNewsPage.value = 1
+  tickerNewsHasMore.value = false
   await loadPositionData()
   startAutoRefresh()
 })
@@ -184,18 +190,29 @@ async function loadPositionData() {
   }
 }
 
-async function loadTickerNews() {
-  tickerNewsLoading.value = true
+async function loadTickerNews({loadMore = false} = {}) {
+  if (loadMore) tickerNewsLoadingMore.value = true
+  else tickerNewsLoading.value = true
   tickerNewsError.value = ''
+  const page = loadMore ? tickerNewsPage.value + 1 : 1
   try {
-    const data = await api.get(`/stocks/news?symbols=${encodeURIComponent(ticker.value)}&limit=3`)
-    tickerNewsArticles.value = Array.isArray(data?.articles) ? data.articles : []
+    const data = await api.get(`/stocks/news?symbols=${encodeURIComponent(ticker.value)}&limit=${TICKER_NEWS_PAGE_SIZE}&page=${page}`)
+    const articles = Array.isArray(data?.articles) ? data.articles : []
+    tickerNewsArticles.value = loadMore ? [...tickerNewsArticles.value, ...articles] : articles
+    tickerNewsPage.value = page
+    tickerNewsHasMore.value = Boolean(data?.hasMore)
   } catch (err) {
-    tickerNewsArticles.value = []
+    if (!loadMore) tickerNewsArticles.value = []
     tickerNewsError.value = err.message || t('positionDetail.newsLoadFailed')
   } finally {
     tickerNewsLoading.value = false
+    tickerNewsLoadingMore.value = false
   }
+}
+
+function loadMoreTickerNews() {
+  if (tickerNewsLoadingMore.value || !tickerNewsHasMore.value) return
+  loadTickerNews({loadMore: true})
 }
 
 function openNewsArticle(article) {
@@ -1657,6 +1674,17 @@ async function toggleWatchlist() {
             @open="openNewsArticle"
           />
         </div>
+
+        <button
+            v-if="tickerNewsHasMore && !tickerNewsLoading"
+            :disabled="tickerNewsLoadingMore"
+            class="ticker-news-load-more"
+            type="button"
+            @click="loadMoreTickerNews"
+        >
+          <AppLoader v-if="tickerNewsLoadingMore"/>
+          <span v-else>{{ t('newsPage.loadMore') }}</span>
+        </button>
       </div>
 
 <!--      <div v-if="!lots.length" class="empty">-->
@@ -2559,6 +2587,33 @@ async function toggleWatchlist() {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.65rem;
+}
+
+.ticker-news-load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin-top: 0.75rem;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.ticker-news-load-more:hover:not(:disabled) {
+  color: var(--neon-blue);
+  border-color: var(--neon-blue);
+}
+
+.ticker-news-load-more:disabled {
+  cursor: not-allowed;
 }
 
 .dividends-header {

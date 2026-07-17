@@ -32,6 +32,11 @@ const userSchema = new mongoose.Schema(
           dayKey: {type: String, default: null},
           questionCount: {type: Number, default: 0},
       },
+      aiDailySummary: {
+          dayKey: {type: String, default: null},
+          text: {type: String, default: null},
+          generatedAt: {type: Date},
+      },
       demoSeedVersion: {type: Number, default: 0},
       demoSeededAt: {type: Date},
   },

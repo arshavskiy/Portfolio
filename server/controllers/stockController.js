@@ -13,7 +13,7 @@ const {
   NEWS_TOPICS,
   getIlsToUsd,
 } = require('../services/stockService')
-const {askAboutPortfolio, getChatHistory, clearChatHistory} = require('../services/aiInsightsService')
+const {askAboutPortfolio, getChatHistory, clearChatHistory, getDailySummary} = require('../services/aiInsightsService')
 
 const HISTORY_TTL_SECONDS = {
   '1d': 120,
@@ -111,6 +111,17 @@ exports.askPortfolioQuestion = async (req, res) => {
     try {
         const {answer, usage} = await askAboutPortfolio(req.user._id, req.body.question)
         res.json({answer, usage})
+    } catch (err) {
+        res.status(err.status || 500).json({message: err.message})
+    }
+}
+
+exports.getAiDailySummary = async (req, res) => {
+    try {
+        const force = req.query.force === 'true'
+        const lang = req.query.lang === 'ru' ? 'ru' : 'en'
+        const data = await getDailySummary(req.user._id, {force, lang})
+        res.json(data)
     } catch (err) {
         res.status(err.status || 500).json({message: err.message})
     }

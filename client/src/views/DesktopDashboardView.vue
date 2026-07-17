@@ -23,6 +23,7 @@ import ImportModal from '@/components/ui/ImportModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import {useI18n} from '@/composables/useI18n'
 
+const DailySummaryCard = defineAsyncComponent(() => import('@/components/charts/DailySummaryCard.vue'))
 const BreakdownCard = defineAsyncComponent(() => import('@/components/charts/BreakdownCard.vue'))
 const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/charts/PortfolioHistoryChart.vue'))
 const PortfolioCompareChart = defineAsyncComponent(() => import('@/components/charts/PortfolioCompareChart.vue'))
@@ -231,6 +232,7 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
       </div>
 
       <template v-else>
+        <DailySummaryCard/>
         <MarketsCard/>
         <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
         <TopMomentumCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>

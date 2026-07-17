@@ -20,13 +20,13 @@ export const useAiChatStore = defineStore('aiChat', () => {
     }
     
     async function sendMessage(question, {errorText, limitText}) {
-        messages.value.push({role: 'user', text: question})
+        messages.value.push({role: 'user', text: question, createdAt: new Date().toISOString()})
         sending.value = true
         try {
             const {answer, usage} = await api.post('/stocks/ai-ask', {question})
-            messages.value.push({role: 'assistant', text: answer, usage})
+            messages.value.push({role: 'assistant', text: answer, usage, createdAt: new Date().toISOString()})
         } catch (err) {
-            messages.value.push({role: 'error', text: err.status === 429 ? limitText : errorText})
+            messages.value.push({role: 'error', text: err.status === 429 ? limitText : errorText, createdAt: new Date().toISOString()})
             throw err
         } finally {
             sending.value = false
