@@ -12,6 +12,7 @@ import {groupItems} from '@/composables/useGrouping'
 import {useMomentumStore} from '@/stores/momentum'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useTour} from '@/composables/useTour'
 import PositionDetailView from '@/views/PositionDetailView.vue'
 import Button from 'primevue/button'
 import WatchRow from '@/components/ui/WatchRow.vue'
@@ -66,8 +67,10 @@ onMounted(async () => {
   } catch {
   }
   alerts.fetchAlerts()
-  watchlist.fetchWatchlist(range.value).finally(() => restoreScrollPosition().catch(() => {
-  }))
+  watchlist.fetchWatchlist(range.value).finally(() => {
+    restoreScrollPosition().catch(() => {})
+    maybeStartWatchlistPhase()
+  })
   marketTimer = setInterval(() => {
     now.value = new Date()
   }, 60000)
@@ -85,6 +88,7 @@ const momentumStore = useMomentumStore()
 const router = useRouter()
 const range = useChartRange()
 const desktopFocus = useDesktopFocusStore()
+const {maybeStartWatchlistPhase} = useTour()
 
 const searchQuery = ref('')
 const groupMode = useStorage('watchlist-group-mode', 'market')

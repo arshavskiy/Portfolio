@@ -30,7 +30,7 @@ const {locale, t} = useI18n()
 
 const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFullscreen()
 const {canInstall, installed, isIos, promptInstall} = usePwaInstall()
-const {startTour, resetTour} = useTour()
+const {startNavPhase, resetTour} = useTour()
 const aiSummaryEnabled = computed({
   get: () => auth.user?.aiDailySummaryEnabled !== false,
   set: (value) => { auth.updatePreferences({aiDailySummaryEnabled: value}).catch(() => {}) },
@@ -39,7 +39,7 @@ const aiSummaryEnabled = computed({
 function replayTour() {
   visible.value = false
   resetTour()
-  startTour()
+  router.push('/').then(() => startNavPhase())
 }
 
 async function install() {

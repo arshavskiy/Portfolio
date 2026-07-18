@@ -1,11 +1,13 @@
 import {driver} from 'driver.js'
 import 'driver.js/dist/driver.css'
 import '@/assets/tour.css'
-import {useRouter} from 'vue-router'
-import {useDesktopFocusStore} from '@/stores/desktopFocus'
 
-const SEEN_KEY = 'stockfolio-tour-seen'
-let tourRunning = false
+const SEEN_KEYS = {
+  nav: 'stockfolio-tour-seen-nav',
+  position: 'stockfolio-tour-seen-position',
+  watchlist: 'stockfolio-tour-seen-watchlist',
+}
+const runningPhases = new Set()
 
 // Phase 1 — cross-section overview, anchored to the nav (Dashboard route).
 function navSteps() {
@@ -49,7 +51,7 @@ function navSteps() {
       element: '[data-tour="dash-mover"]',
       popover: {
         title: 'Dashboard tickers are clickable',
-        description: 'Click any ticker or mover on the Dashboard to open its position page. On desktop it opens in the side panel; on mobile it opens the full position view. Next, we’ll open this one.',
+        description: 'Click any ticker or mover on the Dashboard to open its position page. On desktop it opens in the side panel; on mobile it opens the full position view.',
       },
     },
   ]
@@ -214,17 +216,17 @@ function watchlistSteps() {
   ]
 }
 
-function markAcknowledged() {
-  localStorage.setItem(SEEN_KEY, '1')
+function markSeen(phase) {
+  localStorage.setItem(SEEN_KEYS[phase], '1')
 }
 
-function finishTour() {
-  markAcknowledged()
-  tourRunning = false
+function finishPhase(phase) {
+  markSeen(phase)
+  runningPhases.delete(phase)
 }
 
-// Wait (briefly) for a selector to appear after a route change, so phase 2 only
-// starts once the Watchlist has rendered its anchors.
+// Wait (briefly) for a selector to appear after mount, so a phase only starts
+// once its page has actually rendered the anchors.
 function waitForElement(selector, timeout = 3000) {
   return new Promise((resolve) => {
     if (document.querySelector(selector)) return resolve(true)
@@ -254,126 +256,118 @@ function clearForcedParam() {
   }
 }
 
+// Generic phase runner. Filters out steps whose anchor is missing (mobile vs
+// desktop, empty watchlist). `onDone` fires when the user advances past the
+// final step; `onClose` fires on the × button. Returns null if no anchors.
+function runPhase(steps, {onDone, onClose}) {
+  const present = steps.filter((s) => document.querySelector(s.element))
+  if (!present.length) return null
+  let d
+  let handled = false
+  const complete = (callback) => {
+    if (handled) return
+    handled = true
+    d.destroy()
+    callback?.()
+  }
+  d = driver({
+    showProgress: true,
+    allowClose: true,
+    overlayColor: 'rgba(0, 0, 0, 0.75)',
+    nextBtnText: 'Next',
+    prevBtnText: 'Back',
+    doneBtnText: 'Got it',
+    popoverClass: 'stockfolio-tour',
+    steps: present,
+    onCloseClick: () => complete(onClose),
+    onDestroyStarted: () => complete(onClose),
+    onNextClick: () => {
+      // If a step opened a popup (e.g. the watchlist actions dropdown),
+      // close it before moving on so it doesn't linger over the next step —
+      // PrimeVue's Menu toggles closed on a second click of its own trigger.
+      if (document.querySelector('.p-menu')) {
+        document.querySelector('[data-tour="wl-actions-menu"] button')?.click()
+      }
+      if (d.isLastStep()) complete(onDone)
+      else d.moveNext()
+    },
+  })
+  d.drive()
+  return d
+}
+
+// Each phase runs independently, triggered when the user actually lands on
+// the page that phase covers — no forced navigation between pages. Only one
+// driver.js instance can be on screen at a time (e.g. on desktop, Dashboard
+// and Watchlist share one screen so both phases can become eligible in the
+// same tick), so a phase waits its turn instead of stomping another.
+function runPhaseOnce(phase, steps, {retryDelay = 400} = {}) {
+  if (runningPhases.has(phase)) return
+  if (runningPhases.size > 0) {
+    setTimeout(() => runPhaseOnce(phase, steps, {retryDelay}), retryDelay)
+    return
+  }
+  runningPhases.add(phase)
+  const started = runPhase(steps, {
+    onDone: () => finishPhase(phase),
+    onClose: () => finishPhase(phase),
+  })
+  // Nothing to show (anchors missing) → still mark seen so it doesn't retry every visit.
+  if (!started) finishPhase(phase)
+}
+
 export function useTour() {
-  const router = useRouter()
-  const desktopFocus = useDesktopFocusStore()
-
-  // Generic phase runner. Filters out steps whose anchor is missing (mobile vs
-  // desktop, empty watchlist). `onDone` fires when the user advances past the
-  // final step; `onClose` fires on the × button. Returns null if no anchors.
-  function runPhase(steps, {onDone, onClose}) {
-    const present = steps.filter((s) => document.querySelector(s.element))
-    if (!present.length) return null
-    let d
-    let handled = false
-    const complete = (callback) => {
-      if (handled) return
-      handled = true
-      d.destroy()
-      callback?.()
-    }
-    d = driver({
-      showProgress: true,
-      allowClose: true,
-      overlayColor: 'rgba(0, 0, 0, 0.75)',
-      nextBtnText: 'Next',
-      prevBtnText: 'Back',
-      doneBtnText: 'Got it',
-      popoverClass: 'stockfolio-tour',
-      steps: present,
-      onCloseClick: () => complete(onClose),
-      onDestroyStarted: () => complete(onClose),
-      onNextClick: () => {
-        // If a step opened a popup (e.g. the watchlist actions dropdown),
-        // close it before moving on so it doesn't linger over the next step —
-        // PrimeVue's Menu toggles closed on a second click of its own trigger.
-        if (document.querySelector('.p-menu')) {
-          document.querySelector('[data-tour="wl-actions-menu"] button')?.click()
-        }
-        if (d.isLastStep()) complete(onDone)
-        else d.moveNext()
-      },
-    })
-    d.drive()
-    return d
+  async function startNavPhase() {
+    await waitForElement('[data-tour="nav-dashboard"]', 7000)
+    runPhaseOnce('nav', navSteps())
   }
 
-  function isDesktopLayout() {
-    return window.matchMedia?.('(min-width: 1024px)').matches
-  }
-
-  async function openDashboardTicker() {
-    const el = document.querySelector('[data-tour="dash-mover"]')
-    const ticker = el?.dataset?.tourTicker
-    if (!ticker) return false
-    if (isDesktopLayout()) {
-      desktopFocus.focus(ticker)
-    } else {
-      await router.push(`/position/${encodeURIComponent(ticker)}`).catch(() => {})
-    }
-    const hasHeader = await waitForElement('[data-tour="pos-header"]', 5000)
-    if (!hasHeader) return false
+  async function startPositionPhase() {
+    await waitForElement('[data-tour="pos-header"]', 5000)
     await waitForElement('[data-tour="pos-chart"]', 7000)
-    return true
+    runPhaseOnce('position', positionSteps())
   }
 
-  async function runPositionPhase() {
-    const opened = await openDashboardTicker()
-    if (!opened) return runWatchlistPhase()
-    const started = runPhase(positionSteps(), {
-      onDone: runWatchlistPhase,
-      onClose: finishTour,
-    })
-    if (!started) runWatchlistPhase()
+  async function startWatchlistPhase() {
+    await waitForElement('[data-tour="wl-range"]', 5000)
+    runPhaseOnce('watchlist', watchlistSteps())
   }
 
-  // Final phase: highlight Watchlist UI. Assumes we're already (or now) on /watchlist.
-  async function runWatchlistPhase() {
-    if (router && router.currentRoute.value.path !== '/watchlist') {
-      await router.push('/watchlist').catch(() => {})
-    }
-    await waitForElement('[data-tour="wl-range"]')
-    const started = runPhase(watchlistSteps(), {
-      onDone: finishTour,
-      onClose: finishTour,
-    })
-    // Nothing to show (e.g. empty watchlist) → still acknowledge so we don't loop.
-    if (!started) finishTour()
+  // `?tour` (any value) forces every phase eligible on the current page to
+  // replay, bypassing the seen-flag gate — useful for previewing. `blocked`
+  // lets the caller suppress the auto-run (e.g. while What's New is open),
+  // but `?tour` always wins.
+  function maybeStartNavPhase({blocked = false} = {}) {
+    if (forcedParam()) { clearForcedParam(); localStorage.removeItem(SEEN_KEYS.nav); return startNavPhase() }
+    if (blocked || localStorage.getItem(SEEN_KEYS.nav)) return
+    startNavPhase()
   }
 
-  async function startTour() {
-    if (tourRunning) return
-    tourRunning = true
-    if (router && router.currentRoute.value.path !== '/') {
-      await router.push('/').catch(() => {})
-    }
-    // Defer so the current route's DOM (nav, dashboard) is painted first.
-    // The seen flag is set only at the end of phase 2 (or on × close), so the
-    // tour keeps reappearing until the user acknowledges it.
-    requestAnimationFrame(async () => {
-      await waitForElement('[data-tour="dash-mover"]', 7000)
-      const navStarted = runPhase(navSteps(), {
-        onDone: () => { runPositionPhase() },
-        onClose: finishTour,
-      })
-      // No nav anchors (unlikely) → try the watchlist phase directly.
-      if (!navStarted) runWatchlistPhase()
-      clearForcedParam()
-    })
+  function maybeStartPositionPhase() {
+    if (forcedParam()) { clearForcedParam(); localStorage.removeItem(SEEN_KEYS.position); return startPositionPhase() }
+    if (localStorage.getItem(SEEN_KEYS.position)) return
+    startPositionPhase()
   }
 
-  // Runs once for a user who hasn't seen the tour yet, or whenever `?tour` is set.
-  // `blocked` lets the caller suppress the auto-run (e.g. while the What's New
-  // modal is open) — but `?tour` always wins.
-  function maybeStartTour({blocked = false} = {}) {
-    if (forcedParam()) return startTour()
-    if (blocked || localStorage.getItem(SEEN_KEY)) return
-    startTour()
+  function maybeStartWatchlistPhase() {
+    if (forcedParam()) { clearForcedParam(); localStorage.removeItem(SEEN_KEYS.watchlist); return startWatchlistPhase() }
+    if (localStorage.getItem(SEEN_KEYS.watchlist)) return
+    startWatchlistPhase()
   }
 
   function resetTour() {
-    localStorage.removeItem(SEEN_KEY)
+    localStorage.removeItem(SEEN_KEYS.nav)
+    localStorage.removeItem(SEEN_KEYS.position)
+    localStorage.removeItem(SEEN_KEYS.watchlist)
   }
 
-  return {startTour, maybeStartTour, resetTour}
+  return {
+    startNavPhase,
+    startPositionPhase,
+    startWatchlistPhase,
+    maybeStartNavPhase,
+    maybeStartPositionPhase,
+    maybeStartWatchlistPhase,
+    resetTour,
+  }
 }

@@ -12,17 +12,17 @@ import {ref} from 'vue'
 
 const {isDesktop} = useBreakpoint()
 const {checkForUpdates, visible: whatsNewVisible} = useWhatsNew()
-const {maybeStartTour} = useTour()
+const {maybeStartNavPhase} = useTour()
 const showAccount = ref(false)
 
 onMounted(() => {
   checkForUpdates()
   // Auto-tour defers to the What's New modal, but ?tour always forces it.
-  maybeStartTour({blocked: whatsNewVisible.value})
+  maybeStartNavPhase({blocked: whatsNewVisible.value})
 })
 
 watch(whatsNewVisible, (visible, wasVisible) => {
-  if (!visible && wasVisible) maybeStartTour()
+  if (!visible && wasVisible) maybeStartNavPhase()
 })
 </script>
 

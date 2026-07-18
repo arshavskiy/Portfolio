@@ -11,6 +11,7 @@ import {useAlertsStore} from '@/stores/alerts'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, isRegularSessionBar, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
+import {useTour} from '@/composables/useTour'
 // Momentum disabled for now — see useMomentumScore.js
 // import {buildBreakdown, signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
 // import {useMomentumStore} from '@/stores/momentum'
@@ -39,6 +40,7 @@ const historyStore = useHistoryStore()
 const watchlistStore = useWatchlistStore()
 const alertsStore = useAlertsStore()
 const {t} = useI18n()
+const {maybeStartPositionPhase} = useTour()
 
 const ticker = computed(() =>
     props.tickerOverride
@@ -107,6 +109,7 @@ onMounted(async () => {
   if (!feeStore.profiles.length) await feeStore.fetchProfiles()
   await loadPositionData()
   startAutoRefresh()
+  maybeStartPositionPhase()
 })
 onUnmounted(() => clearInterval(refreshTimer))
 

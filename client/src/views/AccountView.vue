@@ -23,13 +23,13 @@ const {locale, t} = useI18n()
 const {isDesktop} = useBreakpoint()
 const { canInstall, installed, isIos, promptInstall } = usePwaInstall()
 const { isFullscreen, supported: fsSupported, toggle: toggleFullscreen } = useFullscreen()
-const {startTour, resetTour} = useTour()
+const {startNavPhase, resetTour} = useTour()
 
 function goAlerts() { router.push(isDesktop.value ? '/history-alerts' : '/alerts') }
 function goTransactions() { router.push(isDesktop.value ? '/history-alerts' : '/transactions') }
 function replayTour() {
   resetTour()
-  startTour()
+  router.push('/').then(() => startNavPhase())
 }
 
 async function install() {

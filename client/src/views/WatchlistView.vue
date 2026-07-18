@@ -12,6 +12,7 @@ import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import {exportWatchlistCsv} from '@/composables/useImport'
 import {trackEvent} from '@/composables/useAnalytics'
+import {useTour} from '@/composables/useTour'
 import Button from 'primevue/button'
 import Menu from 'primevue/menu'
 import AddWatchlistModal from '@/components/ui/AddWatchlistModal.vue'
@@ -35,6 +36,7 @@ const {isDesktop} = useBreakpoint()
 const desktopFocus = useDesktopFocusStore()
 const range = useChartRange()
 const {t} = useI18n()
+const {maybeStartWatchlistPhase} = useTour()
 const showModal = ref(false)
 const showImportModal = ref(false)
 const showTxModal = ref(false)
@@ -273,6 +275,7 @@ onMounted(() => {
   watchlist.fetchWatchlist(range.value).finally(() => {
     restoreScrollPosition().catch(() => {
     })
+    maybeStartWatchlistPhase()
   })
   marketTimer = setInterval(() => {
     now.value = new Date()
