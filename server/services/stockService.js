@@ -47,6 +47,23 @@ async function withRetry(fn, { maxAttempts = 3, base = 1000 } = {}) {
   throw lastErr
 }
 
+// Runs `fn` over `items` with at most `limit` in flight at once. Large
+// watchlists (100+ tickers) firing every history fetch via Promise.all floods
+// Yahoo with concurrent connections and ends up slower overall than a capped
+// queue, since most of them just get throttled/queued anyway.
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length)
+  let next = 0
+  async function worker() {
+    while (next < items.length) {
+      const i = next++
+      results[i] = await fn(items[i], i)
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
+  return results
+}
+
 // Persist the last good quote to MongoDB so cold starts and 429 errors can
 // serve stale data. Fire-and-forget — never blocks the quote response.
 function persistQuoteSnapshot(ticker, data) {
@@ -469,11 +486,30 @@ async function getQuotes(tickers) {
   })
 }
 
+// In-flight promise per ticker+range — callers that arrive while a fetch is
+// already running await the same promise instead of firing a duplicate Yahoo
+// request (matters when a watchlist with 100+ tickers cold-misses at once).
+const historyInflight = new Map()
+
 async function getHistory(ticker, range = '3mo', points = null) {
   const key = historyCacheKey(ticker, range)
   const cached = historyCache.get(key)
   if (cached && Date.now() - cached.ts < historyCacheTtl(range)) return downsample(cached.data, points)
 
+  const inflight = historyInflight.get(key)
+  if (inflight) return inflight.then((full) => downsample(full, points))
+
+  const promise = fetchHistoryFresh(ticker, range, key, cached)
+  historyInflight.set(key, promise)
+  try {
+    const full = await promise
+    return downsample(full, points)
+  } finally {
+    historyInflight.delete(key)
+  }
+}
+
+async function fetchHistoryFresh(ticker, range, key, cached) {
   const fmt = (d) => d.toISOString().split('T')[0]
   const endDate = new Date()
   const startDate = new Date()
@@ -502,7 +538,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
       }))
     const full = selectIntradayRows(rows, ticker)
     historyCache.set(key, { data: full, ts: Date.now() })
-    return downsample(full, points)
+    return full
   }
 
   const f = taFactor(ticker)
@@ -526,7 +562,7 @@ async function getHistory(ticker, range = '3mo', points = null) {
         volume: r.volume,
       }))
     historyCache.set(key, { data: full, ts: Date.now() })
-    return downsample(full, points)
+    return full
   }
 
   // 'max' fetches the ticker's entire available history (no day cap) — used
@@ -556,9 +592,9 @@ async function getHistory(ticker, range = '3mo', points = null) {
         volume: r.volume,
       }))
   historyCache.set(key, { data: full, ts: Date.now() })
-  return downsample(full, points)
+  return full
   } catch (error) {
-    if (cached?.data) return downsample(cached.data, points)
+    if (cached?.data) return cached.data
     throw error
   }
 }
@@ -1224,6 +1260,7 @@ module.exports = {
   getQuote,
   getQuotes,
   getHistory,
+  mapWithConcurrency,
   isHistoryCached,
   searchTicker,
   getTickerProfile,

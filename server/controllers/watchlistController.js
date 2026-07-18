@@ -1,6 +1,11 @@
 const Watchlist = require('../models/Watchlist')
 const Position = require('../models/Position')
-const {getQuotes, getHistory, getTickerProfile} = require('../services/stockService')
+const {getQuotes, getHistory, getTickerProfile, mapWithConcurrency} = require('../services/stockService')
+
+// Yahoo's chart() endpoint is the slowest call we make per-ticker (intraday
+// especially); firing 100+ of them via Promise.all floods the connection
+// pool and ends up throttled anyway, so cap how many run at once.
+const HISTORY_CONCURRENCY = 12
 
 function normalizeGroups(groups) {
   if (!Array.isArray(groups)) return []
@@ -62,7 +67,7 @@ exports.getWatchlist = async (req, res) => {
     const tickers = items.map((i) => i.ticker)
       const [quotes, histories] = await Promise.all([
           getQuotes(tickers),
-          Promise.all(tickers.map((t) => getHistory(t, range, detailPoints).catch(() => []))),
+          mapWithConcurrency(tickers, HISTORY_CONCURRENCY, (t) => getHistory(t, range, detailPoints).catch(() => [])),
       ])
     const quoteMap = {}
     quotes.forEach((q) => { if (q) quoteMap[q.ticker] = q })
