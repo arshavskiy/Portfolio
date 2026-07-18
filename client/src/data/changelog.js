@@ -10,6 +10,7 @@ export const changelog = [
       "The guided tour no longer jumps you between pages — each part now plays on its own when you visit that page for the first time.",
       "Dashboard now shows your stats and watchlist movers immediately instead of waiting on markets, trending, and chart data to finish loading first.",
       "Pro and above can now customize their AI daily summary with a personal instruction, editable in Account settings.",
+      "Watchlist loads noticeably faster for large watchlists — quote history no longer fires one request per ticker all at once.",
     ],
   },
   {
