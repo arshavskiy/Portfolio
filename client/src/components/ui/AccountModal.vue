@@ -15,6 +15,7 @@ import {useI18n} from '@/composables/useI18n'
 import {ref} from 'vue'
 import TransactionsView from '@/views/TransactionsView.vue'
 import AlertsView from '@/views/AlertsView.vue'
+import ToggleSwitch from 'primevue/toggleswitch'
 
 const visible = defineModel('visible', {type: Boolean, default: false})
 
@@ -30,6 +31,10 @@ const {locale, t} = useI18n()
 const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFullscreen()
 const {canInstall, installed, isIos, promptInstall} = usePwaInstall()
 const {startTour, resetTour} = useTour()
+const aiSummaryEnabled = computed({
+  get: () => auth.user?.aiDailySummaryEnabled !== false,
+  set: (value) => { auth.updatePreferences({aiDailySummaryEnabled: value}).catch(() => {}) },
+})
 
 function replayTour() {
   visible.value = false
@@ -192,6 +197,11 @@ function logout() {
             <span>{{ t('common.language') }}</span>
             <LanguageSelect/>
             <i class="pi pi-chevron-right text-muted"/>
+          </div>
+          <div class="menu-item">
+            <i class="pi pi-sparkles menu-icon"/>
+            <span>{{ t('account.aiDailySummary') }}</span>
+            <ToggleSwitch v-model="aiSummaryEnabled"/>
           </div>
         </div>
       </div>

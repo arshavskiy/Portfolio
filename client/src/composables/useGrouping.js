@@ -317,8 +317,7 @@ export const GROUP_MODES = [
     {label: 'Market', value: 'market'},
     {label: 'Change', value: 'change'},
     {label: 'Pre/Post', value: 'extended'},
-    {label: '▲', value: 'momentum', title: 'Sort by momentum signal'},
-    {label: 'Dividends', value: 'dividend'},
+    {label: 'Div', value: 'dividend'},
     {label: 'Industry', value: 'industry'},
-    {label: 'Groups', value: 'group'},
+    {label: 'Grp', value: 'group'},
 ]

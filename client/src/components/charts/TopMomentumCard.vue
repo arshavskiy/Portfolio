@@ -15,8 +15,8 @@ const {openPosition} = useNavigateToPosition()
 const momentumStore = useMomentumStore()
 const {t} = useI18n()
 
-// Eagerly compute + publish scores for all items so dashboard doesn't need WatchRow.
-useListMomentumScores(toRef(props, 'items'))
+// Momentum disabled for now — see useMomentumScore.js
+// useListMomentumScores(toRef(props, 'items'))
 
 function scoreOf(item) {
   void momentumStore.scores

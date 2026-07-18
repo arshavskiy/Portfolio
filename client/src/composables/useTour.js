@@ -152,7 +152,7 @@ function watchlistSteps() {
       element: '[data-tour="wl-row-identity"]',
       popover: {
         title: 'Ticker and signals',
-        description: 'The ticker is followed by quick signals: active alerts, momentum score, earnings countdowns, and dividend markers when data is available.',
+        description: 'The ticker is followed by quick signals: active alerts, earnings countdowns, and dividend markers when data is available.',
       },
     },
     {

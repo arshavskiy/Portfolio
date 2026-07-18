@@ -57,6 +57,15 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
   }
-    
-    return {token, user, isAuthenticated, login, register, loginWithGoogle, loginWithMagicLink, logout, fetchMe}
+
+  async function updatePreferences(prefs) {
+    const data = await api.put('/auth/me/preferences', prefs)
+    if (data?.user) {
+      user.value = data.user
+      localStorage.setItem('user', JSON.stringify(data.user))
+    }
+    return user.value
+  }
+
+    return {token, user, isAuthenticated, login, register, loginWithGoogle, loginWithMagicLink, logout, fetchMe, updatePreferences}
 })

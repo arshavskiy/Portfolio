@@ -9,23 +9,12 @@ const {t} = useI18n()
 // model === 'change', 'pre', or 'post'; clicking the already-active chip again
 // flips it (next click toggles direction instead of needing a double-click).
 const changeDirection = defineModel('changeDirection', {type: String, default: 'down'})
-const directionalModes = new Set(['change', 'pre', 'post', 'extended', 'momentum'])
+const directionalModes = new Set(['change', 'pre', 'post', 'extended'])
 const validModes = new Set(GROUP_MODES.map((opt) => opt.value))
-const MODE_ICONS = {
-  market: 'pi pi-globe',
-  change: 'pi pi-chart-line',
-  extended: 'pi pi-clock',
-  momentum: 'pi pi-bolt',
-  dividend: 'pi pi-percentage',
-  industry: 'pi pi-building',
-  group: 'pi pi-tags',
-}
-
 const MODE_EXPLANATIONS = {
   market: 'grouping.market',
   change: 'grouping.todayChange',
   extended: 'grouping.extended',
-  momentum: 'grouping.momentum',
   dividend: 'grouping.dividend',
   industry: 'grouping.industry',
   group: 'grouping.tags',
@@ -52,7 +41,7 @@ function onTap(value) {
     changeDirection.value = changeDirection.value === 'down' ? 'up' : 'down'
     return
   }
-  // Reset direction to default when switching modes so momentum always starts bullish-first
+  // Reset direction to default when switching modes so it always starts bullish-first
   if (value !== model.value) changeDirection.value = 'down'
   model.value = value
 }
@@ -62,10 +51,6 @@ function labelFor(opt) {
   return opt.title || (directionalModes.has(opt.value) ? t('grouping.clickAgain', {label}) : t('grouping.groupByLabel', {label}))
 }
 
-function iconFor(opt) {
-  if (opt.value === 'momentum' && model.value === opt.value && changeDirection.value === 'up') return 'pi pi-bolt'
-  return MODE_ICONS[opt.value] || 'pi pi-circle'
-}
 </script>
 
 <template>
@@ -76,7 +61,6 @@ function iconFor(opt) {
       class="group-btn"
       :class="{
         active: model === opt.value,
-        'btn-momentum': opt.value === 'momentum',
         'btn-directional-bull': directionalModes.has(opt.value) && model === opt.value && changeDirection === 'down',
         'btn-directional-bear': directionalModes.has(opt.value) && model === opt.value && changeDirection === 'up',
       }"
@@ -84,7 +68,7 @@ function iconFor(opt) {
       :aria-label="labelFor(opt)"
       @click="onTap(opt.value)"
     >
-      <i :class="iconFor(opt)" class="mode-icon"/>
+      <span class="mode-label">{{ opt.label }}</span>
       <i
           v-if="directionalModes.has(opt.value) && model === opt.value"
         :class="changeDirection === 'up' ? 'pi pi-arrow-down' : 'pi pi-arrow-up'"
@@ -97,7 +81,7 @@ function iconFor(opt) {
 <style scoped>
 .group-bar {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 2px;
   width: 100%;
   min-width: 0;
@@ -119,7 +103,7 @@ function iconFor(opt) {
   color: var(--text-secondary);
   border-radius: 6px;
   height: 28px;
-  padding: 0;
+  padding: 0 2px;
   font-size: 0.75rem;
   font-weight: 700;
   cursor: pointer;
@@ -135,9 +119,12 @@ function iconFor(opt) {
   color: #fff;
 }
 
-.mode-icon {
-  font-size: 0.82rem;
+.mode-label {
+  font-size: 0.62rem;
   line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .change-dir-icon {
@@ -146,10 +133,6 @@ function iconFor(opt) {
   bottom: 2px;
   font-size: 0.44rem;
   line-height: 1;
-}
-
-.btn-momentum {
-  color: #00c36a;
 }
 
 .btn-directional-bull.active {

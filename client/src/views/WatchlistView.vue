@@ -98,17 +98,6 @@ const heldCount = computed(() => {
 
 const headerActions = computed(() => [
   {
-    key: 'held-filter',
-    visible: heldCount.value > 0,
-    icon: 'pi pi-briefcase',
-    label: heldOnly.value ? t('watchlist.showAll') : t('watchlist.showHoldingsOnly'),
-    dataTour: 'wl-held-filter',
-    buttonClass: 'held-filter-btn',
-    onClick: () => {
-      heldOnly.value = !heldOnly.value
-    },
-  },
-  {
     key: 'rebalance',
     visible: portfolio.positions.length > 0,
     icon: 'pi pi-sliders-h',
@@ -351,6 +340,28 @@ function groupLabel(group) {
           </div>
         </div>
         <div class="header-actions" data-tour="wl-actions">
+          <span v-if="heldCount > 0 && isDesktop" class="tour-action-anchor" data-tour="wl-held-filter">
+            <Button
+                v-tooltip.bottom="heldOnly ? t('watchlist.showAll') : t('watchlist.showHoldingsOnly')"
+                :class="['held-filter-btn', {active: heldOnly}]"
+                icon="pi pi-briefcase"
+                size="small"
+                text
+                @click="heldOnly = !heldOnly"
+            />
+          </span>
+          <Teleport v-if="heldCount > 0 && !isDesktop" to="#page-actions-slot">
+            <span class="tour-action-anchor mobile-held-filter" data-tour="wl-held-filter">
+              <Button
+                  aria-haspopup="false"
+                  :class="['held-filter-btn', {active: heldOnly}]"
+                  icon="pi pi-briefcase"
+                  rounded
+                  text
+                  @click="heldOnly = !heldOnly"
+              />
+            </span>
+          </Teleport>
           <WatchlistActionsMenu :actions="headerActions"/>
           <Menu ref="importMenu" :model="importMenuItems" popup/>
         </div>
@@ -498,6 +509,33 @@ header {
 
 .held-filter-btn :deep(.pi-briefcase) {
   color: #fbbf24;
+}
+
+.held-filter-btn.active {
+  background: color-mix(in srgb, #fbbf24 18%, transparent);
+  border-radius: 8px;
+}
+
+.held-filter-btn.active :deep(.pi-briefcase) {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+}
+
+.mobile-held-filter {
+  order: -1;
+}
+
+.mobile-held-filter :deep(.p-button) {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg-card) 85%, transparent);
+}
+
+.mobile-held-filter :deep(.p-button.active) {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: color-mix(in srgb, #fbbf24 18%, var(--bg-card));
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
 }
 
 .market-header {

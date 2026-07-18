@@ -11,8 +11,9 @@ import {useAlertsStore} from '@/stores/alerts'
 import api from '@/composables/useApi'
 import {fetchCachedQuote} from '@/composables/useQuoteCache'
 import {getMarketHoursState, isRegularSessionBar, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
-import {buildBreakdown, signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
-import {useMomentumStore} from '@/stores/momentum'
+// Momentum disabled for now — see useMomentumScore.js
+// import {buildBreakdown, signalFromScore, useListMomentumScores} from '@/composables/useMomentumScore'
+// import {useMomentumStore} from '@/stores/momentum'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InputNumber from 'primevue/inputnumber'
@@ -967,31 +968,32 @@ function startAutoRefresh() {
   }, 60000)
 }
 
-// ── Momentum score ────────────────────────────────────────────────────────────
-const momentumStore = useMomentumStore()
-const watchedItemList = computed(() => watchedItem.value ? [watchedItem.value] : [])
-useListMomentumScores(watchedItemList)
-
-const momentumScore = computed(() => {
-  void momentumStore.scores
-  return momentumStore.getScore(ticker.value)
-})
-const momentumSignal = computed(() => momentumScore.value != null ? signalFromScore(momentumScore.value) : null)
+// ── Momentum score ── disabled for now, see useMomentumScore.js ───────────────
+// const momentumStore = useMomentumStore()
+// const watchedItemList = computed(() => watchedItem.value ? [watchedItem.value] : [])
+// useListMomentumScores(watchedItemList)
+//
+// const momentumScore = computed(() => {
+//   void momentumStore.scores
+//   return momentumStore.getScore(ticker.value)
+// })
+// const momentumSignal = computed(() => momentumScore.value != null ? signalFromScore(momentumScore.value) : null)
 
 const extPctForBreakdown = computed(() => {
   const q = quote.value
   if (!q) return null
   return q.preMarketChangePercent ?? q.postMarketChangePercent ?? q.lastPreMarketChangePercent ?? q.lastPostMarketChangePercent ?? null
 })
-const momentumBreakdown = computed(() => buildBreakdown({
-  dayPct: quote.value?.changePercent ?? null,
-  extPct: extPctForBreakdown.value,
-  hist: history.value,
-  price: quote.value?.price ?? null,
-  volume: quote.value?.volume ?? null,
-  avgVolume: quote.value?.avgVolume ?? null,
-  wave: 0,
-}))
+// const momentumBreakdown = computed(() => buildBreakdown({
+//   dayPct: quote.value?.changePercent ?? null,
+//   extPct: extPctForBreakdown.value,
+//   hist: history.value,
+//   price: quote.value?.price ?? null,
+//   volume: quote.value?.volume ?? null,
+//   avgVolume: quote.value?.avgVolume ?? null,
+//   wave: 0,
+// }))
+const momentumBreakdown = computed(() => [])
 
 async function toggleWatchlist() {
   if (watchedItem.value) {
@@ -1028,6 +1030,7 @@ async function toggleWatchlist() {
       <div class="header-info">
         <div class="header-title-row">
           <h1 class="gradient-title">{{ ticker }}</h1>
+          <!-- Momentum badge disabled for now
           <span
               v-if="momentumSignal"
               :class="momentumSignal.cls"
@@ -1036,6 +1039,7 @@ async function toggleWatchlist() {
           >{{ momentumSignal.icon }}<span class="momentum-score">({{ momentumScore > 0 ? '+' : '' }}{{
               momentumScore
             }})</span></span>
+          -->
         </div>
         <span class="text-muted">{{ companyName || headerSubtitle }}</span>
       </div>

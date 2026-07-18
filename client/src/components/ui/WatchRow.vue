@@ -2,7 +2,7 @@
 import {computed, toRef, useAttrs} from 'vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
 import {useAlertsStore} from '@/stores/alerts'
-import {useItemMomentum} from '@/composables/useMomentumScore'
+// import {useItemMomentum} from '@/composables/useMomentumScore'
 import {useI18n} from '@/composables/useI18n'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 
@@ -120,7 +120,8 @@ const hasVisibleExtended = computed(() =>
 // ── Signal / momentum ────────────────────────────────────────────────────────
 
 const extPercentRef = computed(() => activeExtended.value?.percent ?? null)
-const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'), extPercentRef)
+// Momentum signal disabled for now — see useMomentumScore.js
+// const {combinedScore, signal, tooltipText} = useItemMomentum(toRef(props, 'item'), extPercentRef)
 
 // ── Earnings proximity badge ─────────────────────────────────────────────────
 // Days until the next reported earnings date, shown only within a week.
@@ -176,9 +177,11 @@ const dividendTitle = computed(() => {
           <i class="pi pi-bell"/>
           <span v-if="activeAlerts > 1" class="alert-count">{{ activeAlerts }}</span>
         </span>
+        <!-- Momentum signal disabled for now
         <span :class="signal.cls" :title="tooltipText" class="signal-badge">
           {{ signal.icon }}<span class="signal-score">({{ combinedScore > 0 ? '+' : '' }}{{ combinedScore }})</span>
         </span>
+        -->
         <span
             v-if="earningsInDays != null"
             :data-tour="exposeTourAnchors ? 'wl-row-earnings' : null"
@@ -281,6 +284,12 @@ const dividendTitle = computed(() => {
   display: flex;
   flex-direction: column;
   flex: 0 0 150px;
+}
+
+@media (max-width: 360px) {
+  .row-left {
+    flex: 0 0 90px;
+  }
 }
 
 .ticker {

@@ -2,6 +2,7 @@
 import {computed, defineAsyncComponent, onMounted, onUnmounted} from 'vue'
 import {storeToRefs} from 'pinia'
 import {useDashboardStore} from '@/stores/dashboard'
+import {useAuthStore} from '@/stores/auth'
 import PortfolioStatsCard from '@/components/ui/PortfolioStatsCard.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import {gainLossClass, usePercent} from '@/composables/useFormat'
@@ -14,11 +15,13 @@ const PortfolioCompareChart = defineAsyncComponent(() => import('@/components/ch
 const MarketsCard           = defineAsyncComponent(() => import('@/components/charts/MarketsCard.vue'))
 const TrendingCard          = defineAsyncComponent(() => import('@/components/charts/TrendingCard.vue'))
 const WatchlistMoversCard   = defineAsyncComponent(() => import('@/components/charts/WatchlistMoversCard.vue'))
-const TopMomentumCard       = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
+// const TopMomentumCard       = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
 const DividendCalendarCard  = defineAsyncComponent(() => import('@/components/charts/DividendCalendarCard.vue'))
 
 const dashboard = useDashboardStore()
+const auth = useAuthStore()
 const {t} = useI18n()
+const aiSummaryEnabled = computed(() => auth.user?.aiDailySummaryEnabled !== false)
 const {
   ready,
   groupedPositions,
@@ -86,13 +89,15 @@ onUnmounted(() => {
     <PortfolioStatsCard />
 
     <!-- AI-generated daily summary: holdings, watchlist, markets -->
-    <DailySummaryCard />
+    <DailySummaryCard v-if="aiSummaryEnabled" />
 
     <!-- Global markets overview -->
     <MarketsCard />
 
     <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
+    <!-- Momentum disabled for now
     <TopMomentumCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
+    -->
 
     <!-- Allocation + movers, unified -->
     <BreakdownCard :combined-usd="portfolioCombinedUsd" :positions="portfolioPositions"/>

@@ -4,6 +4,7 @@ import {storeToRefs} from 'pinia'
 import {useStorage} from '@vueuse/core'
 import {useRouter} from 'vue-router'
 import {useDashboardStore} from '@/stores/dashboard'
+import {useAuthStore} from '@/stores/auth'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useAlertsStore} from '@/stores/alerts'
 import {useChartRange} from '@/composables/useChartRange'
@@ -29,13 +30,15 @@ const PortfolioHistoryChart = defineAsyncComponent(() => import('@/components/ch
 const PortfolioCompareChart = defineAsyncComponent(() => import('@/components/charts/PortfolioCompareChart.vue'))
 const MarketsCard = defineAsyncComponent(() => import('@/components/charts/MarketsCard.vue'))
 const WatchlistMoversCard = defineAsyncComponent(() => import('@/components/charts/WatchlistMoversCard.vue'))
-const TopMomentumCard = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
+// const TopMomentumCard = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
 const TrendingCard = defineAsyncComponent(() => import('@/components/charts/TrendingCard.vue'))
 const DividendCalendarCard = defineAsyncComponent(() => import('@/components/charts/DividendCalendarCard.vue'))
 
 // ── Dashboard store ──
 const dashboard = useDashboardStore()
+const auth = useAuthStore()
 const {t} = useI18n()
+const aiSummaryEnabled = computed(() => auth.user?.aiDailySummaryEnabled !== false)
 const {
   ready,
   portfolioPositions,
@@ -232,10 +235,12 @@ watch(defaultFocusItem, focusDefaultTicker, {immediate: true})
       </div>
 
       <template v-else>
-        <DailySummaryCard/>
+        <DailySummaryCard v-if="aiSummaryEnabled"/>
         <MarketsCard/>
         <WatchlistMoversCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
+        <!-- Momentum disabled for now
         <TopMomentumCard :items="watchlistMoversItems" :loading="watchlistMoversLoading"/>
+        -->
         <BreakdownCard :combined-usd="portfolioCombinedUsd" :positions="portfolioPositions"/>
         <TrendingCard v-if="showTrending"/>
 

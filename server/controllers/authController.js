@@ -78,6 +78,23 @@ exports.me = async (req, res) => {
   res.json({ user: req.user })
 }
 
+exports.updatePreferences = async (req, res) => {
+  try {
+    const {aiDailySummaryEnabled} = req.body
+    if (typeof aiDailySummaryEnabled !== 'boolean')
+      return res.status(400).json({message: 'aiDailySummaryEnabled must be a boolean'})
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {aiDailySummaryEnabled},
+      {new: true}
+    )
+    res.json({user})
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
 exports.google = async (req, res) => {
   try {
     const { credential } = req.body

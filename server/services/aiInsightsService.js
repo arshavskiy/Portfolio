@@ -545,7 +545,6 @@ async function askAboutPortfolio(userId, question) {
         console.error('[ai-ask] upstream OpenAI failure:', cause.status, cause.message)
         const err = new Error('AI Q&A upstream request failed')
         err.status = 502
-        await AiChatMessage.create({user: userId, role: 'error', text: err.message})
         throw err
     }
 
@@ -553,7 +552,6 @@ async function askAboutPortfolio(userId, question) {
     if (!answer) {
         const err = new Error('AI Q&A returned an empty response')
         err.status = 502
-        await AiChatMessage.create({user: userId, role: 'error', text: err.message})
         throw err
     }
 
