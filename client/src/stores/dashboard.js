@@ -131,15 +131,23 @@ export const useDashboardStore = defineStore('dashboard', () => {
       initialized = true
     }
 
+    // Above-the-fold cards (stats, watchlist movers, breakdown) only need the
+    // portfolio + watchlist quotes — flip `ready` as soon as those land instead
+    // of waiting on sparklines/portfolio-history/markets/trending too, since
+    // those each render their own skeleton/loading state independently.
     await Promise.all([
       portfolio.fetchPortfolio(),
       fetchDashboardWatchlist(),
-      marketDataStore.fetchMarkets('US').catch(() => {}),
-      marketDataStore.fetchTrending('US').catch(() => {}),
     ])
-    await Promise.all([fetchSparklines(), fetchHistory()])
     startClock()
     ready.value = true
+
+    Promise.all([
+      marketDataStore.fetchMarkets('US').catch(() => {}),
+      marketDataStore.fetchTrending('US').catch(() => {}),
+      fetchSparklines(),
+      fetchHistory(),
+    ]).catch(() => {})
   }
 
   return {
