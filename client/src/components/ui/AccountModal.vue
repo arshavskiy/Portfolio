@@ -1,5 +1,5 @@
 <script setup>
-import {computed} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import {usePortfolioStore} from '@/stores/portfolio'
@@ -12,10 +12,10 @@ import Button from 'primevue/button'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 import {useI18n} from '@/composables/useI18n'
-import {ref} from 'vue'
 import TransactionsView from '@/views/TransactionsView.vue'
 import AlertsView from '@/views/AlertsView.vue'
 import ToggleSwitch from 'primevue/toggleswitch'
+import Textarea from 'primevue/textarea'
 
 const visible = defineModel('visible', {type: Boolean, default: false})
 
@@ -35,6 +35,24 @@ const aiSummaryEnabled = computed({
   get: () => auth.user?.aiDailySummaryEnabled !== false,
   set: (value) => { auth.updatePreferences({aiDailySummaryEnabled: value}).catch(() => {}) },
 })
+
+const canCustomizePrompt = computed(() => ['pro', 'max', 'admin'].includes(userType.value))
+const customPromptDraft = ref(auth.user?.aiDailySummaryCustomPrompt || '')
+const customPromptSaving = ref(false)
+watch(() => auth.user?.aiDailySummaryCustomPrompt, (value) => {
+  customPromptDraft.value = value || ''
+})
+async function saveCustomPrompt() {
+  if (customPromptDraft.value === (auth.user?.aiDailySummaryCustomPrompt || '')) return
+  customPromptSaving.value = true
+  try {
+    await auth.updatePreferences({aiDailySummaryCustomPrompt: customPromptDraft.value})
+  } catch {
+    toast.add({severity: 'error', summary: t('account.customPromptSaveFailed'), life: 3000})
+  } finally {
+    customPromptSaving.value = false
+  }
+}
 
 function replayTour() {
   visible.value = false
@@ -203,6 +221,24 @@ function logout() {
             <span>{{ t('account.aiDailySummary') }}</span>
             <ToggleSwitch v-model="aiSummaryEnabled"/>
           </div>
+        </div>
+
+        <div v-if="canCustomizePrompt" class="custom-prompt-card">
+          <label class="custom-prompt-label" for="custom-prompt">
+            <i class="pi pi-pencil menu-icon"/>
+            {{ t('account.customPrompt') }}
+          </label>
+          <Textarea
+              id="custom-prompt"
+              v-model="customPromptDraft"
+              :placeholder="t('account.customPromptPlaceholder')"
+              autoResize
+              class="custom-prompt-input"
+              maxlength="500"
+              rows="2"
+              @blur="saveCustomPrompt"
+          />
+          <span class="custom-prompt-hint text-muted">{{ t('account.customPromptHint') }}</span>
         </div>
       </div>
 
@@ -399,6 +435,34 @@ function logout() {
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 1.25rem;
+}
+
+.custom-prompt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.custom-prompt-label {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.custom-prompt-input {
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.custom-prompt-hint {
+  font-size: 0.7rem;
 }
 
 .menu-item {

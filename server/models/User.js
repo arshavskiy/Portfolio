@@ -40,6 +40,7 @@ const userSchema = new mongoose.Schema(
       demoSeedVersion: {type: Number, default: 0},
       demoSeededAt: {type: Date},
       aiDailySummaryEnabled: {type: Boolean, default: true},
+      aiDailySummaryCustomPrompt: {type: String, default: '', maxlength: 500},
   },
   { timestamps: true }
 )

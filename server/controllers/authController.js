@@ -78,17 +78,32 @@ exports.me = async (req, res) => {
   res.json({ user: req.user })
 }
 
+const PROMPT_CUSTOM_USER_TYPES = ['pro', 'max', 'admin']
+const AI_DAILY_SUMMARY_CUSTOM_PROMPT_MAX_LENGTH = 500
+
 exports.updatePreferences = async (req, res) => {
   try {
-    const {aiDailySummaryEnabled} = req.body
-    if (typeof aiDailySummaryEnabled !== 'boolean')
-      return res.status(400).json({message: 'aiDailySummaryEnabled must be a boolean'})
+    const {aiDailySummaryEnabled, aiDailySummaryCustomPrompt} = req.body
+    const update = {}
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      {aiDailySummaryEnabled},
-      {new: true}
-    )
+    if (aiDailySummaryEnabled !== undefined) {
+      if (typeof aiDailySummaryEnabled !== 'boolean')
+        return res.status(400).json({message: 'aiDailySummaryEnabled must be a boolean'})
+      update.aiDailySummaryEnabled = aiDailySummaryEnabled
+    }
+
+    if (aiDailySummaryCustomPrompt !== undefined) {
+      if (typeof aiDailySummaryCustomPrompt !== 'string')
+        return res.status(400).json({message: 'aiDailySummaryCustomPrompt must be a string'})
+      if (!PROMPT_CUSTOM_USER_TYPES.includes(req.user.userType))
+        return res.status(403).json({message: 'Custom daily prompt is available on Pro and above'})
+      update.aiDailySummaryCustomPrompt = aiDailySummaryCustomPrompt.trim().slice(0, AI_DAILY_SUMMARY_CUSTOM_PROMPT_MAX_LENGTH)
+    }
+
+    if (!Object.keys(update).length)
+      return res.status(400).json({message: 'No valid preferences provided'})
+
+    const user = await User.findByIdAndUpdate(req.user._id, update, {new: true})
     res.json({user})
   } catch (err) {
     res.status(500).json({message: err.message})

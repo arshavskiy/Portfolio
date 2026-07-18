@@ -16,6 +16,7 @@ const QUESTION_MAX_LENGTH = 500
 const MAX_TOOL_ROUNDS = 4
 const VALID_RANGES = ['1mo', '3mo', '6mo', '1y', '5y', 'max']
 const UNLIMITED_USER_TYPES = new Set(['pro', 'max', 'admin', 'plan'])
+const CUSTOM_PROMPT_USER_TYPES = new Set(['pro', 'max', 'admin'])
 
 function round(value, digits = 2) {
     if (value == null || !Number.isFinite(value)) return null
@@ -593,6 +594,10 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
         ? ' Write the summary in Russian.'
         : ' Write the summary in English.'
 
+    const customPromptInstruction = CUSTOM_PROMPT_USER_TYPES.has(user.userType) && user.aiDailySummaryCustomPrompt
+        ? ` Additional instruction from the user, follow it as long as it doesn't conflict with the above: ${user.aiDailySummaryCustomPrompt}`
+        : ''
+
     const messages = [
         {
             role: 'system',
@@ -601,7 +606,7 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
                 'anything notable on their watchlist today, and how the main markets performed today. ' +
                 'Use the context provided. Be concise and specific with numbers. You are not a licensed ' +
                 'financial advisor — do not give personalized investment recommendations, describe what the data shows.' +
-                languageInstruction,
+                languageInstruction + customPromptInstruction,
         },
         {role: 'user', content: contextText + newsText + marketsText},
     ]
