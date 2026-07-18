@@ -2,6 +2,14 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.18',
+    date: 'Jul 18, 2026',
+    title: 'Updates',
+    changes: [
+      "Watchlist held-filter now sits as its own icon next to the actions menu on mobile; group/sort tabs use text labels instead of icons; the AI Daily Summary card can be toggled off in Account settings.",
+    ],
+  },
+  {
     version: '2026.07.17',
     date: 'Jul 17, 2026',
     title: 'AI daily summary and a cleaner Insights page',
