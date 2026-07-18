@@ -8,6 +8,7 @@ export const changelog = [
     changes: [
       "Watchlist held-filter now sits as its own icon next to the actions menu on mobile; group/sort tabs use text labels instead of icons; the AI Daily Summary card can be toggled off in Account settings.",
       "The guided tour no longer jumps you between pages — each part now plays on its own when you visit that page for the first time.",
+      "Dashboard now shows your stats and watchlist movers immediately instead of waiting on markets, trending, and chart data to finish loading first.",
     ],
   },
   {
