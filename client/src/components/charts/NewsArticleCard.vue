@@ -45,7 +45,6 @@ function fmtDate(value) {
 <style scoped>
 .article-card {
   position: relative;
-  min-height: 150px;
   overflow: hidden;
   background: var(--bg-card);
   border: 1px solid var(--border);
