@@ -13,6 +13,8 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 import Button from 'primevue/button'
 import {useI18n} from '@/composables/useI18n'
 import Tag from 'primevue/tag'
+import TickerInsightCard from '@/components/charts/TickerInsightCard.vue'
+import TickerRelationGraph from '@/components/charts/TickerRelationGraph.vue'
 
 const props = defineProps({
   ticker: {type: String, default: null},
@@ -271,6 +273,12 @@ function formatVol(v) {
         </div>
       </div>
 
+      <!-- News-driven ticker insights (stockfolio-insights microservice) -->
+      <div class="desktop-insight-wrap">
+        <TickerInsightCard :ticker="ticker" />
+        <TickerRelationGraph :ticker="ticker" />
+      </div>
+
       <!-- Link to full page -->
       <div class="full-page-link">
         <Button
@@ -418,6 +426,16 @@ function formatVol(v) {
 .signals {
   margin: 0.75rem 1rem 0;
   flex-shrink: 0;
+}
+
+/* News-driven insights */
+.desktop-insight-wrap {
+  margin: 0 1rem;
+  flex-shrink: 0;
+}
+.desktop-insight-wrap :deep(.insight-card),
+.desktop-insight-wrap :deep(.relation-card) {
+  margin: 0.75rem 0 0;
 }
 .signal-tag { font-size: 0.65rem; padding: 1px 6px; }
 .signal-chips {
