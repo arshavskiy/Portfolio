@@ -25,6 +25,8 @@ import DividendModal from '@/components/ui/DividendModal.vue'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 import StockChart from '@/components/charts/StockChart.vue'
+import TickerInsightCard from '@/components/charts/TickerInsightCard.vue'
+import TickerRelationGraph from '@/components/charts/TickerRelationGraph.vue'
 import RangeBar from '@/components/ui/RangeBar.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
@@ -254,8 +256,8 @@ async function loadFx() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    const pointsMap = {'1d': 160, '5d': 160, '1mo': 100}
-    const points = pointsMap[selectedRange.value] ?? 50
+    const pointsMap = {'1d': 160, '5d': 160, '1mo': 160}
+    const points = pointsMap[selectedRange.value] ?? 160
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
     toast.add({severity: 'error', summary: t('stockDetail.failedLoadChart'), detail: err.message, life: 3000})
@@ -1626,6 +1628,10 @@ async function toggleWatchlist() {
           />
         </div>
       </div>
+
+      <!-- News-driven ticker insights (stockfolio-insights microservice) -->
+      <TickerInsightCard :ticker="ticker"/>
+      <TickerRelationGraph :ticker="ticker"/>
 
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">

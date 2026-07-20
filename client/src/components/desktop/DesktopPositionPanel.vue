@@ -45,7 +45,7 @@ async function load(ticker, range) {
   loading.value = true
   chartLoading.value = true
   try {
-    const pointsMap = {'1d': 160, '5d': 100, '1mo': 60}
+    const pointsMap = {'1d': 160, '5d': 160, '1mo': 160}
     const points = pointsMap[range] ?? 50
     const [hist, q] = await Promise.all([
       historyStore.fetchHistory(ticker, range, points),

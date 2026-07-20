@@ -199,7 +199,7 @@ async function loadFx() {
 async function loadHistory() {
   chartLoading.value = true
   try {
-    const points = selectedRange.value === '1d' ? 160 : 50
+    const points = selectedRange.value === '1d' ? 160 : 160
     history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
   } catch (err) {
     toast.add({severity: 'error', summary: t('stockDetail.failedLoadChart'), detail: err.message, life: 3000})

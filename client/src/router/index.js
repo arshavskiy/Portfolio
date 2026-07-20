@@ -24,6 +24,12 @@ const routes = [
         },
       { path: 'watchlist', name: 'Watchlist', component: () => import('@/views/WatchlistView.vue'), meta: { requiresAuth: true } },
       {
+        path: 'typology-map',
+        name: 'TypologyMap',
+        component: () => import('@/views/TypologyMapView.vue'),
+        meta: {requiresAuth: true}
+      },
+      {
         path: 'insights',
         name: 'Insights',
         component: () => import('@/views/InsightsView.vue'),

@@ -2,6 +2,16 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.20',
+    date: 'Jul 20, 2026',
+    title: 'News-driven ticker insights',
+    changes: [
+      "Position pages now show a Ticker Insight card: sentiment momentum, typology tags, earnings beat rate, analyst trend, insider activity, and upcoming earnings/macro events — sourced from live news coverage, with info icons explaining each stat.",
+      "New Related Tickers graph on the Position page — an interactive map of tickers that show up together in the same news story (competitor, supplier, or sector-move signal), colored by sentiment.",
+      "New Watchlist Map (from the Watchlist page actions menu) — a grouped view of your whole watchlist by style, market cap, volatility, or industry.",
+    ],
+  },
+  {
     version: '2026.07.18',
     date: 'Jul 18, 2026',
     title: 'Updates',
