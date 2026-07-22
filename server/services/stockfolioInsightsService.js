@@ -260,6 +260,53 @@ async function getInsiderSnapshots(tickers) {
     return result
 }
 
+// Bulk, lightweight lookup for the Watchlist grid — net margin % only
+// (NetIncomeLoss / Revenues, latest annual FinancialFact), normalized so it's
+// comparable across any company size, same spirit as insiderValuePctOf()
+// sizing insider shares against market cap on the client. Same cache/shape
+// convention as getInsiderSnapshots above.
+const fundamentalsCache = new Map()
+
+async function getFundamentalsSnapshots(tickers) {
+    const keys = [...new Set((tickers || []).map((t) => String(t).toUpperCase()))]
+    const now = Date.now()
+    const result = {}
+    const missing = []
+
+    for (const key of keys) {
+        const hit = fundamentalsCache.get(key)
+        if (hit && now - hit.at < CACHE_TTL) result[key] = hit.body
+        else missing.push(key)
+    }
+    if (!missing.length) return result
+
+    const rows = await FinancialFact.find({
+        ticker: {$in: missing},
+        concept: {$in: ['Revenues', 'NetIncomeLoss']},
+        fiscalPeriodType: 'annual',
+    }).lean()
+
+    const byTicker = new Map()
+    for (const r of rows) {
+        if (!byTicker.has(r.ticker)) byTicker.set(r.ticker, {})
+        byTicker.get(r.ticker)[r.concept] = r
+    }
+
+    for (const key of missing) {
+        const facts = byTicker.get(key)
+        const revenue = facts?.Revenues?.value
+        const netIncome = facts?.NetIncomeLoss?.value
+        const netMarginPct = revenue ? (netIncome / revenue) * 100 : null
+        const body = {
+            netMarginPct,
+            period: facts?.Revenues?.period ?? null,
+        }
+        fundamentalsCache.set(key, {at: now, body})
+        result[key] = body
+    }
+    return result
+}
+
 // Paginated ticker news for the Position page's news list — same Article
 // source as getEnrichment's inline `headlines` (5, 7d window), but with a
 // wider lookback and real pagination for "load more". Not cached: paging
@@ -291,4 +338,4 @@ async function getTickerNews(ticker, {page = 1, limit = 10, days = 90} = {}) {
     }
 }
 
-module.exports = {getEnrichment, getTypologyMap, getRelatedTickers, getInsiderSnapshots, getTickerNews, getMacroSnapshot}
+module.exports = {getEnrichment, getTypologyMap, getRelatedTickers, getInsiderSnapshots, getTickerNews, getMacroSnapshot, getFundamentalsSnapshots}

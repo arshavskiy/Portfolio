@@ -1,7 +1,7 @@
 const Watchlist = require('../models/Watchlist')
 const Position = require('../models/Position')
 const {getQuotes, getHistory, getTickerProfile, mapWithConcurrency} = require('../services/stockService')
-const {getInsiderSnapshots} = require('../services/stockfolioInsightsService')
+const {getInsiderSnapshots, getFundamentalsSnapshots} = require('../services/stockfolioInsightsService')
 
 // Yahoo's chart() endpoint is the slowest call we make per-ticker (intraday
 // especially); firing 100+ of them via Promise.all floods the connection
@@ -66,10 +66,11 @@ exports.getWatchlist = async (req, res) => {
     if (!items.length) return res.json([])
 
     const tickers = items.map((i) => i.ticker)
-      const [quotes, histories, insiderMap] = await Promise.all([
+      const [quotes, histories, insiderMap, fundamentalsMap] = await Promise.all([
           getQuotes(tickers),
           mapWithConcurrency(tickers, HISTORY_CONCURRENCY, (t) => getHistory(t, range, detailPoints).catch(() => [])),
           getInsiderSnapshots(tickers).catch(() => ({})),
+          getFundamentalsSnapshots(tickers).catch(() => ({})),
       ])
     const quoteMap = {}
     quotes.forEach((q) => { if (q) quoteMap[q.ticker] = q })
@@ -83,6 +84,7 @@ exports.getWatchlist = async (req, res) => {
       history: historyMap[item.ticker] || [],
       insiderNet3m: insiderMap[item.ticker.toUpperCase()]?.insiderNet3m ?? null,
       insiderSignal: insiderMap[item.ticker.toUpperCase()]?.insiderSignal ?? null,
+      netMarginPct: fundamentalsMap[item.ticker.toUpperCase()]?.netMarginPct ?? null,
     }))
 
     res.json(enriched)

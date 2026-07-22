@@ -199,6 +199,20 @@ const insiderTitle = computed(() => {
   }
   return t('watchlist.insiderTooltip', {direction, shares})
 })
+
+const netMargin = computed(() => {
+  const n = Number(props.item.netMarginPct)
+  return Number.isFinite(n) ? n : null
+})
+const netMarginBadgeText = computed(() => {
+  if (netMargin.value == null) return null
+  const abs = Math.abs(netMargin.value)
+  return `${abs >= 10 ? abs.toFixed(0) : abs.toFixed(1)}%`
+})
+const netMarginTitle = computed(() => {
+  if (netMargin.value == null) return ''
+  return t('watchlist.netMarginTooltip', {pct: `${netMargin.value.toFixed(1)}%`})
+})
 </script>
 
 <template>
@@ -240,6 +254,14 @@ const insiderTitle = computed(() => {
             class="insider-badge">
           <i :class="insiderNet > 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"/>
           {{ insiderBadgeText }}
+        </span>
+        <span
+            v-if="netMargin != null"
+            :class="netMargin > 0 ? 'margin-positive' : 'margin-negative'"
+            :title="netMarginTitle"
+            class="fundamentals-badge">
+          <i class="pi pi-chart-line"/>
+          {{ netMarginBadgeText }}
         </span>
       </span>
       <span :data-tour="exposeTourAnchors ? 'wl-row-company' : null" class="company text-muted">{{ item.companyName }}</span>
@@ -422,6 +444,33 @@ const insiderTitle = computed(() => {
 }
 
 .insider-badge.insider-sell {
+  background: rgba(255, 51, 102, 0.12);
+  color: var(--neon-red, #ff3366);
+}
+
+.fundamentals-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  vertical-align: middle;
+  line-height: 1.4;
+  margin-left: 4px;
+}
+
+.fundamentals-badge i {
+  font-size: 0.6rem;
+}
+
+.fundamentals-badge.margin-positive {
+  background: rgba(0, 255, 136, 0.12);
+  color: var(--neon-green, #00ff88);
+}
+
+.fundamentals-badge.margin-negative {
   background: rgba(255, 51, 102, 0.12);
   color: var(--neon-red, #ff3366);
 }

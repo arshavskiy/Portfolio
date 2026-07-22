@@ -107,6 +107,11 @@ const fundamentalsRows = computed(() => {
     {key: 'revenue', label: t('tickerInsight.revenue'), fact: pick('Revenues'), format: formatUsd},
     {key: 'netIncome', label: t('tickerInsight.netIncome'), fact: pick('NetIncomeLoss'), format: formatUsd},
     {key: 'eps', label: t('tickerInsight.eps'), fact: pick('EarningsPerShareDiluted'), format: (v) => `$${v.toFixed(2)}`},
+    {key: 'assets', label: t('tickerInsight.assets'), fact: pick('Assets'), format: formatUsd},
+    {key: 'liabilities', label: t('tickerInsight.liabilities'), fact: pick('Liabilities'), format: formatUsd},
+    {key: 'equity', label: t('tickerInsight.equity'), fact: pick('StockholdersEquity'), format: formatUsd},
+    {key: 'operatingCashFlow', label: t('tickerInsight.operatingCashFlow'), fact: pick('NetCashProvidedByUsedInOperatingActivities'), format: formatUsd},
+    {key: 'longTermDebt', label: t('tickerInsight.longTermDebt'), fact: pick('LongTermDebtNoncurrent'), format: formatUsd},
   ]
   return rows.filter((r) => r.fact?.value != null)
 })
