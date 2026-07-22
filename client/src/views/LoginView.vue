@@ -191,6 +191,11 @@ const features = computed(() => [
     title: t('login.features.dailySummaryTitle'),
     text: t('login.features.dailySummaryText')
   },
+  {
+    icon: 'pi pi-compass',
+    title: t('login.features.tickerInsightTitle'),
+    text: t('login.features.tickerInsightText')
+  },
 ])
 
 async function submit() {

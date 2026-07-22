@@ -2,6 +2,19 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.22',
+    date: 'Jul 22, 2026',
+    title: 'Insider activity on the Watchlist, and news accuracy fixes',
+    changes: [
+      "New Insider grouping mode on the Watchlist — sort by insider buying or selling, sized against each company's market cap so a small-cap's trade isn't dwarfed by a mega-cap's on the same list.",
+      "Fixed Position page headlines showing a title with no summary text underneath.",
+      "Combined the two separate news lists on the Position page into one, with load-more.",
+      "Fixed the Related Tickers and Watchlist Map empty states showing as plain unstyled text.",
+      "Fixed the Position page's Month chart looking sparse — it now shows real hourly detail instead of just ~20 daily candles.",
+      "Improved news-tagging accuracy so a ticker's sentiment and headlines no longer pick up unrelated companies' stories.",
+    ],
+  },
+  {
     version: '2026.07.20',
     date: 'Jul 20, 2026',
     title: 'News-driven ticker insights',
