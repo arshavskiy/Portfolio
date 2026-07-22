@@ -120,6 +120,9 @@ export const messages = {
         dailySummaryTitle: "AI Daily Summary",
         dailySummaryText:
           "A fresh AI recap of your holdings, watchlist, and the main markets waiting for you every day.",
+        tickerInsightTitle: "News-Driven Ticker Insight",
+        tickerInsightText:
+          "Sentiment and typology tags, insider buying/selling, earnings beat rate, and a market map showing which tickers move together in the news — all sourced live, never a trading signal.",
       },
       slides: {
         portfolio: "Portfolio",
@@ -732,6 +735,22 @@ export const messages = {
       pendingAnalysis: "Sentiment analysis pending for recent articles",
       disclaimer:
         "Insight aggregation, not investment advice. Momentum reflects sentiment velocity, not a trading signal.",
+      fundamentals: "Fundamentals",
+      fundamentalsInfo:
+        "Latest reported annual and quarterly figures from SEC filings (XBRL). Not a historical trend — most recent filed values only.",
+      revenue: "Revenue",
+      netIncome: "Net income",
+      eps: "EPS (diluted)",
+      annual: "annual",
+      quarterly: "qtr",
+      macroContext: "Macro context",
+      macroContextInfo:
+        "Latest published Federal Reserve economic data (FRED) — fed funds rate, inflation, unemployment, 10-year Treasury yield. Not ticker-specific.",
+      fedFunds: "Fed funds rate",
+      cpiYoy: "CPI (YoY)",
+      corePceYoy: "Core PCE (YoY)",
+      unemployment: "Unemployment",
+      treasury10y: "10Y Treasury",
     },
     typologyMap: {
       title: "Watchlist Map",
@@ -1164,6 +1183,9 @@ export const messages = {
         dailySummaryTitle: "AI-сводка дня",
         dailySummaryText:
           "Свежая AI-сводка по вашим позициям, списку наблюдения и основным рынкам каждый день.",
+        tickerInsightTitle: "Аналитика тикера на основе новостей",
+        tickerInsightText:
+          "Тональность и типология тегов, покупки/продажи инсайдеров, доля превышений прогноза прибыли и карта тикеров, которые упоминаются вместе в новостях — всё на основе реальных данных, никогда не торговый сигнал.",
       },
       slides: {
         portfolio: "Портфель",
@@ -1781,6 +1803,22 @@ export const messages = {
       pendingAnalysis: "Анализ тональности недавних статей ещё не выполнен",
       disclaimer:
         "Агрегация инсайтов, не является инвестиционной рекомендацией. Моментум отражает скорость изменения тональности, а не торговый сигнал.",
+      fundamentals: "Фундаментальные показатели",
+      fundamentalsInfo:
+        "Последние отчётные годовые и квартальные показатели из отчётности SEC (XBRL). Не историческая динамика — только последние поданные значения.",
+      revenue: "Выручка",
+      netIncome: "Чистая прибыль",
+      eps: "EPS (разводн.)",
+      annual: "год",
+      quarterly: "кв.",
+      macroContext: "Макроконтекст",
+      macroContextInfo:
+        "Последние опубликованные макроэкономические данные ФРС (FRED) — ставка ФРС, инфляция, безработица, доходность 10-летних облигаций. Не привязано к конкретному тикеру.",
+      fedFunds: "Ставка ФРС",
+      cpiYoy: "ИПЦ (г/г)",
+      corePceYoy: "Базовый PCE (г/г)",
+      unemployment: "Безработица",
+      treasury10y: "10-летние облигации",
     },
     typologyMap: {
       title: "Карта тикеров",

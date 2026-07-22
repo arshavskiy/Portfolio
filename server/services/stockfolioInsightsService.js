@@ -11,8 +11,10 @@ const {
     AnalystTrend,
     ShortInterest,
     MacroEvent,
+    MacroDataPoint,
     PriceStat,
     TickerTypology,
+    FinancialFact,
 } = require('../models/insightsModels')
 
 const CACHE_TTL = 5 * 60 * 1000 // 5 minutes — matches the upstream service's own TTL
@@ -25,7 +27,7 @@ async function getEnrichment(ticker) {
     
     const since7d = new Date(Date.now() - 7 * 86_400_000)
     
-    const [series, articles, nextEvent, recentEvents, ownership, surprises, recTrends, shortInt, nextMacro, priceStats, typo] = await Promise.all([
+    const [series, articles, nextEvent, recentEvents, ownership, surprises, recTrends, shortInt, nextMacro, priceStats, typo, financials] = await Promise.all([
         TickerInsight.find({ticker: key}).sort({date: 1}).limit(14).lean(),
         Article.find({tickers: key, analyzed: true, publishedAt: {$gte: since7d}})
             .sort({publishedAt: -1})
@@ -42,14 +44,25 @@ async function getEnrichment(ticker) {
         MacroEvent.findOne({date: {$gte: new Date()}, impact: 'high'}).sort({date: 1}).lean(),
         PriceStat.find({ticker: key}).sort({date: -1}).limit(30).lean(),
         TickerTypology.findOne({ticker: key}).select('tags primaryIndustry marketCapClass style volatilityClass').lean(),
+        FinancialFact.find({ticker: key}).lean(),
     ])
     
     const latestPrice = priceStats[0] ?? null
-    
+
     const beats = surprises.filter((s) => (s.surprisePct ?? 0) > 0).length
     const bullish = (t) => (t?.strongBuy || 0) + (t?.buy || 0)
     const analystDelta = recTrends.length >= 2 ? bullish(recTrends[0]) - bullish(recTrends[1]) : null
-    
+
+    // FinancialFact stores only the latest annual + latest quarterly doc per
+    // concept (see xbrlFacts.js upstream, no historical series) — reshape
+    // into {concept: {annual, quarterly}}. No YoY/growth figures are derived
+    // here since there's no prior-period fact to diff against yet.
+    const fundamentals = {}
+    for (const f of financials) {
+        if (!fundamentals[f.concept]) fundamentals[f.concept] = {annual: null, quarterly: null}
+        fundamentals[f.concept][f.fiscalPeriodType] = {period: f.period, value: f.value, unit: f.unit, filed: f.filed}
+    }
+
     const latest = series.at(-1)
     const body = {
         ticker: key,
@@ -75,6 +88,7 @@ async function getEnrichment(ticker) {
                 : null,
         },
         typology: typo ?? null,
+        fundamentals,
         priceSeries: priceStats.slice().reverse().map((p) => ({
             date: p.date, close: p.close, volume: p.volume, volumeRatio: p.volumeRatio,
         })),
@@ -93,6 +107,31 @@ async function getEnrichment(ticker) {
     }
     
     cache.set(key, {at: Date.now(), body})
+    return body
+}
+
+// Macro readings are global (not per-ticker) and update at most monthly
+// upstream (FRED cadence) — one cached snapshot serves every caller.
+const MACRO_CACHE_TTL = 60 * 60 * 1000 // 1 hour
+let macroCache = null
+
+async function getMacroSnapshot() {
+    if (macroCache && Date.now() - macroCache.at < MACRO_CACHE_TTL) return macroCache.body
+
+    const rows = await MacroDataPoint.find({}).sort({date: -1}).lean()
+    const latestBySeries = new Map()
+    for (const r of rows) {
+        if (!latestBySeries.has(r.series)) latestBySeries.set(r.series, r)
+    }
+
+    const body = {
+        generatedAt: new Date().toISOString(),
+        series: Object.fromEntries(
+            [...latestBySeries.entries()].map(([series, r]) => [series, {date: r.date, value: r.value, unit: r.unit}])
+        ),
+    }
+
+    macroCache = {at: Date.now(), body}
     return body
 }
 
@@ -252,4 +291,4 @@ async function getTickerNews(ticker, {page = 1, limit = 10, days = 90} = {}) {
     }
 }
 
-module.exports = {getEnrichment, getTypologyMap, getRelatedTickers, getInsiderSnapshots, getTickerNews}
+module.exports = {getEnrichment, getTypologyMap, getRelatedTickers, getInsiderSnapshots, getTickerNews, getMacroSnapshot}

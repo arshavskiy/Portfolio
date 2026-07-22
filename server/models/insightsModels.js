@@ -119,6 +119,31 @@ const MacroEvent = insightsConn.model(
     })
 )
 
+const MacroDataPoint = insightsConn.model(
+    'MacroDataPoint',
+    new Schema({
+        series: String,
+        date: String,
+        value: Number,
+        unit: String,
+        source: String,
+    })
+)
+
+const FinancialFact = insightsConn.model(
+    'FinancialFact',
+    new Schema({
+        ticker: String,
+        concept: String,
+        period: String,
+        fiscalPeriodType: String,
+        value: Number,
+        unit: String,
+        filed: Date,
+        source: String,
+    })
+)
+
 const PriceStat = insightsConn.model(
     'PriceStat',
     new Schema({
@@ -163,6 +188,8 @@ module.exports = {
     AnalystTrend,
     ShortInterest,
     MacroEvent,
+    MacroDataPoint,
     PriceStat,
     TickerTypology,
+    FinancialFact,
 }

@@ -19,6 +19,16 @@ function formatShareCount(n) {
   return `${abs}`
 }
 
+function formatUsd(n) {
+  if (n == null) return null
+  const abs = Math.abs(n)
+  const sign = n < 0 ? '-' : ''
+  if (abs >= 1e9) return `${sign}$${(abs / 1e9).toFixed(1)}B`
+  if (abs >= 1e6) return `${sign}$${(abs / 1e6).toFixed(1)}M`
+  if (abs >= 1e3) return `${sign}$${(abs / 1e3).toFixed(1)}K`
+  return `${sign}$${abs}`
+}
+
 const data = ref(null)
 const loading = ref(false)
 const error = ref('')
@@ -80,6 +90,42 @@ const nextMacroText = computed(() => {
   return {label: macro.label, detail: formatEventDate(macro.date)}
 })
 
+const fundamentalsRows = computed(() => {
+  const f = data.value?.fundamentals
+  if (!f) return []
+  const pick = (concept) => f[concept]?.annual ?? f[concept]?.quarterly ?? null
+  const rows = [
+    {key: 'revenue', label: t('tickerInsight.revenue'), fact: pick('Revenues'), format: formatUsd},
+    {key: 'netIncome', label: t('tickerInsight.netIncome'), fact: pick('NetIncomeLoss'), format: formatUsd},
+    {key: 'eps', label: t('tickerInsight.eps'), fact: pick('EarningsPerShareDiluted'), format: (v) => `$${v.toFixed(2)}`},
+  ]
+  return rows.filter((r) => r.fact?.value != null)
+})
+
+const macroSnapshot = ref(null)
+
+const macroRows = computed(() => {
+  const series = macroSnapshot.value?.series
+  if (!series) return []
+  const rows = [
+    {key: 'fedFunds', label: t('tickerInsight.fedFunds'), point: series.FEDFUNDS, format: (v) => `${v.toFixed(2)}%`},
+    {key: 'cpiYoy', label: t('tickerInsight.cpiYoy'), point: series.CPIAUCSL, format: (v) => `${v.toFixed(1)}%`},
+    {key: 'corePceYoy', label: t('tickerInsight.corePceYoy'), point: series.PCEPILFE, format: (v) => `${v.toFixed(1)}%`},
+    {key: 'unemployment', label: t('tickerInsight.unemployment'), point: series.UNRATE, format: (v) => `${v.toFixed(1)}%`},
+    {key: 'treasury10y', label: t('tickerInsight.treasury10y'), point: series.DGS10, format: (v) => `${v.toFixed(2)}%`},
+  ]
+  return rows.filter((r) => r.point?.value != null)
+})
+
+async function loadMacroSnapshot() {
+  if (macroSnapshot.value) return // global, not ticker-specific — fetch once per component lifetime
+  try {
+    macroSnapshot.value = await api.get('/enrich/macro-snapshot')
+  } catch {
+    macroSnapshot.value = null
+  }
+}
+
 function formatEventDate(value) {
   if (!value) return ''
   const dt = new Date(value)
@@ -135,6 +181,8 @@ const INFO = computed(() => ({
   analystTrend: t('tickerInsight.analystTrendInfo'),
   insiderActivity: t('tickerInsight.insiderActivityInfo'),
   daysToCover: t('tickerInsight.daysToCoverInfo'),
+  fundamentals: t('tickerInsight.fundamentalsInfo'),
+  macroContext: t('tickerInsight.macroContextInfo'),
 }))
 
 async function load() {
@@ -159,7 +207,10 @@ function openArticle(article) {
   window.open(article.url, '_blank', 'noopener,noreferrer')
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  loadMacroSnapshot()
+})
 watch(() => props.ticker, load)
 </script>
 
@@ -240,6 +291,29 @@ watch(() => props.ticker, load)
         <span class="upcoming-text">{{ nextMacroText.label }} <span class="text-muted">· {{
             nextMacroText.detail
           }}</span></span>
+      </div>
+    </div>
+
+    <div v-if="fundamentalsRows.length" class="fundamentals-block">
+      <span class="text-muted stat-label-info fundamentals-title">{{ t('tickerInsight.fundamentals') }}
+        <i v-tooltip.focus.top="INFO.fundamentals" class="pi pi-info-circle info-icon" tabindex="0"/></span>
+      <div class="fundamentals-row">
+        <div v-for="row in fundamentalsRows" :key="row.key" class="fundamentals-cell">
+          <span class="text-muted sub">{{ row.label }}</span>
+          <span class="fundamentals-value">{{ row.format(row.fact.value) }}</span>
+          <span class="text-muted fundamentals-period">{{ row.fact.period }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="macroRows.length" class="macro-strip">
+      <span class="text-muted stat-label-info macro-strip-title">{{ t('tickerInsight.macroContext') }}
+        <i v-tooltip.focus.top="INFO.macroContext" class="pi pi-info-circle info-icon" tabindex="0"/></span>
+      <div class="macro-strip-row">
+        <div v-for="row in macroRows" :key="row.key" class="macro-strip-cell">
+          <span class="text-muted sub">{{ row.label }}</span>
+          <span class="macro-strip-value">{{ row.format(row.point.value) }}</span>
+        </div>
       </div>
     </div>
 
@@ -462,6 +536,50 @@ watch(() => props.ticker, load)
 
 .upcoming-text {
   font-size: 0.82rem;
+}
+
+.fundamentals-block,
+.macro-strip {
+  padding: 0.6rem 0.95rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.fundamentals-title,
+.macro-strip-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-bottom: 0.45rem;
+}
+
+.fundamentals-row,
+.macro-strip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.fundamentals-cell,
+.macro-strip-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 4.5rem;
+}
+
+.fundamentals-cell .sub,
+.macro-strip-cell .sub {
+  font-size: 0.68rem;
+}
+
+.fundamentals-value,
+.macro-strip-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.fundamentals-period {
+  font-size: 0.65rem;
 }
 
 .insight-headlines {
