@@ -182,4 +182,74 @@ async function getRelatedTickers(ticker, days = 30, limit = 12) {
     }
 }
 
-module.exports = {getEnrichment, getTypologyMap, getRelatedTickers}
+// Bulk, lightweight lookup for the Watchlist grid — insider net-buy/sell only,
+// no full /enrich payload per row. 5-min TTL matches getEnrichment (upstream
+// worker:calendar recomputes OwnershipSnapshot once/day, so this is generous).
+const insiderCache = new Map()
+
+async function getInsiderSnapshots(tickers) {
+    const keys = [...new Set((tickers || []).map((t) => String(t).toUpperCase()))]
+    const now = Date.now()
+    const result = {}
+    const missing = []
+
+    for (const key of keys) {
+        const hit = insiderCache.get(key)
+        if (hit && now - hit.at < CACHE_TTL) result[key] = hit.body
+        else missing.push(key)
+    }
+    if (!missing.length) return result
+
+    const rows = await OwnershipSnapshot.aggregate([
+        {$match: {ticker: {$in: missing}}},
+        {$sort: {asOf: -1}},
+        {$group: {_id: '$ticker', insiderNet3m: {$first: '$insiderNet3m'}, insiderTxCount3m: {$first: '$insiderTxCount3m'}}},
+    ])
+
+    const byTicker = new Map(rows.map((r) => [r._id, r]))
+    for (const key of missing) {
+        const row = byTicker.get(key)
+        const insiderNet3m = row?.insiderNet3m ?? null
+        const body = {
+            insiderNet3m,
+            insiderTxCount3m: row?.insiderTxCount3m ?? null,
+            insiderSignal: insiderNet3m == null ? null : insiderNet3m > 0 ? 'buying' : insiderNet3m < 0 ? 'selling' : 'neutral',
+        }
+        insiderCache.set(key, {at: now, body})
+        result[key] = body
+    }
+    return result
+}
+
+// Paginated ticker news for the Position page's news list — same Article
+// source as getEnrichment's inline `headlines` (5, 7d window), but with a
+// wider lookback and real pagination for "load more". Not cached: paging
+// through offsets against a cache would need per-page cache entries for
+// little benefit — this collection only gets appended to (immutable once
+// analyzed), so a plain query is cheap and always fresh.
+async function getTickerNews(ticker, {page = 1, limit = 10, days = 90} = {}) {
+    const key = ticker.toUpperCase()
+    const pageNum = Math.max(1, Math.floor(Number(page) || 1))
+    const pageSize = Math.min(50, Math.max(1, Math.floor(Number(limit) || 10)))
+    const since = new Date(Date.now() - days * 86_400_000)
+
+    const filter = {tickers: key, analyzed: true, publishedAt: {$gte: since}}
+    const [articles, total] = await Promise.all([
+        Article.find(filter)
+            .sort({publishedAt: -1})
+            .skip((pageNum - 1) * pageSize)
+            .limit(pageSize)
+            .select('headline url publishedAt sentiment themes llmSummary source')
+            .lean(),
+        Article.countDocuments(filter),
+    ])
+
+    return {
+        ticker: key,
+        page: pageNum,
+        articles,
+        hasMore: pageNum * pageSize < total,
+    }
+}
+
+module.exports = {getEnrichment, getTypologyMap, getRelatedTickers, getInsiderSnapshots, getTickerNews}

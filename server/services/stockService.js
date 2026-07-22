@@ -565,9 +565,35 @@ async function fetchHistoryFresh(ticker, range, key, cached) {
     return full
   }
 
+  // 1mo: hourly bars, not daily — ~21 trading days of daily closes reads as
+  // sparse/thin on the chart (weekday clusters separated by weekend gaps).
+  // Hourly gives ~150 points, matching what clients actually request via
+  // ?points=160, and downsample() only trims when there's more than asked for.
+  if (range === '1mo') {
+    startDate.setDate(startDate.getDate() - 30)
+    const result = await yahooFinance.chart(ticker, {
+      period1: fmt(startDate),
+      period2: fmt(new Date(endDate.getTime() + 86400000)),
+      interval: '1h',
+    })
+    const quotes = result?.quotes || []
+    const full = quotes
+      .filter((r) => r && r.close != null)
+      .map((r) => ({
+        date: r.date,
+        open: r.open / f,
+        high: r.high / f,
+        low: r.low / f,
+        close: r.close / f,
+        volume: r.volume,
+      }))
+    historyCache.set(key, { data: full, ts: Date.now() })
+    return full
+  }
+
   // 'max' fetches the ticker's entire available history (no day cap) — used
   // for the portfolio's "All" range so it isn't clipped to a fixed window.
-  const rangeMap = { '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365, '5y': 365 * 5 }
+  const rangeMap = { '3mo': 90, '6mo': 180, '1y': 365, '5y': 365 * 5 }
   const days = range === 'max' ? null : (rangeMap[range] || 90)
   if (days) startDate.setDate(startDate.getDate() - days)
   else startDate.setFullYear(startDate.getFullYear() - 50) // effectively "since listing"

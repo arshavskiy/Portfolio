@@ -4,6 +4,7 @@ import Tag from 'primevue/tag'
 import api from '@/composables/useApi'
 import {useI18n} from '@/composables/useI18n'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
+import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
   ticker: {type: String, required: true},
@@ -86,16 +87,46 @@ function formatEventDate(value) {
   return dt.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})
 }
 
-const headlines = computed(() =>
-    (data.value?.headlines || []).map((h) => ({
-      title: h.headline,
-      url: h.url,
-      publishedAt: h.publishedAt,
-    }))
-)
+function mapHeadline(h) {
+  return {
+    title: h.headline,
+    summary: h.llmSummary,
+    url: h.url,
+    publishedAt: h.publishedAt,
+    symbols: [props.ticker],
+  }
+}
+
+const newsArticles = ref([])
+const newsPage = ref(1)
+const newsHasMore = ref(false)
+const newsLoadingMore = ref(false)
+const headlines = computed(() => newsArticles.value.map(mapHeadline))
 
 const hasAnySentimentData = computed(() => data.value?.summary?.sentiment != null || data.value?.summary?.momentum != null)
 const analyzedArticleCount = computed(() => data.value?.summary?.articleCount7d ?? 0)
+
+async function loadNews({loadMore = false} = {}) {
+  if (loadMore) newsLoadingMore.value = true
+  const page = loadMore ? newsPage.value + 1 : 1
+  try {
+    const result = await api.get(`/enrich/news/${encodeURIComponent(props.ticker)}?page=${page}&limit=10`)
+    const articles = Array.isArray(result?.articles) ? result.articles : []
+    newsArticles.value = loadMore ? [...newsArticles.value, ...articles] : articles
+    newsPage.value = page
+    newsHasMore.value = Boolean(result?.hasMore)
+  } catch {
+    if (!loadMore) newsArticles.value = []
+    newsHasMore.value = false
+  } finally {
+    newsLoadingMore.value = false
+  }
+}
+
+function loadMoreNews() {
+  if (newsLoadingMore.value || !newsHasMore.value) return
+  loadNews({loadMore: true})
+}
 
 const INFO = computed(() => ({
   card: t('tickerInsight.cardInfo'),
@@ -109,6 +140,9 @@ const INFO = computed(() => ({
 async function load() {
   loading.value = true
   error.value = ''
+  newsArticles.value = []
+  newsPage.value = 1
+  newsHasMore.value = false
   try {
     data.value = await api.get(`/enrich/${encodeURIComponent(props.ticker)}`)
   } catch (err) {
@@ -117,6 +151,7 @@ async function load() {
   } finally {
     loading.value = false
   }
+  loadNews()
 }
 
 function openArticle(article) {
@@ -210,6 +245,16 @@ watch(() => props.ticker, load)
 
     <div v-if="headlines.length" class="insight-headlines">
       <NewsArticleCard v-for="h in headlines" :key="h.url" :article="h" @open="openArticle"/>
+      <button
+          v-if="newsHasMore"
+          :disabled="newsLoadingMore"
+          class="news-load-more"
+          type="button"
+          @click="loadMoreNews"
+      >
+        <AppLoader v-if="newsLoadingMore"/>
+        <span v-else>{{ t('newsPage.loadMore') }}</span>
+      </button>
     </div>
     <p v-else-if="analyzedArticleCount === 0" class="pending-note text-muted">
       <i class="pi pi-clock"/> {{ t('tickerInsight.pendingAnalysis') }}
@@ -424,6 +469,33 @@ watch(() => props.ticker, load)
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.news-load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  margin-top: 0.25rem;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.news-load-more:hover:not(:disabled) {
+  color: var(--neon-blue);
+  border-color: var(--neon-blue);
+}
+
+.news-load-more:disabled {
+  cursor: not-allowed;
 }
 
 .pending-note {

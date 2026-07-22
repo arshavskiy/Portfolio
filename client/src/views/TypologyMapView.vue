@@ -223,6 +223,36 @@ watch(activeGroup, load)
   gap: 0.5rem;
 }
 
+.empty-state.inline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+}
+
+.empty-state.inline > .pi {
+  font-size: 2rem;
+  opacity: 0.3;
+  margin-bottom: 0.25rem;
+}
+
+.empty-state.inline p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.empty-state.inline span {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  max-width: 280px;
+}
+
 .treemap {
   display: flex;
   flex-direction: column;

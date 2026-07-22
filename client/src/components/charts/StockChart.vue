@@ -494,24 +494,28 @@ function draw() {
       .attr('stroke-width', 1)
   }
 
-  // Bar width on the index scale: use the median pixel gap between consecutive
-  // rendered bars, not one nominal time slot. Data points can sit several slots
-  // apart, so a one-slot width leaves big gaps; the consecutive gap fills them.
+  // Bar width: use the median pixel gap between consecutive rendered bars,
+  // not width / count. On a time scale, weekday clustering (weekend gaps)
+  // means the average gap (w / count) understates the real local spacing —
+  // bars end up thin and the chart reads as sparse even though every trading
+  // day in range is present. Same fix already applied to the index scale
+  // (data points can sit several slots apart there) — generalized here to
+  // any scale so every range benefits, not just 1d/5d.
   const slotPx = (() => {
-    if (!(useIndexScale && parsed.length > 1)) return null
-    const xs = parsed.map((d) => xByIndex(indexMap.get(d) ?? 0)).sort((a, b) => a - b)
+    if (parsed.length <= 1) return null
+    const xs = parsed.map((d) => xPos(d)).sort((a, b) => a - b)
     const gaps = []
     for (let i = 1; i < xs.length; i += 1) {
       const g = xs[i] - xs[i - 1]
       if (g > 0) gaps.push(g)
     }
-    if (!gaps.length) return Math.max(2, Math.abs(xByIndex(1) - xByIndex(0)))
+    if (!gaps.length) return null
     gaps.sort((a, b) => a - b)
     return Math.max(2, gaps[Math.floor(gaps.length / 2)])
   })()
 
   if (props.mode === 'candle') {
-    const bandW = useIndexScale && slotPx != null
+    const bandW = slotPx != null
       ? Math.max(2, slotPx * 0.85)
       : Math.max(1, (w / parsed.length) * 0.6)
 

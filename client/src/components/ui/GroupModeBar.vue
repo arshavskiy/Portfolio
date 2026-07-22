@@ -16,6 +16,7 @@ const MODE_EXPLANATIONS = {
   change: 'grouping.todayChange',
   extended: 'grouping.extended',
   dividend: 'grouping.dividend',
+  insider: 'grouping.insider',
   industry: 'grouping.industry',
   group: 'grouping.tags',
 }
@@ -81,7 +82,7 @@ function labelFor(opt) {
 <style scoped>
 .group-bar {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 2px;
   width: 100%;
   min-width: 0;

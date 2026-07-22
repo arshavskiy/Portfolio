@@ -72,6 +72,36 @@ function sortDividendItems(items) {
     })
 }
 
+function insiderNetOf(item) {
+    const n = Number(item?.insiderNet3m)
+    return Number.isFinite(n) ? n : null
+}
+
+// Insider $ traded (net3m shares * current price) as a % of market cap — sizes
+// the trade against the company instead of comparing raw share counts across
+// wildly different-cap tickers. Same formula used for the WatchRow badge so
+// the sort order and the displayed number always agree.
+export function insiderValuePctOf(item) {
+    const net = insiderNetOf(item)
+    const price = positiveNumber(item?.price)
+    const marketCap = positiveNumber(item?.marketCap)
+    if (net == null || price == null || marketCap == null) return null
+    return (net * price / marketCap) * 100
+}
+
+function sortInsiderItems(items, descending = true) {
+    return [...items].sort((a, b) => {
+        const aPct = insiderValuePctOf(a)
+        const bPct = insiderValuePctOf(b)
+        const aMag = aPct != null ? Math.abs(aPct) : -1
+        const bMag = bPct != null ? Math.abs(bPct) : -1
+        const diff = bMag - aMag
+        return descending
+            ? (diff !== 0 ? diff : itemSortKey(a).localeCompare(itemSortKey(b)))
+            : (diff !== 0 ? -diff : itemSortKey(a).localeCompare(itemSortKey(b)))
+    })
+}
+
 function changeValueOf(item) {
     const history = Array.isArray(item?.history) ? item.history : []
     const start = history[0]?.close
@@ -289,6 +319,22 @@ export function groupItems(items, mode, date = new Date(), changeDirection = 'do
         return sections
     }
 
+    if (mode === 'insider') {
+        const buying = []
+        const selling = []
+        const noData = []
+        for (const item of items) {
+            if (item.insiderSignal === 'buying') buying.push(item)
+            else if (item.insiderSignal === 'selling') selling.push(item)
+            else noData.push(item)
+        }
+        const sections = []
+        if (buying.length) sections.push({group: 'Insider buying', items: sortInsiderItems(buying)})
+        if (selling.length) sections.push({group: 'Insider selling', items: sortInsiderItems(selling)})
+        if (noData.length) sections.push({group: 'No insider data', items: sortItemsAscending(noData)})
+        return sections
+    }
+
     if (mode === 'industry') {
         return buildSingleFieldSections(items, (it) => classifyOf(it, 'industry'))
     }
@@ -318,6 +364,7 @@ export const GROUP_MODES = [
     {label: 'Change', value: 'change'},
     {label: 'Pre/Post', value: 'extended'},
     {label: 'Div', value: 'dividend'},
+    {label: 'Insider', value: 'insider'},
     {label: 'Industry', value: 'industry'},
     {label: 'Grp', value: 'group'},
 ]

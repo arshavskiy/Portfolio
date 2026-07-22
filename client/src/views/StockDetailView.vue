@@ -1,351 +1,413 @@
 <script setup>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useConfirm} from 'primevue/useconfirm'
-import {gainLossClass, useCurrency, useLargeNumber, usePercent, useTickerCurrency} from '@/composables/useFormat'
-import {useSafeToast} from '@/composables/useSafeToast'
-import {useWatchlistStore} from '@/stores/watchlist'
-import {useHistoryStore} from '@/stores/history'
-import {usePortfolioStore} from '@/stores/portfolio'
-import api from '@/composables/useApi'
-import {fetchCachedQuote} from '@/composables/useQuoteCache'
-import {getMarketHoursState, MARKET_HOURS_BY_GROUP} from '@/composables/useMarketHours'
-import Button from 'primevue/button'
-import StockChart from '@/components/charts/StockChart.vue'
-import RangeBar from '@/components/ui/RangeBar.vue'
-import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
-import AlertModal from '@/components/ui/AlertModal.vue'
-import {useI18n} from '@/composables/useI18n'
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useConfirm } from "primevue/useconfirm";
+import {
+  gainLossClass,
+  useCurrency,
+  useLargeNumber,
+  usePercent,
+  useTickerCurrency,
+} from "@/composables/useFormat";
+import { useSafeToast } from "@/composables/useSafeToast";
+import { useWatchlistStore } from "@/stores/watchlist";
+import { useHistoryStore } from "@/stores/history";
+import { usePortfolioStore } from "@/stores/portfolio";
+import api from "@/composables/useApi";
+import { fetchCachedQuote } from "@/composables/useQuoteCache";
+import {
+  getMarketHoursState,
+  MARKET_HOURS_BY_GROUP,
+} from "@/composables/useMarketHours";
+import Button from "primevue/button";
+import StockChart from "@/components/charts/StockChart.vue";
+import RangeBar from "@/components/ui/RangeBar.vue";
+import AddTransactionModal from "@/components/ui/AddTransactionModal.vue";
+import AlertModal from "@/components/ui/AlertModal.vue";
+import { useI18n } from "@/composables/useI18n";
 
-const route = useRoute()
-const router = useRouter()
-const toast = useSafeToast()
-const confirm = useConfirm()
-const {t} = useI18n()
-const watchlist = useWatchlistStore()
-const historyStore = useHistoryStore()
-const portfolio = usePortfolioStore()
+const route = useRoute();
+const router = useRouter();
+const toast = useSafeToast();
+const confirm = useConfirm();
+const { t } = useI18n();
+const watchlist = useWatchlistStore();
+const historyStore = useHistoryStore();
+const portfolio = usePortfolioStore();
 
-const ticker = ref(route.params.ticker?.toUpperCase())
-const quote = ref(null)
-const history = ref([])
-const loading = ref(false)
-const chartLoading = ref(false)
-const showTxModal = ref(false)
-const showSellModal = ref(false)
-const showAlertModal = ref(false)
-const selectedChartPoints = ref([])
-const ilsToUsd = ref(null)
-const now = ref(new Date())
+const ticker = ref(route.params.ticker?.toUpperCase());
+const quote = ref(null);
+const history = ref([]);
+const loading = ref(false);
+const chartLoading = ref(false);
+const showTxModal = ref(false);
+const showSellModal = ref(false);
+const showAlertModal = ref(false);
+const selectedChartPoints = ref([]);
+const ilsToUsd = ref(null);
+const now = ref(new Date());
 
-const selectedRange = ref('1d')
-const chartMode = ref('line')
+const selectedRange = ref("1d");
+const chartMode = ref("line");
 
-let refreshTimer = null
-const heldPosition = computed(() => portfolio.positions.find((pos) => pos.ticker === ticker.value) || null)
+let refreshTimer = null;
+const heldPosition = computed(
+  () => portfolio.positions.find((pos) => pos.ticker === ticker.value) || null,
+);
 
 const marketGroup = computed(() => {
-  const symbol = ticker.value?.toUpperCase() || ''
-  if (symbol.endsWith('.TA')) return 'Israel'
-  if (/-USD$/.test(symbol)) return 'Crypto'
-  return 'US'
-})
+  const symbol = ticker.value?.toUpperCase() || "";
+  if (symbol.endsWith(".TA")) return "Israel";
+  if (/-USD$/.test(symbol)) return "Crypto";
+  return "US";
+});
 
 const marketMeta = computed(() => {
-  const market = MARKET_HOURS_BY_GROUP[marketGroup.value]
-  return market ? getMarketHoursState(market, now.value) : null
-})
+  const market = MARKET_HOURS_BY_GROUP[marketGroup.value];
+  return market ? getMarketHoursState(market, now.value) : null;
+});
 
 const rangeChange = computed(() => {
-  const firstClose = history.value[0]?.close
+  const firstClose = history.value[0]?.close;
   if (firstClose == null) {
     return {
       amount: quote.value?.change ?? null,
       percent: quote.value?.changePercent ?? null,
-    }
+    };
   }
 
-  const latestPrice = quote.value?.price ?? history.value[history.value.length - 1]?.close
+  const latestPrice =
+    quote.value?.price ?? history.value[history.value.length - 1]?.close;
   if (latestPrice == null) {
     return {
       amount: quote.value?.change ?? null,
       percent: quote.value?.changePercent ?? null,
-    }
+    };
   }
 
-  const amount = latestPrice - firstClose
-  const percent = firstClose ? (amount / firstClose) * 100 : null
-  return {amount, percent}
-})
+  const amount = latestPrice - firstClose;
+  const percent = firstClose ? (amount / firstClose) * 100 : null;
+  return { amount, percent };
+});
 
-const previousCloseLine = computed(() => quote.value?.previousClose ?? null)
+const previousCloseLine = computed(() => quote.value?.previousClose ?? null);
 const shekelValue = computed(() => {
-  if (quote.value?.price == null) return null
-  if (marketGroup.value === 'Israel' || marketGroup.value === 'US') return null
-  if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null
-  return quote.value.price / ilsToUsd.value
-})
+  if (quote.value?.price == null) return null;
+  if (marketGroup.value === "Israel" || marketGroup.value === "US") return null;
+  if (!Number.isFinite(ilsToUsd.value) || ilsToUsd.value <= 0) return null;
+  return quote.value.price / ilsToUsd.value;
+});
 
 const sessionMetaText = computed(() => {
-  const meta = marketMeta.value
-  if (!meta?.closeLabel) return ''
-  if (meta.key === 'crypto') return 'Trades 24/7'
-  return `${meta.isOpen ? 'Closes' : 'After hours'}: ${meta.closeLabel}`
-})
+  const meta = marketMeta.value;
+  if (!meta?.closeLabel) return "";
+  if (meta.key === "crypto") return "Trades 24/7";
+  return `${meta.isOpen ? "Closes" : "After hours"}: ${meta.closeLabel}`;
+});
 
 function formatExtendedHoursTime(value, timezone) {
-  if (!value) return ''
+  if (!value) return "";
 
-  const date = typeof value === 'number' ? new Date(value * 1000) : new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
+  const date =
+    typeof value === "number" ? new Date(value * 1000) : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
 
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat("en-US", {
     timeZone: timezone || undefined,
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short',
-  }).format(date)
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(date);
 }
 
 const extendedHours = computed(() => {
-  if (!quote.value || marketGroup.value === 'Crypto') return null
+  if (!quote.value || marketGroup.value === "Crypto") return null;
 
-  const source = quote.value.postMarketPrice != null
-    ? {
-      label: 'After hours',
-      price: quote.value.postMarketPrice,
-      change: quote.value.postMarketChange,
-      changePercent: quote.value.postMarketChangePercent,
-      time: quote.value.postMarketTime,
-    }
-    : quote.value.preMarketPrice != null
+  const source =
+    quote.value.postMarketPrice != null
       ? {
-        label: 'Pre-market',
-        price: quote.value.preMarketPrice,
-        change: quote.value.preMarketChange,
-        changePercent: quote.value.preMarketChangePercent,
-        time: quote.value.preMarketTime,
-      }
-          : quote.value.lastPostMarketPrice != null
-              ? {
-                label: 'After hours (last seen)',
-                price: quote.value.lastPostMarketPrice,
-                change: quote.value.lastPostMarketChange,
-                changePercent: quote.value.lastPostMarketChangePercent,
-                time: quote.value.lastPostMarketTime,
+          label: "After hours",
+          price: quote.value.postMarketPrice,
+          change: quote.value.postMarketChange,
+          changePercent: quote.value.postMarketChangePercent,
+          time: quote.value.postMarketTime,
+        }
+      : quote.value.preMarketPrice != null
+        ? {
+            label: "Pre-market",
+            price: quote.value.preMarketPrice,
+            change: quote.value.preMarketChange,
+            changePercent: quote.value.preMarketChangePercent,
+            time: quote.value.preMarketTime,
+          }
+        : quote.value.lastPostMarketPrice != null
+          ? {
+              label: "After hours (last seen)",
+              price: quote.value.lastPostMarketPrice,
+              change: quote.value.lastPostMarketChange,
+              changePercent: quote.value.lastPostMarketChangePercent,
+              time: quote.value.lastPostMarketTime,
+            }
+          : quote.value.lastPreMarketPrice != null
+            ? {
+                label: "Pre-market (last seen)",
+                price: quote.value.lastPreMarketPrice,
+                change: quote.value.lastPreMarketChange,
+                changePercent: quote.value.lastPreMarketChangePercent,
+                time: quote.value.lastPreMarketTime,
               }
-              : quote.value.lastPreMarketPrice != null
-                  ? {
-                    label: 'Pre-market (last seen)',
-                    price: quote.value.lastPreMarketPrice,
-                    change: quote.value.lastPreMarketChange,
-                    changePercent: quote.value.lastPreMarketChangePercent,
-                    time: quote.value.lastPreMarketTime,
-                  }
-                  : null
+            : null;
 
-  if (!source || source.price == null) return null
+  if (!source || source.price == null) return null;
 
   return {
     ...source,
-    shekelPrice: Number.isFinite(ilsToUsd.value) && ilsToUsd.value > 0 && marketGroup.value !== 'Israel' && marketGroup.value !== 'US'
-      ? source.price / ilsToUsd.value
-      : null,
+    shekelPrice:
+      Number.isFinite(ilsToUsd.value) &&
+      ilsToUsd.value > 0 &&
+      marketGroup.value !== "Israel" &&
+      marketGroup.value !== "US"
+        ? source.price / ilsToUsd.value
+        : null,
     timeLabel: formatExtendedHoursTime(source.time, marketMeta.value?.timezone),
-  }
-})
+  };
+});
 
 const selectedDelta = computed(() => {
-  if (selectedChartPoints.value.length !== 2) return null
+  if (selectedChartPoints.value.length !== 2) return null;
 
-  const [start, end] = selectedChartPoints.value
-  const startPrice = start?.close
-  const endPrice = end?.close
-  if (startPrice == null || endPrice == null) return null
+  const [start, end] = selectedChartPoints.value;
+  const startPrice = start?.close;
+  const endPrice = end?.close;
+  if (startPrice == null || endPrice == null) return null;
 
-  const amount = endPrice - startPrice
-  const percent = startPrice ? (amount / startPrice) * 100 : null
-  const startDate = new Date(start.date)
-  const endDate = new Date(end.date)
-  const hours = Math.abs(endDate - startDate) / 36e5
+  const amount = endPrice - startPrice;
+  const percent = startPrice ? (amount / startPrice) * 100 : null;
+  const startDate = new Date(start.date);
+  const endDate = new Date(end.date);
+  const hours = Math.abs(endDate - startDate) / 36e5;
 
   return {
     amount,
     percent,
     startPrice,
     endPrice,
-    startLabel: startDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
-    endLabel: endDate.toLocaleString('en-US', {month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'}),
-    spanLabel: hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
-  }
-})
+    startLabel: startDate.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+    endLabel: endDate.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+    spanLabel:
+      hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
+  };
+});
 
 async function loadQuote() {
   try {
-    quote.value = await fetchCachedQuote(ticker.value)
+    quote.value = await fetchCachedQuote(ticker.value);
   } catch (err) {
-    toast.add({severity: 'error', summary: t('stockDetail.failedRefresh'), detail: err.message, life: 2000})
+    toast.add({
+      severity: "error",
+      summary: t("stockDetail.failedRefresh"),
+      detail: err.message,
+      life: 2000,
+    });
   }
 }
 
 async function loadFx() {
   try {
-    const data = await api.get('/stocks/fx/ils-to-usd')
-    ilsToUsd.value = data?.ilsToUsd ?? null
-  } catch {
-  }
+    const data = await api.get("/stocks/fx/ils-to-usd");
+    ilsToUsd.value = data?.ilsToUsd ?? null;
+  } catch {}
 }
 
 async function loadHistory() {
-  chartLoading.value = true
+  chartLoading.value = true;
   try {
-    const points = selectedRange.value === '1d' ? 160 : 160
-    history.value = await historyStore.fetchHistory(ticker.value, selectedRange.value, points)
+    const points = selectedRange.value === "1d" ? 160 : 160;
+    history.value = await historyStore.fetchHistory(
+      ticker.value,
+      selectedRange.value,
+      points,
+    );
   } catch (err) {
-    toast.add({severity: 'error', summary: t('stockDetail.failedLoadChart'), detail: err.message, life: 3000})
+    toast.add({
+      severity: "error",
+      summary: t("stockDetail.failedLoadChart"),
+      detail: err.message,
+      life: 3000,
+    });
   } finally {
-    chartLoading.value = false
+    chartLoading.value = false;
   }
 }
 
 async function loadData() {
-  loading.value = true
-  await Promise.all([loadQuote(), loadHistory(), loadFx()])
-  loading.value = false
+  loading.value = true;
+  await Promise.all([loadQuote(), loadHistory(), loadFx()]);
+  loading.value = false;
 }
 
 async function ensureWatchlistLoaded() {
-  if (watchlist.items.length || watchlist.loading) return
+  if (watchlist.items.length || watchlist.loading) return;
   try {
-    await watchlist.fetchWatchlist()
-  } catch {
-  }
+    await watchlist.fetchWatchlist();
+  } catch {}
 }
 
 async function ensurePortfolioLoaded() {
-  if (portfolio.positions.length || portfolio.loading) return
+  if (portfolio.positions.length || portfolio.loading) return;
   try {
-    await portfolio.fetchPortfolio()
-  } catch {
-  }
+    await portfolio.fetchPortfolio();
+  } catch {}
 }
 
 function startAutoRefresh() {
-  clearInterval(refreshTimer)
+  clearInterval(refreshTimer);
   refreshTimer = setInterval(() => {
-    now.value = new Date()
-    loadQuote()
-  }, 60000)
+    now.value = new Date();
+    loadQuote();
+  }, 60000);
 }
 
 onMounted(() => {
-  ensureWatchlistLoaded()
-  ensurePortfolioLoaded()
-  loadData()
-  startAutoRefresh()
-})
-onUnmounted(() => clearInterval(refreshTimer))
-watch(selectedRange, loadHistory)
-watch(() => route.params.ticker, (t) => {
-  ticker.value = t?.toUpperCase()
-  ensurePortfolioLoaded()
-  loadData()
-  startAutoRefresh()
-})
+  ensureWatchlistLoaded();
+  ensurePortfolioLoaded();
+  loadData();
+  startAutoRefresh();
+});
+onUnmounted(() => clearInterval(refreshTimer));
+watch(selectedRange, loadHistory);
+watch(
+  () => route.params.ticker,
+  (t) => {
+    ticker.value = t?.toUpperCase();
+    ensurePortfolioLoaded();
+    loadData();
+    startAutoRefresh();
+  },
+);
 
 async function toggleWatchlist() {
-  const existing = watchlist.items.find((i) => i.ticker === ticker.value && !i.synthetic)
+  const existing = watchlist.items.find(
+    (i) => i.ticker === ticker.value && !i.synthetic,
+  );
   if (existing) {
-    await watchlist.removeItem(existing._id)
-    toast.add({severity: 'info', summary: t('stockDetail.removedFromWatchlist'), life: 2000})
+    await watchlist.removeItem(existing._id);
+    toast.add({
+      severity: "info",
+      summary: t("stockDetail.removedFromWatchlist"),
+      life: 2000,
+    });
   } else {
-    await watchlist.addItem(ticker.value, quote.value?.name)
-    toast.add({severity: 'success', summary: t('stockDetail.addedToWatchlist'), life: 2000})
+    await watchlist.addItem(ticker.value, quote.value?.name);
+    toast.add({
+      severity: "success",
+      summary: t("stockDetail.addedToWatchlist"),
+      life: 2000,
+    });
   }
 }
 
-const isWatched = () => watchlist.items.some((i) => i.ticker === ticker.value && !i.synthetic)
+const isWatched = () =>
+  watchlist.items.some((i) => i.ticker === ticker.value && !i.synthetic);
 
 function openLots() {
-  if (!heldPosition.value) return
-  router.push(`/position/${encodeURIComponent(ticker.value)}`)
+  if (!heldPosition.value) return;
+  router.push(`/position/${encodeURIComponent(ticker.value)}`);
 }
 
 function openSell() {
-  if (!heldPosition.value) return
-  showSellModal.value = true
+  if (!heldPosition.value) return;
+  showSellModal.value = true;
 }
 
 function confirmDelete() {
-  if (!heldPosition.value) return
+  if (!heldPosition.value) return;
   confirm.require({
     message: `Remove ${ticker.value} from your portfolio? This deletes the position but keeps its transaction history.`,
-    header: t('stockDetail.confirm'),
-    icon: 'pi pi-exclamation-triangle',
-    acceptClass: 'p-button-danger',
+    header: t("stockDetail.confirm"),
+    icon: "pi pi-exclamation-triangle",
+    acceptClass: "p-button-danger",
     accept: async () => {
-      await portfolio.deletePosition(heldPosition.value._id)
-      toast.add({severity: 'success', summary: t('stockDetail.removed'), life: 2000})
-      router.push('/watchlist')
+      await portfolio.deletePosition(heldPosition.value._id);
+      toast.add({
+        severity: "success",
+        summary: t("stockDetail.removed"),
+        life: 2000,
+      });
+      router.push("/watchlist");
     },
-  })
+  });
 }
 
 function handleChartSelection(points) {
-  selectedChartPoints.value = points
+  selectedChartPoints.value = points;
 }
 </script>
 
 <template>
   <div class="stock-detail">
     <header class="detail-header">
-      <Button icon="pi pi-arrow-left" text rounded @click="router.back()"/>
+      <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <div class="header-info">
         <h1 class="gradient-title">{{ ticker }}</h1>
         <span class="text-muted">{{ quote?.name }}</span>
       </div>
       <div class="header-actions">
         <Button
-            v-tooltip.bottom="t('common.buy')"
-            icon="pi pi-plus-circle"
-            rounded
-            text
-            @click="showTxModal = true"
+          v-tooltip.bottom="t('common.buy')"
+          icon="pi pi-plus-circle"
+          rounded
+          text
+          @click="showTxModal = true"
         />
-<!--        <Button-->
-<!--            v-if="heldPosition"-->
-<!--            v-tooltip.bottom="'View lots'"-->
-<!--            icon="pi pi-list"-->
-<!--            rounded-->
-<!--            text-->
-<!--            @click="openLots"-->
-<!--        />-->
-<!--        <Button-->
-<!--            v-if="heldPosition"-->
-<!--            v-tooltip.bottom="'Sell'"-->
-<!--            icon="pi pi-arrow-up-right"-->
-<!--            rounded-->
-<!--            text-->
-<!--            severity="warn"-->
-<!--            @click="openSell"-->
-<!--        />-->
+        <!--        <Button-->
+        <!--            v-if="heldPosition"-->
+        <!--            v-tooltip.bottom="'View lots'"-->
+        <!--            icon="pi pi-list"-->
+        <!--            rounded-->
+        <!--            text-->
+        <!--            @click="openLots"-->
+        <!--        />-->
+        <!--        <Button-->
+        <!--            v-if="heldPosition"-->
+        <!--            v-tooltip.bottom="'Sell'"-->
+        <!--            icon="pi pi-arrow-up-right"-->
+        <!--            rounded-->
+        <!--            text-->
+        <!--            severity="warn"-->
+        <!--            @click="openSell"-->
+        <!--        />-->
 
-<!--        <Button-->
-<!--            v-tooltip.bottom="'Set price alert'"-->
-<!--            icon="pi pi-bell"-->
-<!--            rounded-->
-<!--            text-->
-<!--            @click="showAlertModal = true"-->
-<!--        />-->
-                <Button
-                    v-tooltip.bottom="isWatched() ? t('stockDetail.removeWatchlist') : t('stockDetail.addWatchlist')"
-                    :icon="isWatched() ? 'pi pi-trash' : 'pi pi-eye'"
-                    :outlined="isWatched()"
-                    :severity="isWatched() ? 'danger' : undefined"
-                    text
-                    rounded
-                    @click="toggleWatchlist"
-                />
+        <!--        <Button-->
+        <!--            v-tooltip.bottom="'Set price alert'"-->
+        <!--            icon="pi pi-bell"-->
+        <!--            rounded-->
+        <!--            text-->
+        <!--            @click="showAlertModal = true"-->
+        <!--        />-->
+        <Button
+          v-tooltip.bottom="
+            isWatched()
+              ? t('stockDetail.removeWatchlist')
+              : t('stockDetail.addWatchlist')
+          "
+          :icon="isWatched() ? 'pi pi-trash' : 'pi pi-eye'"
+          :outlined="isWatched()"
+          :severity="isWatched() ? 'danger' : undefined"
+          text
+          rounded
+          @click="toggleWatchlist"
+        />
       </div>
     </header>
 
@@ -355,33 +417,47 @@ function handleChartSelection(points) {
           <div class="current-price">
             {{ useTickerCurrency(quote.price, ticker) }}
             <span v-if="shekelValue != null">
-               {{ useCurrency(shekelValue, 'ILS') }}
+              {{ useCurrency(shekelValue, "ILS") }}
             </span>
           </div>
           <p :class="gainLossClass(rangeChange.amount)" class="price-change">
-            {{ useTickerCurrency(rangeChange.amount, ticker) }} ({{ usePercent(rangeChange.percent) }})
+            {{ useTickerCurrency(rangeChange.amount, ticker) }} ({{
+              usePercent(rangeChange.percent)
+            }})
           </p>
           <div v-if="extendedHours" class="extended-row">
             <span class="extended-price">
               {{ useTickerCurrency(extendedHours.price, ticker) }}
-              <span v-if="extendedHours.shekelPrice != null" class="extended-ils">
-                {{ useCurrency(extendedHours.shekelPrice, 'ILS') }}
+              <span
+                v-if="extendedHours.shekelPrice != null"
+                class="extended-ils"
+              >
+                {{ useCurrency(extendedHours.shekelPrice, "ILS") }}
               </span>
             </span>
-            <span class="extended-change" :class="gainLossClass(extendedHours.change)">
-              {{ useTickerCurrency(extendedHours.change, ticker) }} ({{ usePercent(extendedHours.changePercent) }})
+            <span
+              class="extended-change"
+              :class="gainLossClass(extendedHours.change)"
+            >
+              {{ useTickerCurrency(extendedHours.change, ticker) }} ({{
+                usePercent(extendedHours.changePercent)
+              }})
             </span>
           </div>
           <p v-if="extendedHours" class="hours-line text-muted">
-            {{ extendedHours.label }}{{ extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : '' }}
+            {{ extendedHours.label
+            }}{{
+              extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : ""
+            }}
           </p>
-          <p v-else-if="sessionMetaText" class="hours-line text-muted">{{ sessionMetaText }}</p>
+          <p v-else-if="sessionMetaText" class="hours-line text-muted">
+            {{ sessionMetaText }}
+          </p>
         </div>
-
       </div>
     </div>
     <div v-else-if="loading" class="quote-summary">
-      <div class="price-skeleton"/>
+      <div class="price-skeleton" />
     </div>
 
     <div class="chart-controls">
@@ -394,7 +470,7 @@ function handleChartSelection(points) {
             type="button"
             @click="chartMode = 'line'"
           >
-            <i class="pi pi-chart-line"/>
+            <i class="pi pi-chart-line" />
           </button>
           <button
             class="chart-mode-btn"
@@ -403,7 +479,7 @@ function handleChartSelection(points) {
             type="button"
             @click="chartMode = 'candle'"
           >
-            <i class="pi pi-chart-bar"/>
+            <i class="pi pi-chart-bar" />
           </button>
         </template>
       </RangeBar>
@@ -415,77 +491,86 @@ function handleChartSelection(points) {
       </div>
       <div v-if="selectedDelta" class="measure-summary">
         <span :class="gainLossClass(selectedDelta.amount)">
-          {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
+          {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{
+            usePercent(selectedDelta.percent)
+          }})
         </span>
         <span class="text-muted">
-          {{
-            useTickerCurrency(selectedDelta.startPrice, ticker)
-          }} to {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
+          {{ useTickerCurrency(selectedDelta.startPrice, ticker) }} to
+          {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
         </span>
-        <span class="text-muted">{{ selectedDelta.startLabel }} to {{
-            selectedDelta.endLabel
-          }} · {{ selectedDelta.spanLabel }}</span>
+        <span class="text-muted"
+          >{{ selectedDelta.startLabel }} to {{ selectedDelta.endLabel }} ·
+          {{ selectedDelta.spanLabel }}</span
+        >
       </div>
     </div>
 
     <StockChart
-        :key="`${ticker}-${selectedRange}-${chartMode}`"
-        :data="history"
-        :loading="chartLoading"
-        :mode="chartMode"
-        :range="selectedRange"
-        :ticker="ticker"
-        :current-price="previousCloseLine"
-        @selection-change="handleChartSelection"
+      :key="`${ticker}-${selectedRange}-${chartMode}`"
+      :data="history"
+      :loading="chartLoading"
+      :mode="chartMode"
+      :range="selectedRange"
+      :ticker="ticker"
+      :current-price="previousCloseLine"
+      @selection-change="handleChartSelection"
     />
 
     <div v-if="quote" class="stats-grid">
       <div class="stat">
-        <span class="text-muted">{{ t('common.open') }}</span>
+        <span class="text-muted">{{ t("common.open") }}</span>
         <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.dayHigh') }}</span>
+        <span class="text-muted">{{ t("common.dayHigh") }}</span>
         <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.dayLow') }}</span>
+        <span class="text-muted">{{ t("common.dayLow") }}</span>
         <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.volume') }}</span>
+        <span class="text-muted">{{ t("common.volume") }}</span>
         <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.marketCap') }}</span>
+        <span class="text-muted">{{ t("common.marketCap") }}</span>
         <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.pe') }}</span>
-        <span>{{ quote.pe?.toFixed(2) || '—' }}</span>
+        <span class="text-muted">{{ t("common.pe") }}</span>
+        <span>{{ quote.pe?.toFixed(2) || "—" }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.week52High') }}</span>
+        <span class="text-muted">{{ t("common.week52High") }}</span>
         <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
       </div>
       <div class="stat">
-        <span class="text-muted">{{ t('common.week52Low') }}</span>
+        <span class="text-muted">{{ t("common.week52Low") }}</span>
         <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
       </div>
     </div>
 
-    <AddTransactionModal v-model:visible="showTxModal" :default-ticker="ticker"/>
     <AddTransactionModal
-        v-model:visible="showSellModal"
-        :default-price="heldPosition?.currentPrice ?? quote?.price ?? null"
-        :default-ticker="ticker"
-        :max-shares="heldPosition?.shares ?? null"
-        :avg-cost="heldPosition?.avgCost ?? null"
-        :total-cost="heldPosition?.cost ?? null"
-        default-type="sell"
-        @hide="ensurePortfolioLoaded"
+      v-model:visible="showTxModal"
+      :default-ticker="ticker"
     />
-    <AlertModal v-model:visible="showAlertModal" :current-price="quote?.price" :ticker="ticker"/>
+    <AddTransactionModal
+      v-model:visible="showSellModal"
+      :default-price="heldPosition?.currentPrice ?? quote?.price ?? null"
+      :default-ticker="ticker"
+      :max-shares="heldPosition?.shares ?? null"
+      :avg-cost="heldPosition?.avgCost ?? null"
+      :total-cost="heldPosition?.cost ?? null"
+      default-type="sell"
+      @hide="ensurePortfolioLoaded"
+    />
+    <AlertModal
+      v-model:visible="showAlertModal"
+      :current-price="quote?.price"
+      :ticker="ticker"
+    />
   </div>
 </template>
 
@@ -605,7 +690,12 @@ function handleChartSelection(points) {
   background: var(--bg-card);
   border-radius: 6px;
   animation: shimmer 1.5s infinite;
-  background: linear-gradient(90deg, var(--border) 25%, #475569 50%, var(--border) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--border) 25%,
+    #475569 50%,
+    var(--border) 75%
+  );
   background-size: 200% 100%;
 }
 
@@ -622,11 +712,13 @@ function handleChartSelection(points) {
   padding: 0 0.55rem;
   font-size: 0.82rem;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .chart-mode-btn:active {
-  background: rgba(255,255,255,0.05);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .chart-mode-btn.active {
@@ -668,7 +760,7 @@ function handleChartSelection(points) {
   font-size: 0.88rem;
 }
 
-.stat:nth-last-child(-n+2) {
+.stat:nth-last-child(-n + 2) {
   border-bottom: none;
 }
 

@@ -1,6 +1,7 @@
 <script setup>
 import {computed, toRef, useAttrs} from 'vue'
 import {usePercent, useTickerCurrency} from '@/composables/useFormat'
+import {insiderValuePctOf} from '@/composables/useGrouping'
 import {useAlertsStore} from '@/stores/alerts'
 // import {useItemMomentum} from '@/composables/useMomentumScore'
 import {useI18n} from '@/composables/useI18n'
@@ -164,6 +165,40 @@ const dividendTitle = computed(() => {
   if (rateText) return t('watchlist.dividendTooltipRate', {rate: rateText})
   return ''
 })
+
+function formatShareCount(n) {
+  const abs = Math.abs(n)
+  if (abs >= 1e6) return `${(abs / 1e6).toFixed(2)}M`
+  if (abs >= 1e3) return `${(abs / 1e3).toFixed(1)}K`
+  return `${abs}`
+}
+
+const insiderNet = computed(() => {
+  const n = Number(props.item.insiderNet3m)
+  return Number.isFinite(n) && n !== 0 ? n : null
+})
+// % of market cap traded by insiders, net, trailing 3mo — sizes the move
+// against the company instead of a raw share count that's meaningless
+// compared across mega-caps and micro-caps. Falls back to the raw share
+// count only when price/marketCap aren't available to normalize against.
+const insiderValuePct = computed(() => insiderNet.value == null ? null : insiderValuePctOf(props.item))
+const insiderBadgeText = computed(() => {
+  if (insiderNet.value == null) return null
+  if (insiderValuePct.value != null) {
+    const abs = Math.abs(insiderValuePct.value)
+    return `${abs >= 10 ? abs.toFixed(0) : abs.toFixed(2)}%`
+  }
+  return formatShareCount(insiderNet.value)
+})
+const insiderTitle = computed(() => {
+  if (insiderNet.value == null) return ''
+  const direction = insiderNet.value > 0 ? t('watchlist.insiderBuying') : t('watchlist.insiderSelling')
+  const shares = formatShareCount(insiderNet.value)
+  if (insiderValuePct.value != null) {
+    return t('watchlist.insiderTooltipPct', {direction, shares, pct: `${insiderValuePct.value.toFixed(2)}%`})
+  }
+  return t('watchlist.insiderTooltip', {direction, shares})
+})
 </script>
 
 <template>
@@ -197,6 +232,14 @@ const dividendTitle = computed(() => {
             class="dividend-badge">
           <i class="pi pi-percentage"/>
           {{ dividendBadgeText }}
+        </span>
+        <span
+            v-if="insiderNet != null"
+            :class="insiderNet > 0 ? 'insider-buy' : 'insider-sell'"
+            :title="insiderTitle"
+            class="insider-badge">
+          <i :class="insiderNet > 0 ? 'pi pi-arrow-up' : 'pi pi-arrow-down'"/>
+          {{ insiderBadgeText }}
         </span>
       </span>
       <span :data-tour="exposeTourAnchors ? 'wl-row-company' : null" class="company text-muted">{{ item.companyName }}</span>
@@ -354,6 +397,33 @@ const dividendTitle = computed(() => {
 
 .dividend-badge i {
   font-size: 0.6rem;
+}
+
+.insider-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 5px;
+  vertical-align: middle;
+  line-height: 1.4;
+  margin-left: 4px;
+}
+
+.insider-badge i {
+  font-size: 0.6rem;
+}
+
+.insider-badge.insider-buy {
+  background: rgba(0, 255, 136, 0.12);
+  color: var(--neon-green, #00ff88);
+}
+
+.insider-badge.insider-sell {
+  background: rgba(255, 51, 102, 0.12);
+  color: var(--neon-red, #ff3366);
 }
 
 .company {

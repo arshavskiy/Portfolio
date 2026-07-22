@@ -84,6 +84,22 @@ This mix exists so the tour can walk through Dashboard (P&L on a real position),
 - **AI daily summary**: `GET /stocks/ai-daily-summary` — canned (non-conversational) single-shot summary of today's holdings/watchlist/market performance, reusing `ai-ask`'s context builders plus `stockService.getMarkets('US')` for index performance. Cached per-user per calendar day *and* language on `User.aiDailySummary` (key `YYYY-MM-DD:lang`); `?force=true` bypasses the cache, `?lang=en|ru` sets response language. Does not consume the `ai-ask` daily question quota. Client is `DailySummaryCard.vue` on both mobile and desktop Dashboards (`DashboardView.vue` / `DesktopDashboardView.vue`, above `MarketsCard`) — refresh button, dismiss (X) button that hides the card until the next calendar day (`daily-summary-dismissed-day` localStorage key), and re-fetches automatically when the app locale changes.
 - **Account modal**: Account is a `Dialog` (`AccountModal.vue`, `defineModel('visible')`), not a route — opened from a fixed top-right circular icon on mobile (`AccountShortcut.vue`, hidden ≥1024px) or a sidebar button pinned to the bottom on desktop (`DesktopLayout.vue`). Transaction History and Price Alerts open as their own stacked `Dialog`s from inside it (same pattern as the existing `FeeProfilesModal`), each embedding `TransactionsView`/`AlertsView` via an `embedded` prop that hides their own page header. `/account` route still exists as a deep-link fallback (`AccountView.vue`, kept in sync) but isn't the primary entry point.
 - **Watchlist actions**: on mobile, the Watchlist header's action buttons (held-filter, rebalance, import, export, add-transaction, add-to-watchlist) collapse into a single `⋮` trigger via `WatchlistActionsMenu.vue`, teleported (`<Teleport to="#page-actions-slot">`, mount order matters — the slot div must render before `MobileLayout`/`DesktopLayout` in `AppLayout.vue`) to sit next to the Account icon. Desktop keeps them as an inline row. The guided tour's watchlist-actions step opens the mobile dropdown via `onHighlightStarted` and closes it again on "Next".
+- **News/typology enrichment (from the `stockfolio-insights` sibling repo)**: that repo is a separate,
+  **local-only data-aggregation pipeline** — its workers (news ingest + LLM tagging, earnings/filings/
+  ownership/short-interest calendar, live quotes) run manually/locally and write to a MongoDB Atlas DB
+  named `stockfolio-insights`, sibling to this app's own DB on the same cluster. That repo's own Express
+  API is **not deployed and has no caller** — this backend is the only thing that serves that data, by
+  reading the DB directly: `server/models/insightsModels.js` (`mongoose.connection.useDb('stockfolio-insights')`,
+  read-only schema mirrors) → `server/services/stockfolioInsightsService.js` (`getEnrichment`,
+  `getTypologyMap`, `getRelatedTickers`, all 5-10min in-memory cached) → `server/routes/enrich.js`
+  (`GET /enrich/:ticker`, `GET /enrich/typology-map?group=`, `GET /enrich/related/:ticker`). Client:
+  `TickerInsightCard.vue` (sentiment/momentum/typology chips/insider net/earnings beat-rate/analyst
+  delta/short interest, on `PositionDetailView.vue` + `DesktopPositionPanel.vue`), `TickerRelationGraph.vue`
+  (D3 force graph of tickers co-mentioned in the same analyzed news article — weight = shared-article
+  count in the trailing N days, same two position views), `TypologyMapView.vue` (treemap grouped by
+  style/marketCapClass/volatilityClass/primaryIndustry, route `/typology-map`). All fields degrade to
+  null/[] gracefully — that upstream repo has known gaps (no 13F institutional holdings, Stooq-sourced
+  daily candles currently blocked) that surface here as empty sections, not errors.
 
 ## Directory layout
 ```

@@ -327,6 +327,9 @@ function onGroupsSaved() {
 function groupLabel(group) {
   if (group === 'Dividend payers') return t('grouping.dividendPayers')
   if (group === 'No dividend data') return t('grouping.noDividendData')
+  if (group === 'Insider buying') return t('grouping.insiderBuying')
+  if (group === 'Insider selling') return t('grouping.insiderSelling')
+  if (group === 'No insider data') return t('grouping.noInsiderData')
   return group
 }
 
