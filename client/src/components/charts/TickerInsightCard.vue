@@ -84,10 +84,19 @@ const nextEventText = computed(() => {
   }
 })
 
+// Official Federal Reserve source — FOMC statements/decisions always land here.
+// MacroEvent has no per-event URL (static seeded calendar), so this is the one
+// stable link worth hardcoding rather than a field from the payload.
+const FOMC_INFO_URL = 'https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm'
+
 const nextMacroText = computed(() => {
   const macro = data.value?.summary?.nextMacro
   if (!macro) return null
-  return {label: macro.label, detail: formatEventDate(macro.date)}
+  return {
+    label: macro.label,
+    detail: formatEventDate(macro.date),
+    url: /fomc/i.test(macro.label) ? FOMC_INFO_URL : null,
+  }
 })
 
 const fundamentalsRows = computed(() => {
@@ -108,11 +117,11 @@ const macroRows = computed(() => {
   const series = macroSnapshot.value?.series
   if (!series) return []
   const rows = [
-    {key: 'fedFunds', label: t('tickerInsight.fedFunds'), point: series.FEDFUNDS, format: (v) => `${v.toFixed(2)}%`},
-    {key: 'cpiYoy', label: t('tickerInsight.cpiYoy'), point: series.CPIAUCSL, format: (v) => `${v.toFixed(1)}%`},
-    {key: 'corePceYoy', label: t('tickerInsight.corePceYoy'), point: series.PCEPILFE, format: (v) => `${v.toFixed(1)}%`},
-    {key: 'unemployment', label: t('tickerInsight.unemployment'), point: series.UNRATE, format: (v) => `${v.toFixed(1)}%`},
-    {key: 'treasury10y', label: t('tickerInsight.treasury10y'), point: series.DGS10, format: (v) => `${v.toFixed(2)}%`},
+    {key: 'fedFunds', label: t('tickerInsight.fedFunds'), info: t('tickerInsight.fedFundsInfo'), point: series.FEDFUNDS, format: (v) => `${v.toFixed(2)}%`},
+    {key: 'cpiYoy', label: t('tickerInsight.cpiYoy'), info: t('tickerInsight.cpiYoyInfo'), point: series.CPIAUCSL, format: (v) => `${v.toFixed(1)}%`},
+    {key: 'corePceYoy', label: t('tickerInsight.corePceYoy'), info: t('tickerInsight.corePceYoyInfo'), point: series.PCEPILFE, format: (v) => `${v.toFixed(1)}%`},
+    {key: 'unemployment', label: t('tickerInsight.unemployment'), info: t('tickerInsight.unemploymentInfo'), point: series.UNRATE, format: (v) => `${v.toFixed(1)}%`},
+    {key: 'treasury10y', label: t('tickerInsight.treasury10y'), info: t('tickerInsight.treasury10yInfo'), point: series.DGS10, format: (v) => `${v.toFixed(2)}%`},
   ]
   return rows.filter((r) => r.point?.value != null)
 })
@@ -288,9 +297,11 @@ watch(() => props.ticker, load)
       </div>
       <div v-if="nextMacroText" class="upcoming-row">
         <span class="upcoming-badge">{{ t('tickerInsight.macro') }}</span>
-        <span class="upcoming-text">{{ nextMacroText.label }} <span class="text-muted">· {{
-            nextMacroText.detail
-          }}</span></span>
+        <span class="upcoming-text">
+          <a v-if="nextMacroText.url" :href="nextMacroText.url" class="upcoming-link" rel="noopener noreferrer" target="_blank">{{ nextMacroText.label }}</a>
+          <template v-else>{{ nextMacroText.label }}</template>
+          <span class="text-muted">· {{ nextMacroText.detail }}</span>
+        </span>
       </div>
     </div>
 
@@ -311,7 +322,8 @@ watch(() => props.ticker, load)
         <i v-tooltip.focus.top="INFO.macroContext" class="pi pi-info-circle info-icon" tabindex="0"/></span>
       <div class="macro-strip-row">
         <div v-for="row in macroRows" :key="row.key" class="macro-strip-cell">
-          <span class="text-muted sub">{{ row.label }}</span>
+          <span class="text-muted sub stat-label-info">{{ row.label }}
+            <i v-tooltip.focus.top="row.info" class="pi pi-info-circle info-icon" tabindex="0"/></span>
           <span class="macro-strip-value">{{ row.format(row.point.value) }}</span>
         </div>
       </div>
@@ -536,6 +548,18 @@ watch(() => props.ticker, load)
 
 .upcoming-text {
   font-size: 0.82rem;
+}
+
+.upcoming-link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--border);
+  text-underline-offset: 2px;
+}
+
+.upcoming-link:hover {
+  color: var(--neon-blue);
+  text-decoration-color: currentColor;
 }
 
 .fundamentals-block,

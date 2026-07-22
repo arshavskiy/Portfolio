@@ -747,10 +747,20 @@ export const messages = {
       macroContextInfo:
         "Latest published Federal Reserve economic data (FRED) — fed funds rate, inflation, unemployment, 10-year Treasury yield. Not ticker-specific.",
       fedFunds: "Fed funds rate",
+      fedFundsInfo:
+        "The interest rate the Federal Reserve targets for overnight bank lending — the main lever it uses to tighten or loosen monetary policy. Higher rates generally pressure growth/speculative stock valuations more than value stocks.",
       cpiYoy: "CPI (YoY)",
+      cpiYoyInfo:
+        "Consumer Price Index, year-over-year — headline US inflation. The Fed watches this alongside core PCE when setting rate policy; higher-than-expected prints often raise rate-cut/hike expectations.",
       corePceYoy: "Core PCE (YoY)",
+      corePceYoyInfo:
+        "Core Personal Consumption Expenditures index, year-over-year, excluding volatile food and energy prices. This is the Federal Reserve's own preferred inflation gauge for policy decisions — more closely watched by the Fed than headline CPI.",
       unemployment: "Unemployment",
+      unemploymentInfo:
+        "US unemployment rate. Part of the Fed's dual mandate (alongside price stability) — a rising rate can push the Fed toward cutting rates to support the labor market.",
       treasury10y: "10Y Treasury",
+      treasury10yInfo:
+        "Yield on the 10-year US Treasury note — a benchmark for long-term borrowing costs and a common reference point for equity valuation models (a higher yield raises the discount rate applied to future company earnings).",
     },
     typologyMap: {
       title: "Watchlist Map",
@@ -1815,10 +1825,20 @@ export const messages = {
       macroContextInfo:
         "Последние опубликованные макроэкономические данные ФРС (FRED) — ставка ФРС, инфляция, безработица, доходность 10-летних облигаций. Не привязано к конкретному тикеру.",
       fedFunds: "Ставка ФРС",
+      fedFundsInfo:
+        "Процентная ставка, которую ФРС устанавливает как целевую для однодневного межбанковского кредитования — основной инструмент денежно-кредитной политики. Более высокие ставки обычно сильнее давят на акции роста/спекулятивные бумаги, чем на стоимостные.",
       cpiYoy: "ИПЦ (г/г)",
+      cpiYoyInfo:
+        "Индекс потребительских цен, год к году — базовая инфляция в США. ФРС учитывает этот показатель наряду с базовым PCE при принятии решений по ставке; более высокие значения, чем ожидалось, часто меняют ожидания по повышению/снижению ставки.",
       corePceYoy: "Базовый PCE (г/г)",
+      corePceYoyInfo:
+        "Базовый индекс расходов на личное потребление, год к году, без учёта волатильных цен на продукты питания и энергию. Это предпочитаемый ФРС показатель инфляции для принятия решений — ему уделяется больше внимания, чем общему ИПЦ.",
       unemployment: "Безработица",
+      unemploymentInfo:
+        "Уровень безработицы в США. Часть двойного мандата ФРС (наряду со стабильностью цен) — рост показателя может подтолкнуть ФРС к снижению ставки для поддержки рынка труда.",
       treasury10y: "10-летние облигации",
+      treasury10yInfo:
+        "Доходность 10-летних казначейских облигаций США — ориентир стоимости долгосрочных заимствований и распространённая точка отсчёта в моделях оценки акций (более высокая доходность повышает ставку дисконтирования будущей прибыли компаний).",
     },
     typologyMap: {
       title: "Карта тикеров",
