@@ -322,18 +322,6 @@ watch(() => props.ticker, load)
       </div>
     </div>
 
-    <div v-if="macroRows.length" class="macro-strip">
-      <span class="text-muted stat-label-info macro-strip-title">{{ t('tickerInsight.macroContext') }}
-        <i v-tooltip.focus.top="INFO.macroContext" class="pi pi-info-circle info-icon" tabindex="0"/></span>
-      <div class="macro-strip-row">
-        <div v-for="row in macroRows" :key="row.key" class="macro-strip-cell">
-          <span class="text-muted sub stat-label-info">{{ row.label }}
-            <i v-tooltip.focus.top="row.info" class="pi pi-info-circle info-icon" tabindex="0"/></span>
-          <span class="macro-strip-value">{{ row.format(row.point.value) }}</span>
-        </div>
-      </div>
-    </div>
-
     <div v-if="headlines.length" class="insight-headlines">
       <NewsArticleCard v-for="h in headlines" :key="h.url" :article="h" @open="openArticle"/>
       <button

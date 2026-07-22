@@ -25,7 +25,6 @@ import GroupModeBar from '@/components/ui/GroupModeBar.vue'
 import GroupEditModal from '@/components/ui/GroupEditModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import WatchlistActionsMenu from '@/components/ui/WatchlistActionsMenu.vue'
-import MacroContextStrip from '@/components/ui/MacroContextStrip.vue'
 import {useI18n} from '@/composables/useI18n'
 
 const watchlist = useWatchlistStore()
@@ -390,8 +389,6 @@ function groupLabel(group) {
         </div>
         <GroupModeBar v-model="groupMode" v-model:change-direction="changeDirection" class="page-group-mode" data-tour="wl-group"/>
       </div>
-
-      <MacroContextStrip/>
 
     </header>
     <div v-if="initialLoading" class="page-loader">
