@@ -60,12 +60,17 @@ const userTypeLabel = computed(() => t(`account.userTypes.${userType.value}`))
 const aiUsageSummary = computed(() => auth.user?.aiUsageSummary || {
   todayCount: 0,
   dailyLimit: userType.value === 'regular' ? 3 : null,
+  todayTokenCount: 0,
+  dailyTokenLimit: 100000,
   unlimited: userType.value !== 'regular',
 })
 const aiUsageLabel = computed(() =>
   aiUsageSummary.value.unlimited
     ? `${aiUsageSummary.value.todayCount} · ${t('account.unlimited')}`
     : `${aiUsageSummary.value.todayCount}/${aiUsageSummary.value.dailyLimit}`
+)
+const aiTokenUsageLabel = computed(() =>
+  `${(aiUsageSummary.value.todayTokenCount || 0).toLocaleString()}/${(aiUsageSummary.value.dailyTokenLimit || 100000).toLocaleString()}`
 )
 
 const memberSince = computed(() => {
@@ -116,6 +121,9 @@ function logout() {
               </span>
               <span class="meta-pill">
                 {{ t('account.aiCallsToday') }}: {{ aiUsageLabel }}
+              </span>
+              <span class="meta-pill">
+                {{ t('account.aiTokensToday') }}: {{ aiTokenUsageLabel }}
               </span>
             </div>
           </div>

@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs')
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 const USER_TYPES = ['regular', 'pro', 'max', 'admin', 'plan']
 const REGULAR_AI_DAILY_LIMIT = 3
+const AI_DAILY_TOKEN_LIMIT = 100000
 
 function currentDayKey() {
   return new Date().toISOString().split('T')[0]
@@ -31,6 +32,7 @@ const userSchema = new mongoose.Schema(
       aiUsage: {
           dayKey: {type: String, default: null},
           questionCount: {type: Number, default: 0},
+          tokenCount: {type: Number, default: 0},
       },
       aiDailySummary: {
           dayKey: {type: String, default: null},
@@ -65,12 +67,15 @@ userSchema.methods.toJSON = function () {
   const obj = this.toObject()
   const usage = obj.aiUsage || {}
   const todayCount = usage.dayKey === currentDayKey() ? (Number.isFinite(usage.questionCount) ? usage.questionCount : 0) : 0
+  const todayTokenCount = usage.dayKey === currentDayKey() ? (Number.isFinite(usage.tokenCount) ? usage.tokenCount : 0) : 0
   const resolvedUserType = obj.userType || 'regular'
   delete obj.password
   delete obj.aiUsage
   obj.aiUsageSummary = {
     todayCount,
     dailyLimit: resolvedUserType === 'regular' ? REGULAR_AI_DAILY_LIMIT : null,
+    todayTokenCount,
+    dailyTokenLimit: AI_DAILY_TOKEN_LIMIT,
     unlimited: resolvedUserType !== 'regular',
   }
   return obj

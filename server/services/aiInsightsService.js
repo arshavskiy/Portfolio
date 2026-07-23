@@ -12,6 +12,7 @@ const HISTORY_LIMIT = 50
 
 const MODEL = 'gpt-4o-mini'
 const REGULAR_DAILY_LIMIT = 3
+const DAILY_TOKEN_LIMIT = 100000
 const QUESTION_MAX_LENGTH = 500
 const MAX_TOOL_ROUNDS = 4
 const VALID_RANGES = ['1mo', '3mo', '6mo', '1y', '5y', 'max']
@@ -32,7 +33,35 @@ function dayKey(now = new Date()) {
     return now.toISOString().split('T')[0]
 }
 
-async function consumeQuestionQuota(userId, now = new Date()) {
+async function ensureAiUsageAvailable(userId, now = new Date()) {
+    const user = await User.findById(userId)
+    if (!user) {
+        const err = new Error('User not found')
+        err.status = 404
+        throw err
+    }
+
+    const resolvedUserType = user.userType || 'regular'
+    const today = dayKey(now)
+    const currentUsage = user.aiUsage || {}
+    const currentDayKey = currentUsage.dayKey || null
+    const currentQuestionCount = Number.isFinite(currentUsage.questionCount) ? currentUsage.questionCount : 0
+    const currentTokenCount = Number.isFinite(currentUsage.tokenCount) ? currentUsage.tokenCount : 0
+
+    if (!UNLIMITED_USER_TYPES.has(resolvedUserType) && currentDayKey === today && currentQuestionCount >= REGULAR_DAILY_LIMIT) {
+        const err = new Error('Daily question limit reached')
+        err.status = 429
+        throw err
+    }
+
+    if (currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
+        const err = new Error('Daily token usage limit reached')
+        err.status = 429
+        throw err
+    }
+}
+
+async function consumeQuestionQuota(userId, tokenCount = 0, now = new Date()) {
     const user = await User.findById(userId)
     if (!user) {
         const err = new Error('User not found')
@@ -46,7 +75,9 @@ async function consumeQuestionQuota(userId, now = new Date()) {
     const currentUsage = user.aiUsage || {}
     const currentDayKey = currentUsage.dayKey || null
     const currentQuestionCount = Number.isFinite(currentUsage.questionCount) ? currentUsage.questionCount : 0
+    const currentTokenCount = Number.isFinite(currentUsage.tokenCount) ? currentUsage.tokenCount : 0
     const nextQuestionCount = currentDayKey === today ? currentQuestionCount + 1 : 1
+    const nextTokenCount = (currentDayKey === today ? currentTokenCount : 0) + Math.max(Number(tokenCount) || 0, 0)
 
     if (!UNLIMITED_USER_TYPES.has(resolvedUserType) && currentDayKey === today && currentQuestionCount >= REGULAR_DAILY_LIMIT) {
         const err = new Error('Daily question limit reached')
@@ -54,7 +85,13 @@ async function consumeQuestionQuota(userId, now = new Date()) {
         throw err
     }
 
-    user.aiUsage = {dayKey: today, questionCount: nextQuestionCount}
+    if (currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
+        const err = new Error('Daily token usage limit reached')
+        err.status = 429
+        throw err
+    }
+
+    user.aiUsage = {dayKey: today, questionCount: nextQuestionCount, tokenCount: nextTokenCount}
     await user.save()
     return resolvedUserType
 }
@@ -484,6 +521,7 @@ async function askAboutPortfolio(userId, question) {
         throw err
     }
 
+    await ensureAiUsageAvailable(userId)
     await AiChatMessage.create({user: userId, role: 'user', text: trimmed})
 
     const {contextText, tickers} = await buildPortfolioContext(userId)
@@ -556,9 +594,8 @@ async function askAboutPortfolio(userId, question) {
         throw err
     }
 
-    await consumeQuestionQuota(userId)
-
     const usage = {promptTokens: totalPromptTokens || null, completionTokens: totalCompletionTokens || null}
+    await consumeQuestionQuota(userId, totalPromptTokens + totalCompletionTokens)
     await AiChatMessage.create({user: userId, role: 'assistant', text: answer, usage})
 
     return {answer, usage}
