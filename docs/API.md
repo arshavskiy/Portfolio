@@ -493,7 +493,7 @@ Ask a natural-language question about the user's portfolio; answered by an OpenA
 | `get_realized_gains` | Avg-cost realized gains/losses from sells, grouped by year |
 | `get_dividend_summary` | Total dividends received per ticker, all-time |
 
-Up to 4 tool-call rounds run before the final answer is returned. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Rate-limited to 20 requests/user/day (in-memory counter, resets on server restart).
+Up to 4 tool-call rounds run before the final answer is returned. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Regular users are limited to 3 questions/day; Pro, Max, Plan, and Admin users have unlimited questions. All users are capped at 100,000 AI Q&A tokens/day, counted from prompt + completion tokens across successful answers.
 
 **Body**
 ```json
@@ -506,7 +506,7 @@ Question is capped at 500 characters.
 { "answer": "...", "usage": { "promptTokens": 512, "completionTokens": 87 } }
 ```
 **Response `400`** — empty question
-**Response `429`** — daily limit reached
+**Response `429`** — daily question or token usage limit reached
 **Response `503`** — AI Q&A not configured (no API key)
 **Response `502`** — upstream OpenAI request failed
 

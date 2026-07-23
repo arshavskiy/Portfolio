@@ -69,7 +69,7 @@ function makeUserDoc(overrides = {}) {
   return {
     _id: 'user-1',
     userType: 'regular',
-    aiUsage: {dayKey: null, questionCount: 0},
+    aiUsage: {dayKey: null, questionCount: 0, tokenCount: 0},
     save: jest.fn(async function save() {
       return this
     }),
@@ -114,18 +114,18 @@ describe('aiInsightsService quotas', () => {
       message: 'Daily question limit reached',
       status: 429,
     })
-    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 3})
+    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 3, tokenCount: 45})
   })
 
   test('regular user quota resets on a new day', async () => {
     const user = makeUserDoc({
-      aiUsage: {dayKey: '2026-07-15', questionCount: 3},
+      aiUsage: {dayKey: '2026-07-15', questionCount: 3, tokenCount: 99999},
     })
     mockUserFindById.mockImplementation(async () => user)
 
     await askAboutPortfolio(user._id, 'fresh day')
 
-    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 1})
+    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 1, tokenCount: 15})
   })
 
   test.each(['pro', 'max', 'plan', 'admin'])('%s user is unlimited', async (userType) => {
@@ -138,7 +138,7 @@ describe('aiInsightsService quotas', () => {
       })
     }
 
-    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 5})
+    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 5, tokenCount: 75})
     expect(user.save).toHaveBeenCalledTimes(5)
   })
 
@@ -179,13 +179,13 @@ describe('aiInsightsService quotas', () => {
       status: 502,
     })
 
-    expect(user.aiUsage).toEqual({dayKey: null, questionCount: 0})
+    expect(user.aiUsage).toEqual({dayKey: null, questionCount: 0, tokenCount: 0})
     expect(user.save).not.toHaveBeenCalled()
 
     await expect(askAboutPortfolio(user._id, 'good call')).resolves.toMatchObject({
       answer: 'Test answer',
     })
-    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 1})
+    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 1, tokenCount: 15})
   })
 
   test('empty AI response does not consume quota', async () => {
@@ -201,7 +201,36 @@ describe('aiInsightsService quotas', () => {
       message: 'AI Q&A returned an empty response',
     })
 
-    expect(user.aiUsage).toEqual({dayKey: null, questionCount: 0})
+    expect(user.aiUsage).toEqual({dayKey: null, questionCount: 0, tokenCount: 0})
     expect(user.save).not.toHaveBeenCalled()
+  })
+
+  test('daily token usage blocks more questions after 100000 tokens', async () => {
+    const user = makeUserDoc({
+      aiUsage: {dayKey: '2026-07-16', questionCount: 1, tokenCount: 100000},
+    })
+    mockUserFindById.mockImplementation(async () => user)
+
+    await expect(askAboutPortfolio(user._id, 'over token budget')).rejects.toMatchObject({
+      message: 'Daily token usage limit reached',
+      status: 429,
+    })
+
+    expect(mockCreateCompletion).not.toHaveBeenCalled()
+    expect(mockChatMessageCreate).not.toHaveBeenCalled()
+    expect(user.save).not.toHaveBeenCalled()
+  })
+
+  test('successful answer records prompt and completion tokens', async () => {
+    const user = makeUserDoc({
+      aiUsage: {dayKey: '2026-07-16', questionCount: 1, tokenCount: 42},
+    })
+    mockUserFindById.mockImplementation(async () => user)
+
+    await expect(askAboutPortfolio(user._id, 'count tokens')).resolves.toMatchObject({
+      usage: {promptTokens: 10, completionTokens: 5},
+    })
+
+    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 2, tokenCount: 57})
   })
 })
