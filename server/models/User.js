@@ -75,7 +75,7 @@ userSchema.methods.toJSON = function () {
     todayCount,
     dailyLimit: resolvedUserType === 'regular' ? REGULAR_AI_DAILY_LIMIT : null,
     todayTokenCount,
-    dailyTokenLimit: AI_DAILY_TOKEN_LIMIT,
+    dailyTokenLimit: resolvedUserType === 'regular' ? AI_DAILY_TOKEN_LIMIT : null,
     unlimited: resolvedUserType !== 'regular',
   }
   return obj

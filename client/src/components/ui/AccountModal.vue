@@ -98,7 +98,9 @@ const aiUsageLabel = computed(() =>
     : `${aiUsageSummary.value.todayCount}/${aiUsageSummary.value.dailyLimit}`
 )
 const aiTokenUsageLabel = computed(() =>
-  `${(aiUsageSummary.value.todayTokenCount || 0).toLocaleString()}/${(aiUsageSummary.value.dailyTokenLimit || 100000).toLocaleString()}`
+  aiUsageSummary.value.dailyTokenLimit == null
+    ? `${(aiUsageSummary.value.todayTokenCount || 0).toLocaleString()} · ${t('account.unlimited')}`
+    : `${(aiUsageSummary.value.todayTokenCount || 0).toLocaleString()}/${aiUsageSummary.value.dailyTokenLimit.toLocaleString()}`
 )
 
 const memberSince = computed(() => {

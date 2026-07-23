@@ -54,7 +54,7 @@ async function ensureAiUsageAvailable(userId, now = new Date()) {
         throw err
     }
 
-    if (currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
+    if (!UNLIMITED_USER_TYPES.has(resolvedUserType) && currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
         const err = new Error('Daily token usage limit reached')
         err.status = 429
         throw err
@@ -85,7 +85,7 @@ async function consumeQuestionQuota(userId, tokenCount = 0, now = new Date()) {
         throw err
     }
 
-    if (currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
+    if (!UNLIMITED_USER_TYPES.has(resolvedUserType) && currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
         const err = new Error('Daily token usage limit reached')
         err.status = 429
         throw err

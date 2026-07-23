@@ -205,7 +205,7 @@ describe('aiInsightsService quotas', () => {
     expect(user.save).not.toHaveBeenCalled()
   })
 
-  test('daily token usage blocks more questions after 100000 tokens', async () => {
+  test('regular user daily token usage blocks more questions after 100000 tokens', async () => {
     const user = makeUserDoc({
       aiUsage: {dayKey: '2026-07-16', questionCount: 1, tokenCount: 100000},
     })
@@ -219,6 +219,20 @@ describe('aiInsightsService quotas', () => {
     expect(mockCreateCompletion).not.toHaveBeenCalled()
     expect(mockChatMessageCreate).not.toHaveBeenCalled()
     expect(user.save).not.toHaveBeenCalled()
+  })
+
+  test('paid users are not blocked by the daily token cap', async () => {
+    const user = makeUserDoc({
+      userType: 'pro',
+      aiUsage: {dayKey: '2026-07-16', questionCount: 20, tokenCount: 100000},
+    })
+    mockUserFindById.mockImplementation(async () => user)
+
+    await expect(askAboutPortfolio(user._id, 'paid over token budget')).resolves.toMatchObject({
+      answer: 'Test answer',
+    })
+
+    expect(user.aiUsage).toEqual({dayKey: '2026-07-16', questionCount: 21, tokenCount: 100015})
   })
 
   test('successful answer records prompt and completion tokens', async () => {

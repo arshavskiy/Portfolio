@@ -493,7 +493,7 @@ Ask a natural-language question about the user's portfolio; answered by an OpenA
 | `get_realized_gains` | Avg-cost realized gains/losses from sells, grouped by year |
 | `get_dividend_summary` | Total dividends received per ticker, all-time |
 
-Up to 4 tool-call rounds run before the final answer is returned. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Regular users are limited to 3 questions/day; Pro, Max, Plan, and Admin users have unlimited questions. All users are capped at 100,000 AI Q&A tokens/day, counted from prompt + completion tokens across successful answers.
+Up to 4 tool-call rounds run before the final answer is returned. Requires `OPENAI_API_KEY`; without it the endpoint returns `503`. Regular users are limited to 3 questions/day and 100,000 AI Q&A tokens/day, counted from prompt + completion tokens across successful answers. Pro, Max, Plan, and Admin users have unlimited questions and are not blocked by the token cap.
 
 **Body**
 ```json
