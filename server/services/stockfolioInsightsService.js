@@ -338,4 +338,89 @@ async function getTickerNews(ticker, {page = 1, limit = 10, days = 90} = {}) {
     }
 }
 
-module.exports = {getEnrichment, getTypologyMap, getRelatedTickers, getInsiderSnapshots, getTickerNews, getMacroSnapshot, getFundamentalsSnapshots}
+async function getInsightsDataOverview({ticker, source, limit = 25} = {}) {
+    const key = ticker ? String(ticker).trim().toUpperCase() : ''
+    const sourceKey = source ? String(source).trim() : ''
+    const pageSize = Math.min(50, Math.max(5, Math.floor(Number(limit) || 25)))
+
+    const articleFilter = {}
+    if (key) articleFilter.tickers = key
+    if (sourceKey) articleFilter.source = sourceKey
+
+    const insightFilter = key ? {ticker: key} : {}
+
+    const [
+        articleCount,
+        analyzedArticleCount,
+        taseArticleCount,
+        recentArticles,
+        recentInsights,
+        sourceRows,
+        topTickerRows,
+        pendingArticles,
+    ] = await Promise.all([
+        Article.countDocuments(articleFilter),
+        Article.countDocuments({...articleFilter, analyzed: true}),
+        Article.countDocuments({...articleFilter, tickers: /\.TA$/}),
+        Article.find(articleFilter)
+            .sort({publishedAt: -1, createdAt: -1})
+            .limit(pageSize)
+            .select('source headline url publishedAt analyzed tickers sentiment themes llmSummary')
+            .lean(),
+        TickerInsight.find(insightFilter)
+            .sort({date: -1, articleCount: -1})
+            .limit(pageSize)
+            .select('ticker date articleCount avgSentiment momentum topThemes industries')
+            .lean(),
+        Article.aggregate([
+            {$match: articleFilter},
+            {$group: {_id: '$source', count: {$sum: 1}, analyzed: {$sum: {$cond: ['$analyzed', 1, 0]}}}},
+            {$sort: {count: -1}},
+            {$limit: 20},
+        ]),
+        Article.aggregate([
+            {$match: {...articleFilter, analyzed: true, tickers: {$ne: []}}},
+            {$unwind: '$tickers'},
+            {$group: {_id: '$tickers', articles: {$sum: 1}, avgSentiment: {$avg: '$sentiment'}}},
+            {$sort: {articles: -1}},
+            {$limit: 20},
+        ]),
+        Article.find({...articleFilter, analyzed: {$ne: true}})
+            .sort({publishedAt: -1, createdAt: -1})
+            .limit(10)
+            .select('source headline url publishedAt tickers')
+            .lean(),
+    ])
+
+    return {
+        generatedAt: new Date().toISOString(),
+        filters: {ticker: key || null, source: sourceKey || null, limit: pageSize},
+        summary: {
+            articleCount,
+            analyzedArticleCount,
+            pendingArticleCount: articleCount - analyzedArticleCount,
+            taseArticleCount,
+            insightRows: await TickerInsight.countDocuments(insightFilter),
+        },
+        sources: sourceRows.map((r) => ({source: r._id || 'unknown', count: r.count, analyzed: r.analyzed})),
+        topTickers: topTickerRows.map((r) => ({
+            ticker: r._id,
+            articles: r.articles,
+            avgSentiment: r.avgSentiment ?? null,
+        })),
+        insights: recentInsights,
+        articles: recentArticles,
+        pendingArticles,
+    }
+}
+
+module.exports = {
+    getEnrichment,
+    getTypologyMap,
+    getRelatedTickers,
+    getInsiderSnapshots,
+    getTickerNews,
+    getMacroSnapshot,
+    getFundamentalsSnapshots,
+    getInsightsDataOverview,
+}

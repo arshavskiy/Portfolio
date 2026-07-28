@@ -35,6 +35,12 @@ const routes = [
         component: () => import('@/views/InsightsView.vue'),
         meta: {requiresAuth: true}
       },
+      {
+        path: 'insights-data',
+        name: 'InsightsData',
+        component: () => import('@/views/InsightsDataView.vue'),
+        meta: {requiresAuth: true, requiresAdmin: true, desktopOnly: true}
+      },
       { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
       { path: 'transactions-alerts', name: 'TransactionsAlerts', component: () => import('@/views/DesktopTransactionsAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'stock/:ticker', redirect: to => `/position/${encodeURIComponent(to.params.ticker)}` },
@@ -58,6 +64,8 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.requiresAuth && !auth.token) return { name: 'Login' }
   if (to.meta.guest && auth.token) return { name: 'Dashboard' }
+  if (to.meta.requiresAdmin && auth.user?.userType !== 'admin') return {name: 'Dashboard'}
+  if (to.meta.desktopOnly && typeof window !== 'undefined' && window.innerWidth < 1024) return {name: 'Dashboard'}
 })
 
 export default router

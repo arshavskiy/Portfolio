@@ -1,4 +1,11 @@
-const {getEnrichment, getTypologyMap, getRelatedTickers, getTickerNews, getMacroSnapshot} = require('../services/stockfolioInsightsService')
+const {
+    getEnrichment,
+    getTypologyMap,
+    getRelatedTickers,
+    getTickerNews,
+    getMacroSnapshot,
+    getInsightsDataOverview,
+} = require('../services/stockfolioInsightsService')
 
 exports.getEnrichment = async (req, res) => {
     try {
@@ -43,6 +50,19 @@ exports.getTickerNews = async (req, res) => {
 exports.getMacroSnapshot = async (req, res) => {
     try {
         const data = await getMacroSnapshot()
+        res.json(data)
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+exports.getInsightsDataOverview = async (req, res) => {
+    try {
+        const data = await getInsightsDataOverview({
+            ticker: req.query.ticker,
+            source: req.query.source,
+            limit: req.query.limit,
+        })
         res.json(data)
     } catch (err) {
         res.status(500).json({message: err.message})

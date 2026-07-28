@@ -21,6 +21,7 @@ const tabs = computed(() => [
 
 function isActive(tab) {
   if (tab.to === '/') return route.path === '/'
+  if (tab.to === '/insights') return route.path === '/insights'
   return route.path.startsWith(tab.to)
 }
 </script>
