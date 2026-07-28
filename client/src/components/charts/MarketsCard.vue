@@ -57,6 +57,8 @@ function displayMarketGroup(name) {
     Crypto: 'dashboard.marketGroupCrypto',
     Europe: 'dashboard.marketGroupEurope',
     Asia: 'dashboard.marketGroupAsia',
+    Bonds: 'dashboard.marketGroupBonds',
+    Futures: 'dashboard.marketGroupFutures',
   }[name]
   return key ? t(key) : name || t('dashboard.marketGroupOther')
 }

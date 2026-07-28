@@ -935,6 +935,22 @@ const MARKET_GROUPS = {
     { symbol: 'SOL-USD', name: 'Solana' },
     { symbol: 'BNB-USD', name: 'BNB' },
   ],
+  Bonds: [
+    { symbol: '^TNX', name: 'US 10Y Yield' },
+    { symbol: '^TYX', name: 'US 30Y Yield' },
+    { symbol: '^FVX', name: 'US 5Y Yield' },
+    { symbol: '^IRX', name: 'US 13W Yield' },
+    { symbol: 'TLT', name: '20Y+ Treasury ETF' },
+  ],
+  Futures: [
+    { symbol: 'ES=F', name: 'S&P 500 Futures' },
+    { symbol: 'CL=F', name: 'Crude Oil' },
+    { symbol: 'NG=F', name: 'Natural Gas' },
+    { symbol: 'GC=F', name: 'Gold' },
+    { symbol: 'SI=F', name: 'Silver' },
+    { symbol: 'HG=F', name: 'Copper' },
+    { symbol: 'ZC=F', name: 'Corn' },
+  ],
 }
 
 // Keyless quote via the v8 chart endpoint's `meta` block. The v7 `quote()`

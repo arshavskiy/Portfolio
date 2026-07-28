@@ -338,6 +338,8 @@ export const messages = {
       marketGroupCrypto: "Crypto",
       marketGroupEurope: "Europe",
       marketGroupAsia: "Asia",
+      marketGroupBonds: "Bonds",
+      marketGroupFutures: "Futures",
       marketGroupOther: "Other",
     },
     watchlist: {
@@ -1435,6 +1437,8 @@ export const messages = {
       marketGroupCrypto: "Крипто",
       marketGroupEurope: "Европа",
       marketGroupAsia: "Азия",
+      marketGroupBonds: "Облигации",
+      marketGroupFutures: "Фьючерсы",
       marketGroupOther: "Другое",
     },
     watchlist: {
