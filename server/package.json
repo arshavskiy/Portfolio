@@ -27,7 +27,7 @@
     "swagger-jsdoc": "^6.3.0",
     "swagger-ui-express": "^5.0.1",
     "web-push": "^3.6.7",
-    "yahoo-finance2": "^3.15.2"
+    "yahoo-finance2": "^4.0.0"
   },
   "devDependencies": {
     "jest": "^29.7.0"

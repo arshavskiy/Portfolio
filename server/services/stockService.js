@@ -717,10 +717,6 @@ function invalidateCache(ticker) {
 // Trading Central / Argus research via Yahoo's insights endpoint: valuation
 // verdict, analyst target price, and technical outlooks. Research updates
 // slowly, so a long TTL keeps traffic negligible.
-//
-// validateResult is off because Yahoo returns secReports fields (edgarUrl,
-// exhibits) that the v3 schema rejects, failing the whole call over data we
-// don't even read.
 const analystInsightCache = new Map()
 const ANALYST_INSIGHT_TTL = 6 * 60 * 60 * 1000
 
@@ -731,7 +727,7 @@ async function getAnalystInsight(ticker) {
 
   let data = null
   try {
-    const result = await yahooFinance.insights(symbol, {}, {validateResult: false})
+    const result = await yahooFinance.insights(symbol)
     const info = result?.instrumentInfo
     const valuation = info?.valuation
     const recommendation = result?.recommendation
