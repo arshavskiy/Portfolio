@@ -146,6 +146,12 @@ describe('computeTransactionCosts', () => {
     expect(computeTransactionCosts(profile, 'buy', 20000, 200, 100, null).feeAmount).toBe(2)
   })
 
+  test('sell fee — per-share minimum fee is enforced', () => {
+    const profile = makeProfile({ sellFee: { type: 'perShare', value: 0.01, minFee: 5 } })
+    const { feeAmount } = computeTransactionCosts(profile, 'sell', 1000, 10, 100, 120)
+    expect(feeAmount).toBe(5)
+  })
+
   test('sell with capital gain — tax computed', () => {
     const profile = makeProfile({ capitalGainsTax: 25 })
     // avgCost 80, sell price 100, 10 shares → gain = (100-80)*10 = 200 → tax = 50

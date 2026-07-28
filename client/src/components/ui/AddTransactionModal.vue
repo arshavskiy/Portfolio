@@ -63,7 +63,9 @@ const shares = ref(null)
 const price = ref(null)
 const date = ref(new Date())
 const notes = ref('')
-const selectedFeeProfile = ref(null)
+const selectedFeeProfile = ref(undefined)
+const transactionCostQuote = ref(null)
+let transactionCostRequestId = 0
 const loading = ref(false)
 const suggestions = ref([])
 const groups = ref([])              // selected group tags (array of strings)
@@ -137,33 +139,71 @@ function formatFeeRule(rule, profileCurrency = currency.value) {
   return useCurrency(rule.value, profileCurrency)
 }
 
-function calcFee(rule, total) {
-  if (!rule || !rule.value) return 0
-  let fee = rule.value
-  if (rule.type === 'percent') fee = total * rule.value
-  if (rule.type === 'perShare') fee = (shares.value || 0) * rule.value
-  if (rule.minFee && fee < rule.minFee) fee = rule.minFee
-  return Math.round(fee * 100) / 100
+function submittedTickerForPreview() {
+  if (!currentTicker.value) return ''
+  return hasFixedTicker.value ? currentTicker.value : applyTo(currentTicker.value)
 }
 
-const selectedProfile = computed(() => {
-  if (!selectedFeeProfile.value) return null
-  return matchingProfiles.value.find((p) => p._id === selectedFeeProfile.value) || null
-})
+function transactionCostPayload() {
+  if (!shares.value || !price.value) return null
+  const symbol = submittedTickerForPreview()
+  const count = Number(shares.value)
+  const unitPrice = Number(price.value)
+  if (!count || !unitPrice) return null
+  const avgCost = Number.isFinite(props.avgCost)
+      ? props.avgCost
+      : Number.isFinite(props.totalCost) && props.maxShares > 0
+          ? props.totalCost / props.maxShares
+          : null
+  return {
+    ticker: symbol,
+    type: type.value,
+    feeProfileId: selectedFeeProfile.value,
+    shares: count,
+    price: unitPrice,
+    total: count * unitPrice,
+    avgCost: type.value === 'sell' ? avgCost : null,
+    currency: txCurrency.value,
+  }
+}
 
-const feeAmount = computed(() => {
-  if (!selectedProfile.value || !shares.value || !price.value) return 0
-  const total = shares.value * price.value
-  const rule = type.value === 'buy' ? selectedProfile.value.buyFee : selectedProfile.value.sellFee
-  return calcFee(rule, total)
-})
+async function refreshTransactionCostQuote() {
+  const payload = transactionCostPayload()
+  const requestId = ++transactionCostRequestId
+  if (!payload) {
+    transactionCostQuote.value = null
+    return
+  }
+  try {
+    const data = await api.post('/fee-profiles/simulate', payload)
+    if (requestId === transactionCostRequestId) {
+      transactionCostQuote.value = {
+        ...data,
+        key: JSON.stringify(payload),
+      }
+    }
+  } catch {
+    if (requestId === transactionCostRequestId) transactionCostQuote.value = null
+  }
+}
+
+function matchingTransactionCostQuote() {
+  const payload = transactionCostPayload()
+  const quote = transactionCostQuote.value
+  if (!payload || !quote || quote.key !== JSON.stringify(payload)) return null
+  return quote
+}
+
+const feeAmount = computed(() => matchingTransactionCostQuote()?.feeAmountForTotals || 0)
 const feeCurrency = computed(() => txCurrency.value)
 
 const sellSimulation = computed(() => {
   if (type.value !== 'sell' || !shares.value || !price.value) return null
+  const costQuote = matchingTransactionCostQuote()
+  if (!costQuote) return null
 
   const grossProceeds = shares.value * price.value
-  const taxRate = selectedProfile.value?.capitalGainsTax || 0
+  const taxRate = costQuote.taxRate || 0
   const costBasis = Number.isFinite(props.avgCost)
       ? props.avgCost * shares.value
       : Number.isFinite(props.totalCost) && props.maxShares > 0
@@ -172,10 +212,7 @@ const sellSimulation = computed(() => {
   const buyFeesBasis = props.maxShares > 0
       ? (props.totalBuyFees || 0) * (shares.value / props.maxShares)
       : 0
-  const gain = costBasis != null ? grossProceeds - costBasis : null
-  const tax = gain != null && gain > 0 && taxRate > 0
-      ? Math.round(gain * taxRate / 100 * 100) / 100
-      : 0
+  const tax = costQuote.taxAmount || 0
   const netProceeds = grossProceeds - feeAmount.value - tax
   const invested = costBasis != null ? costBasis + buyFeesBasis : null
   const netProfit = invested != null ? netProceeds - invested : null
@@ -191,7 +228,7 @@ const sellSimulation = computed(() => {
     buyFeesBasis,
     netProfit,
     netProfitPct,
-    profileName: selectedProfile.value?.name || null,
+    profileName: costQuote.profileName || null,
   }
 })
 
@@ -220,10 +257,30 @@ watch(() => props.visible, async (v) => {
 })
 
 watch(() => feeStore.profiles, (profiles) => {
-  if (!profiles.some((p) => p._id === selectedFeeProfile.value)) {
+  if (selectedFeeProfile.value !== null && !profiles.some((p) => p._id === selectedFeeProfile.value)) {
     selectedFeeProfile.value = defaultFeeProfile()?._id || null
   }
 }, { immediate: true })
+
+watch(
+  [
+    () => props.visible,
+    currentTicker,
+    type,
+    shares,
+    price,
+    selectedFeeProfile,
+    txCurrency,
+    () => props.avgCost,
+    () => props.totalCost,
+    () => props.maxShares,
+  ],
+  () => {
+    if (props.visible) refreshTransactionCostQuote()
+    else transactionCostQuote.value = null
+  },
+  { immediate: true },
+)
 
 // Fetch the live market price for the current ticker for quick-fill actions.
 async function fetchMarketPrice() {

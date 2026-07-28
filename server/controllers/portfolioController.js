@@ -1,13 +1,17 @@
 const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
-const FeeProfile = require('../models/FeeProfile')
 
 // Transaction fee profile input is tri-state:
 // undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
 // feeAmount stays in profile currency; totalWithFees/netProceeds convert it first.
 const Watchlist = require('../models/Watchlist')
 const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar, getDividendFrequency} = require('../services/stockService')
-const { computeTransactionCosts, getBuiltInFeeProfile } = require('./feeProfileController')
+const {
+  computeTransactionCosts,
+  convertFeeToTransactionCurrency,
+  resolveFeeProfile,
+  tickerCurrency,
+} = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 const {computeXirr, computeTwr} = require('../services/returnMetrics')
 
@@ -61,32 +65,6 @@ function normalizeGroups(groups) {
     if (out.length >= 10) break
   }
   return out
-}
-
-function tickerCurrency(ticker) {
-  return ticker?.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD'
-}
-
-async function convertFeeToTransactionCurrency(amount, feeCurrency, transactionCurrency) {
-  if (!amount || feeCurrency === transactionCurrency) return amount || 0
-  const ilsToUsd = await getIlsToUsd()
-  if (feeCurrency === 'ILS' && transactionCurrency === 'USD' && ilsToUsd > 0) return amount * ilsToUsd
-  if (feeCurrency === 'USD' && transactionCurrency === 'ILS' && ilsToUsd > 0) return amount / ilsToUsd
-  return amount || 0
-}
-
-async function findDefaultFeeProfile(userId, transactionCurrency) {
-  async function preferredProfile(currency) {
-    const profiles = await FeeProfile.find({ user: userId, currency }).sort({ isDefault: -1, createdAt: 1 })
-    return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
-  }
-
-  const exact = await preferredProfile(transactionCurrency)
-  if (exact) return exact
-  if (transactionCurrency === 'USD') {
-    return preferredProfile('ILS')
-  }
-  return null
 }
 
 exports.getPortfolio = async (req, res) => {
@@ -309,12 +287,7 @@ exports.addTransaction = async (req, res) => {
     let feeAmount = 0
     let feeAmountForTotals = 0
     let taxAmount = 0
-    if (feeProfileId) {
-      feeProfile = getBuiltInFeeProfile(feeProfileId) ||
-        await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
-    } else if (feeProfileId === undefined) {
-      feeProfile = await findDefaultFeeProfile(req.user._id, tickerCurrency(ticker))
-    }
+    feeProfile = await resolveFeeProfile(req.user._id, feeProfileId, tickerCurrency(ticker))
 
     if (feeProfile) {
       // For sell tax, get current avg cost from position
@@ -450,12 +423,7 @@ exports.updateTransaction = async (req, res) => {
     let feeAmount = 0
     let feeAmountForTotals = 0
     let taxAmount = 0
-    if (feeProfileId) {
-      feeProfile = getBuiltInFeeProfile(feeProfileId) ||
-        await FeeProfile.findOne({ _id: feeProfileId, user: req.user._id })
-    } else if (feeProfileId === undefined) {
-      feeProfile = await findDefaultFeeProfile(req.user._id, tickerCurrency(tx.ticker))
-    }
+    feeProfile = await resolveFeeProfile(req.user._id, feeProfileId, tickerCurrency(tx.ticker))
 
     if (feeProfile) {
       const pos = tx.type === 'sell'

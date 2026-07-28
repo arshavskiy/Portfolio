@@ -72,10 +72,12 @@ const showSimulator = ref(false);
 const showBuySimulator = ref(false);
 const editingTx = ref(null);
 const simPrice = ref(null);
-const simFeeProfileId = ref(null);
+const simFeeProfileId = ref(undefined);
+const sellSimulationCosts = ref(null);
+let sellSimulationRequestId = 0;
 const buySimShares = ref(null);
 const buySimPrice = ref(null);
-const buySimFeeProfileId = ref(null);
+const buySimFeeProfileId = ref(undefined);
 const buySimMode = ref("amount"); // 'amount' | 'target' | 'shares'
 const buySimAmount = ref(null); // total budget (mode: amount)
 const buySimTargetAvg = ref(null); // desired avg cost (mode: target)
@@ -835,27 +837,70 @@ const extendedHoursStats = computed(() => {
   ];
 });
 
+function sellSimulationPayload() {
+  if (!simPrice.value || !summary.value) return null;
+  const { shares, avgCost } = summary.value;
+  if (!shares || shares <= 0) return null;
+  const price = Number(simPrice.value);
+  if (!price || price <= 0) return null;
+  return {
+    ticker: ticker.value,
+    type: "sell",
+    feeProfileId: simFeeProfileId.value,
+    shares,
+    price,
+    total: shares * price,
+    avgCost,
+    currency: tickerCurr.value,
+  };
+}
+
+async function refreshSellSimulationCosts() {
+  const payload = sellSimulationPayload();
+  const requestId = ++sellSimulationRequestId;
+  if (!payload) {
+    sellSimulationCosts.value = null;
+    return;
+  }
+  try {
+    const data = await api.post("/fee-profiles/simulate", payload);
+    if (requestId === sellSimulationRequestId) {
+      sellSimulationCosts.value = {
+        ...data,
+        key: JSON.stringify(payload),
+      };
+    }
+  } catch {
+    if (requestId === sellSimulationRequestId) sellSimulationCosts.value = null;
+  }
+}
+
+watch(
+  [
+    simPrice,
+    simFeeProfileId,
+    ticker,
+    tickerCurr,
+    () => summary.value?.shares,
+    () => summary.value?.avgCost,
+  ],
+  refreshSellSimulationCosts,
+  { immediate: true },
+);
+
 const simulation = computed(() => {
   if (!simPrice.value || !summary.value) return null;
-  const { shares, avgCost, totalCost, totalBuyFees } = summary.value;
+  const { shares, totalCost, totalBuyFees } = summary.value;
   const sellPrice = simPrice.value;
   const grossProceeds = sellPrice * shares;
-
-  // Get sell fee from selected profile
-  const profile = feeStore.profiles.find(
-    (p) => p._id === simFeeProfileId.value,
-  );
-  const sellFee = calcFee(profile?.sellFee, grossProceeds);
-  const sellFeeCurrency = tickerCurr.value;
-  const sellFeeInTickerCurrency = sellFee;
-
-  // Capital gains tax on profit only
-  const taxRate = profile?.capitalGainsTax || 0;
-  const gain = grossProceeds - totalCost;
-  const tax =
-    gain > 0 && taxRate > 0
-      ? Math.round(((gain * taxRate) / 100) * 100) / 100
-      : 0;
+  const payload = sellSimulationPayload();
+  const costs = sellSimulationCosts.value;
+  if (!payload || !costs || costs.key !== JSON.stringify(payload)) return null;
+  const sellFee = costs.feeAmount || 0;
+  const sellFeeCurrency = costs.feeCurrency || tickerCurr.value;
+  const sellFeeInTickerCurrency = costs.feeAmountForTotals || 0;
+  const tax = costs.taxAmount || 0;
+  const taxRate = costs.taxRate || 0;
 
   const netProceeds = grossProceeds - sellFeeInTickerCurrency - tax;
   // Net profit = net proceeds - original cost - buy fees already paid
@@ -877,7 +922,7 @@ const simulation = computed(() => {
     netProceeds,
     netProfit,
     netProfitPct,
-    profileName: profile?.name || null,
+    profileName: costs.profileName || null,
   };
 });
 
@@ -887,13 +932,13 @@ watch(
     const def =
       profiles.find((p) => p.isDefault)?._id || profiles[0]?._id || null;
     if (
-      !simFeeProfileId.value ||
+      simFeeProfileId.value !== null &&
       !profiles.some((p) => p._id === simFeeProfileId.value)
     ) {
       simFeeProfileId.value = def;
     }
     if (
-      !buySimFeeProfileId.value ||
+      buySimFeeProfileId.value !== null &&
       !profiles.some((p) => p._id === buySimFeeProfileId.value)
     ) {
       buySimFeeProfileId.value = def;

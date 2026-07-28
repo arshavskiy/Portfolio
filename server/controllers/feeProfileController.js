@@ -1,4 +1,5 @@
 const FeeProfile = require('../models/FeeProfile')
+const { getIlsToUsd } = require('../services/stockService')
 
 const BUILTIN_FEE_PROFILES = [
   {
@@ -17,6 +18,50 @@ exports.BUILTIN_FEE_PROFILES = BUILTIN_FEE_PROFILES
 
 exports.getBuiltInFeeProfile = (id) =>
   BUILTIN_FEE_PROFILES.find((profile) => profile._id === id) || null
+
+function tickerCurrency(ticker) {
+  return ticker?.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD'
+}
+
+exports.tickerCurrency = tickerCurrency
+
+async function convertFeeToTransactionCurrency(amount, feeCurrency, transactionCurrency) {
+  if (!amount || feeCurrency === transactionCurrency) return amount || 0
+  const ilsToUsd = await getIlsToUsd()
+  if (feeCurrency === 'ILS' && transactionCurrency === 'USD' && ilsToUsd > 0) return amount * ilsToUsd
+  if (feeCurrency === 'USD' && transactionCurrency === 'ILS' && ilsToUsd > 0) return amount / ilsToUsd
+  return amount || 0
+}
+
+exports.convertFeeToTransactionCurrency = convertFeeToTransactionCurrency
+
+async function findDefaultFeeProfile(userId, transactionCurrency) {
+  async function preferredProfile(currency) {
+    const profiles = await FeeProfile.find({ user: userId, currency }).sort({ isDefault: -1, createdAt: 1 })
+    return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
+  }
+
+  const exact = await preferredProfile(transactionCurrency)
+  if (exact) return exact
+  if (transactionCurrency === 'USD') {
+    return preferredProfile('ILS')
+  }
+  return null
+}
+
+exports.findDefaultFeeProfile = findDefaultFeeProfile
+
+async function resolveFeeProfile(userId, feeProfileId, transactionCurrency) {
+  if (feeProfileId === null) return null
+  if (feeProfileId) {
+    return exports.getBuiltInFeeProfile(feeProfileId) ||
+      FeeProfile.findOne({ _id: feeProfileId, user: userId })
+  }
+  if (feeProfileId === undefined) return findDefaultFeeProfile(userId, transactionCurrency)
+  return null
+}
+
+exports.resolveFeeProfile = resolveFeeProfile
 
 exports.getProfiles = async (req, res) => {
   try {
@@ -108,3 +153,56 @@ exports.computeTransactionCosts = (profile, txType, total, shares, price, avgCos
 
 // Keep backward compat alias
 exports.computeFee = (profile, total) => calcFee(profile?.buyFee, total)
+
+exports.simulateTransactionCosts = async (req, res) => {
+  try {
+    const { ticker, type, feeProfileId } = req.body || {}
+    const txType = type === 'sell' ? 'sell' : 'buy'
+    const transactionCurrency = req.body?.currency || tickerCurrency(ticker)
+    const shares = Number(req.body?.shares) || 0
+    const price = Number(req.body?.price) || 0
+    const total = Number(req.body?.total) || shares * price
+    const avgCost = req.body?.avgCost == null ? null : Number(req.body.avgCost)
+
+    if (!shares || !price || !total) {
+      return res.status(400).json({ message: 'shares and price are required' })
+    }
+
+    const profile = await resolveFeeProfile(req.user._id, feeProfileId, transactionCurrency)
+    if (!profile) {
+      return res.json({
+        feeAmount: 0,
+        feeAmountForTotals: 0,
+        feeCurrency: transactionCurrency,
+        transactionCurrency,
+        taxAmount: 0,
+        taxRate: 0,
+        profileName: null,
+      })
+    }
+
+    const { feeAmount, taxAmount } = exports.computeTransactionCosts(
+      profile,
+      txType,
+      total,
+      shares,
+      price,
+      Number.isFinite(avgCost) ? avgCost : null
+    )
+    const feeCurrency = profile.currency || transactionCurrency
+    const feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)
+
+    res.json({
+      feeAmount,
+      feeAmountForTotals,
+      feeCurrency,
+      transactionCurrency,
+      taxAmount,
+      taxRate: profile.capitalGainsTax || 0,
+      profileName: profile.name || null,
+      profileId: profile._id,
+    })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
