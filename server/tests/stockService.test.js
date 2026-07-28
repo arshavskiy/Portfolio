@@ -163,6 +163,32 @@ describe('withRetry', () => {
   })
 })
 
+describe('getQuote chart fallback', () => {
+  beforeEach(() => {
+    yahooMock.quote.mockReset()
+    yahooMock.chart.mockReset()
+  })
+
+  test('falls back to chart meta when quote() throws (datacenter block)', async () => {
+    yahooMock.quote.mockRejectedValue(new Error('Unexpected redirect to ...guccounter=1'))
+    yahooMock.chart.mockResolvedValue({
+      meta: {
+        symbol: 'ZZZQ',
+        regularMarketPrice: 100,
+        chartPreviousClose: 90,
+        shortName: 'Test Index',
+        currency: 'USD',
+      },
+    })
+
+    const quote = await getQuote('ZZZQ')
+
+    expect(quote.price).toBe(100)
+    expect(quote.change).toBeCloseTo(10)
+    expect(quote.changePercent).toBeCloseTo(11.111, 2)
+  })
+})
+
 describe('getQuote dividend normalization', () => {
   beforeEach(() => {
     yahooMock.quote.mockReset()

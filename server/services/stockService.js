@@ -337,11 +337,19 @@ async function getQuote(ticker) {
     try {
       result = await withRetry(() => yahooFinance.quote(ticker))
     } catch (error) {
-      // In-memory stale cache first, then persisted snapshot, then error.
-      if (cached?.data) return cached.data
-      const snap = await loadQuoteSnapshot(key)
-      if (snap) { console.warn(`[quote] serving stale snapshot for ${key}: ${error.message}`); return snap }
-      throw error
+      // quote() blocked (e.g. datacenter-IP consent gate) — try the keyless
+      // chart endpoint for a live price before falling back to stale data.
+      const viaChart = await getQuoteViaChart(ticker).catch(() => null)
+      if (viaChart?.regularMarketPrice != null) {
+        console.warn(`[quote] quote() failed for ${key}, using chart fallback: ${error.message}`)
+        result = viaChart
+      } else {
+        // In-memory stale cache first, then persisted snapshot, then error.
+        if (cached?.data) return cached.data
+        const snap = await loadQuoteSnapshot(key)
+        if (snap) { console.warn(`[quote] serving stale snapshot for ${key}: ${error.message}`); return snap }
+        throw error
+      }
     } finally {
       quoteInflight.delete(key)
     }
@@ -836,6 +844,43 @@ const MARKET_GROUPS = {
   ],
 }
 
+// Keyless quote via the v8 chart endpoint's `meta` block. The v7 `quote()`
+// endpoint needs a crumb+cookie and gets blocked from datacenter IPs (EU
+// consent gate), leaving price null on prod even though chart() works. This
+// pulls the same fields from chart meta, which stays available.
+async function getQuoteViaChart(ticker) {
+  const period1 = new Date(Date.now() - 7 * 86400000)
+  const result = await yahooFinance.chart(ticker, {
+    period1: period1.toISOString().split('T')[0],
+    interval: '1d',
+  })
+  const m = result?.meta
+  if (!m?.regularMarketPrice) return null
+  const f = taFactor(ticker)
+  const price = m.regularMarketPrice / f
+  const prevClose = (m.chartPreviousClose ?? m.previousClose ?? null)
+  const prev = prevClose != null ? prevClose / f : null
+  const change = prev != null ? price - prev : null
+  return {
+    symbol: m.symbol || ticker,
+    regularMarketPrice: price,
+    regularMarketChange: change,
+    regularMarketChangePercent: prev ? (change / prev) * 100 : null,
+    regularMarketPreviousClose: prev,
+    shortName: m.shortName || m.longName || undefined,
+    longName: m.longName || undefined,
+    currency: m.currency,
+  }
+}
+
+// quote() first (richest data), chart meta as a keyless fallback for hosts
+// where the quote endpoint is blocked.
+async function quoteWithChartFallback(ticker) {
+  const q = await yahooFinance.quote(ticker).catch(() => null)
+  if (q?.regularMarketPrice != null) return q
+  return getQuoteViaChart(ticker).catch(() => null)
+}
+
 let marketsCache = new Map() // group -> { data, ts }
 const MARKETS_TTL = 5 * 60 * 1000
 
@@ -846,7 +891,7 @@ async function getMarkets(group = 'US') {
 
   const symbols = list.map((m) => m.symbol)
   const [quotes, histories] = await Promise.all([
-    Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
+    Promise.all(symbols.map((s) => quoteWithChartFallback(s))),
     Promise.all(symbols.map((s) => getHistory(s, '5d', 30).catch(() => []))),
   ])
 
@@ -900,7 +945,7 @@ async function getTrending(group = 'US') {
   }
 
   const [quotes, histories] = await Promise.all([
-    Promise.all(symbols.map((s) => yahooFinance.quote(s).catch(() => null))),
+    Promise.all(symbols.map((s) => quoteWithChartFallback(s))),
     Promise.all(symbols.map((s) => getHistory(s, '5d', 30).catch(() => []))),
   ])
 
