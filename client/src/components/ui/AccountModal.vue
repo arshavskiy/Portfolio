@@ -242,7 +242,7 @@ function logout() {
             <span>{{ t('account.theme') }}</span>
             <ThemeToggle/>
           </div>
-          <div v-if="auth.canUsePremiumFeatures" class="menu-item">
+          <div class="menu-item">
             <i class="pi pi-sparkles menu-icon"/>
             <span>{{ t('account.aiDailySummary') }}</span>
             <ToggleSwitch v-model="aiSummaryEnabled"/>

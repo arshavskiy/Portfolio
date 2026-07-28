@@ -1,16 +1,19 @@
 <script setup>
-import {ref, onBeforeUnmount, onMounted, watch} from 'vue'
+import {computed, ref, onBeforeUnmount, onMounted, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
 import {useI18n} from '@/composables/useI18n'
+import {useAuthStore} from '@/stores/auth'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useWatchlistStore} from '@/stores/watchlist'
 import {useTickerLinkify} from '@/composables/useTickerLinkify'
 
 const {t, locale} = useI18n()
+const auth = useAuthStore()
 const portfolio = usePortfolioStore()
 const watchlist = useWatchlistStore()
 const {splitTickers} = useTickerLinkify()
+const canRefreshSummary = computed(() => !auth.isRegularUser)
 
 const summary = ref('')
 const generatedAt = ref(null)
@@ -83,7 +86,7 @@ watch(locale, () => load())
         {{ t('dailySummary.title') }}
       </h2>
       <div class="summary-actions">
-        <button :disabled="loading || refreshing" class="summary-refresh" type="button" @click="load(true)">
+        <button v-if="canRefreshSummary" :disabled="loading || refreshing" class="summary-refresh" type="button" @click="load(true)">
           <i :class="{'pi-spin': refreshing}" class="pi pi-refresh"/>
         </button>
         <button class="summary-close" type="button" :title="t('dailySummary.dismiss')" @click="dismiss">

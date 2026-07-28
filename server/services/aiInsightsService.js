@@ -102,6 +102,47 @@ async function consumeQuestionQuota(userId, tokenCount = 0, now = new Date()) {
     return resolvedUserType
 }
 
+async function ensureTokenUsageAvailable(userId, now = new Date()) {
+    const user = await User.findById(userId)
+    if (!user) {
+        const err = new Error('User not found')
+        err.status = 404
+        throw err
+    }
+
+    const resolvedUserType = user.userType || 'regular'
+    const today = dayKey(now)
+    const currentUsage = user.aiUsage || {}
+    const currentDayKey = currentUsage.dayKey || null
+    const currentTokenCount = Number.isFinite(currentUsage.tokenCount) ? currentUsage.tokenCount : 0
+
+    if (!UNLIMITED_USER_TYPES.has(resolvedUserType) && currentDayKey === today && currentTokenCount >= DAILY_TOKEN_LIMIT) {
+        const err = new Error('Daily token usage limit reached')
+        err.status = 429
+        throw err
+    }
+}
+
+async function consumeAiTokens(userId, tokenCount = 0, now = new Date()) {
+    const user = await User.findById(userId)
+    if (!user) {
+        const err = new Error('User not found')
+        err.status = 404
+        throw err
+    }
+
+    const today = dayKey(now)
+    const currentUsage = user.aiUsage || {}
+    const currentDayKey = currentUsage.dayKey || null
+    const currentQuestionCount = Number.isFinite(currentUsage.questionCount) ? currentUsage.questionCount : 0
+    const currentTokenCount = Number.isFinite(currentUsage.tokenCount) ? currentUsage.tokenCount : 0
+    const nextQuestionCount = currentDayKey === today ? currentQuestionCount : 0
+    const nextTokenCount = (currentDayKey === today ? currentTokenCount : 0) + Math.max(Number(tokenCount) || 0, 0)
+
+    user.aiUsage = {dayKey: today, questionCount: nextQuestionCount, tokenCount: nextTokenCount}
+    await user.save()
+}
+
 let client = null
 
 function getClient() {
@@ -519,7 +560,6 @@ async function askAboutPortfolio(userId, question) {
         err.status = 503
         throw err
     }
-
     const trimmed = String(question || '').trim().slice(0, QUESTION_MAX_LENGTH)
     if (!trimmed) {
         const err = new Error('question is required')
@@ -643,6 +683,7 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
         err.status = 503
         throw err
     }
+    await ensureTokenUsageAvailable(userId)
 
     const {contextText, tickers} = await buildPortfolioContext(userId)
     const [newsText, marketsText] = await Promise.all([buildNewsContext(tickers), buildMarketsContext()])
@@ -690,8 +731,10 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
     }
 
     const generatedAt = new Date()
+    const tokenCount = (completion.usage?.prompt_tokens ?? 0) + (completion.usage?.completion_tokens ?? 0)
     user.aiDailySummary = {dayKey: cacheKey, text: answer, generatedAt}
     await user.save()
+    await consumeAiTokens(userId, tokenCount)
 
     return {summary: answer, generatedAt, cached: false}
 }
