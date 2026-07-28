@@ -99,6 +99,10 @@ const matchingProfiles = computed(() => [
   ...feeStore.profiles,
 ])
 
+function feeCurrencyForTransaction(profile) {
+  return txCurrency.value === 'ILS' ? 'ILS' : (profile?.currency || txCurrency.value)
+}
+
 function formatFeePercent(value) {
   const num = Number(value)
   if (!Number.isFinite(num)) return '0%'
@@ -115,8 +119,9 @@ const feeOptions = computed(() => [
   {label: t('common.noFee'), detail: '', value: null},
   ...matchingProfiles.value.map((p) => {
     const fee = type.value === 'buy' ? p.buyFee : p.sellFee
-    const feeStr = formatFeeRule(fee, p.currency || currency.value)
-    const minStr = fee?.minFee ? ` ${t('feeProfiles.min')} ${useCurrency(fee.minFee, p.currency || currency.value)}` : ''
+    const effectiveFeeCurrency = feeCurrencyForTransaction(p)
+    const feeStr = formatFeeRule(fee, effectiveFeeCurrency)
+    const minStr = fee?.minFee ? ` ${t('feeProfiles.min')} ${useCurrency(fee.minFee, effectiveFeeCurrency)}` : ''
     const usageStr = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : ''
     const taxStr = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatTaxPercent(p.capitalGainsTax)}` : ''
     const presetStr = p.builtin ? t('feeProfiles.preset') : ''

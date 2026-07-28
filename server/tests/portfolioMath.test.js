@@ -104,7 +104,7 @@ describe('replayTransactions (avg-cost method)', () => {
 
 // ── computeTransactionCosts ───────────────────────────────────────────────────
 
-const { computeTransactionCosts } = require('../controllers/feeProfileController')
+const { computeTransactionCosts, feeCurrencyForTransaction } = require('../controllers/feeProfileController')
 
 function makeProfile(overrides = {}) {
   return {
@@ -175,6 +175,16 @@ describe('computeTransactionCosts', () => {
     const profile = makeProfile({ capitalGainsTax: 0 })
     const { taxAmount } = computeTransactionCosts(profile, 'sell', 1000, 10, 100, 80)
     expect(taxAmount).toBe(0)
+  })
+})
+
+describe('feeCurrencyForTransaction', () => {
+  test('forces TASE transactions to ILS even when profile currency is USD', () => {
+    expect(feeCurrencyForTransaction({ currency: 'USD' }, 'ILS')).toBe('ILS')
+  })
+
+  test('keeps profile currency for non-TASE transactions', () => {
+    expect(feeCurrencyForTransaction({ currency: 'ILS' }, 'USD')).toBe('ILS')
   })
 })
 

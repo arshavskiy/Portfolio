@@ -39,8 +39,13 @@ const currency = computed(() => tickerCurrency(ticker.value))
 const currencySymbol = computed(() => currency.value === 'ILS' ? '₪' : '$')
 
 function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
+  if (transactionCurrency === 'ILS') return true
   if (profileCurrency === transactionCurrency) return true
   return transactionCurrency === 'USD' && profileCurrency === 'ILS'
+}
+
+function feeCurrencyForTransaction(profile) {
+  return currency.value === 'ILS' ? 'ILS' : (profile?.currency || currency.value)
 }
 
 const matchingProfiles = computed(() => {
@@ -67,7 +72,10 @@ const feeOptions = computed(() => [
   {label: t('common.noFee'), value: null},
   ...matchingProfiles.value.map((p) => {
     const fee = props.transaction?.type === 'buy' ? p.buyFee : p.sellFee
-    const feeStr = fee?.value ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${p.currency} ${fee.value}`) : '0%'
+    const effectiveFeeCurrency = feeCurrencyForTransaction(p)
+    const feeStr = fee?.value
+      ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${effectiveFeeCurrency} ${fee.value}`)
+      : '0%'
     const taxStr = p.capitalGainsTax ? ` · ${t('transactionModal.capitalGainsTax')} ${formatTaxPercent(p.capitalGainsTax)}` : ''
     return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id }
   }),

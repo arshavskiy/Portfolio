@@ -536,12 +536,16 @@ function defaultFeeProfile() {
   );
 }
 
+function feeCurrencyForTransaction(profile) {
+  return tickerCurr.value === "ILS" ? "ILS" : profile?.currency || tickerCurr.value;
+}
+
 function feeProfileOf(tx) {
   return tx.feeProfile || (tx.feeAmount ? null : defaultFeeProfile());
 }
 
 function feeCurrencyOf(tx) {
-  return tickerCurr.value;
+  return feeCurrencyForTransaction(feeProfileOf(tx));
 }
 
 function isDefaultFeeEstimate(tx) {

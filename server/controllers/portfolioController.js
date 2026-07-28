@@ -9,6 +9,7 @@ const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCal
 const {
   computeTransactionCosts,
   convertFeeToTransactionCurrency,
+  feeCurrencyForTransaction,
   resolveFeeProfile,
   tickerCurrency,
 } = require('./feeProfileController')
@@ -296,7 +297,9 @@ exports.addTransaction = async (req, res) => {
         : null
       const avgCost = pos?.avgCost ?? null
       ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, type, total, shares, price, avgCost))
-      feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeProfile.currency || 'USD', tickerCurrency(ticker))
+      const transactionCurrency = tickerCurrency(ticker)
+      const feeCurrency = feeCurrencyForTransaction(feeProfile, transactionCurrency)
+      feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)
     }
 
     invalidateCache(ticker)
@@ -430,7 +433,9 @@ exports.updateTransaction = async (req, res) => {
         ? await Position.findOne({ user: req.user._id, ticker: tx.ticker })
         : null
       ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, tx.type, shares * price, shares, price, pos?.avgCost ?? null))
-      feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeProfile.currency || 'USD', tickerCurrency(tx.ticker))
+      const transactionCurrency = tickerCurrency(tx.ticker)
+      const feeCurrency = feeCurrencyForTransaction(feeProfile, transactionCurrency)
+      feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)
     }
 
     const total = shares * price

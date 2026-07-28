@@ -25,6 +25,13 @@ function tickerCurrency(ticker) {
 
 exports.tickerCurrency = tickerCurrency
 
+function feeCurrencyForTransaction(profile, transactionCurrency) {
+  if (transactionCurrency === 'ILS') return 'ILS'
+  return profile?.currency || transactionCurrency
+}
+
+exports.feeCurrencyForTransaction = feeCurrencyForTransaction
+
 async function convertFeeToTransactionCurrency(amount, feeCurrency, transactionCurrency) {
   if (!amount || feeCurrency === transactionCurrency) return amount || 0
   const ilsToUsd = await getIlsToUsd()
@@ -189,7 +196,7 @@ exports.simulateTransactionCosts = async (req, res) => {
       price,
       Number.isFinite(avgCost) ? avgCost : null
     )
-    const feeCurrency = profile.currency || transactionCurrency
+    const feeCurrency = feeCurrencyForTransaction(profile, transactionCurrency)
     const feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)
 
     res.json({
