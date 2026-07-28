@@ -16,6 +16,7 @@ const mockTransactionFind = jest.fn()
 const mockUserFindById = jest.fn()
 const mockChatMessageCreate = jest.fn()
 const mockChatMessageDeleteMany = jest.fn()
+const mockChatMessageFind = jest.fn()
 
 jest.mock('../models/Position', () => ({
   find: (...args) => mockPositionFind(...args),
@@ -36,6 +37,7 @@ jest.mock('../models/User', () => ({
 jest.mock('../models/AiChatMessage', () => ({
   create: (...args) => mockChatMessageCreate(...args),
   deleteMany: (...args) => mockChatMessageDeleteMany(...args),
+  find: (...args) => mockChatMessageFind(...args),
 }))
 
 jest.mock('../services/stockService', () => ({
@@ -90,6 +92,7 @@ describe('aiInsightsService quotas', () => {
     getMarketNews.mockResolvedValue({articles: []})
     mockChatMessageCreate.mockResolvedValue(null)
     mockChatMessageDeleteMany.mockResolvedValue({deletedCount: 0})
+    mockChatMessageFind.mockReturnValue(makeQuery([]))
     mockCreateCompletion.mockResolvedValue({
       choices: [{message: {content: 'Test answer'}}],
       usage: {prompt_tokens: 10, completion_tokens: 5},
@@ -168,6 +171,49 @@ describe('aiInsightsService quotas', () => {
       status: 429,
     })
     expect(mockChatMessageDeleteMany).toHaveBeenCalledWith({user: user._id})
+  })
+
+  test('replays prior turns so follow-up questions keep context', async () => {
+    const user = makeUserDoc()
+    mockUserFindById.mockImplementation(async () => user)
+    // Newest-first, as the service queries it; the last row is the question
+    // just persisted for this call and must not be duplicated.
+    mockChatMessageFind.mockReturnValue(makeQuery([
+      {role: 'user', text: 'follow up'},
+      {role: 'assistant', text: 'AAPL returned 19%'},
+      {role: 'user', text: 'best watchlist ticker?'},
+    ]))
+
+    await askAboutPortfolio(user._id, 'follow up')
+
+    const sent = mockCreateCompletion.mock.calls[0][0].messages
+    const conversation = sent.filter((m) => m.role !== 'system')
+
+    expect(conversation).toEqual([
+      {role: 'user', content: 'best watchlist ticker?'},
+      {role: 'assistant', content: 'AAPL returned 19%'},
+      {role: 'user', content: 'follow up'},
+    ])
+  })
+
+  test('skips error rows when replaying history', async () => {
+    const user = makeUserDoc()
+    mockUserFindById.mockImplementation(async () => user)
+    mockChatMessageFind.mockReturnValue(makeQuery([
+      {role: 'user', text: 'now'},
+      {role: 'error', text: 'Something went wrong'},
+      {role: 'user', text: 'earlier'},
+    ]))
+
+    await askAboutPortfolio(user._id, 'now')
+
+    const sent = mockCreateCompletion.mock.calls[0][0].messages
+    const conversation = sent.filter((m) => m.role !== 'system')
+
+    expect(conversation).toEqual([
+      {role: 'user', content: 'earlier'},
+      {role: 'user', content: 'now'},
+    ])
   })
 
   test('502 upstream failure does not consume quota', async () => {

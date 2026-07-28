@@ -15,6 +15,10 @@ const REGULAR_DAILY_LIMIT = 3
 const DAILY_TOKEN_LIMIT = 100000
 const QUESTION_MAX_LENGTH = 500
 const MAX_TOOL_ROUNDS = 4
+// Prior chat turns replayed to the model so follow-ups keep context. Kept small
+// because the static portfolio context is resent every turn and counts against
+// the user's daily token quota.
+const CHAT_CONTEXT_MESSAGES = 8
 const VALID_RANGES = ['1mo', '3mo', '6mo', '1y', '5y', 'max']
 const UNLIMITED_USER_TYPES = new Set(['pro', 'max', 'admin', 'plan'])
 const CUSTOM_PROMPT_USER_TYPES = new Set(['pro', 'max', 'admin'])
@@ -527,6 +531,19 @@ async function askAboutPortfolio(userId, question) {
     const {contextText, tickers} = await buildPortfolioContext(userId)
     const newsText = await buildNewsContext(tickers)
 
+    // Prior turns so follow-up questions ("and the worst one?") resolve against
+    // the conversation. The current question was just persisted above, so drop
+    // the trailing row — it is appended explicitly below.
+    const priorTurns = await AiChatMessage.find({user: userId})
+        .sort({createdAt: -1})
+        .limit(CHAT_CONTEXT_MESSAGES + 1)
+        .lean()
+    const history = priorTurns
+        .reverse()
+        .slice(0, -1)
+        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .map((m) => ({role: m.role, content: m.text}))
+
     const messages = [
         {
             role: 'system',
@@ -542,6 +559,7 @@ async function askAboutPortfolio(userId, question) {
                 'advisor — do not give personalized investment recommendations; describe what the data shows instead.',
         },
         {role: 'system', content: contextText + newsText},
+        ...history,
         {role: 'user', content: trimmed},
     ]
 
