@@ -3,6 +3,7 @@ import {useRoute} from 'vue-router'
 import {trackEvent} from '@/composables/useAnalytics'
 import {computed} from 'vue'
 import {useI18n} from '@/composables/useI18n'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const route = useRoute()
 const {t} = useI18n()
@@ -14,7 +15,8 @@ function trackNav(tab) {
 const tabs = computed(() => [
   {key: 'dashboard', to: '/', icon: 'pi pi-chart-bar', label: t('common.dashboard'), tourKey: 'dashboard'},
   {key: 'watchlist', to: '/watchlist', icon: 'pi pi-eye', label: t('common.watchlist'), tourKey: 'watchlist'},
-  {key: 'insights', to: '/insights', icon: 'pi pi-chart-pie', label: t('common.insights'), tourKey: 'insights'},
+  {key: 'insights', to: '/insights', icon: 'pi pi-sparkles', label: t('common.insights'), tourKey: 'insights', premium: true},
+  {key: 'x-ray', to: '/x-ray', icon: 'pi pi-shield', label: t('common.xRay'), tourKey: 'x-ray', premium: true},
   {key: 'news', to: '/news', icon: 'pi pi-globe', label: t('common.news'), tourKey: 'news'},
   {key: 'about', to: '/help', icon: 'pi pi-info-circle', label: t('common.about')},
 ])
@@ -42,7 +44,16 @@ function isActive(tab) {
           class="nav-item"
           @click="trackNav(tab)"
       >
-        <i :class="tab.icon"/>
+        <span class="nav-icon-wrap">
+          <i :class="tab.icon"/>
+          <PremiumBadge
+              v-if="tab.premium"
+              :label="t('common.premium')"
+              :title="t('common.premiumFeature')"
+              compact
+              class="nav-premium"
+          />
+        </span>
         <span>{{ tab.label }}</span>
       </RouterLink>
     </div>
@@ -71,12 +82,15 @@ function isActive(tab) {
 .nav-items {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
+  justify-content: space-around;
+  gap: 0.35rem;
   height: 100%;
+  padding: 0 0.35rem;
 }
 .nav-item {
-  flex: none;
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -84,10 +98,27 @@ function isActive(tab) {
   padding: 8px 0;
   text-decoration: none;
   color: var(--text-secondary);
-  font-size: 10px;
+  font-size: 9px;
   transition: color 0.2s;
 }
+
+.nav-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .nav-item i { font-size: 20px; transition: filter 0.2s; }
+
+.nav-premium {
+  position: absolute;
+  top: -7px;
+  right: -13px;
+  transform: scale(0.72);
+  transform-origin: center;
+}
+
 .nav-item.active { color: var(--neon-blue); }
 .nav-item.active i { filter: drop-shadow(0 0 6px var(--neon-blue)); }
 .nav-item.active span { text-shadow: 0 0 8px var(--neon-blue); }

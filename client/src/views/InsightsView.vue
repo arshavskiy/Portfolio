@@ -6,6 +6,7 @@ import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
 import AskPortfolioPanel from '@/components/ui/AskPortfolioPanel.vue'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const portfolio = usePortfolioStore()
 const {positions, combinedUsd, loading, returnMetrics, riskExposure, dividendFrequencies} = storeToRefs(portfolio)
@@ -27,13 +28,30 @@ function displayAmount(usdValue) {
   return useCurrency(usdValue / rate, 'ILS')
 }
 
-const activeTab = ref('insights')
+const activeTab = ref('assistant')
 const shockPercent = ref(-10)
 
 const tabs = computed(() => [
-  {key: 'insights', icon: 'pi pi-chart-pie', label: t('insights.title')},
-  {key: 'income', icon: 'pi pi-calendar', label: t('insights.tabs.income')},
-  {key: 'health', icon: 'pi pi-chart-pie', label: t('insights.tabs.health')},
+  {key: 'assistant', icon: 'pi pi-sparkles', label: t('insights.title')},
+])
+
+const assistantStats = computed(() => [
+  {
+    icon: 'pi pi-briefcase',
+    label: t('insights.assistantStats.positions'),
+    value: positions.value.length,
+  },
+  {
+    icon: 'pi pi-wallet',
+    label: t('insights.assistantStats.value'),
+    value: displayAmount(portfolioValueUsd.value),
+  },
+  {
+    icon: 'pi pi-percentage',
+    label: t('insights.assistantStats.incomeYield'),
+    value: incomeYield.value == null ? '-' : usePercent(incomeYield.value),
+    tone: incomeYield.value > 0 ? 'positive' : '',
+  },
 ])
 
 
@@ -165,24 +183,42 @@ onMounted(() => {
 
 <template>
   <main class="insights-page safe-bottom">
-    <header class="insights-header">
-      <div>
-        <nav aria-label="Portfolio insights sections" class="insights-tabs">
-          <button
-              v-for="tab in tabs"
-              :key="tab.key"
-              :class="{active: activeTab === tab.key}"
-              type="button"
-              @click="activeTab = tab.key"
-          >
-            <i :class="tab.icon"/>
-            <span>{{ tab.label }}</span>
-          </button>
-        </nav>
+    <header v-if="false" class="assistant-hero">
+      <div class="assistant-hero-copy">
+        <div class="assistant-title-row">
+          <span class="assistant-mark">
+            <i class="pi pi-sparkles"/>
+          </span>
+          <div>
+            <h1>{{ t('insights.title') }}</h1>
+            <p>{{ t('insights.subtitle') }}</p>
+          </div>
+          <PremiumBadge :label="t('common.premium')" :title="t('common.premiumFeature')" compact/>
+        </div>
+      </div>
+
+      <div v-if="false" class="assistant-context-grid">
+        <article v-for="stat in assistantStats" :key="stat.label" class="assistant-context-card">
+          <i :class="stat.icon"/>
+          <span>{{ stat.label }}</span>
+          <strong :class="stat.tone">{{ stat.value }}</strong>
+        </article>
       </div>
     </header>
 
-    <AskPortfolioPanel v-if="activeTab === 'insights'"/>
+    <header class="insights-header assistant-page-header">
+      <h1 class="gradient-title">Portfolio Assistant</h1>
+    </header>
+
+    <section class="assistant-chat-shell">
+      <div class="assistant-chat-head">
+        <div>
+          <h2>{{ t('insights.assistantChatTitle') }}</h2>
+          <p>{{ t('insights.assistantChatSubtitle') }}</p>
+        </div>
+      </div>
+      <AskPortfolioPanel/>
+    </section>
 
     <section v-if="activeTab === 'income'" class="insights-section">
       <div class="section-heading section-heading-row">
@@ -370,12 +406,158 @@ onMounted(() => {
   background: var(--bg-primary);
 }
 
+.assistant-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 0.85rem;
+  align-items: stretch;
+  margin-bottom: 0.85rem;
+}
+
+.assistant-hero-copy,
+.assistant-context-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+}
+
+.assistant-hero-copy {
+  display: flex;
+  align-items: center;
+  min-height: 118px;
+  padding: 1rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.assistant-hero-copy::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #00cfff 0%, #a855f7 100%);
+  opacity: 0.75;
+}
+
+.assistant-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.assistant-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(0, 207, 255, 0.26);
+  border-radius: 8px;
+  color: var(--neon-blue);
+  background: rgba(0, 207, 255, 0.08);
+  box-shadow: 0 0 18px rgba(0, 207, 255, 0.08);
+}
+
+.assistant-title-row h1,
+.assistant-chat-head h2 {
+  margin: 0;
+}
+
+.assistant-title-row h1 {
+  font-size: 1.65rem;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.assistant-title-row p,
+.assistant-chat-head p {
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.assistant-context-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.assistant-context-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.4rem;
+  min-height: 118px;
+  padding: 0.75rem;
+  overflow: hidden;
+}
+
+.assistant-context-card i {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.7rem;
+  color: var(--neon-blue);
+  opacity: 0.36;
+}
+
+.assistant-context-card span {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1.2;
+  padding-right: 1.2rem;
+  text-transform: uppercase;
+}
+
+.assistant-context-card strong {
+  color: var(--text-primary);
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.assistant-chat-shell {
+  position: relative;
+  padding: 0;
+}
+
+.assistant-chat-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding: 0 0.25rem;
+}
+
+.assistant-chat-head h2 {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.assistant-chat-shell :deep(.ask-chat) {
+  max-height: calc(100dvh - 18rem);
+}
+
+.assistant-chat-shell :deep(.ask-form textarea) {
+  background: var(--bg-primary);
+}
+
 .insights-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .insights-header > div {
@@ -387,7 +569,9 @@ onMounted(() => {
 
 .insights-header h1 {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.15;
   flex-shrink: 0;
 }
 
@@ -836,6 +1020,60 @@ onMounted(() => {
 }
 
 @media (max-width: 760px) {
+  .assistant-hero {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .assistant-hero-copy {
+    min-height: 106px;
+    padding: 0.85rem;
+  }
+
+  .assistant-title-row {
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .assistant-title-row h1 {
+    font-size: 1.35rem;
+  }
+
+  .assistant-title-row p,
+  .assistant-chat-head p {
+    font-size: 0.82rem;
+  }
+
+  .assistant-context-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .assistant-context-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .assistant-context-card {
+    min-height: 86px;
+    padding: 0.6rem;
+  }
+
+  .assistant-context-card span {
+    font-size: 0.6rem;
+  }
+
+  .assistant-context-card strong {
+    font-size: 0.92rem;
+  }
+
+  .assistant-chat-shell {
+    padding: 0;
+  }
+
+  .assistant-chat-shell :deep(.ask-chat) {
+    max-height: 58vh;
+  }
+
   .overview-grid {
     grid-template-columns: 1fr;
   }

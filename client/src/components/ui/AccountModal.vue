@@ -11,6 +11,7 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import {useI18n} from '@/composables/useI18n'
 import TransactionsView from '@/views/TransactionsView.vue'
 import AlertsView from '@/views/AlertsView.vue'
@@ -237,6 +238,7 @@ function logout() {
           <label class="custom-prompt-label" for="custom-prompt">
             <i class="pi pi-pencil menu-icon"/>
             {{ t('account.customPrompt') }}
+            <PremiumBadge :label="t('common.premium')" :title="t('common.premiumFeature')" compact/>
           </label>
           <Textarea
               id="custom-prompt"

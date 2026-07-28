@@ -18,8 +18,11 @@ export const messages = {
       account: "Account",
       dashboard: "Dashboard",
       watchlist: "Watchlist",
-      insights: "Insights",
+      insights: "AssistantAI",
+      xRay: "X-Ray",
       data: "Data",
+      premium: "Premium",
+      premiumFeature: "Premium feature",
       history: "History",
       historyAlerts: "History & Alerts",
       news: "News",
@@ -1031,9 +1034,16 @@ export const messages = {
       hit: "Target hit",
     },
     insights: {
-      title: "Insights",
+      title: "AssistantAI",
       subtitle:
-        "Income, health, reports, and what-if tools for your portfolio.",
+        "Portfolio questions, risk checks, and ticker context in one AI workspace.",
+      assistantChatTitle: "Portfolio Assistant",
+      assistantChatSubtitle: "Ask about holdings, fees, risk, dividends, and next moves.",
+      assistantStats: {
+        positions: "Positions",
+        value: "Portfolio Value",
+        incomeYield: "Income Yield",
+      },
       empty: "Add a position to see insights.",
       tabs: {
         income: "Income",
@@ -1125,8 +1135,11 @@ export const messages = {
       account: "Аккаунт",
       dashboard: "Мониторинг",
       watchlist: "Позиции",
-      insights: "Аналитика",
+      insights: "AssistantAI",
+      xRay: "X-Ray",
       data: "Данные",
+      premium: "Premium",
+      premiumFeature: "Premium-функция",
       history: "История",
       historyAlerts: "История и алерты",
       news: "Новости",
@@ -2143,8 +2156,17 @@ export const messages = {
       hit: "Цель достигнута",
     },
     insights: {
-      title: "Аналитика",
-      subtitle: "Доход, состояние портфеля, отчёты и сценарии «что если».",
+      title: "AssistantAI",
+      subtitle:
+        "Вопросы по портфелю, проверка рисков и контекст по тикерам в одном AI-разделе.",
+      assistantChatTitle: "Портфельный ассистент",
+      assistantChatSubtitle:
+        "Спрашивайте о позициях, комиссиях, рисках, дивидендах и следующих шагах.",
+      assistantStats: {
+        positions: "Позиции",
+        value: "Стоимость портфеля",
+        incomeYield: "Доходность",
+      },
       empty: "Добавьте позицию, чтобы увидеть аналитику.",
       tabs: {
         income: "Доход",

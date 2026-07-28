@@ -81,6 +81,7 @@ const watchedItem = ref(null);
 const showModal = ref(false);
 const showAlertModal = ref(false);
 const showDividendModal = ref(false);
+const showSimulator = ref(true);
 const simulatorTab = ref("buy");
 const editingTx = ref(null);
 const simPrice = ref(null);
@@ -2052,28 +2053,38 @@ async function toggleWatchlist() {
             <i class="pi pi-calculator" />
             {{ t("common.buy") }} / {{ t("common.sell") }} Simulator
           </span>
-          <div class="sim-tabs" role="tablist">
+          <div class="sim-head-actions">
+            <div v-if="showSimulator" class="sim-tabs" role="tablist">
+              <button
+                :class="{ active: simulatorTab === 'buy' }"
+                class="sim-tab"
+                type="button"
+                @click="simulatorTab = 'buy'"
+              >
+                {{ t("common.buy") }}
+              </button>
+              <button
+                :class="{ active: simulatorTab === 'sell' }"
+                :disabled="!summary"
+                class="sim-tab"
+                type="button"
+                @click="simulatorTab = 'sell'"
+              >
+                {{ t("common.sell") }}
+              </button>
+            </div>
             <button
-              :class="{ active: simulatorTab === 'buy' }"
-              class="sim-tab"
+              :aria-expanded="showSimulator"
+              class="sim-collapse-btn"
               type="button"
-              @click="simulatorTab = 'buy'"
+              @click="showSimulator = !showSimulator"
             >
-              {{ t("common.buy") }}
-            </button>
-            <button
-              :class="{ active: simulatorTab === 'sell' }"
-              :disabled="!summary"
-              class="sim-tab"
-              type="button"
-              @click="simulatorTab = 'sell'"
-            >
-              {{ t("common.sell") }}
+              <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" />
             </button>
           </div>
         </div>
 
-        <div v-if="simulatorTab === 'buy'" class="sim-body">
+        <div v-if="showSimulator && simulatorTab === 'buy'" class="sim-body">
           <SelectButton
             v-model="buySimMode"
             :options="BUY_SIM_MODES"
@@ -2247,7 +2258,7 @@ async function toggleWatchlist() {
             </span>
           </div>
         </div>
-        <div v-if="simulatorTab === 'sell' && summary" class="sim-body">
+        <div v-if="showSimulator && simulatorTab === 'sell' && summary" class="sim-body">
           <div class="sim-inputs">
             <div class="sim-field">
               <label>{{ t("positionDetail.sellPricePerShare") }}</label>
@@ -3065,6 +3076,13 @@ async function toggleWatchlist() {
   color: var(--accent);
 }
 
+.sim-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
 .sim-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -3097,6 +3115,26 @@ async function toggleWatchlist() {
 .sim-tab:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.sim-collapse-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.sim-collapse-btn:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .sim-toggle {

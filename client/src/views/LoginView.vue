@@ -7,6 +7,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import {useI18n} from '@/composables/useI18n'
 
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
@@ -144,7 +145,8 @@ const features = computed(() => [
   {
     icon: 'pi pi-chart-bar',
     title: t('login.features.advancedChartsTitle'),
-    text: t('login.features.advancedChartsText')
+    text: t('login.features.advancedChartsText'),
+    premium: true,
   },
   {
     icon: 'pi pi-sync',
@@ -179,22 +181,26 @@ const features = computed(() => [
   {
     icon: 'pi pi-chart-pie',
     title: t('login.features.insightsTitle'),
-    text: t('login.features.insightsText')
+    text: t('login.features.insightsText'),
+    premium: true,
   },
   {
     icon: 'pi pi-comments',
     title: t('login.features.aiChatTitle'),
-    text: t('login.features.aiChatText')
+    text: t('login.features.aiChatText'),
+    premium: true,
   },
   {
     icon: 'pi pi-sparkles',
     title: t('login.features.dailySummaryTitle'),
-    text: t('login.features.dailySummaryText')
+    text: t('login.features.dailySummaryText'),
+    premium: true,
   },
   {
     icon: 'pi pi-compass',
     title: t('login.features.tickerInsightTitle'),
-    text: t('login.features.tickerInsightText')
+    text: t('login.features.tickerInsightText'),
+    premium: true,
   },
 ])
 
@@ -592,7 +598,15 @@ watch(locale, updateLoginHead)
             <div v-for="f in features" :key="f.title" class="feature">
               <i :class="f.icon" class="feature-icon" aria-hidden="true"/>
               <div>
-                <div class="feature-title">{{ f.title }}</div>
+                <div class="feature-title">
+                  <span>{{ f.title }}</span>
+                  <PremiumBadge
+                      v-if="f.premium"
+                      :label="t('common.premium')"
+                      :title="t('common.premiumFeature')"
+                      compact
+                  />
+                </div>
                 <div class="feature-text text-muted">{{ f.text }}</div>
               </div>
             </div>
@@ -1378,6 +1392,10 @@ watch(locale, updateLoginHead)
 }
 
 .feature-title {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  flex-wrap: wrap;
   font-weight: 700;
   font-size: 0.92rem;
 }

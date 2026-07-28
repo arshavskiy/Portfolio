@@ -9,6 +9,7 @@ import PositionDetailView from '@/views/PositionDetailView.vue'
 import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
 import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const emit = defineEmits(['open-account'])
 
@@ -29,8 +30,9 @@ const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)
 const navItems = computed(() => [
   {key: 'dashboard', name: t('common.dashboard'), to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
   {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
-  {key: 'insights', name: t('common.insights'), to: '/insights', icon: 'pi pi-chart-pie', tourKey: 'insights'},
-  ...(isAdmin.value ? [{key: 'insights-data', name: t('common.data'), to: '/insights-data', icon: 'pi pi-database', tourKey: 'insights-data'}] : []),
+  {key: 'insights', name: t('common.insights'), to: '/insights', icon: 'pi pi-sparkles', tourKey: 'insights', premium: true},
+  {key: 'x-ray', name: t('common.xRay'), to: '/x-ray', icon: 'pi pi-shield', tourKey: 'x-ray', premium: true},
+  ...(isAdmin.value ? [{key: 'insights-data', name: t('common.data'), to: '/insights-data', icon: 'pi pi-database', tourKey: 'insights-data', premium: true}] : []),
   {key: 'news', name: t('common.news'), to: '/news', icon: 'pi pi-globe', tourKey: 'news'},
   {key: 'about', name: t('common.about'), to: '/help', icon: 'pi pi-info-circle', tourKey: 'about'},
 ])
@@ -68,6 +70,13 @@ function isActive(item) {
         >
           <i :class="item.icon"/>
           <span class="sidebar-label">{{ item.name }}</span>
+          <PremiumBadge
+              v-if="item.premium"
+              :label="t('common.premium')"
+              :title="t('common.premiumFeature')"
+              compact
+              class="sidebar-premium"
+          />
         </RouterLink>
       </div>
 
@@ -219,6 +228,11 @@ function isActive(item) {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.sidebar-premium {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-item:hover {

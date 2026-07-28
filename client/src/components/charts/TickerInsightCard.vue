@@ -5,6 +5,7 @@ import api from '@/composables/useApi'
 import {useI18n} from '@/composables/useI18n'
 import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const props = defineProps({
   ticker: {type: String, required: true},
@@ -115,6 +116,16 @@ const fundamentalsRows = computed(() => {
   ]
   return rows.filter((r) => r.fact?.value != null)
 })
+
+function fundamentalsTone(row) {
+  const value = Number(row?.fact?.value)
+  if (!Number.isFinite(value) || value === 0) return 'neutral'
+  if (['liabilities', 'longTermDebt'].includes(row.key)) return value > 0 ? 'warning' : 'positive'
+  if (['netIncome', 'eps', 'operatingCashFlow', 'equity', 'revenue', 'assets'].includes(row.key)) {
+    return value > 0 ? 'positive' : 'negative'
+  }
+  return value > 0 ? 'positive' : 'negative'
+}
 
 const macroSnapshot = ref(null)
 
@@ -243,6 +254,7 @@ watch(() => props.ticker, load)
       <div class="insight-head-row">
         <h2 class="stat-label-info insight-title">
           <i class="pi pi-compass"/> {{ t('tickerInsight.title') }}
+          <PremiumBadge :label="t('common.premium')" :title="t('common.premiumFeature')" class="research-premium" compact/>
           <i v-tooltip.focus.top="INFO.card" class="pi pi-info-circle info-icon" tabindex="0"/>
         </h2>
         <span v-if="hasAnySentimentData" v-tooltip.focus.top="INFO.momentum" :class="{up: data.summary.momentum > 0, down: data.summary.momentum < 0}"
@@ -314,7 +326,7 @@ watch(() => props.ticker, load)
       <h2 class="stat-label-info fundamentals-title">{{ t('tickerInsight.fundamentals') }}
         <i v-tooltip.focus.top="INFO.fundamentals" class="pi pi-info-circle info-icon" tabindex="0"/></h2>
       <div class="fundamentals-row">
-        <div v-for="row in fundamentalsRows" :key="row.key" class="fundamentals-cell">
+        <div v-for="row in fundamentalsRows" :key="row.key" :class="`tone-${fundamentalsTone(row)}`" class="fundamentals-cell">
           <span class="text-muted sub">{{ row.label }}</span>
           <span class="fundamentals-value">{{ row.format(row.fact.value) }}</span>
           <span class="text-muted fundamentals-period">{{ row.fact.period }}</span>
@@ -356,6 +368,10 @@ watch(() => props.ticker, load)
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+}
+
+.research-premium {
+  margin-left: 0.15rem;
 }
 
 .info-icon {
@@ -587,6 +603,28 @@ watch(() => props.ticker, load)
   min-width: 4.5rem;
 }
 
+.fundamentals-cell {
+  border-left: 2px solid transparent;
+  border-radius: 6px;
+  padding: 0.28rem 0.4rem;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.fundamentals-cell.tone-positive {
+  border-left-color: rgba(34, 197, 94, 0.75);
+  background: rgba(34, 197, 94, 0.06);
+}
+
+.fundamentals-cell.tone-negative {
+  border-left-color: rgba(239, 68, 68, 0.75);
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.fundamentals-cell.tone-warning {
+  border-left-color: rgba(250, 204, 21, 0.8);
+  background: rgba(250, 204, 21, 0.06);
+}
+
 .fundamentals-cell .sub,
 .macro-strip-cell .sub {
   font-size: 0.68rem;
@@ -596,6 +634,18 @@ watch(() => props.ticker, load)
 .macro-strip-value {
   font-size: 0.88rem;
   font-weight: 700;
+}
+
+.fundamentals-cell.tone-positive .fundamentals-value {
+  color: var(--green, #22c55e);
+}
+
+.fundamentals-cell.tone-negative .fundamentals-value {
+  color: var(--red, #ef4444);
+}
+
+.fundamentals-cell.tone-warning .fundamentals-value {
+  color: #facc15;
 }
 
 .fundamentals-period {

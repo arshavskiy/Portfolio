@@ -98,7 +98,7 @@ onMounted(load)
     <header class="page-top">
       <div>
         <p class="eyebrow">stockfolio-insights DB</p>
-        <h1>Insights Data</h1>
+        <h1 class="gradient-title">Insights Data</h1>
       </div>
       <Button icon="pi pi-refresh" :loading="loading" rounded text @click="load" />
     </header>
@@ -241,8 +241,9 @@ onMounted(load)
 
 .page-top h1 {
   margin: 0;
-  font-size: 1.45rem;
-  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.15;
 }
 
 .filters {

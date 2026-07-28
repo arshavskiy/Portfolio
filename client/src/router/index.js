@@ -31,8 +31,14 @@ const routes = [
       },
       {
         path: 'insights',
-        name: 'Insights',
+        name: 'AssistantAI',
         component: () => import('@/views/InsightsView.vue'),
+        meta: {requiresAuth: true}
+      },
+      {
+        path: 'x-ray',
+        name: 'PortfolioXRay',
+        component: () => import('@/views/PortfolioXRayView.vue'),
         meta: {requiresAuth: true}
       },
       {

@@ -179,12 +179,14 @@ onMounted(() => {
 .ask-panel {
   display: flex;
   flex-direction: column;
+  min-height: 0;
 }
 
 .ask-panel-body {
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 0.75rem;
+  min-height: 0;
 }
 
 .ask-body-top {
@@ -192,10 +194,12 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  padding: 0 0.25rem;
   color: var(--text-secondary);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .ask-body-left {
@@ -209,11 +213,15 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  border-radius: 999px;
-  padding: 0.22rem 0.45rem;
+  min-height: 28px;
+  border-radius: 6px;
+  padding: 3px 8px;
   cursor: pointer;
   font: inherit;
+  font-weight: 600;
   text-transform: none;
+  letter-spacing: 0;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 .ask-clear {
@@ -224,36 +232,36 @@ onMounted(() => {
 
 .ask-clear:hover:not(:disabled) {
   color: var(--text-primary);
-  border-color: rgba(0, 207, 255, 0.35);
+  border-color: var(--accent);
 }
 
 .ask-history-toggle {
-  border: 1px solid rgba(0, 207, 255, 0.35);
-  color: var(--neon-blue);
-  background: rgba(0, 207, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  background: var(--bg-primary);
 }
 
 .ask-history-toggle:hover {
-  border-color: var(--neon-blue);
-  background: rgba(0, 207, 255, 0.16);
+  border-color: var(--accent);
+  color: var(--text-primary);
 }
 
 .ask-history-toggle i {
-  color: var(--neon-blue);
+  color: inherit;
 }
 
 .ask-history-toggle.active {
-  border-color: var(--neon-blue);
-  color: #050505;
-  background: var(--neon-blue);
+  border-color: var(--accent);
+  color: #fff;
+  background: var(--accent);
 }
 
 .ask-history-toggle.active i {
-  color: #050505;
+  color: inherit;
 }
 
 .ask-history-toggle.active:hover {
-  background: var(--neon-blue);
+  background: var(--accent);
   opacity: 0.85;
 }
 
@@ -273,32 +281,58 @@ onMounted(() => {
 .ask-chat {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-height: 62vh;
+  gap: 0.55rem;
+  min-height: 340px;
+  max-height: 64vh;
   overflow-y: auto;
-  border-radius: 20px;
+  border-radius: 14px;
   background: var(--bg-primary);
   border: 1px solid var(--border);
   padding: 0.85rem 0.75rem;
   scroll-behavior: smooth;
-  box-shadow: inset 0 1px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 12px rgba(0, 0, 0, 0.2);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+.ask-chat::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ask-chat::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ask-chat::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
 }
 
 .ask-empty {
-  display: grid;
-  place-items: center;
-  gap: 0.35rem;
-  min-height: 132px;
-  border: 1px dashed rgba(0, 207, 255, 0.22);
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 300px;
+  border: 1px dashed var(--border);
+  border-radius: 14px;
   padding: 1rem;
   text-align: center;
   background: var(--bg-primary);
 }
 
 .ask-empty i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
   color: var(--neon-blue);
-  font-size: 1.25rem;
+  background: var(--bg-card);
+  font-size: 1.2rem;
 }
 
 .ask-empty p {
@@ -316,23 +350,25 @@ onMounted(() => {
 .ask-prompts {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .ask-prompts button {
-  border: 1px solid rgba(0, 207, 255, 0.24);
-  border-radius: 999px;
-  padding: 0.42rem 0.6rem;
-  color: var(--text-primary);
-  background: rgba(0, 207, 255, 0.08);
+  min-height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: var(--text-secondary);
+  background: var(--bg-card);
   font-size: 0.76rem;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .ask-prompts button:hover:not(:disabled) {
-  border-color: rgba(0, 207, 255, 0.45);
-  background: rgba(0, 207, 255, 0.14);
+  border-color: var(--accent);
+  color: var(--text-primary);
 }
 
 .ask-prompts button:disabled {
@@ -342,9 +378,9 @@ onMounted(() => {
 
 .chat-row {
   display: flex;
-  align-items: flex-end;
-  gap: 0.4rem;
-  max-width: 85%;
+  align-items: flex-start;
+  gap: 0.45rem;
+  max-width: min(86%, 820px);
   animation: ask-fade-in 0.25s ease;
 }
 
@@ -366,7 +402,7 @@ onMounted(() => {
   width: 26px;
   height: 26px;
   border-radius: 50%;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
 }
 
 .chat-row-user .chat-avatar {
@@ -376,7 +412,7 @@ onMounted(() => {
 
 .chat-row-assistant .chat-avatar {
   background: linear-gradient(135deg, #00cfff 0%, #a855f7 100%);
-  color: #050505;
+  color: #071014;
 }
 
 .chat-row-error .chat-avatar {
@@ -396,8 +432,8 @@ onMounted(() => {
 
 .chat-bubble {
   margin: 0;
-  padding: 0.6rem 0.85rem;
-  border-radius: 18px;
+  padding: 0.62rem 0.85rem;
+  border-radius: 14px;
   font-size: 0.82rem;
   line-height: 1.5;
   white-space: pre-wrap;
@@ -419,7 +455,8 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
+  padding-inline: 0.15rem;
 }
 
 .chat-row-user .chat-meta {
@@ -441,7 +478,7 @@ onMounted(() => {
 }
 
 .chat-row-assistant .chat-bubble {
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-primary);
   border-bottom-left-radius: 5px;
@@ -472,19 +509,30 @@ onMounted(() => {
 
 .ask-form {
   display: flex;
+  align-items: center;
   gap: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-primary);
+  padding: 0.4rem;
 }
 
 .ask-form input {
   flex: 1;
   min-width: 0;
   min-height: 42px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0 1rem;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 0 0.8rem;
   color: var(--text-primary);
-  background: var(--bg-secondary);
+  background: var(--bg-primary);
   font-size: 0.85rem;
+  outline: none;
+}
+
+.ask-form input:focus {
+  border-color: rgba(0, 207, 255, 0.35);
+  box-shadow: 0 0 0 2px rgba(0, 207, 255, 0.08);
 }
 
 .ask-form button {
@@ -496,7 +544,7 @@ onMounted(() => {
   width: 42px;
   flex-shrink: 0;
   border: none;
-  border-radius: 50%;
+  border-radius: 10px;
   color: #052027;
   background: linear-gradient(135deg, #00cfff 0%, #0891b2 100%);
   font-weight: 700;
@@ -522,7 +570,8 @@ onMounted(() => {
 }
 
 .ask-footnote {
-  margin: -0.2rem 0 0;
+  margin: -0.25rem 0 0;
+  padding-inline: 0.25rem;
 }
 
 @keyframes thinking-pulse {
@@ -587,8 +636,9 @@ onMounted(() => {
   }
 
   .ask-chat {
-    max-height: 65vh;
-    padding: 0.55rem;
+    min-height: 300px;
+    max-height: 62vh;
+    padding: 0.65rem;
   }
 
   .ask-body-top {
@@ -618,23 +668,24 @@ onMounted(() => {
   }
 
   .chat-row {
-    max-width: 96%;
+    max-width: 98%;
     gap: 0.4rem;
   }
 
   .chat-avatar {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     font-size: 0.62rem;
   }
 
   .chat-bubble {
-    padding: 0.5rem 0.6rem;
+    padding: 0.58rem 0.68rem;
     font-size: 0.8rem;
   }
 
   .ask-form {
     gap: 0.4rem;
+    padding: 0.35rem;
   }
 
   .ask-form input {

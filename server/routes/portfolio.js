@@ -2,6 +2,8 @@ const router = require('express').Router()
 const auth = require('../middleware/auth')
 const {
     getPortfolio,
+    getAnalytics,
+    getXRay,
     getHistory,
     getReturnMetrics,
     getRiskExposure,
@@ -24,6 +26,8 @@ const {
 
 router.use(auth)
 router.get('/', getPortfolio)
+router.get('/analytics', getAnalytics)
+router.get('/x-ray', getXRay)
 router.get('/history', getHistory)
 router.get('/return-metrics', getReturnMetrics)
 router.get('/risk', getRiskExposure)

@@ -15,6 +15,7 @@ const {
 } = require('./feeProfileController')
 const {getPortfolioHistory} = require('../services/historyService')
 const {computeXirr, computeTwr} = require('../services/returnMetrics')
+const {getPortfolioAnalytics, getPortfolioXRay} = require('../services/portfolioAnalyticsService')
 
 // Recompute a position's shares + avg cost by replaying all of its transactions
 // (avg-cost method). Deletes the position if no shares remain; creates nothing.
@@ -166,6 +167,24 @@ exports.getPortfolio = async (req, res) => {
     res.json({ positions: enriched, totals: totalsArray, combinedUsd })
   } catch (err) {
     res.status(500).json({ message: err.message })
+  }
+}
+
+exports.getAnalytics = async (req, res) => {
+  try {
+    const data = await getPortfolioAnalytics(req.user._id)
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
+exports.getXRay = async (req, res) => {
+  try {
+    const data = await getPortfolioXRay(req.user._id)
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({message: err.message})
   }
 }
 

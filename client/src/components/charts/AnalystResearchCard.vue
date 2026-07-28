@@ -2,6 +2,7 @@
 import {computed, onMounted, ref, watch} from 'vue'
 import api from '@/composables/useApi'
 import {useI18n} from '@/composables/useI18n'
+import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const props = defineProps({
   ticker: {type: String, required: true},
@@ -84,6 +85,7 @@ watch(() => props.ticker, load)
     <div class="analyst-head">
       <h2 class="stat-label-info">
         {{ t('analystResearch.title') }}
+        <PremiumBadge :label="t('common.premium')" :title="t('common.premiumFeature')" class="research-premium" compact/>
         <i
           v-tooltip.focus="t('analystResearch.cardInfo')"
           class="pi pi-info-circle info-icon"
@@ -166,6 +168,10 @@ watch(() => props.ticker, load)
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+}
+
+.research-premium {
+  margin-left: 0.15rem;
 }
 
 .info-icon {
