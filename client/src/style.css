@@ -3,6 +3,25 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #ffffff;
+  --border: #dbe3ef;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --green: #059669;
+  --red: #e11d48;
+  --accent: #2563eb;
+  --neon-green: #059669;
+  --neon-red: #e11d48;
+  --neon-blue: #0284c7;
+  --purple: #7c3aed;
+  --gold: #d97706;
+  --nav-height: 64px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+:root.dark {
   --bg-primary: #000000;
   --bg-secondary: #111111;
   --bg-card: #070707;
@@ -21,6 +40,14 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+:root.light {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
 html, body, #app {
   height: 100%;
   background: var(--bg-primary);
@@ -33,6 +60,11 @@ html, body, #app {
 .gain { color: var(--neon-green); }
 .loss { color: var(--neon-red); }
 .text-muted { color: var(--text-secondary); }
+
+.p-dialog .p-dialog-close-button,
+.p-dialog .p-dialog-header-icon {
+  border-color: transparent;
+}
 
 .text-purple {
   color: var(--purple);
@@ -158,6 +190,54 @@ h2.gradient-h2 {
   font-weight: 600;
 }
 
+:root.light .p-dialog,
+:root.light .p-popover,
+:root.light .p-select-overlay,
+:root.light .p-datepicker,
+:root.light .p-menu,
+:root.light .p-toast-message {
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border-color: var(--border);
+}
+
+:root.light .p-inputtext,
+:root.light .p-textarea,
+:root.light .p-select,
+:root.light .p-datepicker-input {
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border-color: var(--border);
+}
+
+:root.light .p-inputtext::placeholder,
+:root.light .p-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+:root.light .p-dialog .p-dialog-close-button,
+:root.light .p-dialog .p-dialog-header-icon {
+  color: var(--text-secondary);
+  border-color: transparent;
+  background: transparent;
+}
+
+:root.light .p-dialog .p-dialog-close-button .p-button-icon,
+:root.light .p-dialog .p-dialog-header-icon .p-button-icon {
+  color: var(--text-secondary);
+}
+
+:root.light .p-dialog .p-dialog-close-button:hover,
+:root.light .p-dialog .p-dialog-header-icon:hover {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+:root.light .p-dialog .p-dialog-close-button:hover .p-button-icon,
+:root.light .p-dialog .p-dialog-header-icon:hover .p-button-icon {
+  color: var(--text-primary);
+}
+
 /* ── PrimeVue buttons: keep labels readable on dark UI ── */
 .p-button {
   color: #fff;
@@ -171,6 +251,18 @@ h2.gradient-h2 {
 
 .p-button .p-button-icon {
   color: #fff;
+}
+
+:root.light .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) {
+  color: var(--text-secondary);
+}
+
+:root.light .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) .p-button-icon {
+  color: currentColor;
+}
+
+:root.light .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast):hover {
+  color: var(--text-primary);
 }
 
 /* ── Toast: keep within the mobile viewport (default 25rem overflows phones) ── */

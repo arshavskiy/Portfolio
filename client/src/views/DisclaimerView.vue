@@ -98,7 +98,7 @@ const {t} = useI18n()
 
 .eyebrow {
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-bottom: 0.35rem;
@@ -112,7 +112,7 @@ const {t} = useI18n()
 
 .intro {
   color: var(--text-secondary);
-  font-size: 0.98rem;
+  font-size: 0.88rem;
   line-height: 1.55;
   max-width: 760px;
 }
@@ -121,15 +121,16 @@ const {t} = useI18n()
   display: flex;
   gap: 0.9rem;
   align-items: flex-start;
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.32);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
   border-radius: 12px;
   padding: 1rem;
   margin-bottom: 1rem;
 }
 
 .notice i {
-  color: #f59e0b;
+  color: var(--accent);
   font-size: 1.1rem;
   margin-top: 0.15rem;
 }
@@ -137,15 +138,15 @@ const {t} = useI18n()
 .notice h2,
 .disclaimer-card h2 {
   color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.02rem;
+  font-weight: 700;
   margin-bottom: 0.4rem;
 }
 
 .notice p,
 .disclaimer-card p {
-  color: var(--text-secondary);
-  font-size: 0.9rem;
+  color: var(--text-primary);
+  font-size: 0.85rem;
   line-height: 1.55;
 }
 
@@ -163,12 +164,12 @@ const {t} = useI18n()
 .disclaimer-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 1rem;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
 }
 
 .closing {
-  font-size: 0.82rem;
+  font-size: 0.83rem;
   line-height: 1.5;
   margin: 1rem 0 0;
 }

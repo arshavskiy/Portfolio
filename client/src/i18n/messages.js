@@ -211,6 +211,9 @@ export const messages = {
       fullscreen: "Fullscreen",
       exitFullscreen: "Exit Fullscreen",
       startTour: "Start Tour",
+      theme: "Theme",
+      lightTheme: "Light theme",
+      darkTheme: "Dark theme",
       aiDailySummary: "AI Daily Summary",
       customPrompt: "Custom Daily Prompt",
       customPromptPlaceholder:
@@ -1330,6 +1333,9 @@ export const messages = {
       fullscreen: "На весь экран",
       exitFullscreen: "Выйти из полноэкранного режима",
       startTour: "Запустить тур",
+      theme: "Тема",
+      lightTheme: "Светлая тема",
+      darkTheme: "Темная тема",
       aiDailySummary: "AI-сводка дня",
       customPrompt: "Свой запрос для сводки",
       customPromptPlaceholder:

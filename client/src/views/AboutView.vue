@@ -119,7 +119,7 @@ async function copyAddress() {
 }
 
 .screenshot-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -173,22 +173,22 @@ async function copyAddress() {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  padding: 1.25rem;
+  padding: 1.1rem 1.25rem;
   margin-bottom: 1rem;
 }
 
 .brand { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.75rem; }
 .brand-mark { font-size: 1.5rem; }
-.brand-name { font-size: 1.3rem; font-weight: 800; }
-.tagline { font-size: 0.88rem; line-height: 1.5; margin-bottom: 1rem; }
+.brand-name { font-size: 1.02rem; font-weight: 700; }
+.tagline { font-size: 0.85rem; line-height: 1.55; margin-bottom: 1rem; }
 
 .feature-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
-.feature-list li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; }
-.feature-list i { color: var(--accent); font-size: 0.85rem; margin-top: 2px; }
+.feature-list li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.83rem; line-height: 1.5; }
+.feature-list i { color: var(--accent); font-size: 0.83rem; margin-top: 2px; }
 
 .donate-card { text-align: center; }
-.donate-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.35rem; }
-.donate-sub { font-size: 0.82rem; line-height: 1.45; margin-bottom: 1.1rem; }
+.donate-title { font-size: 1.02rem; font-weight: 700; margin-bottom: 0.35rem; }
+.donate-sub { font-size: 0.85rem; line-height: 1.55; margin-bottom: 1.1rem; }
 
 .qr-wrap {
   display: inline-flex;
@@ -197,7 +197,7 @@ async function copyAddress() {
   border-radius: 16px;
 }
 .qr { display: block; width: 180px; height: 180px; }
-.addr-label { font-size: 0.78rem; margin: 0.75rem 0 0.4rem; }
+.addr-label { font-size: 0.83rem; margin: 0.75rem 0 0.4rem; }
 
 .addr-row {
   display: flex;
@@ -205,6 +205,7 @@ async function copyAddress() {
   gap: 0.5rem;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
   border-radius: 10px;
   padding: 0.55rem 0.7rem;
 }
@@ -236,13 +237,13 @@ async function copyAddress() {
 }
 
 .contact-label {
-  font-size: 0.78rem;
+  font-size: 0.83rem;
   margin-bottom: 0.25rem;
 }
 
 .contact-link {
   color: var(--accent);
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   word-break: break-all;
   text-decoration: underline;
   text-underline-offset: 0.18em;

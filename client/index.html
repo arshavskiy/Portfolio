@@ -43,6 +43,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="StockFolio" />
     <title>StockFolio</title>
+      <script>
+          (function () {
+              var theme = localStorage.getItem('stockfolio-theme') === 'light' ? 'light' : 'dark';
+              document.documentElement.classList.add(theme);
+              document.documentElement.dataset.theme = theme;
+              var meta = document.querySelector('meta[name="theme-color"]');
+              if (meta) meta.setAttribute('content', theme === 'light' ? '#f8fafc' : '#000000');
+          })();
+      </script>
       <style>
           /* Splash screen — painted before any JS bundle loads, removed once the
              app's network requests go idle (see script below). */
@@ -57,6 +66,14 @@
               gap: 1.1rem;
               background: #000000;
               transition: opacity 0.35s ease, visibility 0.35s ease;
+          }
+
+          html.light #splash {
+              background: #f8fafc;
+          }
+
+          html.light #splash .splash-bar {
+              background: #e2e8f0;
           }
 
           #splash.splash-hidden {

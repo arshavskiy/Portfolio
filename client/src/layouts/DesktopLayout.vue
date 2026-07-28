@@ -17,7 +17,6 @@ const route = useRoute()
 const focus = useDesktopFocusStore()
 const auth = useAuthStore()
 const {t} = useI18n()
-const isAdmin = computed(() => auth.user?.userType === 'admin')
 
 function trackNav(item) {
   trackEvent('nav_click', {nav_item: item.key})
@@ -32,10 +31,10 @@ const navItems = computed(() => [
   {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
   {key: 'insights', name: t('common.insights'), to: '/insights', icon: 'pi pi-sparkles', tourKey: 'insights', premium: true},
   {key: 'x-ray', name: t('common.xRay'), to: '/x-ray', icon: 'pi pi-shield', tourKey: 'x-ray', premium: true},
-  ...(isAdmin.value ? [{key: 'insights-data', name: t('common.data'), to: '/insights-data', icon: 'pi pi-database', tourKey: 'insights-data', premium: true}] : []),
+  ...(auth.isAdmin ? [{key: 'insights-data', name: t('common.data'), to: '/insights-data', icon: 'pi pi-database', tourKey: 'insights-data', premium: true}] : []),
   {key: 'news', name: t('common.news'), to: '/news', icon: 'pi pi-globe', tourKey: 'news'},
   {key: 'about', name: t('common.about'), to: '/help', icon: 'pi pi-info-circle', tourKey: 'about'},
-])
+].filter(item => !item.premium || auth.canUsePremiumFeatures))
 
 function openAccount() {
   trackEvent('nav_click', {nav_item: 'account'})

@@ -10,7 +10,7 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: () => import('@/views/DashboardView.vue'), meta: { requiresAuth: true } },
       {path: 'about', name: 'About', component: () => import('@/views/AboutView.vue')},
-      {path: 'math', name: 'Math', component: () => import('@/views/MathView.vue')},
+      {path: 'math', name: 'Math', component: () => import('@/views/MathView.vue'), meta: {requiresAuth: true, requiresAdmin: true}},
       {path: 'help', name: 'Help', component: () => import('@/views/HelpView.vue')},
       {path: 'disclaimer', name: 'Disclaimer', component: () => import('@/views/DisclaimerView.vue')},
       { path: 'news/article/:id', name: 'NewsArticle', component: () => import('@/views/NewsArticleView.vue'), meta: { requiresAuth: true } },
@@ -33,13 +33,13 @@ const routes = [
         path: 'insights',
         name: 'AssistantAI',
         component: () => import('@/views/InsightsView.vue'),
-        meta: {requiresAuth: true}
+        meta: {requiresAuth: true, requiresPremium: true}
       },
       {
         path: 'x-ray',
         name: 'PortfolioXRay',
         component: () => import('@/views/PortfolioXRayView.vue'),
-        meta: {requiresAuth: true}
+        meta: {requiresAuth: true, requiresPremium: true}
       },
       {
         path: 'insights-data',
@@ -70,7 +70,8 @@ router.beforeEach((to) => {
   const auth = useAuthStore()
   if (to.meta.requiresAuth && !auth.token) return { name: 'Login' }
   if (to.meta.guest && auth.token) return { name: 'Dashboard' }
-  if (to.meta.requiresAdmin && auth.user?.userType !== 'admin') return {name: 'Dashboard'}
+  if (to.meta.requiresAdmin && !auth.isAdmin) return {name: 'Dashboard'}
+  if (to.meta.requiresPremium && auth.isRegularUser) return {name: 'Dashboard'}
   if (to.meta.desktopOnly && typeof window !== 'undefined' && window.innerWidth < 1024) return {name: 'Dashboard'}
 })
 

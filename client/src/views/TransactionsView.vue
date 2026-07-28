@@ -156,12 +156,20 @@ onMounted(fetchTransactions)
 watch(activeTab, (tab) => {
   if (tab === 'gains') fetchGains()
 })
+
+defineExpose({
+  exportActive() {
+    if (activeTab.value === 'history') exportCSV()
+    else if (activeTab.value === 'gains') exportGainsCSV()
+  },
+  canExport: computed(() => activeTab.value === 'history' ? filtered.value.length > 0 : visibleYears.value.length > 0),
+})
 </script>
 
 <template>
-  <div class="transactions">
-    <header class="page-header">
-      <h1 v-if="!embedded" class="gradient-title">{{ t('common.history') }}</h1>
+  <div class="transactions" :class="{embedded}">
+    <header v-if="!embedded" class="page-header">
+      <h1 class="gradient-title">{{ t('common.history') }}</h1>
       <Button
           v-if="activeTab === 'history'"
           :disabled="!filtered.length"
@@ -347,6 +355,10 @@ watch(activeTab, (tab) => {
   padding: 1rem;
 }
 
+.transactions.embedded {
+  padding: 0;
+}
+
 @media (min-width: 768px) {
   .transactions {
     padding: 1.5rem;
@@ -420,7 +432,8 @@ watch(activeTab, (tab) => {
 }
 
 .tx-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(72px, 0.8fr) minmax(86px, 1fr) minmax(68px, auto) 20px;
   align-items: center;
   padding: 0.75rem 0;
   border-bottom: 1px solid var(--border);
@@ -430,15 +443,15 @@ watch(activeTab, (tab) => {
 }
 
 .tx-row:active {
-  background: rgba(255, 255, 255, 0.03);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
 }
 
 .tx-left {
-  flex: 0 0 90px;
+  min-width: 0;
 }
 
 .tx-mid {
-  flex: 1;
+  min-width: 0;
   font-size: 0.82rem;
 }
 
@@ -455,9 +468,9 @@ watch(activeTab, (tab) => {
 }
 
 .edit-hint {
-  font-size: 0.7rem;
-  flex-shrink: 0;
-  margin-left: 2px;
+  justify-self: end;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
 }
 
 .count {

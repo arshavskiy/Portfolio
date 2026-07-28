@@ -79,6 +79,10 @@ function toggleMenu(event) {
   color: var(--text-secondary);
 }
 
+.mobile-actions-trigger :deep(.p-button .p-button-icon) {
+  color: currentColor;
+}
+
 .mobile-actions-trigger :deep(.p-button:hover) {
   color: var(--neon-blue);
   border-color: rgba(0, 207, 255, 0.45);

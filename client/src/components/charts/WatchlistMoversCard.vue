@@ -138,9 +138,7 @@ function openStock(item) {
 .movers-card {
   position: relative;
   overflow: hidden;
-  background: radial-gradient(circle at top center, rgba(34, 211, 238, 0.08), transparent 28%),
-  linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(15, 23, 42, 0.22)),
-  var(--bg-card);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 0.9rem 1rem 1rem;
@@ -257,7 +255,6 @@ function openStock(item) {
 .pct-label {
   font-size: 0.82rem;
   font-weight: 700;
-  text-shadow: 0 0 10px rgba(15, 23, 42, 0.6);
 }
 
 .pct-up {
@@ -280,14 +277,19 @@ function openStock(item) {
 .ticker {
   font-size: 0.8rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
   letter-spacing: 0.02em;
 }
 
 .skeleton {
   min-height: 118px;
   border-radius: 12px;
-  background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%);
+  background: linear-gradient(
+      90deg,
+      var(--bg-card) 25%,
+      color-mix(in srgb, var(--text-primary) 7%, var(--bg-card)) 50%,
+      var(--bg-card) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }

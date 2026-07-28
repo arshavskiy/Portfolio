@@ -85,6 +85,7 @@ exports.updatePreferences = async (req, res) => {
   try {
     const {aiDailySummaryEnabled, aiDailySummaryCustomPrompt} = req.body
     const update = {}
+    const unset = {}
 
     if (aiDailySummaryEnabled !== undefined) {
       if (typeof aiDailySummaryEnabled !== 'boolean')
@@ -97,13 +98,17 @@ exports.updatePreferences = async (req, res) => {
         return res.status(400).json({message: 'aiDailySummaryCustomPrompt must be a string'})
       if (!PROMPT_CUSTOM_USER_TYPES.includes(req.user.userType))
         return res.status(403).json({message: 'Custom daily prompt is available on Pro and above'})
-      update.aiDailySummaryCustomPrompt = aiDailySummaryCustomPrompt.trim().slice(0, AI_DAILY_SUMMARY_CUSTOM_PROMPT_MAX_LENGTH)
+      const nextCustomPrompt = aiDailySummaryCustomPrompt.trim().slice(0, AI_DAILY_SUMMARY_CUSTOM_PROMPT_MAX_LENGTH)
+      update.aiDailySummaryCustomPrompt = nextCustomPrompt
+      if (nextCustomPrompt !== (req.user.aiDailySummaryCustomPrompt || ''))
+        unset.aiDailySummary = ''
     }
 
     if (!Object.keys(update).length)
       return res.status(400).json({message: 'No valid preferences provided'})
 
-    const user = await User.findByIdAndUpdate(req.user._id, update, {new: true})
+    const updateQuery = Object.keys(unset).length ? {...update, $unset: unset} : update
+    const user = await User.findByIdAndUpdate(req.user._id, updateQuery, {new: true})
     res.json({user})
   } catch (err) {
     res.status(500).json({message: err.message})

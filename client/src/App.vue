@@ -5,8 +5,10 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import {useAlertNotifier} from '@/composables/useAlertNotifier'
 import InstallBanner from '@/components/ui/InstallBanner.vue'
 import PwaUpdateBanner from '@/components/ui/PwaUpdateBanner.vue'
+import {useTheme} from '@/composables/useTheme'
 
 useAlertNotifier()
+useTheme()
 
 // Browsers block requestFullscreen() without a user gesture, so we trigger it
 // on the very first tap/click. Skipped when already running as an installed
@@ -33,7 +35,6 @@ function cleanupFs() {
 }
 
 onMounted(() => {
-  document.documentElement.classList.add('dark')
   if (!isStandalone() && document.documentElement.requestFullscreen) {
     window.addEventListener('pointerdown', enterFullscreenOnce, { once: true })
   }

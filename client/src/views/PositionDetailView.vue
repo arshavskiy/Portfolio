@@ -14,6 +14,7 @@ import { useFeeProfileStore } from "@/stores/feeProfiles";
 import { useHistoryStore } from "@/stores/history";
 import { useWatchlistStore } from "@/stores/watchlist";
 import { useAlertsStore } from "@/stores/alerts";
+import { useAuthStore } from "@/stores/auth";
 import api from "@/composables/useApi";
 import { fetchCachedQuote } from "@/composables/useQuoteCache";
 import {
@@ -64,6 +65,7 @@ const toast = useToast();
 const historyStore = useHistoryStore();
 const watchlistStore = useWatchlistStore();
 const alertsStore = useAlertsStore();
+const auth = useAuthStore();
 const { t } = useI18n();
 const { maybeStartPositionPhase } = useTour();
 
@@ -2406,9 +2408,11 @@ async function toggleWatchlist() {
       </div>
 
       <!-- News-driven ticker insights (stockfolio-insights microservice) -->
-      <AnalystResearchCard :current-price="quote?.price ?? null" :ticker="ticker" />
-      <TickerInsightCard :ticker="ticker" />
-      <TickerRelationGraph :ticker="ticker" />
+      <template v-if="auth.canUsePremiumFeatures">
+        <AnalystResearchCard :current-price="quote?.price ?? null" :ticker="ticker" />
+        <TickerInsightCard :ticker="ticker" />
+        <TickerRelationGraph :ticker="ticker" />
+      </template>
 
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">

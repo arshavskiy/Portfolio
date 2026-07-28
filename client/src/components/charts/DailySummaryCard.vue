@@ -1,5 +1,5 @@
 <script setup>
-import {ref, onMounted, watch} from 'vue'
+import {ref, onBeforeUnmount, onMounted, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
 import api from '@/composables/useApi'
 import {useI18n} from '@/composables/useI18n'
@@ -30,6 +30,12 @@ function dismiss() {
   dismissed.value = true
 }
 
+function showAgain() {
+  dismissedDay.value = ''
+  dismissed.value = false
+  if (!summary.value && !loading.value) load()
+}
+
 async function load(force = false) {
   if (force) refreshing.value = true
   errored.value = false
@@ -56,9 +62,14 @@ function formatTime(value) {
 }
 
 onMounted(() => {
+  window.addEventListener('daily-summary:show', showAgain)
   load()
   if (!portfolio.positions.length && !portfolio.loading) portfolio.fetchPortfolio().catch(() => {})
   if (!watchlist.items.length) watchlist.fetchWatchlist().catch(() => {})
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('daily-summary:show', showAgain)
 })
 
 watch(locale, () => load())

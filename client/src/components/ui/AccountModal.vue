@@ -12,6 +12,7 @@ import Button from 'primevue/button'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import {useI18n} from '@/composables/useI18n'
 import TransactionsView from '@/views/TransactionsView.vue'
 import AlertsView from '@/views/AlertsView.vue'
@@ -27,6 +28,7 @@ const portfolio = usePortfolioStore()
 const showFeeProfiles = ref(false)
 const showHistory = ref(false)
 const showAlerts = ref(false)
+const historyView = ref(null)
 const {locale, t} = useI18n()
 
 const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFullscreen()
@@ -34,7 +36,13 @@ const {canInstall, installed, isIos, promptInstall} = usePwaInstall()
 const {startNavPhase, resetTour} = useTour()
 const aiSummaryEnabled = computed({
   get: () => auth.user?.aiDailySummaryEnabled !== false,
-  set: (value) => { auth.updatePreferences({aiDailySummaryEnabled: value}).catch(() => {}) },
+  set: (value) => {
+    if (value) {
+      localStorage.removeItem('daily-summary-dismissed-day')
+      window.dispatchEvent(new Event('daily-summary:show'))
+    }
+    auth.updatePreferences({aiDailySummaryEnabled: value}).catch(() => {})
+  },
 })
 
 const canCustomizePrompt = computed(() => ['pro', 'max', 'admin'].includes(userType.value))
@@ -84,7 +92,7 @@ async function install() {
 
 const summary = computed(() => portfolio.combinedUsd)
 const positionCount = computed(() => portfolio.positions.length)
-const userType = computed(() => auth.user?.userType || 'regular')
+const userType = computed(() => auth.userType)
 const userTypeLabel = computed(() => t(`account.userTypes.${userType.value}`))
 const aiUsageSummary = computed(() => auth.user?.aiUsageSummary || {
   todayCount: 0,
@@ -147,17 +155,6 @@ function logout() {
           <p v-if="memberSince" class="member-since text-muted">{{
               t('account.memberSince', {date: memberSince})
             }}</p>
-          <div class="profile-meta">
-            <span class="meta-pill">
-              {{ t('account.userType') }}: {{ userTypeLabel }}
-            </span>
-            <span class="meta-pill">
-              {{ t('account.aiCallsToday') }}: {{ aiUsageLabel }}
-            </span>
-            <span class="meta-pill">
-              {{ t('account.aiTokensToday') }}: {{ aiTokenUsageLabel }}
-            </span>
-          </div>
         </div>
         <Button
             :label="t('account.signOut')"
@@ -165,6 +162,20 @@ function logout() {
             severity="danger"
             @click="logout"
         />
+        <dl class="profile-meta">
+          <div class="profile-meta-row">
+            <dt>{{ t('account.userType') }}</dt>
+            <dd>{{ userTypeLabel }}</dd>
+          </div>
+          <div class="profile-meta-row">
+            <dt>{{ t('account.aiCallsToday') }}</dt>
+            <dd>{{ aiUsageLabel }}</dd>
+          </div>
+          <div class="profile-meta-row">
+            <dt>{{ t('account.aiTokensToday') }}</dt>
+            <dd>{{ aiTokenUsageLabel }}</dd>
+          </div>
+        </dl>
       </div>
 
       <!-- Portfolio snapshot -->
@@ -225,9 +236,13 @@ function logout() {
             <i class="pi pi-language menu-icon"/>
             <span>{{ t('common.language') }}</span>
             <LanguageSelect/>
-            <i class="pi pi-chevron-right text-muted"/>
           </div>
-          <div class="menu-item">
+          <div class="menu-item theme-menu-item">
+            <i class="pi pi-palette menu-icon"/>
+            <span>{{ t('account.theme') }}</span>
+            <ThemeToggle/>
+          </div>
+          <div v-if="auth.canUsePremiumFeatures" class="menu-item">
             <i class="pi pi-sparkles menu-icon"/>
             <span>{{ t('account.aiDailySummary') }}</span>
             <ToggleSwitch v-model="aiSummaryEnabled"/>
@@ -265,14 +280,26 @@ function logout() {
 
     <Dialog
         v-model:visible="showHistory"
+        class="history-dialog"
         :draggable="false"
         :style="{ width: '95vw', maxWidth: '640px' }"
         modal
     >
       <template #header>
-        <span class="gradient-title">{{ t('common.history') }}</span>
+        <div class="history-dialog-head">
+          <span class="gradient-title">{{ t('common.history') }}</span>
+          <Button
+              :disabled="!historyView?.canExport"
+              class="history-export-btn"
+              icon="pi pi-download"
+              outlined
+              rounded
+              size="small"
+              @click="historyView?.exportActive()"
+          />
+        </div>
       </template>
-      <TransactionsView embedded/>
+      <TransactionsView ref="historyView" embedded/>
     </Dialog>
 
     <Dialog
@@ -296,10 +323,11 @@ function logout() {
 }
 
 .profile-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem;
+  padding: 1rem;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -308,6 +336,12 @@ function logout() {
 
 .sign-out-btn {
   margin-left: auto;
+  width: auto !important;
+  min-width: 72px;
+  max-width: 86px;
+  padding-inline: 0.75rem !important;
+  font-size: 0.72rem !important;
+  line-height: 1.1;
 }
 
 .profile-info {
@@ -324,6 +358,7 @@ function logout() {
 .profile-name {
   font-weight: 700;
   font-size: 1.15rem;
+  margin: 0;
 }
 
 .profile-email {
@@ -339,28 +374,49 @@ function logout() {
 }
 
 .profile-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.55rem;
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.1rem 0 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+  max-width: 100%;
 }
 
-.meta-pill,
 .type-chip {
   display: inline-flex;
   align-items: center;
+  max-width: 100%;
   min-height: 24px;
   padding: 0.2rem 0.55rem;
   border: 1px solid var(--border);
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 700;
-  line-height: 1;
+  line-height: 1.15;
 }
 
-.meta-pill {
-  background: rgba(255, 255, 255, 0.04);
+.profile-meta-row {
+  display: grid;
+  grid-template-columns: minmax(108px, 0.9fr) minmax(0, 1.1fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  font-size: 0.7rem;
+  line-height: 1.25;
+}
+
+.profile-meta-row dt {
   color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.profile-meta-row dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-primary);
+  font-weight: 700;
+  text-align: left;
+  overflow-wrap: anywhere;
 }
 
 .type-chip-regular {
@@ -395,13 +451,13 @@ function logout() {
 
 .stats-card {
   display: grid;
-  grid-template-columns: 2fr 4fr 1fr;
-  gap: 0.5rem;
-  padding: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 0.9rem 0;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .stat {
@@ -409,22 +465,26 @@ function logout() {
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  padding: 0 0.65rem;
 }
 
 .stat:nth-child(2) {
   border-left: 1px solid var(--border);
   border-right: 1px solid var(--border);
-  padding: 0 0.5rem;
 }
 
 .stat-label {
-  font-size: 0.68rem;
+  font-size: 0.63rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
+  line-height: 1.15;
+  white-space: nowrap;
 }
 
 .stat-value {
-  font-size: 1rem;
+  display: block;
+  max-width: 100%;
+  font-size: 0.92rem;
   font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
@@ -498,17 +558,11 @@ function logout() {
 }
 
 .menu-item:active {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
 }
 
 .menu-item span {
   flex: 1;
-}
-
-.language-menu-item :deep(.language-select) {
-  border-color: transparent;
-  background: transparent;
-  padding: 0;
 }
 
 .menu-icon {
@@ -520,5 +574,95 @@ function logout() {
   text-align: center;
   font-size: 0.72rem;
   margin-top: 0.5rem;
+}
+
+:deep(.history-dialog .p-dialog-header) {
+  align-items: center;
+  min-height: 56px;
+  padding: 1rem 1.25rem 0.4rem;
+}
+
+:deep(.history-dialog .p-dialog-title) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.history-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 0.75rem;
+}
+
+:deep(.history-export-btn.p-button) {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-card));
+  color: var(--accent);
+}
+
+:deep(.history-export-btn.p-button .p-button-icon) {
+  color: currentColor;
+}
+
+:deep(.history-export-btn.p-button:hover:not(:disabled)) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, var(--bg-card));
+  color: var(--accent);
+}
+
+:deep(.history-dialog .p-dialog-content) {
+  padding: 0.25rem 1.25rem 0.5rem;
+}
+
+:deep(.history-dialog .p-dialog-close-button) {
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  border-color: transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+:deep(.history-dialog .p-dialog-close-button .p-button-icon) {
+  color: currentColor;
+}
+
+:deep(.history-dialog .p-dialog-close-button:hover) {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 9%, var(--bg-card));
+  color: var(--text-primary);
+}
+
+@media (max-width: 380px) {
+  .profile-card {
+    grid-template-columns: 1fr;
+  }
+
+  .sign-out-btn {
+    justify-self: start;
+    margin-left: 0;
+  }
+
+  .stats-card {
+    padding: 0.75rem 0;
+  }
+
+  .stat {
+    padding: 0 0.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.58rem;
+  }
+
+  .stat-value {
+    font-size: 0.84rem;
+  }
 }
 </style>

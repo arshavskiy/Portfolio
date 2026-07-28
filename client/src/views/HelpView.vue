@@ -6,16 +6,18 @@ import QRCode from 'qrcode'
 import Button from 'primevue/button'
 import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useI18n} from '@/composables/useI18n'
+import {useAuthStore} from '@/stores/auth'
 
 const router = useRouter()
 const toast = useToast()
+const auth = useAuthStore()
 const {isDesktop} = useBreakpoint()
 const {t} = useI18n()
 
 const activeAnchor = ref('about')
 const anchors = computed(() => [
   {id: 'about', label: t('common.about')},
-  {id: 'math', label: t('mathPage.navTitle')},
+  ...(auth.isAdmin ? [{id: 'math', label: t('mathPage.navTitle')}] : []),
   {id: 'disclaimer', label: t('disclaimerPage.title')},
 ])
 
@@ -150,7 +152,7 @@ onMounted(async () => {
         <span>{{ t('common.about') }}</span>
         <i class="pi pi-chevron-right text-muted" />
       </button>
-      <button class="menu-item" @click="router.push('/math')">
+      <button v-if="auth.isAdmin" class="menu-item" @click="router.push('/math')">
         <i class="pi pi-calculator menu-icon"/>
         <span>{{ t('mathPage.navTitle') }}</span>
         <i class="pi pi-chevron-right text-muted" />
@@ -234,7 +236,7 @@ onMounted(async () => {
       </section>
 
       <!-- Math Reference -->
-      <section id="math" class="anchor-section">
+      <section v-if="auth.isAdmin" id="math" class="anchor-section">
         <h2 class="section-title">{{ t('mathPage.navTitle') }}</h2>
         <p class="intro text-muted">
           {{ t('mathPage.intro') }}

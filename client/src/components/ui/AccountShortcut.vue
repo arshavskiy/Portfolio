@@ -6,7 +6,7 @@ import {useAuthStore} from '@/stores/auth'
 
 const {t} = useI18n()
 const auth = useAuthStore()
-const userType = computed(() => auth.user?.userType || 'regular')
+const userType = computed(() => auth.userType)
 const userTypeShortLabel = computed(() => t(`account.userTypesShort.${userType.value}`))
 
 const emit = defineEmits(['click'])

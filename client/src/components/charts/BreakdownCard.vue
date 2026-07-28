@@ -107,9 +107,9 @@ function draw() {
       .on('click', (_, d) => openPosition(d.data.ticker))
 
   g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
-      .attr('fill', '#94a3b8').attr('font-size', '10').text('Total')
+      .attr('fill', 'var(--text-secondary)').attr('font-size', '10').text('Total')
   g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
-      .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '700')
+      .attr('fill', 'var(--text-primary)').attr('font-size', '12').attr('font-weight', '700')
       .text(useCurrency(totalValue.value, isMixed.value ? 'ILS' : (props.positions[0]?.currency || 'USD')))
 }
 

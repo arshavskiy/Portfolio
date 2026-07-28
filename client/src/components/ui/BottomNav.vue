@@ -4,8 +4,10 @@ import {trackEvent} from '@/composables/useAnalytics'
 import {computed} from 'vue'
 import {useI18n} from '@/composables/useI18n'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
+import {useAuthStore} from '@/stores/auth'
 
 const route = useRoute()
+const auth = useAuthStore()
 const {t} = useI18n()
 
 function trackNav(tab) {
@@ -19,7 +21,7 @@ const tabs = computed(() => [
   {key: 'x-ray', to: '/x-ray', icon: 'pi pi-shield', label: t('common.xRay'), tourKey: 'x-ray', premium: true},
   {key: 'news', to: '/news', icon: 'pi pi-globe', label: t('common.news'), tourKey: 'news'},
   {key: 'about', to: '/help', icon: 'pi pi-info-circle', label: t('common.about')},
-])
+].filter(tab => !tab.premium || auth.canUsePremiumFeatures))
 
 function isActive(tab) {
   if (tab.to === '/') return route.path === '/'
@@ -120,8 +122,8 @@ function isActive(tab) {
 }
 
 .nav-item.active { color: var(--neon-blue); }
-.nav-item.active i { filter: drop-shadow(0 0 6px var(--neon-blue)); }
-.nav-item.active span { text-shadow: 0 0 8px var(--neon-blue); }
+.nav-item.active i { filter: none; }
+.nav-item.active span { text-shadow: none; }
 
 /* ── Desktop: vertical sidebar ── */
 @media (min-width: 1024px) {

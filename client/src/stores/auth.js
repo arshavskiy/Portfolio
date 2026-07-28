@@ -7,6 +7,10 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
 
   const isAuthenticated = computed(() => !!token.value)
+  const userType = computed(() => user.value?.userType || 'regular')
+  const isRegularUser = computed(() => userType.value === 'regular')
+  const canUsePremiumFeatures = computed(() => !isRegularUser.value)
+  const isAdmin = computed(() => userType.value === 'admin')
 
   function setAuth(t, u) {
     token.value = t
@@ -67,5 +71,20 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value
   }
 
-    return {token, user, isAuthenticated, login, register, loginWithGoogle, loginWithMagicLink, logout, fetchMe, updatePreferences}
+    return {
+      token,
+      user,
+      isAuthenticated,
+      userType,
+      isRegularUser,
+      canUsePremiumFeatures,
+      isAdmin,
+      login,
+      register,
+      loginWithGoogle,
+      loginWithMagicLink,
+      logout,
+      fetchMe,
+      updatePreferences
+    }
 })

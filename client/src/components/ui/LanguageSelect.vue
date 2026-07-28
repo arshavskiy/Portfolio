@@ -1,89 +1,126 @@
 <script setup>
+import {computed} from 'vue'
+import {NSelect} from 'naive-ui'
 import {useI18n} from '@/composables/useI18n'
+import {supportedLocales} from '@/i18n/messages'
 
 const {locale, setLocale, t} = useI18n()
 
-function toggleLocale() {
-  setLocale(locale.value === 'ru' ? 'en' : 'ru')
+const languageOptions = computed(() =>
+    supportedLocales.map((option) => ({
+      label: option.shortLabel,
+      value: option.code
+    }))
+)
+
+const selectThemeOverrides = {
+  peers: {
+    InternalSelection: {
+      border: 'none',
+      borderActive: 'none',
+      borderFocus: 'none',
+      borderHover: 'none',
+      boxShadowActive: 'none',
+      boxShadowFocus: 'none',
+      color: 'transparent',
+      colorActive: 'transparent',
+      heightSmall: '28px',
+      textColor: 'var(--text-primary)',
+      arrowColor: 'var(--text-secondary)'
+    },
+    InternalSelectMenu: {
+      color: 'var(--bg-card)',
+      borderRadius: '8px',
+      boxShadow: 'var(--shadow-lg)',
+      optionTextColor: 'var(--text-secondary)',
+      optionTextColorActive: 'var(--text-primary)',
+      optionTextColorPressed: 'var(--text-primary)',
+      optionCheckColor: 'var(--accent)',
+      optionColorActive: 'color-mix(in srgb, var(--accent) 14%, transparent)',
+      optionColorPending: 'color-mix(in srgb, var(--accent) 10%, transparent)'
+    }
+  }
 }
 </script>
 
 <template>
-  <button
-      :aria-label="t('common.language')"
-      class="language-toggle"
-      type="button"
-      @click="toggleLocale"
-  >
-    <i class="pi pi-language"/>
-    <span class="toggle-track">
-      <span :class="{active: locale === 'en'}" class="toggle-option">EN</span>
-      <span :class="{active: locale === 'ru'}" class="toggle-option">RU</span>
-      <span :class="{right: locale === 'ru'}" class="toggle-thumb"/>
-    </span>
-  </button>
+  <div class="language-select" :aria-label="t('common.language')">
+    <NSelect
+        class="language-n-select"
+        :value="locale"
+        :options="languageOptions"
+        :theme-overrides="selectThemeOverrides"
+        size="small"
+        :consistent-menu-width="false"
+        @update:value="setLocale"
+    />
+  </div>
 </template>
 
 <style scoped>
-.language-toggle {
+.language-select {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
   min-height: 34px;
-  padding: 0 0.45rem 0 0.55rem;
+  min-width: 78px;
+  padding: 0 0.3rem 0 0.45rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: color-mix(in srgb, var(--bg-card) 85%, transparent);
   color: var(--text-secondary);
-  cursor: pointer;
   font: inherit;
 }
 
-.language-toggle i {
-  font-size: 0.9rem;
+.language-n-select {
+  width: 60px;
+  --n-height: 28px;
+  --n-border: none;
+  --n-border-hover: none;
+  --n-border-active: none;
+  --n-border-focus: none;
+  --n-box-shadow-active: none;
+  --n-box-shadow-focus: none;
+  --n-color: transparent;
+  --n-color-active: transparent;
+  --n-text-color: var(--text-primary);
+  --n-placeholder-color: var(--text-secondary);
+  --n-caret-color: var(--text-secondary);
+  --n-arrow-color: var(--text-secondary);
+  --n-font-size: 0.78rem;
 }
 
-.toggle-track {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  width: 58px;
-  height: 24px;
-  padding: 2px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.toggle-option {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-primary);
-  font-size: 0.68rem;
+.language-n-select :deep(.n-base-selection) {
+  background: transparent;
   font-weight: 800;
-  opacity: 0.55;
-  transition: color 0.16s ease, opacity 0.16s ease;
 }
 
-.toggle-option.active {
-  color: #fff;
-  opacity: 1;
+.language-n-select :deep(.n-base-selection .n-base-selection__border),
+.language-n-select :deep(.n-base-selection .n-base-selection__state-border) {
+  display: none;
 }
 
-.toggle-thumb {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: calc(50% - 2px);
-  height: calc(100% - 4px);
-  border-radius: 5px;
-  background: var(--accent);
-  transition: transform 0.18s ease;
+.language-n-select :deep(.n-base-selection-label) {
+  padding-left: 0;
+  padding-right: 18px;
+  color: var(--text-primary);
 }
 
-.toggle-thumb.right {
-  transform: translateX(100%);
+.language-n-select :deep(.n-base-selection-input) {
+  color: var(--text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-width: 30px;
+}
+
+.language-n-select :deep(.n-base-selection-input__content) {
+  display: inline-block;
+  min-width: 24px;
+  overflow: visible;
+  color: var(--text-primary);
+  font-weight: 800;
+}
+
+.language-n-select :deep(.n-base-suffix) {
+  right: 0;
 }
 </style>

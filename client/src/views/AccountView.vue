@@ -11,6 +11,7 @@ import {useToast} from 'primevue/usetoast'
 import Button from 'primevue/button'
 import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
@@ -55,7 +56,7 @@ async function install() {
 
 const summary = computed(() => portfolio.combinedUsd)
 const positionCount = computed(() => portfolio.positions.length)
-const userType = computed(() => auth.user?.userType || 'regular')
+const userType = computed(() => auth.userType)
 const userTypeLabel = computed(() => t(`account.userTypes.${userType.value}`))
 const aiUsageSummary = computed(() => auth.user?.aiUsageSummary || {
   todayCount: 0,
@@ -201,7 +202,11 @@ function logout() {
               <i class="pi pi-language menu-icon"/>
               <span>{{ t('common.language') }}</span>
               <LanguageSelect/>
-              <i class="pi pi-chevron-right text-muted"/>
+            </div>
+            <div class="menu-item theme-menu-item">
+              <i class="pi pi-palette menu-icon"/>
+              <span>{{ t('account.theme') }}</span>
+              <ThemeToggle/>
             </div>
           </div>
         </div>
@@ -457,15 +462,9 @@ function logout() {
 .menu-item:last-child { border-bottom: none; }
 
 .menu-item:active {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
 }
 .menu-item span { flex: 1; }
-
-.language-menu-item :deep(.language-select) {
-  border-color: transparent;
-  background: transparent;
-  padding: 0;
-}
 
 .menu-icon {
   color: var(--accent);

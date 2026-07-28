@@ -39,7 +39,7 @@ const DividendCalendarCard = defineAsyncComponent(() => import('@/components/cha
 const dashboard = useDashboardStore()
 const auth = useAuthStore()
 const {t} = useI18n()
-const aiSummaryEnabled = computed(() => auth.user?.aiDailySummaryEnabled !== false)
+const aiSummaryEnabled = computed(() => auth.canUsePremiumFeatures && auth.user?.aiDailySummaryEnabled !== false)
 const {
   ready,
   portfolioPositions,

@@ -121,7 +121,7 @@ function rangeEndPrice(item) {
 
 <style scoped>
 .movers-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(15, 23, 42, 0.18)), var(--bg-card);
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1rem;
@@ -148,9 +148,9 @@ function rangeEndPrice(item) {
 }
 
 .mode-tab {
-  border: 1px solid rgba(148, 163, 184, 0.2);
-  background: rgba(15, 23, 42, 0.7);
-  color: #e2e8f0;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
   border-radius: 5px;
   padding: 0.3rem;
   font-size: 0.78rem;
@@ -192,7 +192,7 @@ function rangeEndPrice(item) {
 }
 
 .mover-row:active {
-  background: rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
 }
 
 .row-go {
@@ -211,7 +211,7 @@ function rangeEndPrice(item) {
 .ticker {
   font-size: 0.96rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .company {
@@ -257,7 +257,7 @@ function rangeEndPrice(item) {
 .price {
   font-size: 0.92rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text-primary);
 }
 
 .badge {
@@ -271,13 +271,13 @@ function rangeEndPrice(item) {
 
 .badge-gain {
   background: rgba(74, 222, 128, 0.22);
-  color: #dcfce7;
+  color: var(--green);
   border: 1px solid rgba(74, 222, 128, 0.34);
 }
 
 .badge-loss {
   background: rgba(248, 113, 113, 0.18);
-  color: #fecaca;
+  color: var(--red);
   border: 1px solid rgba(248, 113, 113, 0.28);
 }
 
@@ -290,7 +290,7 @@ function rangeEndPrice(item) {
 .view-more {
   border: none;
   background: none;
-  color: #bfdbfe;
+  color: var(--accent);
   font-size: 0.9rem;
   font-weight: 700;
   cursor: pointer;
@@ -302,7 +302,12 @@ function rangeEndPrice(item) {
 .skeleton {
   min-height: 62px;
   border-radius: 12px;
-  background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%);
+  background: linear-gradient(
+      90deg,
+      var(--bg-card) 25%,
+      color-mix(in srgb, var(--text-primary) 7%, var(--bg-card)) 50%,
+      var(--bg-card) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
   border-top: none;
