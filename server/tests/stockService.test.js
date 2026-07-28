@@ -175,17 +175,37 @@ describe('getQuote chart fallback', () => {
       meta: {
         symbol: 'ZZZQ',
         regularMarketPrice: 100,
-        chartPreviousClose: 90,
+        chartPreviousClose: 50,
         shortName: 'Test Index',
         currency: 'USD',
       },
+      quotes: [
+        { date: new Date('2026-07-24T20:00:00Z'), close: 80 },
+        { date: new Date('2026-07-27T20:00:00Z'), close: 100 },
+      ],
     })
 
     const quote = await getQuote('ZZZQ')
 
+    // Day change is vs the prior session's close (80), not chartPreviousClose
+    // (50), which sits before the whole requested window.
     expect(quote.price).toBe(100)
-    expect(quote.change).toBeCloseTo(10)
-    expect(quote.changePercent).toBeCloseTo(11.111, 2)
+    expect(quote.previousClose).toBe(80)
+    expect(quote.change).toBeCloseTo(20)
+    expect(quote.changePercent).toBeCloseTo(25)
+  })
+
+  test('uses chartPreviousClose when the window has only one session', async () => {
+    yahooMock.quote.mockRejectedValue(new Error('blocked'))
+    yahooMock.chart.mockResolvedValue({
+      meta: { symbol: 'ONED', regularMarketPrice: 110, chartPreviousClose: 100 },
+      quotes: [{ date: new Date('2026-07-27T20:00:00Z'), close: 110 }],
+    })
+
+    const quote = await getQuote('ONED')
+
+    expect(quote.previousClose).toBe(100)
+    expect(quote.changePercent).toBeCloseTo(10)
   })
 })
 

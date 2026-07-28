@@ -858,7 +858,13 @@ async function getQuoteViaChart(ticker) {
   if (!m?.regularMarketPrice) return null
   const f = taFactor(ticker)
   const price = m.regularMarketPrice / f
-  const prevClose = (m.chartPreviousClose ?? m.previousClose ?? null)
+  // `meta.chartPreviousClose` is the close *before the requested window*, not
+  // yesterday's — using it makes the day change span the whole window. Take the
+  // last daily close preceding the most recent session instead.
+  const rows = (result?.quotes || []).filter((r) => r?.close != null && r.date)
+  const lastDay = rows.length ? new Date(rows[rows.length - 1].date).toDateString() : null
+  const priorRow = [...rows].reverse().find((r) => new Date(r.date).toDateString() !== lastDay)
+  const prevClose = priorRow?.close ?? m.chartPreviousClose ?? m.previousClose ?? null
   const prev = prevClose != null ? prevClose / f : null
   const change = prev != null ? price - prev : null
   return {
