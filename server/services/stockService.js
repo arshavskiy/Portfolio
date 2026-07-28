@@ -2,7 +2,15 @@ const YahooFinance = require('yahoo-finance2').default
 const crypto = require('crypto')
 const ExtendedQuote = require('../models/ExtendedQuote')
 const QuoteSnapshot = require('../models/QuoteSnapshot')
-const yahooFinance = new YahooFinance()
+const yahooFinance = new YahooFinance({
+  suppressNotices: ['yahooSurvey'],
+  fetchOptions: {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+    },
+  },
+})
 
 const quoteCache = new Map()
 // In-flight promise per ticker — callers that arrive while a fetch is already

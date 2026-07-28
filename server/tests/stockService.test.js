@@ -12,8 +12,12 @@ const mockYahoo = {
   quoteSummary: jest.fn(),
   trendingSymbols: jest.fn(),
 }
+// Capture the config the app passes to `new YahooFinance(...)` so we can assert
+// the browser User-Agent that dodges Yahoo's EU consent redirect (guccounter=1).
+const yahooCtorConfig = []
 jest.mock('yahoo-finance2', () => {
   class MockYahooFinance {
+    constructor(config) { yahooCtorConfig.push(config) }
     quote(...args) { return mockYahoo.quote(...args) }
     chart(...args) { return mockYahoo.chart(...args) }
     search(...args) { return mockYahoo.search(...args) }
@@ -36,6 +40,22 @@ jest.mock('../models/QuoteSnapshot', () => ({
 
 const yahooMock = mockYahoo
 const { getQuote } = require('../services/stockService')
+
+// ── Yahoo client config ───────────────────────────────────────────────────────
+
+describe('YahooFinance client config', () => {
+  test('instantiates with a browser User-Agent to avoid the EU consent redirect', () => {
+    const config = yahooCtorConfig[0]
+    expect(config).toBeDefined()
+    const ua = config?.fetchOptions?.headers?.['User-Agent']
+    expect(ua).toMatch(/Mozilla\/5\.0/)
+    expect(ua).not.toMatch(/yahoo-finance2/)
+  })
+
+  test('suppresses the library survey notice', () => {
+    expect(yahooCtorConfig[0]?.suppressNotices).toContain('yahooSurvey')
+  })
+})
 
 // ── downsample ────────────────────────────────────────────────────────────────
 
