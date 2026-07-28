@@ -12,6 +12,28 @@ const yahooFinance = new YahooFinance({
   },
 })
 
+// With an empty cookie jar, the first quote() triggers Yahoo's crumb/consent
+// handshake against guce.yahoo.com, which hangs until the 10s connect timeout
+// and fails every cold call. A single keyless chart() request seeds the jar,
+// after which quote() works normally. Runs once per process; every quote path
+// awaits it first so a burst of callers shares the one priming request.
+let cookiePrimed = null
+
+function primeYahooSession() {
+  if (!cookiePrimed) {
+    const period1 = new Date(Date.now() - 5 * 86400000).toISOString().split('T')[0]
+    cookiePrimed = yahooFinance
+      .chart('AAPL', {period1, interval: '1d'})
+      .then(() => true)
+      .catch((err) => {
+        console.warn('[yahoo] session priming failed:', err.message)
+        cookiePrimed = null // let the next caller retry
+        return false
+      })
+  }
+  return cookiePrimed
+}
+
 const quoteCache = new Map()
 // In-flight promise per ticker — callers that arrive while a fetch is already
 // running await the same promise instead of firing a duplicate Yahoo request.
@@ -339,6 +361,7 @@ async function getQuote(ticker) {
   const fetch = (async () => {
     let result
     try {
+      await primeYahooSession()
       result = await withRetry(() => yahooFinance.quote(ticker))
     } catch (error) {
       // quote() blocked (e.g. datacenter-IP consent gate) — try the keyless
@@ -435,6 +458,7 @@ async function getQuotes(tickers) {
 
   if (stale.length > 0) {
     try {
+      await primeYahooSession()
       const results = await withRetry(() => yahooFinance.quote(stale))
       const arr = Array.isArray(results) ? results : [results]
       await Promise.all(arr.map(async (result) => {
@@ -952,6 +976,7 @@ async function getQuoteViaChart(ticker) {
 // quote() first (richest data), chart meta as a keyless fallback for hosts
 // where the quote endpoint is blocked.
 async function quoteWithChartFallback(ticker) {
+  await primeYahooSession()
   const q = await yahooFinance.quote(ticker).catch(() => null)
   if (q?.regularMarketPrice != null) return q
   return getQuoteViaChart(ticker).catch(() => null)
@@ -1398,6 +1423,7 @@ const FX_TTL = 60 * 60 * 1000 // 1 hour
 async function getIlsToUsd() {
   if (fxCache.rate && Date.now() - fxCache.ts < FX_TTL) return fxCache.rate
   try {
+    await primeYahooSession()
     const result = await yahooFinance.quote('ILS=X')
     const rate = result.regularMarketPrice // ILS per 1 USD → invert for ILS→USD
     fxCache = { rate: 1 / rate, ts: Date.now() }
