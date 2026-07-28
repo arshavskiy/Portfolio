@@ -56,7 +56,7 @@ jest.mock('../services/returnMetrics', () => ({
   computeTwr: jest.fn(),
 }))
 
-const {getQuotes, getMarketNews} = require('../services/stockService')
+const {getQuotes, getMarketNews, getHistory} = require('../services/stockService')
 const {askAboutPortfolio, clearChatHistory} = require('../services/aiInsightsService')
 
 function makeQuery(value) {
@@ -214,6 +214,60 @@ describe('aiInsightsService quotas', () => {
       {role: 'user', content: 'earlier'},
       {role: 'user', content: 'now'},
     ])
+  })
+
+  test('get_price_return passes a 5d range through for week questions', async () => {
+    const user = makeUserDoc()
+    mockUserFindById.mockImplementation(async () => user)
+    getHistory.mockResolvedValue([{close: 100}, {close: 110}])
+    mockCreateCompletion
+      .mockResolvedValueOnce({
+        choices: [{
+          message: {
+            tool_calls: [{
+              id: 'call-1',
+              type: 'function',
+              function: {name: 'get_price_return', arguments: JSON.stringify({tickers: ['AAPL'], range: '5d'})},
+            }],
+          },
+        }],
+        usage: {prompt_tokens: 10, completion_tokens: 5},
+      })
+      .mockResolvedValueOnce({
+        choices: [{message: {content: 'AAPL rose 10% this week.'}}],
+        usage: {prompt_tokens: 10, completion_tokens: 5},
+      })
+
+    await askAboutPortfolio(user._id, 'best watchlist ticker in the past week')
+
+    expect(getHistory).toHaveBeenCalledWith('AAPL', '5d')
+  })
+
+  test('get_price_return falls back to 3mo for an unsupported range', async () => {
+    const user = makeUserDoc()
+    mockUserFindById.mockImplementation(async () => user)
+    getHistory.mockResolvedValue([{close: 100}, {close: 110}])
+    mockCreateCompletion
+      .mockResolvedValueOnce({
+        choices: [{
+          message: {
+            tool_calls: [{
+              id: 'call-1',
+              type: 'function',
+              function: {name: 'get_price_return', arguments: JSON.stringify({tickers: ['AAPL'], range: '1wk'})},
+            }],
+          },
+        }],
+        usage: {prompt_tokens: 10, completion_tokens: 5},
+      })
+      .mockResolvedValueOnce({
+        choices: [{message: {content: 'done'}}],
+        usage: {prompt_tokens: 10, completion_tokens: 5},
+      })
+
+    await askAboutPortfolio(user._id, 'weekly return')
+
+    expect(getHistory).toHaveBeenCalledWith('AAPL', '3mo')
   })
 
   test('502 upstream failure does not consume quota', async () => {

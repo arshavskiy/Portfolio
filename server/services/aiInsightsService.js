@@ -19,7 +19,9 @@ const MAX_TOOL_ROUNDS = 4
 // because the static portfolio context is resent every turn and counts against
 // the user's daily token quota.
 const CHAT_CONTEXT_MESSAGES = 8
-const VALID_RANGES = ['1mo', '3mo', '6mo', '1y', '5y', 'max']
+// '5d' is the weekly window — stockService has a real 5d branch, while '1wk'
+// is only a cache-TTL key and would silently fall back to 90 days.
+const VALID_RANGES = ['5d', '1mo', '3mo', '6mo', '1y', '5y', 'max']
 const UNLIMITED_USER_TYPES = new Set(['pro', 'max', 'admin', 'plan'])
 const CUSTOM_PROMPT_USER_TYPES = new Set(['pro', 'max', 'admin'])
 
@@ -197,7 +199,7 @@ const TOOLS = [
                 type: 'object',
                 properties: {
                     tickers: {type: 'array', items: {type: 'string'}, description: 'Ticker symbols to check, e.g. ["AAPL", "GOOGL"]'},
-                    range: {type: 'string', enum: VALID_RANGES, description: 'Lookback period'},
+                    range: {type: 'string', enum: VALID_RANGES, description: 'Lookback period. Use "5d" for week/past-week questions, "1mo" for a month, "1y" for a year.'},
                 },
                 required: ['tickers', 'range'],
             },
