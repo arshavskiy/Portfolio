@@ -195,6 +195,39 @@ describe('getQuote chart fallback', () => {
     expect(quote.changePercent).toBeCloseTo(25)
   })
 
+  test('scales .TA equity prices exactly once through the chart fallback', async () => {
+    yahooMock.quote.mockRejectedValue(new Error('blocked'))
+    yahooMock.chart.mockResolvedValue({
+      meta: {symbol: 'POLI.TA', regularMarketPrice: 7309, currency: 'ILA'},
+      quotes: [
+        {date: new Date('2026-07-26T14:00:00Z'), close: 7342},
+        {date: new Date('2026-07-27T14:00:00Z'), close: 7309},
+      ],
+    })
+
+    const quote = await getQuote('POLI.TA')
+
+    // Agorot -> shekels once. Double-scaling would yield 0.73.
+    expect(quote.price).toBeCloseTo(73.09)
+    expect(quote.previousClose).toBeCloseTo(73.42)
+  })
+
+  test('does not scale TASE index prices', async () => {
+    yahooMock.quote.mockRejectedValue(new Error('blocked'))
+    yahooMock.chart.mockResolvedValue({
+      meta: {symbol: '^TA125.TA', regularMarketPrice: 4089.5, currency: 'ILS'},
+      quotes: [
+        {date: new Date('2026-07-26T14:00:00Z'), close: 4080},
+        {date: new Date('2026-07-27T14:00:00Z'), close: 4089.5},
+      ],
+    })
+
+    const quote = await getQuote('^TA125.TA')
+
+    // Indices are quoted in shekels already — scaling would yield 40.9.
+    expect(quote.price).toBeCloseTo(4089.5)
+  })
+
   test('uses chartPreviousClose when the window has only one session', async () => {
     yahooMock.quote.mockRejectedValue(new Error('blocked'))
     yahooMock.chart.mockResolvedValue({

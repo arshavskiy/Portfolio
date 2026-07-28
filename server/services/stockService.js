@@ -91,9 +91,13 @@ async function loadQuoteSnapshot(ticker) {
   }
 }
 
-// TASE (.TA) prices from Yahoo are in agorot (1/100 shekel) — divide by 100
+// TASE (.TA) equity prices from Yahoo are in agorot (1/100 shekel, currency
+// code ILA) — divide by 100. TASE *indices* (^TA125.TA and friends) are quoted
+// in shekels (ILS) and must not be scaled.
 function taFactor(ticker) {
-  return ticker.toUpperCase().endsWith('.TA') ? 100 : 1
+  const symbol = ticker.toUpperCase()
+  if (!symbol.endsWith('.TA') || symbol.startsWith('^')) return 1
+  return 100
 }
 
 // Evenly downsample to at most `max` items, always keeping first + last.
@@ -921,16 +925,17 @@ async function getQuoteViaChart(ticker) {
   })
   const m = result?.meta
   if (!m?.regularMarketPrice) return null
-  const f = taFactor(ticker)
-  const price = m.regularMarketPrice / f
+  // Values stay in Yahoo's native units (agorot for .TA) so this stands in for
+  // a raw quote() response — every caller applies taFactor itself, and scaling
+  // here would double-divide.
+  const price = m.regularMarketPrice
   // `meta.chartPreviousClose` is the close *before the requested window*, not
   // yesterday's — using it makes the day change span the whole window. Take the
   // last daily close preceding the most recent session instead.
   const rows = (result?.quotes || []).filter((r) => r?.close != null && r.date)
   const lastDay = rows.length ? new Date(rows[rows.length - 1].date).toDateString() : null
   const priorRow = [...rows].reverse().find((r) => new Date(r.date).toDateString() !== lastDay)
-  const prevClose = priorRow?.close ?? m.chartPreviousClose ?? m.previousClose ?? null
-  const prev = prevClose != null ? prevClose / f : null
+  const prev = priorRow?.close ?? m.chartPreviousClose ?? m.previousClose ?? null
   const change = prev != null ? price - prev : null
   return {
     symbol: m.symbol || ticker,
@@ -968,11 +973,12 @@ async function getMarkets(group = 'US') {
 
   const data = list.map((m, i) => {
     const q = quotes[i]
+    const f = taFactor(m.symbol)
     return {
       symbol: m.symbol,
       name: m.name,
-      price: q?.regularMarketPrice ?? null,
-      change: q?.regularMarketChange ?? null,
+      price: q?.regularMarketPrice != null ? q.regularMarketPrice / f : null,
+      change: q?.regularMarketChange != null ? q.regularMarketChange / f : null,
       changePercent: q?.regularMarketChangePercent ?? null,
       history: (histories[i] || []).map((h) => ({ close: h.close })),
     }
@@ -1022,11 +1028,12 @@ async function getTrending(group = 'US') {
 
   const data = symbols.map((s, i) => {
     const q = quotes[i]
+    const f = taFactor(s)
     return {
       symbol: s,
       name: q?.shortName || q?.longName || s,
-      price: q?.regularMarketPrice ?? null,
-      change: q?.regularMarketChange ?? null,
+      price: q?.regularMarketPrice != null ? q.regularMarketPrice / f : null,
+      change: q?.regularMarketChange != null ? q.regularMarketChange / f : null,
       changePercent: q?.regularMarketChangePercent ?? null,
       history: (histories[i] || []).map((h) => ({ close: h.close })),
     }
