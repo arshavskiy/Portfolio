@@ -48,6 +48,10 @@ function feeCurrencyForTransaction(profile) {
   return currency.value === 'ILS' ? 'ILS' : (profile?.currency || currency.value)
 }
 
+function feeProfileLabel(profile) {
+  return `${profile.name} · ${feeCurrencyForTransaction(profile)}`
+}
+
 const matchingProfiles = computed(() => {
   const txCurrency = currency.value
   return feeStore.profiles.filter((p) => {
@@ -77,7 +81,7 @@ const feeOptions = computed(() => [
       ? (fee.type === 'percent' ? formatFeePercent(fee.value) : `${effectiveFeeCurrency} ${fee.value}`)
       : '0%'
     const taxStr = p.capitalGainsTax ? ` · ${t('transactionModal.capitalGainsTax')} ${formatTaxPercent(p.capitalGainsTax)}` : ''
-    return { label: `${p.name} (${feeStr}${taxStr})`, value: p._id }
+    return { label: `${feeProfileLabel(p)} (${feeStr}${taxStr})`, value: p._id }
   }),
 ])
 

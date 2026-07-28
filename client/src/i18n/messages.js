@@ -258,6 +258,9 @@ export const messages = {
       editProfile: "Edit Profile",
       brokerName: "Broker / Vendor name",
       brokerPlaceholder: "e.g. IBI, Meitav, IBKR",
+      currency: "Currency",
+      currencyHint: "(fee amounts and minimums)",
+      tradingFee: "Buy / Sell Fee",
       buyFee: "Buy Fee",
       sellFee: "Sell Fee",
       type: "Type",
@@ -266,6 +269,7 @@ export const messages = {
       feePercent: "Fee %",
       flatAmount: "Flat amount",
       percentHint: "1 = 100%, 0.1 = 10%, 0.01 = 1%, 0.001 = 0.1%",
+      minTradingFee: "Minimum fee",
       minBuyFee: "Min buy fee",
       minSellFee: "Min sell fee",
       capitalGainsTax: "Capital Gains Tax",
@@ -277,6 +281,10 @@ export const messages = {
         "Commission your broker charges when you buy. Percent of trade value, or a flat amount per order.",
       infoSellFee:
         "Commission your broker charges when you sell. Percent of trade value, or a flat amount per order.",
+      infoTradingFee:
+        "Commission your broker charges for both buy and sell orders. Percent of trade value, or a flat amount per order.",
+      infoMinTradingFee:
+        "Minimum commission charged even when the percentage fee would be lower.",
       infoMinBuyFee:
         "Minimum buy commission charged even when the percentage fee would be lower.",
       infoMinSellFee:
@@ -303,11 +311,11 @@ export const messages = {
       closed: "Closed",
       regularIn: "Regular in {duration}",
       preMarketIn: "Pre-Market in {duration}",
-      preMarketTrading: "Pre-Market Trading",
+      preMarketTrading: "Pre-Market",
       beforeTrade: "Before Trade",
       afterHoursIn: "After-Hours in {duration}",
       closedIn: "Closed in {duration}",
-      afterHoursTrading: "After-Hours Trading",
+      afterHoursTrading: "After-Hours",
       afterTrade: "After Trade",
       preUntil: "Pre until {duration}",
       preIn: "Pre in {duration}",
@@ -508,6 +516,7 @@ export const messages = {
       brokerageFeeHelp:
         "Apply a saved fee profile to include your broker's commission (and capital-gains tax on sells) in the total.",
       createFeeProfile: "Create fee profile",
+      createCurrencyFeeProfile: "Create {currency} fee profile",
       notesPlaceholder: "e.g. dividend reinvestment",
       buyFee: "Buy fee",
       sellFee: "Sell fee",
@@ -685,6 +694,8 @@ export const messages = {
       enterPriceTarget: "Enter a price and your target average cost",
       sellSimulator: "Sell Simulator",
       sellPricePerShare: "Sell price per share",
+      sellValue: "Sell value",
+      sharesToSell: "Shares to sell",
       sellFeeLabel: "Sell fee",
       capitalGainsTaxPct: "Capital gains tax ({rate})",
       enterSellPrice: "Enter a sell price to see results",
@@ -1357,6 +1368,9 @@ export const messages = {
       editProfile: "Изменить профиль",
       brokerName: "Брокер / поставщик",
       brokerPlaceholder: "например IBI, Meitav, IBKR",
+      currency: "Валюта",
+      currencyHint: "(суммы и минимумы комиссий)",
+      tradingFee: "Комиссия покупки / продажи",
       buyFee: "Комиссия покупки",
       sellFee: "Комиссия продажи",
       type: "Тип",
@@ -1365,6 +1379,7 @@ export const messages = {
       feePercent: "Комиссия %",
       flatAmount: "Фиксированная сумма",
       percentHint: "1 = 100%, 0.1 = 10%, 0.01 = 1%, 0.001 = 0.1%",
+      minTradingFee: "Минимальная комиссия",
       minBuyFee: "Мин. комиссия покупки",
       minSellFee: "Мин. комиссия продажи",
       capitalGainsTax: "Налог на прирост капитала",
@@ -1376,6 +1391,10 @@ export const messages = {
         "Комиссия, которую брокер взимает при покупке: процент от суммы сделки или фиксированная сумма за заявку.",
       infoSellFee:
         "Комиссия, которую брокер взимает при продаже: процент от суммы сделки или фиксированная сумма за заявку.",
+      infoTradingFee:
+        "Комиссия, которую брокер взимает при покупке и продаже: процент от суммы сделки или фиксированная сумма за заявку.",
+      infoMinTradingFee:
+        "Минимальная комиссия, даже если процентная комиссия была бы ниже.",
       infoMinBuyFee:
         "Минимальная комиссия покупки, даже если процентная комиссия была бы ниже.",
       infoMinSellFee:
@@ -1610,6 +1629,7 @@ export const messages = {
       brokerageFeeHelp:
         "Примените сохраненный профиль комиссии, чтобы учесть комиссию брокера и налог на прирост капитала при продаже.",
       createFeeProfile: "Создать профиль комиссии",
+      createCurrencyFeeProfile: "Создать профиль комиссии {currency}",
       notesPlaceholder: "например, реинвестирование дивиденда",
       buyFee: "Комиссия покупки",
       sellFee: "Комиссия продажи",
@@ -1785,6 +1805,8 @@ export const messages = {
       enterPriceTarget: "Введите цену и целевую среднюю цену",
       sellSimulator: "Симулятор продажи",
       sellPricePerShare: "Цена продажи за акцию",
+      sellValue: "Сумма продажи",
+      sharesToSell: "Акций к продаже",
       sellFeeLabel: "Комиссия продажи",
       capitalGainsTaxPct: "Налог на прирост капитала ({rate})",
       enterSellPrice: "Введите цену продажи, чтобы увидеть результат",

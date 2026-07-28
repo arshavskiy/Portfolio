@@ -132,11 +132,13 @@ exports.deleteProfile = async (req, res) => {
 }
 
 function calcFee(rule, total, shares = 0) {
-  if (!rule || !rule.value) return 0
-  let fee = rule.value
-  if (rule.type === 'percent') fee = total * rule.value
-  if (rule.type === 'perShare') fee = shares * rule.value
-  if (rule.minFee && fee < rule.minFee) fee = rule.minFee
+  if (!rule) return 0
+  const value = Number(rule.value) || 0
+  const minFee = Number(rule.minFee) || 0
+  let fee = value
+  if (rule.type === 'percent') fee = total * value
+  if (rule.type === 'perShare') fee = shares * value
+  if (minFee && fee < minFee) fee = minFee
   return Math.round(fee * 100) / 100
 }
 

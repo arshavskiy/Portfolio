@@ -89,19 +89,38 @@ const currencySymbol = computed(() => txCurrency.value === 'ILS' ? '₪' : '$')
 const isCryptoBuy = computed(() => marketSuffix.value === '-USD' || /-USD$/i.test(currentTicker.value))
 const shareDigits = computed(() => isCryptoBuy.value ? 8 : 4)
 
-function defaultFeeProfile() {
-  const profiles = feeStore.profiles
-  return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
+function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
+  if (transactionCurrency === 'ILS') return true
+  if (profileCurrency === transactionCurrency) return true
+  return transactionCurrency === 'USD' && profileCurrency === 'ILS'
 }
 
-const matchingProfiles = computed(() => [
+const allFeeProfiles = computed(() => [
   ...BUILTIN_FEE_PROFILES,
   ...feeStore.profiles,
 ])
 
+const matchingProfiles = computed(() => {
+  const currency = txCurrency.value
+  return allFeeProfiles.value.filter((p) => isAllowedFeeCurrency(p.currency || 'USD', currency))
+})
+
+function defaultFeeProfile() {
+  const profiles = matchingProfiles.value
+  return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
+}
+
 function feeCurrencyForTransaction(profile) {
   return txCurrency.value === 'ILS' ? 'ILS' : (profile?.currency || txCurrency.value)
 }
+
+function feeProfileLabel(profile) {
+  return `${profile.name} · ${feeCurrencyForTransaction(profile)}`
+}
+
+const createFeeProfileLabel = computed(() =>
+  t('transactionModal.createCurrencyFeeProfile', {currency: txCurrency.value})
+)
 
 function formatFeePercent(value) {
   const num = Number(value)
@@ -126,7 +145,7 @@ const feeOptions = computed(() => [
     const taxStr = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatTaxPercent(p.capitalGainsTax)}` : ''
     const presetStr = p.builtin ? t('feeProfiles.preset') : ''
     const detail = [feeStr + minStr, usageStr, taxStr].filter(Boolean).join(' · ')
-    return { label: p.name, detail, meta: presetStr, value: p._id, profile: p }
+    return { label: feeProfileLabel(p), detail, meta: presetStr, value: p._id, profile: p }
   }),
 ])
 
@@ -261,7 +280,7 @@ watch(() => props.visible, async (v) => {
   }
 })
 
-watch(() => feeStore.profiles, (profiles) => {
+watch(matchingProfiles, (profiles) => {
   if (selectedFeeProfile.value !== null && !profiles.some((p) => p._id === selectedFeeProfile.value)) {
     selectedFeeProfile.value = defaultFeeProfile()?._id || null
   }
@@ -588,7 +607,7 @@ async function submit() {
         <Button
           v-else
           icon="pi pi-plus"
-          :label="t('transactionModal.createFeeProfile')"
+          :label="createFeeProfileLabel"
           severity="secondary"
           outlined
           fluid

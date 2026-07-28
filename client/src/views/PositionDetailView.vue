@@ -40,6 +40,19 @@ import TickerRelationGraph from "@/components/charts/TickerRelationGraph.vue";
 import RangeBar from "@/components/ui/RangeBar.vue";
 import AppLoader from "@/components/ui/AppLoader.vue";
 
+const BUILTIN_FEE_PROFILES = [
+  {
+    _id: "builtin:blink-plus",
+    builtin: true,
+    name: "בלינק Plus",
+    currency: "USD",
+    buyFee: { type: "perShare", value: 0.01, minFee: 1.5 },
+    sellFee: { type: "perShare", value: 0.01, minFee: 1.5 },
+    capitalGainsTax: 25,
+    monthlyUsage: { transactions: 10, shares: 1000 },
+  },
+];
+
 const props = defineProps({
   tickerOverride: { type: String, default: null },
   panelMode: { type: Boolean, default: false },
@@ -68,13 +81,15 @@ const watchedItem = ref(null);
 const showModal = ref(false);
 const showAlertModal = ref(false);
 const showDividendModal = ref(false);
-const showSimulator = ref(false);
-const showBuySimulator = ref(false);
+const simulatorTab = ref("buy");
 const editingTx = ref(null);
 const simPrice = ref(null);
+const simValue = ref(null);
+const simShares = ref(null);
 const simFeeProfileId = ref(undefined);
 const sellSimulationCosts = ref(null);
 let sellSimulationRequestId = 0;
+let syncingSellInputs = false;
 const buySimShares = ref(null);
 const buySimPrice = ref(null);
 const buySimFeeProfileId = ref(undefined);
@@ -201,6 +216,10 @@ const priceTargets = computed(() => {
 // Pre-fill sim price with current price once loaded
 watch(currentPrice, (p) => {
   if (p && !simPrice.value) simPrice.value = p;
+  if (!simShares.value && summary.value?.shares > 0) simShares.value = summary.value.shares;
+  if (p && !simValue.value && summary.value?.shares > 0) {
+    simValue.value = p * (simShares.value || summary.value.shares);
+  }
   if (p && !buySimPrice.value) buySimPrice.value = p;
 });
 watch(selectedRange, loadHistory);
@@ -526,10 +545,21 @@ const tickerCurr = computed(() =>
 );
 const currSymbol = computed(() => (tickerCurr.value === "ILS" ? "₪" : "$"));
 
-const matchingFeeProfiles = computed(() => feeStore.profiles);
+function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
+  if (transactionCurrency === "ILS") return true;
+  if (profileCurrency === transactionCurrency) return true;
+  return transactionCurrency === "USD" && profileCurrency === "ILS";
+}
+
+const matchingFeeProfiles = computed(() => {
+  const currency = tickerCurr.value;
+  return [...BUILTIN_FEE_PROFILES, ...feeStore.profiles].filter((p) =>
+    isAllowedFeeCurrency(p.currency || "USD", currency),
+  );
+});
 
 function defaultFeeProfile() {
-  const profiles = feeStore.profiles;
+  const profiles = matchingFeeProfiles.value;
   return (
     profiles.find((p) => p.isDefault) ||
     (profiles.length === 1 ? profiles[0] : null)
@@ -538,6 +568,10 @@ function defaultFeeProfile() {
 
 function feeCurrencyForTransaction(profile) {
   return tickerCurr.value === "ILS" ? "ILS" : profile?.currency || tickerCurr.value;
+}
+
+function feeProfileLabel(profile) {
+  return `${profile.name} · ${feeCurrencyForTransaction(profile)}`;
 }
 
 function feeProfileOf(tx) {
@@ -602,9 +636,11 @@ function netProceedsOf(tx) {
 }
 
 function calcFee(rule, total) {
-  if (!rule || !rule.value) return 0;
-  let fee = rule.type === "percent" ? total * rule.value : rule.value;
-  if (rule.minFee && fee < rule.minFee) fee = rule.minFee;
+  if (!rule) return 0;
+  const value = Number(rule.value) || 0;
+  const minFee = Number(rule.minFee) || 0;
+  let fee = rule.type === "percent" ? total * value : value;
+  if (minFee && fee < minFee) fee = minFee;
   return Math.round(fee * 100) / 100;
 }
 
@@ -842,10 +878,13 @@ const extendedHoursStats = computed(() => {
 });
 
 function sellSimulationPayload() {
-  if (!simPrice.value || !summary.value) return null;
-  const { shares, avgCost } = summary.value;
+  if (!summary.value) return null;
+  const heldShares = summary.value.shares;
+  if (!heldShares || heldShares <= 0) return null;
+  const shares = Math.min(Number(simShares.value) || 0, heldShares);
   if (!shares || shares <= 0) return null;
-  const price = Number(simPrice.value);
+  const value = Number(simValue.value) || 0;
+  const price = Number(simPrice.value || (value > 0 ? value / shares : 0));
   if (!price || price <= 0) return null;
   return {
     ticker: ticker.value,
@@ -854,10 +893,39 @@ function sellSimulationPayload() {
     shares,
     price,
     total: shares * price,
-    avgCost,
+    avgCost: summary.value.avgCost,
     currency: tickerCurr.value,
   };
 }
+
+function syncSellValueFromPrice() {
+  if (syncingSellInputs || !simShares.value) return;
+  syncingSellInputs = true;
+  const price = Number(simPrice.value) || 0;
+  simValue.value = price > 0 ? price * simShares.value : null;
+  syncingSellInputs = false;
+}
+
+function syncSellPriceFromValue() {
+  if (syncingSellInputs || !simShares.value) return;
+  syncingSellInputs = true;
+  const value = Number(simValue.value) || 0;
+  simPrice.value = value > 0 ? value / simShares.value : null;
+  syncingSellInputs = false;
+}
+
+watch(simPrice, syncSellValueFromPrice);
+watch(simValue, syncSellPriceFromValue);
+watch(simShares, syncSellValueFromPrice);
+watch(
+  () => summary.value?.shares,
+  (shares) => {
+    if (!shares) return;
+    if (!simShares.value || simShares.value > shares) simShares.value = shares;
+    syncSellValueFromPrice();
+  },
+  { immediate: true },
+);
 
 async function refreshSellSimulationCosts() {
   const payload = sellSimulationPayload();
@@ -882,6 +950,7 @@ async function refreshSellSimulationCosts() {
 watch(
   [
     simPrice,
+    simShares,
     simFeeProfileId,
     ticker,
     tickerCurr,
@@ -893,9 +962,13 @@ watch(
 );
 
 const simulation = computed(() => {
-  if (!simPrice.value || !summary.value) return null;
-  const { shares, totalCost, totalBuyFees } = summary.value;
-  const sellPrice = simPrice.value;
+  if (!summary.value) return null;
+  const { shares: heldShares, avgCost, totalBuyFees } = summary.value;
+  const shares = Math.min(Number(simShares.value) || 0, heldShares);
+  if (!shares || shares <= 0) return null;
+  const value = Number(simValue.value) || 0;
+  const sellPrice = Number(simPrice.value || (value > 0 ? value / shares : 0));
+  if (!sellPrice || sellPrice <= 0) return null;
   const grossProceeds = sellPrice * shares;
   const payload = sellSimulationPayload();
   const costs = sellSimulationCosts.value;
@@ -907,11 +980,13 @@ const simulation = computed(() => {
   const taxRate = costs.taxRate || 0;
 
   const netProceeds = grossProceeds - sellFeeInTickerCurrency - tax;
-  // Net profit = net proceeds - original cost - buy fees already paid
-  const netProfit = netProceeds - totalCost - totalBuyFees;
+  const costBasis = avgCost * shares;
+  const allocatedBuyFees = heldShares > 0 ? totalBuyFees * (shares / heldShares) : 0;
+  // Net profit = net proceeds - proportional original cost - proportional buy fees already paid
+  const netProfit = netProceeds - costBasis - allocatedBuyFees;
   const netProfitPct =
-    totalCost + totalBuyFees > 0
-      ? (netProfit / (totalCost + totalBuyFees)) * 100
+    costBasis + allocatedBuyFees > 0
+      ? (netProfit / (costBasis + allocatedBuyFees)) * 100
       : 0;
 
   return {
@@ -935,15 +1010,16 @@ watch(
   (profiles) => {
     const def =
       profiles.find((p) => p.isDefault)?._id || profiles[0]?._id || null;
+    const selectableProfiles = matchingFeeProfiles.value;
     if (
       simFeeProfileId.value !== null &&
-      !profiles.some((p) => p._id === simFeeProfileId.value)
+      !selectableProfiles.some((p) => p._id === simFeeProfileId.value)
     ) {
       simFeeProfileId.value = def;
     }
     if (
       buySimFeeProfileId.value !== null &&
-      !profiles.some((p) => p._id === buySimFeeProfileId.value)
+      !selectableProfiles.some((p) => p._id === buySimFeeProfileId.value)
     ) {
       buySimFeeProfileId.value = def;
     }
@@ -955,7 +1031,7 @@ function calcBuySimulation(price, shares) {
   if (!price || !shares || shares <= 0) return null;
   const cost = price * shares;
 
-  const profile = feeStore.profiles.find(
+  const profile = matchingFeeProfiles.value.find(
     (p) => p._id === buySimFeeProfileId.value,
   );
   const buyFee = calcFee(profile?.buyFee, cost);
@@ -1877,23 +1953,127 @@ async function toggleWatchlist() {
         </div>
       </div>
 
-      <!-- Buy Simulator -->
-      <div class="sim-wrap">
-        <button
-          class="sim-toggle"
-          @click="showBuySimulator = !showBuySimulator"
-        >
-          <i class="pi pi-shopping-cart" />
-          {{ t("positionDetail.buySimulator") }}
-          <i
-            :class="
-              showBuySimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
-            "
-            class="sim-chevron"
-          />
-        </button>
+      <div v-if="lots.length" class="lots-list">
+        <h2 class="section-title">{{ t("positionDetail.lots") }}</h2>
+        <div v-for="lot in lots" :key="lot._id" class="lot-row">
+          <div class="lot-left">
+            <div class="lot-top">
+              <Tag
+                :severity="lot.type === 'buy' ? 'success' : 'danger'"
+                :value="lot.type.toUpperCase()"
+                class="lot-tag"
+              />
+              <span class="lot-date text-muted">{{
+                formatDate(lot.date)
+              }}</span>
+            </div>
+            <div class="lot-detail">
+              {{ lot.shares }} {{ t("common.shares") }} @
+              {{ useTickerCurrency(lot.price, ticker) }}
+            </div>
+            <!-- Buy fee -->
+            <div
+              v-if="lot.type === 'buy' && effectiveFeeAmountOf(lot)"
+              class="lot-extra loss"
+            >
+              <i class="pi pi-percentage" />
+              {{ t("positionDetail.buyFeeColon") }}:
+              {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
+              <span class="text-muted">
+                ·
+                {{
+                  feeProfileOf(lot)?.name || t("positionDetail.defaultProfile")
+                }}</span
+              >
+            </div>
+            <!-- Sell fee -->
+            <div
+              v-if="lot.type === 'sell' && effectiveFeeAmountOf(lot)"
+              class="lot-extra loss"
+            >
+              <i class="pi pi-percentage" />
+              {{ t("positionDetail.sellFeeColon") }}:
+              {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
+              <span class="text-muted">
+                ·
+                {{
+                  feeProfileOf(lot)?.name || t("positionDetail.defaultProfile")
+                }}</span
+              >
+            </div>
+            <!-- Tax -->
+            <div v-if="lot.taxAmount" class="lot-extra loss">
+              <i class="pi pi-building-columns" />
+              {{
+                t("positionDetail.taxColon", {
+                  rate: formatTaxPercent(lot.feeProfile?.capitalGainsTax),
+                })
+              }}:
+              {{ useTickerCurrency(lot.taxAmount, ticker) }}
+            </div>
+            <!-- Net proceeds -->
+            <div v-if="lot.type === 'sell'" class="lot-extra gain">
+              <i class="pi pi-wallet" />
+              {{ t("positionDetail.netProceedsColon") }}:
+              {{ useTickerCurrency(netProceedsOf(lot), ticker) }}
+            </div>
+            <div v-if="lot.notes" class="lot-notes text-muted">
+              {{ lot.notes }}
+            </div>
+          </div>
+          <div class="lot-right">
+            <span class="lot-total">{{
+              useTickerCurrency(lot.total, ticker)
+            }}</span>
+            <span class="lot-avg text-muted"
+              >{{ t("positionDetail.avgArrow") }}
+              {{ useTickerCurrency(lot.runningAvg, ticker) }}</span
+            >
+            <span class="lot-shares text-muted"
+              >{{ lot.runningShares.toFixed(2) }}
+              {{ t("positionDetail.heldSuffix") }}</span
+            >
+            <Button
+              class="lot-edit-btn"
+              icon="pi pi-pencil"
+              rounded
+              size="small"
+              text
+              @click.stop="editingTx = lot"
+            />
+          </div>
+        </div>
+      </div>
 
-        <div v-if="showBuySimulator" class="sim-body">
+      <!-- Trade Simulator -->
+      <div class="sim-wrap">
+        <div class="sim-head">
+          <span class="sim-title">
+            <i class="pi pi-calculator" />
+            {{ t("common.buy") }} / {{ t("common.sell") }} Simulator
+          </span>
+          <div class="sim-tabs" role="tablist">
+            <button
+              :class="{ active: simulatorTab === 'buy' }"
+              class="sim-tab"
+              type="button"
+              @click="simulatorTab = 'buy'"
+            >
+              {{ t("common.buy") }}
+            </button>
+            <button
+              :class="{ active: simulatorTab === 'sell' }"
+              :disabled="!summary"
+              class="sim-tab"
+              type="button"
+              @click="simulatorTab = 'sell'"
+            >
+              {{ t("common.sell") }}
+            </button>
+          </div>
+        </div>
+
+        <div v-if="simulatorTab === 'buy'" class="sim-body">
           <SelectButton
             v-model="buySimMode"
             :options="BUY_SIM_MODES"
@@ -1960,7 +2140,7 @@ async function toggleWatchlist() {
                 :options="[
                   { label: t('positionDetail.noFeeProfile'), value: null },
                   ...matchingFeeProfiles.map((p) => ({
-                    label: p.name,
+                    label: feeProfileLabel(p),
                     value: p._id,
                   })),
                 ]"
@@ -2067,20 +2247,7 @@ async function toggleWatchlist() {
             </span>
           </div>
         </div>
-      </div>
-
-      <!-- Sell Simulator -->
-      <div v-if="summary" class="sim-wrap">
-        <button class="sim-toggle" @click="showSimulator = !showSimulator">
-          <i class="pi pi-calculator" />
-          {{ t("positionDetail.sellSimulator") }}
-          <i
-            :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-            class="sim-chevron"
-          />
-        </button>
-
-        <div v-if="showSimulator" class="sim-body">
+        <div v-if="simulatorTab === 'sell' && summary" class="sim-body">
           <div class="sim-inputs">
             <div class="sim-field">
               <label>{{ t("positionDetail.sellPricePerShare") }}</label>
@@ -2094,13 +2261,35 @@ async function toggleWatchlist() {
               />
             </div>
             <div class="sim-field">
+              <label>{{ t("positionDetail.sellValue") }}</label>
+              <InputNumber
+                v-model="simValue"
+                :currency="tickerCurr"
+                :max-fraction-digits="2"
+                :min="0.01"
+                fluid
+                mode="currency"
+              />
+            </div>
+            <div class="sim-field">
+              <label>{{ t("positionDetail.sharesToSell") }}</label>
+              <InputNumber
+                v-model="simShares"
+                :max="summary.shares"
+                :max-fraction-digits="4"
+                :min="0.0001"
+                fluid
+                placeholder="0"
+              />
+            </div>
+            <div class="sim-field">
               <label>{{ t("positionDetail.feeProfile") }}</label>
               <Select
                 v-model="simFeeProfileId"
                 :options="[
                   { label: t('positionDetail.noFeeProfile'), value: null },
                   ...matchingFeeProfiles.map((p) => ({
-                    label: p.name,
+                    label: feeProfileLabel(p),
                     value: p._id,
                   })),
                 ]"
@@ -2262,97 +2451,6 @@ async function toggleWatchlist() {
       <!--        <Button :label="t('positionDetail.addTransaction')" @click="showModal = true"/>-->
       <!--      </div>-->
 
-      <div v-else-if="lots.length" class="lots-list">
-        <h2 class="section-title">{{ t("positionDetail.lots") }}</h2>
-        <div v-for="lot in lots" :key="lot._id" class="lot-row">
-          <div class="lot-left">
-            <div class="lot-top">
-              <Tag
-                :severity="lot.type === 'buy' ? 'success' : 'danger'"
-                :value="lot.type.toUpperCase()"
-                class="lot-tag"
-              />
-              <span class="lot-date text-muted">{{
-                formatDate(lot.date)
-              }}</span>
-            </div>
-            <div class="lot-detail">
-              {{ lot.shares }} {{ t("common.shares") }} @
-              {{ useTickerCurrency(lot.price, ticker) }}
-            </div>
-            <!-- Buy fee -->
-            <div
-              v-if="lot.type === 'buy' && effectiveFeeAmountOf(lot)"
-              class="lot-extra loss"
-            >
-              <i class="pi pi-percentage" />
-              {{ t("positionDetail.buyFeeColon") }}:
-              {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
-              <span class="text-muted">
-                ·
-                {{
-                  feeProfileOf(lot)?.name || t("positionDetail.defaultProfile")
-                }}</span
-              >
-            </div>
-            <!-- Sell fee -->
-            <div
-              v-if="lot.type === 'sell' && effectiveFeeAmountOf(lot)"
-              class="lot-extra loss"
-            >
-              <i class="pi pi-percentage" />
-              {{ t("positionDetail.sellFeeColon") }}:
-              {{ useCurrency(effectiveFeeAmountOf(lot), feeCurrencyOf(lot)) }}
-              <span class="text-muted">
-                ·
-                {{
-                  feeProfileOf(lot)?.name || t("positionDetail.defaultProfile")
-                }}</span
-              >
-            </div>
-            <!-- Tax -->
-            <div v-if="lot.taxAmount" class="lot-extra loss">
-              <i class="pi pi-building-columns" />
-              {{
-                t("positionDetail.taxColon", {
-                  rate: formatTaxPercent(lot.feeProfile?.capitalGainsTax),
-                })
-              }}:
-              {{ useTickerCurrency(lot.taxAmount, ticker) }}
-            </div>
-            <!-- Net proceeds -->
-            <div v-if="lot.type === 'sell'" class="lot-extra gain">
-              <i class="pi pi-wallet" />
-              {{ t("positionDetail.netProceedsColon") }}:
-              {{ useTickerCurrency(netProceedsOf(lot), ticker) }}
-            </div>
-            <div v-if="lot.notes" class="lot-notes text-muted">
-              {{ lot.notes }}
-            </div>
-          </div>
-          <div class="lot-right">
-            <span class="lot-total">{{
-              useTickerCurrency(lot.total, ticker)
-            }}</span>
-            <span class="lot-avg text-muted"
-              >{{ t("positionDetail.avgArrow") }}
-              {{ useTickerCurrency(lot.runningAvg, ticker) }}</span
-            >
-            <span class="lot-shares text-muted"
-              >{{ lot.runningShares.toFixed(2) }}
-              {{ t("positionDetail.heldSuffix") }}</span
-            >
-            <Button
-              class="lot-edit-btn"
-              icon="pi pi-pencil"
-              rounded
-              size="small"
-              text
-              @click.stop="editingTx = lot"
-            />
-          </div>
-        </div>
-      </div>
     </template>
 
     <AddTransactionModal
@@ -2942,6 +3040,63 @@ async function toggleWatchlist() {
   border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
+}
+
+.sim-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-card);
+}
+
+.sim-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.sim-title i {
+  color: var(--accent);
+}
+
+.sim-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-width: 132px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sim-tab {
+  min-height: 30px;
+  border: none;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sim-tab:last-child {
+  border-right: none;
+}
+
+.sim-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sim-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .sim-toggle {

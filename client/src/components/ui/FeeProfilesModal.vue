@@ -42,13 +42,17 @@ const feeTypeOptions = computed(() => [
   {label: t('feeProfiles.percent'), value: 'percent'},
   {label: t('feeProfiles.flat'), value: 'flat'},
 ])
+const currencyOptions = computed(() => [
+  {label: '₪ ILS', value: 'ILS'},
+  {label: '$ USD', value: 'USD'},
+])
 
 function defaultForm() {
   return {
     name: '',
-    buyFee: { type: 'percent', value: 0, minFee: 0 },
-    sellFee: { type: 'percent', value: 0, minFee: 0 },
-    capitalGainsTax: 0,
+    currency: 'ILS',
+    tradingFee: { type: 'percent', value: 0.1, minFee: 10 },
+    capitalGainsTax: 25,
     isDefault: false,
   }
 }
@@ -56,13 +60,48 @@ function defaultForm() {
 onMounted(() => { if (!store.profiles.length) store.fetchProfiles() })
 
 function openNew() { editing.value = 'new'; form.value = defaultForm() }
+
+function percentToDisplay(value) {
+  const num = Number(value)
+  return Number.isFinite(num) ? num * 100 : 0
+}
+
+function percentToStored(value) {
+  const num = Number(value)
+  return Number.isFinite(num) ? num / 100 : 0
+}
+
+function feeRuleToForm(rule) {
+  const next = { type: rule?.type || 'percent', value: Number(rule?.value) || 0, minFee: Number(rule?.minFee) || 0 }
+  if (next.type === 'percent') next.value = percentToDisplay(next.value)
+  return next
+}
+
+function feeRuleToPayload(rule) {
+  const next = { type: rule?.type || 'percent', value: Number(rule?.value) || 0, minFee: Number(rule?.minFee) || 0 }
+  if (next.type === 'percent') next.value = percentToStored(next.value)
+  return next
+}
+
+function formPayload() {
+  const tradingFee = feeRuleToPayload(form.value.tradingFee)
+  return {
+    name: form.value.name,
+    currency: form.value.currency || 'ILS',
+    buyFee: { ...tradingFee },
+    sellFee: { ...tradingFee },
+    capitalGainsTax: form.value.capitalGainsTax,
+    isDefault: form.value.isDefault,
+  }
+}
+
 function openEdit(p) {
   if (p.builtin) return
   editing.value = p
   form.value = {
     name: p.name,
-    buyFee: { ...p.buyFee },
-    sellFee: { ...p.sellFee },
+    currency: p.currency || 'USD',
+    tradingFee: feeRuleToForm(p.buyFee || p.sellFee),
     capitalGainsTax: p.capitalGainsTax || 0,
     isDefault: p.isDefault,
   }
@@ -91,12 +130,13 @@ async function save() {
     return
   }
   try {
+    const payload = formPayload()
     if (editing.value === 'new') {
-      await store.createProfile(form.value)
+      await store.createProfile(payload)
       toast.add({severity: 'success', summary: t('feeProfiles.created'), life: 2000})
       trackEvent('create_fee_profile', {})
     } else {
-      await store.updateProfile(editing.value._id, form.value)
+      await store.updateProfile(editing.value._id, payload)
       toast.add({severity: 'success', summary: t('feeProfiles.updated'), life: 2000})
       trackEvent('update_fee_profile', {})
     }
@@ -117,22 +157,47 @@ async function remove(p) {
 }
 
 function feeLabel(p) {
-  const buy = p.buyFee?.value
+  if (sameFeeRule(p.buyFee, p.sellFee) && hasFeeRule(p.buyFee)) {
+    const currency = p.currency || 'USD'
+    const fee = `${t('feeProfiles.tradingFee')} ${formatFeeRule(p.buyFee, currency)}`
+    const currencyLabel = `${t('feeProfiles.currency')} ${currency}`
+    const usage = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : null
+    const tax = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatPercentValue(p.capitalGainsTax)}%` : null
+    return [currencyLabel, fee, usage, tax].filter(Boolean).join(' · ')
+  }
+
+  const currencyLabel = `${t('feeProfiles.currency')} ${p.currency || 'USD'}`
+  const buy = hasFeeRule(p.buyFee)
       ? `${t('feeProfiles.buy')} ${formatFeeRule(p.buyFee, p.currency || 'USD')}`
     : null
-  const sell = p.sellFee?.value
+  const sell = hasFeeRule(p.sellFee)
       ? `${t('feeProfiles.sell')} ${formatFeeRule(p.sellFee, p.currency || 'USD')}`
     : null
   const usage = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : null
   const tax = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatPercentValue(p.capitalGainsTax)}%` : null
-  return [buy, sell, usage, tax].filter(Boolean).join(' · ') || t('feeProfiles.noFees')
+  return [currencyLabel, buy, sell, usage, tax].filter(Boolean).join(' · ') || t('feeProfiles.noFees')
+}
+
+function sameFeeRule(a, b) {
+  if (!a || !b) return false
+  return (a.type || 'percent') === (b.type || 'percent')
+      && (Number(a.value) || 0) === (Number(b.value) || 0)
+      && (Number(a.minFee) || 0) === (Number(b.minFee) || 0)
+}
+
+function hasFeeRule(rule) {
+  return Boolean(rule && ((Number(rule.value) || 0) > 0 || (Number(rule.minFee) || 0) > 0))
 }
 
 function formatFeeRule(rule, currency = 'USD') {
-  if (!rule?.value) return '0'
-  if (rule.type === 'percent') return formatFeePercent(rule.value)
-  if (rule.type === 'perShare') return `${useCurrency(rule.value, currency)} / ${t('feeProfiles.share')}`
-  return useCurrency(rule.value, currency)
+  if (!rule) return '0'
+  const value = Number(rule.value) || 0
+  const minFee = Number(rule.minFee) || 0
+  let fee = '0'
+  if (rule.type === 'percent') fee = formatFeePercent(value)
+  else if (rule.type === 'perShare') fee = `${useCurrency(value, currency)} / ${t('feeProfiles.share')}`
+  else fee = useCurrency(value, currency)
+  return minFee ? `${fee} ${t('feeProfiles.min')} ${useCurrency(minFee, currency)}` : fee
 }
 
 function formatMonthlyUsage(usage) {
@@ -191,60 +256,38 @@ function formatMonthlyUsage(usage) {
         <InputText v-model="form.name" :placeholder="t('feeProfiles.brokerPlaceholder')" fluid/>
       </div>
 
-      <!-- Buy fee -->
+      <div class="field">
+        <label>{{ t('feeProfiles.currency') }} <span class="text-muted">{{ t('feeProfiles.currencyHint') }}</span></label>
+        <SelectButton v-model="form.currency" :allow-empty="false" :options="currencyOptions" option-label="label"
+                      option-value="value"/>
+      </div>
+
+      <!-- Trading fee -->
       <div class="fee-section">
-        <p class="fee-section-title">{{ t('feeProfiles.buyFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoBuyFee')"
-                                                                      class="pi pi-info-circle info-icon" tabindex="0"/>
+        <p class="fee-section-title">{{ t('feeProfiles.tradingFee') }} <i
+            v-tooltip.focus.top="t('feeProfiles.infoTradingFee')" class="pi pi-info-circle info-icon" tabindex="0"/>
         </p>
         <div class="fields-row">
           <div class="field">
             <label>{{ t('feeProfiles.type') }}</label>
-            <SelectButton v-model="form.buyFee.type" :options="feeTypeOptions" option-label="label"
+            <SelectButton v-model="form.tradingFee.type" :options="feeTypeOptions" option-label="label"
                           option-value="value"/>
           </div>
           <div class="field">
             <label>{{
-                form.buyFee.type === 'percent' ? t('feeProfiles.feePercent') : t('feeProfiles.flatAmount')
+                form.tradingFee.type === 'percent' ? t('feeProfiles.feePercent') : t('feeProfiles.flatAmount')
               }}</label>
-            <InputNumber v-model="form.buyFee.value" :min="0" :max-fraction-digits="form.buyFee.type === 'percent' ? 3 : 4"
-              :suffix="form.buyFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
-            <small v-if="form.buyFee.type === 'percent'" class="field-hint text-muted">{{
+            <InputNumber v-model="form.tradingFee.value" :min="0" :max-fraction-digits="form.tradingFee.type === 'percent' ? 3 : 4"
+              :suffix="form.tradingFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
+            <small v-if="form.tradingFee.type === 'percent'" class="field-hint text-muted">{{
                 t('feeProfiles.percentHint')
               }}</small>
           </div>
         </div>
         <div class="field">
-          <label>{{ t('feeProfiles.minBuyFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoMinBuyFee')" class="pi pi-info-circle info-icon"
-                                                     tabindex="0"/></label>
-          <InputNumber v-model="form.buyFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
-        </div>
-      </div>
-
-      <!-- Sell fee -->
-      <div class="fee-section">
-        <p class="fee-section-title">{{ t('feeProfiles.sellFee') }} <i
-            v-tooltip.focus.top="t('feeProfiles.infoSellFee')" class="pi pi-info-circle info-icon" tabindex="0"/></p>
-        <div class="fields-row">
-          <div class="field">
-            <label>{{ t('feeProfiles.type') }}</label>
-            <SelectButton v-model="form.sellFee.type" :options="feeTypeOptions" option-label="label"
-                          option-value="value"/>
-          </div>
-          <div class="field">
-            <label>{{
-                form.sellFee.type === 'percent' ? t('feeProfiles.feePercent') : t('feeProfiles.flatAmount')
-              }}</label>
-            <InputNumber v-model="form.sellFee.value" :min="0" :max-fraction-digits="form.sellFee.type === 'percent' ? 3 : 4"
-              :suffix="form.sellFee.type === 'percent' ? '%' : ''" placeholder="0" fluid />
-            <small v-if="form.sellFee.type === 'percent'" class="field-hint text-muted">{{
-                t('feeProfiles.percentHint')
-              }}</small>
-          </div>
-        </div>
-        <div class="field">
-          <label>{{ t('feeProfiles.minSellFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoMinSellFee')" class="pi pi-info-circle info-icon"
+          <label>{{ t('feeProfiles.minTradingFee') }} <i v-tooltip.focus.top="t('feeProfiles.infoMinTradingFee')" class="pi pi-info-circle info-icon"
                                                       tabindex="0"/></label>
-          <InputNumber v-model="form.sellFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
+          <InputNumber v-model="form.tradingFee.minFee" :min="0" :max-fraction-digits="2" placeholder="0" fluid />
         </div>
       </div>
 
@@ -273,8 +316,8 @@ function formatMonthlyUsage(usage) {
 </template>
 
 <style scoped>
-.profile-list { display: flex; flex-direction: column; margin-bottom: 1rem; }
-.profile-row { display: flex; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border); }
+.profile-list { display: flex; flex-direction: column; margin-bottom: 0.75rem; }
+.profile-row { display: flex; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
 .profile-row.preset .profile-info { cursor: default; }
 .profile-info { flex: 1; display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
 .profile-actions { display: flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem; }
@@ -286,16 +329,16 @@ function formatMonthlyUsage(usage) {
 .empty { display: block; height: auto; padding: 0.5rem 0 1rem; }
 .mt { margin-top: 0.5rem; }
 
-.fee-form { display: flex; flex-direction: column; gap: 1rem; }
+.fee-form { display: flex; flex-direction: column; gap: 0.7rem; }
 .form-header { display: flex; align-items: center; gap: 0.5rem; }
 .form-title { font-weight: 600; font-size: 1rem; color: var(--text-primary); }
-.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.fields-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem; }
+.field { display: flex; flex-direction: column; gap: 0.3rem; }
 .field label { font-size: 0.82rem; color: var(--text-secondary); }
 .field-hint { font-size: 0.72rem; }
 .info-icon { font-size: 0.72rem; opacity: 0.55; cursor: pointer; }
 .info-icon:hover, .info-icon:focus { opacity: 1; color: var(--accent); outline: none; }
-.fee-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.75rem; }
+.fee-section { background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem; display: flex; flex-direction: column; gap: 0.55rem; }
 .fee-section-title { font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
 .field-row-inline { display: flex; justify-content: space-between; align-items: center; }
 .field-row-inline label { font-size: 0.85rem; color: var(--text-secondary); }
