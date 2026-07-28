@@ -85,6 +85,32 @@ h2.gradient-h2 {
   background-clip: text;
 }
 
+/* Position research stack: match analyst-card text styling across analyst, insight, and relation cards. */
+.research-card {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text-primary);
+  letter-spacing: 0;
+}
+
+.research-card .section-title,
+.research-card .stat-label-info {
+  font-size: 0.9rem;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.research-card .text-muted,
+.research-card small,
+.research-card .analyst-provider,
+.research-card .legend,
+.research-card .relation-hint {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
 /* ── Neon card borders ── */
 .neon-card-gain {
   border-color: rgba(0,255,136,0.5) !important;

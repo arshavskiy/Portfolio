@@ -145,17 +145,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="loading" class="relation-card relation-loading">
+  <div v-if="loading" class="research-card relation-card relation-loading">
     <AppLoader/>
   </div>
 
-  <div v-else-if="error" class="relation-card relation-error text-muted">
+  <div v-else-if="error" class="research-card relation-card relation-error text-muted">
     <i class="pi pi-exclamation-triangle"/> {{ error }}
   </div>
 
-  <div v-else class="relation-card">
+  <div v-else class="research-card relation-card">
     <div class="relation-head">
-      <h2 class="section-title relation-title">
+      <h2 class="stat-label-info relation-title">
         <i class="pi pi-share-alt"/> {{ t('relationGraph.title') }}
         <i v-tooltip.focus.top="t('relationGraph.titleInfo')" class="pi pi-info-circle info-icon" tabindex="0"/>
       </h2>
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
 }
 
 .relation-head {
-  padding: 0.85rem 0.95rem 0.6rem;
+  padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -214,7 +214,6 @@ onBeforeUnmount(() => {
 }
 
 .relation-title {
-  font-size: 0.9rem;
   margin: 0;
   display: flex;
   align-items: center;
@@ -246,7 +245,6 @@ onBeforeUnmount(() => {
 .legend {
   display: flex;
   gap: 0.75rem;
-  font-size: 0.7rem;
   color: var(--text-secondary);
 }
 
@@ -271,7 +269,6 @@ onBeforeUnmount(() => {
 }
 
 .relation-hint {
-  font-size: 0.68rem;
   padding: 0.5rem 0.95rem 0.75rem;
   margin: 0;
 }

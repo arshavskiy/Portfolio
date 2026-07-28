@@ -229,19 +229,19 @@ watch(() => props.ticker, load)
 </script>
 
 <template>
-  <div v-if="loading" class="insight-card insight-loading">
+  <div v-if="loading" class="research-card insight-card insight-loading">
     <div class="skeleton-line" style="width: 60%"/>
     <div class="skeleton-line" style="width: 40%"/>
   </div>
 
-  <div v-else-if="error" class="insight-card insight-error text-muted">
+  <div v-else-if="error" class="research-card insight-card insight-error text-muted">
     <i class="pi pi-exclamation-triangle"/> {{ error }}
   </div>
 
-  <div v-else-if="data" class="insight-card">
+  <div v-else-if="data" class="research-card insight-card">
     <div class="insight-head">
       <div class="insight-head-row">
-        <h2 class="section-title insight-title">
+        <h2 class="stat-label-info insight-title">
           <i class="pi pi-compass"/> {{ t('tickerInsight.title') }}
           <i v-tooltip.focus.top="INFO.card" class="pi pi-info-circle info-icon" tabindex="0"/>
         </h2>
@@ -311,8 +311,8 @@ watch(() => props.ticker, load)
     </div>
 
     <div v-if="fundamentalsRows.length" class="fundamentals-block">
-      <span class="text-muted stat-label-info fundamentals-title">{{ t('tickerInsight.fundamentals') }}
-        <i v-tooltip.focus.top="INFO.fundamentals" class="pi pi-info-circle info-icon" tabindex="0"/></span>
+      <h2 class="stat-label-info fundamentals-title">{{ t('tickerInsight.fundamentals') }}
+        <i v-tooltip.focus.top="INFO.fundamentals" class="pi pi-info-circle info-icon" tabindex="0"/></h2>
       <div class="fundamentals-row">
         <div v-for="row in fundamentalsRows" :key="row.key" class="fundamentals-cell">
           <span class="text-muted sub">{{ row.label }}</span>
@@ -408,7 +408,7 @@ watch(() => props.ticker, load)
 }
 
 .insight-head {
-  padding: 0.85rem 0.95rem 0.7rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
 }
 
@@ -416,13 +416,12 @@ watch(() => props.ticker, load)
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.6rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
   margin-bottom: 0.55rem;
 }
 
 .insight-title {
-  font-size: 0.9rem;
   margin: 0;
   display: flex;
   align-items: center;
@@ -561,12 +560,16 @@ watch(() => props.ticker, load)
   border-bottom: 1px solid var(--border);
 }
 
-.fundamentals-title,
 .macro-strip-title {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
   margin-bottom: 0.45rem;
+}
+
+.fundamentals-title {
+  line-height: 1.2;
+  margin-bottom: 0.55rem;
 }
 
 .fundamentals-row,

@@ -75,21 +75,21 @@ watch(() => props.ticker, load)
 </script>
 
 <template>
-  <div v-if="loading" class="analyst-card analyst-loading">
+  <div v-if="loading" class="research-card analyst-card analyst-loading">
     <div class="skeleton-line" style="width: 55%"/>
     <div class="skeleton-line" style="width: 35%"/>
   </div>
 
-  <div v-else-if="data" class="analyst-card">
+  <div v-else-if="data" class="research-card analyst-card">
     <div class="analyst-head">
-      <span class="stat-label-info">
+      <h2 class="stat-label-info">
         {{ t('analystResearch.title') }}
         <i
           v-tooltip.focus="t('analystResearch.cardInfo')"
           class="pi pi-info-circle info-icon"
           tabindex="0"
         />
-      </span>
+      </h2>
       <span v-if="provider" class="analyst-provider">{{ provider }}</span>
     </div>
 
@@ -155,12 +155,9 @@ watch(() => props.ticker, load)
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--border);
-  font-weight: 600;
-  font-size: 0.9rem;
 }
 
 .analyst-provider {
-  font-size: 0.72rem;
   opacity: 0.6;
   font-weight: 400;
 }
@@ -194,7 +191,6 @@ watch(() => props.ticker, load)
   justify-content: space-between;
   gap: 1rem;
   padding: 0.4rem 0;
-  font-size: 0.85rem;
 }
 
 .analyst-label {
@@ -234,7 +230,6 @@ watch(() => props.ticker, load)
 
 .analyst-outlook small {
   margin-left: 0;
-  font-size: 0.68rem;
   opacity: 0.6;
 }
 
