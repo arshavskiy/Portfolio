@@ -713,6 +713,75 @@ function invalidateCache(ticker) {
   }
 }
 
+// ── Analyst insights ──
+// Trading Central / Argus research via Yahoo's insights endpoint: valuation
+// verdict, analyst target price, and technical outlooks. Research updates
+// slowly, so a long TTL keeps traffic negligible.
+//
+// validateResult is off because Yahoo returns secReports fields (edgarUrl,
+// exhibits) that the v3 schema rejects, failing the whole call over data we
+// don't even read.
+const analystInsightCache = new Map()
+const ANALYST_INSIGHT_TTL = 6 * 60 * 60 * 1000
+
+async function getAnalystInsight(ticker) {
+  const symbol = ticker.toUpperCase()
+  const cached = analystInsightCache.get(symbol)
+  if (cached && Date.now() - cached.ts < ANALYST_INSIGHT_TTL) return cached.data
+
+  let data = null
+  try {
+    const result = await yahooFinance.insights(symbol, {}, {validateResult: false})
+    const info = result?.instrumentInfo
+    const valuation = info?.valuation
+    const recommendation = result?.recommendation
+    const technical = info?.technicalEvents
+    const f = taFactor(symbol)
+
+    const targetPrice = recommendation?.targetPrice != null
+      ? recommendation.targetPrice / f
+      : null
+
+    // Yahoo omits the block entirely for tickers with no coverage (most
+    // indices, crypto, TASE names) — report null rather than an empty shell.
+    const hasContent = valuation?.description || recommendation?.rating || technical?.shortTermOutlook?.direction
+    if (hasContent) {
+      data = {
+        ticker: symbol,
+        valuation: valuation?.description
+          ? {
+              description: valuation.description,
+              discount: valuation.discount ?? null,
+              relativeValue: valuation.relativeValue ?? null,
+              provider: valuation.provider ?? null,
+            }
+          : null,
+        recommendation: recommendation?.rating
+          ? {
+              rating: recommendation.rating,
+              targetPrice,
+              provider: recommendation.provider ?? null,
+            }
+          : null,
+        outlook: technical
+          ? {
+              shortTerm: technical.shortTermOutlook?.direction ?? null,
+              intermediateTerm: technical.intermediateTermOutlook?.direction ?? null,
+              longTerm: technical.longTermOutlook?.direction ?? null,
+              sector: technical.sector ?? null,
+            }
+          : null,
+      }
+    }
+  } catch (err) {
+    // Blocked (datacenter IP) or unsupported symbol — the card hides itself.
+    console.warn(`[insights] ${symbol}: ${err.message}`)
+  }
+
+  analystInsightCache.set(symbol, {data, ts: Date.now()})
+  return data
+}
+
 // ── Dividend calendar ──
 // Upcoming ex-dividend / payment dates per ticker via quoteSummary. Dates move
 // rarely, so a long TTL keeps Yahoo traffic negligible even for big portfolios.
@@ -1360,4 +1429,5 @@ module.exports = {
   NEWS_TOPICS,
   getDividendCalendar,
   getDividendFrequency,
+  getAnalystInsight,
 }

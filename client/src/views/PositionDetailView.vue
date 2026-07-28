@@ -35,6 +35,7 @@ import DividendModal from "@/components/ui/DividendModal.vue";
 import EditTransactionModal from "@/components/ui/EditTransactionModal.vue";
 import StockChart from "@/components/charts/StockChart.vue";
 import TickerInsightCard from "@/components/charts/TickerInsightCard.vue";
+import AnalystResearchCard from "@/components/charts/AnalystResearchCard.vue";
 import TickerRelationGraph from "@/components/charts/TickerRelationGraph.vue";
 import RangeBar from "@/components/ui/RangeBar.vue";
 import AppLoader from "@/components/ui/AppLoader.vue";
@@ -2156,6 +2157,7 @@ async function toggleWatchlist() {
       </div>
 
       <!-- News-driven ticker insights (stockfolio-insights microservice) -->
+      <AnalystResearchCard :current-price="quote?.price ?? null" :ticker="ticker" />
       <TickerInsightCard :ticker="ticker" />
       <TickerRelationGraph :ticker="ticker" />
 

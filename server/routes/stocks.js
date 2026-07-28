@@ -13,7 +13,8 @@ const {
     askPortfolioQuestion,
     getAiChatHistory,
     deleteAiChatHistory,
-    getAiDailySummary
+    getAiDailySummary,
+    getAnalystResearch
 } = require('../controllers/stockController')
 
 router.use(auth)
@@ -28,6 +29,7 @@ router.get('/ai-chat', getAiChatHistory)
 router.delete('/ai-chat', deleteAiChatHistory)
 router.get('/fx/ils-to-usd', getIlsFx)
 router.post('/validate-tickers', validateTickers)
+router.get('/analyst/:ticker', getAnalystResearch)
 router.get('/quote/:ticker', getQuote)
 router.get('/history/:ticker', getHistory)
 

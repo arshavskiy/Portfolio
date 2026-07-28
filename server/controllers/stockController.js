@@ -12,6 +12,7 @@ const {
   getNewsArticle,
   NEWS_TOPICS,
   getIlsToUsd,
+  getAnalystInsight,
 } = require('../services/stockService')
 const {askAboutPortfolio, getChatHistory, clearChatHistory, getDailySummary} = require('../services/aiInsightsService')
 
@@ -148,6 +149,18 @@ exports.deleteAiChatHistory = async (req, res) => {
 exports.getQuote = async (req, res) => {
   try {
     const data = await getQuote(req.params.ticker.toUpperCase())
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+// Analyst research for a ticker. Returns null for symbols Yahoo has no
+// coverage on (indices, crypto, most TASE names) so the client can hide the
+// section instead of rendering an empty card.
+exports.getAnalystResearch = async (req, res) => {
+  try {
+    const data = await getAnalystInsight(req.params.ticker.toUpperCase())
     res.json(data)
   } catch (err) {
     res.status(500).json({ message: err.message })

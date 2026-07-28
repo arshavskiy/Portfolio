@@ -706,6 +706,19 @@ export const messages = {
       tickerNews: "Ticker news",
       newsLoadFailed: "Unable to load ticker news",
     },
+    analystResearch: {
+      title: "Analyst Research",
+      cardInfo:
+        "Third-party research published through Yahoo Finance. Descriptive only — not investment advice.",
+      valuation: "Valuation",
+      targetPrice: "Target price",
+      rating: "Rating",
+      outlook: "Technical outlook",
+      shortTerm: "Short",
+      intermediateTerm: "Mid",
+      longTerm: "Long",
+      vsCurrent: "vs current",
+    },
     tickerInsight: {
       title: "Ticker Insight",
       cardInfo:
@@ -1790,6 +1803,19 @@ export const messages = {
       modeShares: "Акции",
       tickerNews: "Новости тикера",
       newsLoadFailed: "Не удалось загрузить новости по тикеру",
+    },
+    analystResearch: {
+      title: "Аналитика",
+      cardInfo:
+        "Исследования сторонних аналитиков, публикуемые через Yahoo Finance. Только описательная информация — не инвестиционная рекомендация.",
+      valuation: "Оценка",
+      targetPrice: "Целевая цена",
+      rating: "Рейтинг",
+      outlook: "Технический прогноз",
+      shortTerm: "Кратко",
+      intermediateTerm: "Средне",
+      longTerm: "Долго",
+      vsCurrent: "к текущей",
     },
     tickerInsight: {
       title: "Инсайты по тикеру",
