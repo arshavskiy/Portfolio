@@ -32,7 +32,7 @@ const activeTab = ref('assistant')
 const shockPercent = ref(-10)
 
 const tabs = computed(() => [
-  {key: 'assistant', icon: 'pi pi-sparkles', label: t('insights.title')},
+  {key: 'assistant', icon: 'pi pi-comments', label: t('insights.title')},
 ])
 
 const assistantStats = computed(() => [
@@ -187,7 +187,7 @@ onMounted(() => {
       <div class="assistant-hero-copy">
         <div class="assistant-title-row">
           <span class="assistant-mark">
-            <i class="pi pi-sparkles"/>
+            <i class="pi pi-comments"/>
           </span>
           <div>
             <h1>{{ t('insights.title') }}</h1>
@@ -207,7 +207,7 @@ onMounted(() => {
     </header>
 
     <header class="insights-header assistant-page-header">
-      <h1 class="gradient-title">Portfolio Assistant</h1>
+      <h1 class="gradient-title">Assistant AI</h1>
     </header>
 
     <section class="assistant-chat-shell">
@@ -453,13 +453,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  width: 42px;
-  height: 42px;
-  border: 1px solid rgba(0, 207, 255, 0.26);
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--neon-blue);
-  background: rgba(0, 207, 255, 0.08);
-  box-shadow: 0 0 18px rgba(0, 207, 255, 0.08);
+  background: transparent;
 }
 
 .assistant-title-row h1,
@@ -468,8 +467,8 @@ onMounted(() => {
 }
 
 .assistant-title-row h1 {
-  font-size: 1.65rem;
-  font-weight: 900;
+  font-size: 1.1rem;
+  font-weight: 800;
   letter-spacing: 0;
 }
 
@@ -507,8 +506,9 @@ onMounted(() => {
 
 .assistant-context-card span {
   color: var(--text-secondary);
-  font-size: 0.68rem;
-  font-weight: 800;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   line-height: 1.2;
   padding-right: 1.2rem;
   text-transform: uppercase;
@@ -516,8 +516,8 @@ onMounted(() => {
 
 .assistant-context-card strong {
   color: var(--text-primary);
-  font-size: 1.2rem;
-  font-weight: 900;
+  font-size: 1rem;
+  font-weight: 700;
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
@@ -538,9 +538,9 @@ onMounted(() => {
 
 .assistant-chat-head h2 {
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -570,7 +570,7 @@ onMounted(() => {
 .insights-header h1 {
   margin: 0;
   font-size: 1.5rem;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1.15;
   flex-shrink: 0;
 }
@@ -638,7 +638,7 @@ onMounted(() => {
   border-radius: 6px;
   background: var(--bg-primary);
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -657,7 +657,7 @@ onMounted(() => {
 }
 
 .insights-tabs button.active i {
-  filter: drop-shadow(0 0 4px var(--neon-blue));
+  filter: none;
 }
 
 .report-card button {
@@ -723,13 +723,14 @@ onMounted(() => {
 
 .overview-card h3 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
   color: var(--text-primary);
 }
 
 .overview-card p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -741,7 +742,7 @@ onMounted(() => {
   border-radius: 6px;
   background: rgba(0, 207, 255, 0.1);
   color: var(--neon-blue);
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
@@ -817,14 +818,17 @@ onMounted(() => {
 
 .metric-card span {
   color: var(--text-secondary);
-  font-size: 0.78rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   padding-right: 1.3rem;
 }
 
 .metric-card strong {
-  font-size: 1.45rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.15;
 }
 
 .income-layout {
@@ -852,11 +856,14 @@ onMounted(() => {
   padding-left: 0.65rem;
   border-left: 3px solid transparent;
   border-image: linear-gradient(180deg, #00cfff 0%, #a855f7 100%) 1;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .section-heading p,
 .report-card p {
   margin: 0.35rem 0 0;
+  font-size: 0.78rem;
   line-height: 1.45;
 }
 
@@ -891,11 +898,13 @@ onMounted(() => {
 }
 
 .month-total span {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
 .month-total strong {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .month-tickers {
@@ -910,7 +919,8 @@ onMounted(() => {
   border-radius: 999px;
   padding: 0.2rem 0.45rem;
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
 .right-value {
@@ -959,7 +969,8 @@ onMounted(() => {
 .sector-row-head {
   display: flex;
   justify-content: space-between;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .sector-bar-track {
@@ -984,8 +995,8 @@ onMounted(() => {
 
 .shock-control span {
   color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 600;
   white-space: nowrap;
 }
 
@@ -999,8 +1010,8 @@ onMounted(() => {
   flex-direction: column;
   gap: 0.35rem;
   color: var(--text-secondary);
-  font-size: 0.8rem;
-  font-weight: 700;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .scenario-controls select,
@@ -1036,7 +1047,7 @@ onMounted(() => {
   }
 
   .assistant-title-row h1 {
-    font-size: 1.35rem;
+    font-size: 1.1rem;
   }
 
   .assistant-title-row p,
@@ -1130,7 +1141,7 @@ onMounted(() => {
   .insights-tabs button {
     min-height: 36px;
     padding: 0.35rem 0.65rem;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
   }
 
   .insights-tabs button i {
@@ -1157,7 +1168,7 @@ onMounted(() => {
   }
 
   .metric-card strong {
-    font-size: 1.15rem;
+    font-size: 1rem;
     line-height: 1.15;
     overflow-wrap: anywhere;
   }
@@ -1175,12 +1186,12 @@ onMounted(() => {
 
   .section-heading h2,
   .report-card h3 {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .section-heading p,
   .report-card p {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
 
   .month-row {

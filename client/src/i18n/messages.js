@@ -18,7 +18,7 @@ export const messages = {
       account: "Account",
       dashboard: "Dashboard",
       watchlist: "Watchlist",
-      insights: "AssistantAI",
+      insights: "Assistant AI",
       xRay: "X-Ray",
       data: "Data",
       premium: "Premium",
@@ -354,6 +354,7 @@ export const messages = {
       marketGroupEurope: "Europe",
       marketGroupAsia: "Asia",
       marketGroupBonds: "Bonds",
+      marketGroupEnergy: "Energy",
       marketGroupFutures: "Futures",
       marketGroupOther: "Other",
     },
@@ -1037,7 +1038,7 @@ export const messages = {
       hit: "Target hit",
     },
     insights: {
-      title: "AssistantAI",
+      title: "Assistant AI",
       subtitle:
         "Portfolio questions, risk checks, and ticker context in one AI workspace.",
       assistantChatTitle: "Portfolio Assistant",
@@ -1138,7 +1139,7 @@ export const messages = {
       account: "Аккаунт",
       dashboard: "Мониторинг",
       watchlist: "Позиции",
-      insights: "AssistantAI",
+      insights: "Assistant AI",
       xRay: "X-Ray",
       data: "Данные",
       premium: "Premium",
@@ -1478,6 +1479,7 @@ export const messages = {
       marketGroupEurope: "Европа",
       marketGroupAsia: "Азия",
       marketGroupBonds: "Облигации",
+      marketGroupEnergy: "Энергия",
       marketGroupFutures: "Фьючерсы",
       marketGroupOther: "Другое",
     },
@@ -2162,7 +2164,7 @@ export const messages = {
       hit: "Цель достигнута",
     },
     insights: {
-      title: "AssistantAI",
+      title: "Assistant AI",
       subtitle:
         "Вопросы по портфелю, проверка рисков и контекст по тикерам в одном AI-разделе.",
       assistantChatTitle: "Портфельный ассистент",

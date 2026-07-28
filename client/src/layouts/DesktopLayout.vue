@@ -29,7 +29,7 @@ const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)
 const navItems = computed(() => [
   {key: 'dashboard', name: t('common.dashboard'), to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
   {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
-  {key: 'insights', name: t('common.insights'), to: '/insights', icon: 'pi pi-sparkles', tourKey: 'insights', premium: true},
+  {key: 'assistant', name: t('common.insights'), to: '/assistant', icon: 'pi pi-comments', tourKey: 'assistant', premium: true},
   {key: 'x-ray', name: t('common.xRay'), to: '/x-ray', icon: 'pi pi-shield', tourKey: 'x-ray', premium: true},
   ...(auth.isAdmin ? [{key: 'insights-data', name: t('common.data'), to: '/insights-data', icon: 'pi pi-database', tourKey: 'insights-data', premium: true}] : []),
   {key: 'news', name: t('common.news'), to: '/news', icon: 'pi pi-globe', tourKey: 'news'},
@@ -43,7 +43,7 @@ function openAccount() {
 
 function isActive(item) {
   if (item.to === '/') return route.path === '/'
-  if (item.to === '/insights') return route.path === '/insights'
+  if (item.to === '/assistant') return route.path === '/assistant' || route.path === '/insights'
   return route.path.startsWith(item.to)
 }
 </script>

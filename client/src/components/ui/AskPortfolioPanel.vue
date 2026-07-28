@@ -33,12 +33,8 @@ function formatMessageDate(createdAt) {
   if (!createdAt) return ''
   const date = new Date(createdAt)
   if (Number.isNaN(date.getTime())) return ''
-  const now = new Date()
-  const sameDay = date.toDateString() === now.toDateString()
-  return sameDay
-      ? date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})
-      : date.toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) + ' ' +
-        date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})
+  return date.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}) + ' ' +
+    date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})
 }
 
 // Prompt-chip suggestions hidden for now — flip back on when ready to ship again.
@@ -111,7 +107,7 @@ onMounted(() => {
         </div>
         <div v-for="(msg, i) in visibleMessages" :key="i" :class="`chat-row chat-row-${msg.role}`">
           <div class="chat-avatar">
-            <i :class="msg.role === 'user' ? 'pi pi-user' : msg.role === 'error' ? 'pi pi-exclamation-triangle' : 'pi pi-sparkles'"/>
+            <i :class="msg.role === 'user' ? 'pi pi-user' : msg.role === 'error' ? 'pi pi-exclamation-triangle' : 'pi pi-comment'"/>
           </div>
           <div class="chat-bubble-col">
             <p class="chat-bubble">
@@ -130,7 +126,7 @@ onMounted(() => {
         </div>
         <div v-if="sending" class="chat-row chat-row-assistant">
           <div class="chat-avatar">
-            <i class="pi pi-sparkles"/>
+            <i class="pi pi-comment"/>
           </div>
           <div class="chat-bubble-col">
             <p class="chat-bubble chat-bubble-thinking">
@@ -141,7 +137,7 @@ onMounted(() => {
       </div>
 
       <div v-else class="ask-empty">
-        <i class="pi pi-sparkles"/>
+        <i class="pi pi-comments"/>
         <p>{{ t('insights.askEmptyTitle') }}</p>
         <span>{{ t('insights.askEmptyText') }}</span>
       </div>
@@ -197,9 +193,9 @@ onMounted(() => {
   padding: 0 0.25rem;
   color: var(--text-secondary);
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
 }
 
 .ask-body-left {
@@ -219,15 +215,16 @@ onMounted(() => {
   cursor: pointer;
   font: inherit;
   font-weight: 600;
+  font-size: 0.72rem;
   text-transform: none;
   letter-spacing: 0;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 .ask-clear {
-  border: 1px solid var(--border);
+  border: 0;
   color: var(--text-secondary);
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 .ask-clear:hover:not(:disabled) {
@@ -236,9 +233,9 @@ onMounted(() => {
 }
 
 .ask-history-toggle {
-  border: 1px solid var(--border);
+  border: 0;
   color: var(--text-secondary);
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 .ask-history-toggle:hover {
@@ -270,6 +267,7 @@ onMounted(() => {
   padding: 0.35rem;
   color: var(--text-secondary);
   font-size: 0.7rem;
+  font-weight: 600;
   font-style: italic;
 }
 
@@ -286,11 +284,11 @@ onMounted(() => {
   max-height: 64vh;
   overflow-y: auto;
   border-radius: 14px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 0;
   padding: 0.85rem 0.75rem;
   scroll-behavior: smooth;
-  box-shadow: inset 0 1px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: none;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
 }
@@ -315,29 +313,30 @@ onMounted(() => {
   justify-content: center;
   gap: 0.45rem;
   min-height: 300px;
-  border: 1px dashed var(--border);
+  border: 0;
   border-radius: 14px;
   padding: 1rem;
   text-align: center;
-  background: var(--bg-primary);
+  background: transparent;
 }
 
 .ask-empty i {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
   color: var(--neon-blue);
-  background: var(--bg-card);
-  font-size: 1.2rem;
+  background: transparent;
+  font-size: 1rem;
 }
 
 .ask-empty p {
   margin: 0;
-  font-weight: 800;
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .ask-empty span,
@@ -355,12 +354,12 @@ onMounted(() => {
 
 .ask-prompts button {
   min-height: 30px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 6px;
   padding: 4px 10px;
   color: var(--text-secondary);
-  background: var(--bg-card);
-  font-size: 0.76rem;
+  background: transparent;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
@@ -399,24 +398,23 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   font-size: 0.66rem;
+  border: 0;
+  background: transparent;
 }
 
 .chat-row-user .chat-avatar {
-  background: rgba(0, 207, 255, 0.16);
   color: var(--neon-blue);
 }
 
 .chat-row-assistant .chat-avatar {
-  background: linear-gradient(135deg, #00cfff 0%, #a855f7 100%);
-  color: #071014;
+  color: var(--neon-blue);
 }
 
 .chat-row-error .chat-avatar {
-  background: rgba(255, 51, 102, 0.16);
   color: var(--neon-red);
 }
 
@@ -434,7 +432,7 @@ onMounted(() => {
   margin: 0;
   padding: 0.62rem 0.85rem;
   border-radius: 14px;
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -442,7 +440,7 @@ onMounted(() => {
 
 .chat-ticker-link {
   color: var(--neon-blue);
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: none;
   border-bottom: 1px solid rgba(0, 207, 255, 0.4);
 }
@@ -470,23 +468,23 @@ onMounted(() => {
 }
 
 .chat-row-user .chat-bubble {
-  background: linear-gradient(135deg, #00cfff 0%, #0891b2 100%);
-  border: none;
-  color: #052027;
-  font-weight: 500;
+  background: transparent;
+  border: 0;
+  color: var(--text-primary);
+  font-weight: 600;
   border-bottom-right-radius: 5px;
 }
 
 .chat-row-assistant .chat-bubble {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: transparent;
+  border: 0;
   color: var(--text-primary);
   border-bottom-left-radius: 5px;
 }
 
 .chat-row-error .chat-bubble {
-  background: rgba(255, 51, 102, 0.1);
-  border: 1px solid rgba(255, 51, 102, 0.35);
+  background: transparent;
+  border: 0;
   color: var(--neon-red);
   border-bottom-left-radius: 5px;
 }
@@ -511,9 +509,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 14px;
-  background: var(--bg-primary);
+  background: transparent;
   padding: 0.4rem;
 }
 
@@ -521,18 +519,18 @@ onMounted(() => {
   flex: 1;
   min-width: 0;
   min-height: 42px;
-  border: 1px solid transparent;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0 0.8rem;
   color: var(--text-primary);
-  background: var(--bg-primary);
-  font-size: 0.85rem;
+  background: transparent;
+  font-size: 0.78rem;
   outline: none;
 }
 
 .ask-form input:focus {
-  border-color: rgba(0, 207, 255, 0.35);
-  box-shadow: 0 0 0 2px rgba(0, 207, 255, 0.08);
+  border-color: var(--neon-blue);
+  box-shadow: none;
 }
 
 .ask-form button {
@@ -543,17 +541,17 @@ onMounted(() => {
   min-height: 42px;
   width: 42px;
   flex-shrink: 0;
-  border: none;
+  border: 0;
   border-radius: 10px;
-  color: #052027;
-  background: linear-gradient(135deg, #00cfff 0%, #0891b2 100%);
-  font-weight: 700;
+  color: var(--neon-blue);
+  background: transparent;
+  font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .ask-form button:hover:not(:disabled) {
-  box-shadow: 0 0 14px rgba(0, 207, 255, 0.5);
+  box-shadow: none;
 }
 
 .ask-form button:disabled {
@@ -562,7 +560,7 @@ onMounted(() => {
 }
 
 .ask-form button.thinking {
-  animation: thinking-pulse 1.4s ease-in-out infinite;
+  animation: none;
 }
 
 .ask-form button.sent i {
@@ -690,7 +688,7 @@ onMounted(() => {
 
   .ask-form input {
     min-height: 40px;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
 
   .ask-form button {

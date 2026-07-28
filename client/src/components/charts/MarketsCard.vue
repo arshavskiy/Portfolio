@@ -13,7 +13,9 @@ const {t} = useI18n()
 const marketData = useMarketDataStore()
 const {marketGroups, marketsByGroup, marketLoadingByGroup} = storeToRefs(marketData)
 const group = useStorage('dashboard-markets-group', 'US')
+const pinnedGroups = useStorage('dashboard-markets-pinned-groups', [])
 const moreOpen = ref(false)
+const defaultPrimaryGroups = ['Israel', 'US']
 
 const groups = computed(() => marketGroups.value)
 const indices = computed(() => marketsByGroup.value[group.value] || [])
@@ -23,11 +25,16 @@ const visibleGroups = computed(() => groups.value.filter((name) => {
   const loaded = Object.prototype.hasOwnProperty.call(marketsByGroup.value, name)
   return !loaded || (marketsByGroup.value[name] || []).some(hasIndexData) || marketLoadingByGroup.value[name]
 }))
-const primaryGroups = computed(() => ['Israel', 'US'].filter((name) => visibleGroups.value.includes(name)))
+const primaryGroups = computed(() => {
+  const ordered = [...defaultPrimaryGroups, ...pinnedGroups.value]
+  return [...new Set(ordered)].filter((name) => visibleGroups.value.includes(name))
+})
 const extraGroups = computed(() => visibleGroups.value.filter((name) => !primaryGroups.value.includes(name)))
 const isExtraGroupActive = computed(() => extraGroups.value.includes(group.value))
 function selectGroup(g) {
-  if (g === group.value) return
+  if (!defaultPrimaryGroups.includes(g) && !pinnedGroups.value.includes(g)) {
+    pinnedGroups.value = [...pinnedGroups.value, g]
+  }
   group.value = g
   moreOpen.value = false
 }
@@ -58,6 +65,7 @@ function displayMarketGroup(name) {
     Europe: 'dashboard.marketGroupEurope',
     Asia: 'dashboard.marketGroupAsia',
     Bonds: 'dashboard.marketGroupBonds',
+    Energy: 'dashboard.marketGroupEnergy',
     Futures: 'dashboard.marketGroupFutures',
   }[name]
   return key ? t(key) : name || t('dashboard.marketGroupOther')
@@ -175,7 +183,7 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
 }
 .market-tabs { display: flex; gap: 2px; position: relative; }
 .market-tab {
-  background: none;
+  background: transparent;
   border: none;
   color: var(--text-secondary);
   border-radius: 6px;
@@ -205,8 +213,8 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
   padding: 0.3rem;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.96);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.32);
+  background: var(--bg-secondary);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--text-primary) 12%, transparent);
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -214,7 +222,7 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
 }
 
 .market-more-item {
-  background: none;
+  background: transparent;
   border: none;
   color: var(--text-secondary);
   border-radius: 8px;
@@ -228,8 +236,8 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
 
 .market-more-item.active,
 .market-more-item:hover {
-  background: rgba(59, 130, 246, 0.18);
-  color: #f8fafc;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--text-primary);
 }
 
 .markets-grid {

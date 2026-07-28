@@ -27,10 +27,10 @@ function navSteps() {
       },
     },
     {
-      element: '[data-tour="nav-insights"]',
+      element: '[data-tour="nav-assistant"]',
       popover: {
-        title: 'Insights',
-        description: 'Dividend income forecasts, return metrics (IRR/TWR), sector & beta risk, a stress-test simulator, and an AI chat that can look up price history, trades, gains, and dividends to answer questions about your portfolio.',
+        title: 'Assistant AI',
+        description: 'Ask portfolio questions and get context-aware answers from your holdings, watchlist, price history, trades, gains, and dividends.',
       },
     },
     {

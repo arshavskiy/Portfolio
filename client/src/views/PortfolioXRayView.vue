@@ -36,6 +36,8 @@ const topAllocations = computed(() => {
   ].filter((item) => item.row)
 })
 
+const hasMixedCurrencies = computed(() => (analytics.value?.allocations?.currency || []).length > 1)
+
 const summaryMetricCards = computed(() => {
   const s = portfolioSummary.value
   const largestHolding = analytics.value?.allocations?.holding?.[0]
@@ -129,6 +131,13 @@ function numberValue(value) {
 
 function formatUsd(value) {
   return useCurrency(numberValue(value), 'USD')
+}
+
+function formatPortfolioValue(value) {
+  const usd = numberValue(value)
+  const rate = numberValue(portfolioSummary.value.ilsToUsd)
+  if (hasMixedCurrencies.value && rate > 0) return useCurrency(usd / rate, 'ILS')
+  return useCurrency(usd, 'USD')
 }
 
 function formatSignedUsd(value) {
@@ -239,7 +248,7 @@ onMounted(load)
         </div>
         <div class="score-card">
           <span class="score-label">Value</span>
-          <strong>{{ useCurrency(analytics?.summary?.totalValueUsd || 0, 'USD') }}</strong>
+          <strong>{{ formatPortfolioValue(analytics?.summary?.totalValueUsd || 0) }}</strong>
         </div>
       </section>
 

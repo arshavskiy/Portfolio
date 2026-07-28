@@ -17,7 +17,7 @@ function trackNav(tab) {
 const tabs = computed(() => [
   {key: 'dashboard', to: '/', icon: 'pi pi-chart-bar', label: t('common.dashboard'), tourKey: 'dashboard'},
   {key: 'watchlist', to: '/watchlist', icon: 'pi pi-eye', label: t('common.watchlist'), tourKey: 'watchlist'},
-  {key: 'insights', to: '/insights', icon: 'pi pi-sparkles', label: t('common.insights'), tourKey: 'insights', premium: true},
+  {key: 'assistant', to: '/assistant', icon: 'pi pi-comments', label: t('common.insights'), tourKey: 'assistant', premium: true},
   {key: 'x-ray', to: '/x-ray', icon: 'pi pi-shield', label: t('common.xRay'), tourKey: 'x-ray', premium: true},
   {key: 'news', to: '/news', icon: 'pi pi-globe', label: t('common.news'), tourKey: 'news'},
   {key: 'about', to: '/help', icon: 'pi pi-info-circle', label: t('common.about')},
@@ -25,7 +25,7 @@ const tabs = computed(() => [
 
 function isActive(tab) {
   if (tab.to === '/') return route.path === '/'
-  if (tab.to === '/insights') return route.path === '/insights'
+  if (tab.to === '/assistant') return route.path === '/assistant' || route.path === '/insights'
   return route.path.startsWith(tab.to)
 }
 </script>

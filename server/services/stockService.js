@@ -942,6 +942,13 @@ const MARKET_GROUPS = {
     { symbol: '^IRX', name: 'US 13W Yield' },
     { symbol: 'TLT', name: '20Y+ Treasury ETF' },
   ],
+  Energy: [
+    { symbol: 'CL=F', name: 'Crude Oil' },
+    { symbol: 'BZ=F', name: 'Brent Oil' },
+    { symbol: 'NG=F', name: 'Natural Gas' },
+    { symbol: 'RB=F', name: 'Gasoline' },
+    { symbol: 'HO=F', name: 'Heating Oil' },
+  ],
   Futures: [
     { symbol: 'ES=F', name: 'S&P 500 Futures' },
     { symbol: 'CL=F', name: 'Crude Oil' },

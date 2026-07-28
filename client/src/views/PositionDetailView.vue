@@ -2993,7 +2993,7 @@ async function toggleWatchlist() {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0;
   margin: 1rem 0 1.5rem;
   border: 1px solid var(--border);
@@ -3002,16 +3002,25 @@ async function toggleWatchlist() {
 }
 
 .stat {
-  padding: 0.75rem 1rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.82rem 1rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.85rem;
   border-bottom: 1px solid var(--border);
   font-size: 0.88rem;
+  line-height: 1.25;
+}
+
+.stat:nth-child(odd) {
+  border-right: 1px solid var(--border);
 }
 
 .stat span:last-child {
   text-align: right;
+  white-space: nowrap;
+  font-weight: 500;
 }
 
 .stat-extended {
@@ -3022,6 +3031,7 @@ async function toggleWatchlist() {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
+  min-width: 0;
 }
 
 .info-icon {
@@ -3043,6 +3053,19 @@ async function toggleWatchlist() {
 
 .stat:nth-last-child(-n + 2) {
   border-bottom: none;
+}
+
+@media (max-width: 420px) {
+  .stat {
+    min-height: 2.9rem;
+    padding: 0.74rem 0.85rem;
+    column-gap: 0.55rem;
+    font-size: 0.84rem;
+  }
+
+  .stat-label-info {
+    gap: 0.22rem;
+  }
 }
 
 .div-yield-val {

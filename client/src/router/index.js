@@ -30,11 +30,12 @@ const routes = [
         meta: {requiresAuth: true}
       },
       {
-        path: 'insights',
+        path: 'assistant',
         name: 'AssistantAI',
         component: () => import('@/views/InsightsView.vue'),
         meta: {requiresAuth: true, requiresPremium: true}
       },
+      {path: 'insights', redirect: '/assistant'},
       {
         path: 'x-ray',
         name: 'PortfolioXRay',
