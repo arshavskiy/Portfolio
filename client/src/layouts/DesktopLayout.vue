@@ -8,7 +8,7 @@ import {useI18n} from '@/composables/useI18n'
 import PositionDetailView from '@/views/PositionDetailView.vue'
 import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
 import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
-import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const emit = defineEmits(['open-account'])
@@ -55,7 +55,7 @@ function isActive(item) {
         <span class="brand-name gradient-title">StockFolio</span>
       </div>
       <div class="sidebar-language">
-        <LanguageSelect/>
+        <ThemeToggle/>
       </div>
       <div class="sidebar-nav">
         <RouterLink
@@ -176,6 +176,10 @@ function isActive(item) {
   0%   { background-position: 0% 50%; }
   50%  { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+:root.light .brand-name {
+  animation: none;
 }
 
 .sidebar-nav {

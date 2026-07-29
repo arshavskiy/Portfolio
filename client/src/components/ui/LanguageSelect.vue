@@ -1,10 +1,13 @@
 <script setup>
 import {computed} from 'vue'
-import {NSelect} from 'naive-ui'
+import {NConfigProvider, NSelect, darkTheme} from 'naive-ui'
 import {useI18n} from '@/composables/useI18n'
+import {useTheme} from '@/composables/useTheme'
 import {supportedLocales} from '@/i18n/messages'
 
 const {locale, setLocale, t} = useI18n()
+const {isLight} = useTheme()
+const naiveTheme = computed(() => (isLight.value ? null : darkTheme))
 
 const languageOptions = computed(() =>
     supportedLocales.map((option) => ({
@@ -45,15 +48,17 @@ const selectThemeOverrides = {
 
 <template>
   <div class="language-select" :aria-label="t('common.language')">
-    <NSelect
-        class="language-n-select"
-        :value="locale"
-        :options="languageOptions"
-        :theme-overrides="selectThemeOverrides"
-        size="small"
-        :consistent-menu-width="false"
-        @update:value="setLocale"
-    />
+    <NConfigProvider :theme="naiveTheme">
+      <NSelect
+          class="language-n-select"
+          :value="locale"
+          :options="languageOptions"
+          :theme-overrides="selectThemeOverrides"
+          size="small"
+          :consistent-menu-width="false"
+          @update:value="setLocale"
+      />
+    </NConfigProvider>
   </div>
 </template>
 

@@ -106,7 +106,7 @@ onMounted(load)
     <section class="filters">
       <div class="filter-field">
         <label>Ticker</label>
-        <InputText v-model="ticker" placeholder="POLI.TA, AAPL..." @keydown.enter="load" />
+        <InputText v-model="ticker" placeholder="POLI.TA, AAPL, .TA for all TASE..." @keydown.enter="load" />
       </div>
       <div class="filter-field">
         <label>Source</label>
@@ -280,7 +280,7 @@ onMounted(load)
 .metric,
 .panel {
   border: 1px solid var(--border);
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-secondary);
   border-radius: 8px;
 }
 
@@ -330,7 +330,7 @@ onMounted(load)
 .list-row,
 .insight-row,
 .article-row {
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--border);
   padding-top: 0.55rem;
 }
 

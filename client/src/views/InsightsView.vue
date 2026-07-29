@@ -437,7 +437,7 @@ onMounted(() => {
   right: 0;
   top: 0;
   height: 2px;
-  background: linear-gradient(90deg, #00cfff 0%, #a855f7 100%);
+  background: linear-gradient(90deg, var(--neon-blue) 0%, var(--purple) 100%);
   opacity: 0.75;
 }
 
@@ -652,7 +652,7 @@ onMounted(() => {
 
 .insights-tabs button.active {
   color: var(--neon-blue);
-  background: rgba(0, 207, 255, 0.1);
+  background: color-mix(in srgb, var(--neon-blue) 10%, transparent);
   border-color: var(--neon-blue);
 }
 
@@ -713,7 +713,7 @@ onMounted(() => {
 
 .overview-card:hover {
   border-color: var(--neon-blue);
-  box-shadow: 0 4px 16px rgba(0, 207, 255, 0.08);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--neon-blue) 8%, transparent);
 }
 
 .overview-card i {
@@ -740,7 +740,7 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   border: 1px solid var(--neon-blue);
   border-radius: 6px;
-  background: rgba(0, 207, 255, 0.1);
+  background: color-mix(in srgb, var(--neon-blue) 10%, transparent);
   color: var(--neon-blue);
   font-size: 0.78rem;
   font-weight: 600;
@@ -779,9 +779,9 @@ onMounted(() => {
 }
 
 .metric-card:hover {
-  border-color: rgba(0, 207, 255, 0.35);
+  border-color: color-mix(in srgb, var(--neon-blue) 35%, transparent);
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 207, 255, 0.08);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--neon-blue) 8%, transparent);
 }
 
 .metric-card-accent::before {
@@ -791,7 +791,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #00cfff 0%, #a855f7 100%);
+  background: linear-gradient(90deg, var(--neon-blue) 0%, var(--purple) 100%);
   opacity: 0.5;
   transition: opacity 0.2s;
 }
@@ -855,7 +855,7 @@ onMounted(() => {
   margin: 0;
   padding-left: 0.65rem;
   border-left: 3px solid transparent;
-  border-image: linear-gradient(180deg, #00cfff 0%, #a855f7 100%) 1;
+  border-image: linear-gradient(180deg, var(--neon-blue) 0%, var(--purple) 100%) 1;
   font-size: 0.95rem;
   font-weight: 700;
 }
@@ -983,7 +983,7 @@ onMounted(() => {
 .sector-bar-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #00cfff 0%, #a855f7 100%);
+  background: linear-gradient(90deg, var(--neon-blue) 0%, var(--purple) 100%);
   transition: width 0.4s ease;
 }
 
@@ -1026,6 +1026,8 @@ onMounted(() => {
 
 @media (min-width: 1024px) {
   .insights-page {
+    max-width: 1180px;
+    margin: 0 auto;
     padding: 1.5rem 2rem 2rem;
   }
 }
