@@ -6,8 +6,8 @@ export const changelog = [
     date: 'Jul 29, 2026',
     title: 'Updates',
     changes: [
-      "Light theme now uses muted colors instead of neon accents, and the theme toggle is now in the desktop sidebar too.",
-      "Desktop layout fixes for the Assistant AI and X-Ray pages.",
+      "Light theme now uses muted colors instead of neon accents, with a new theme toggle in the sidebar.",
+      "Desktop layout fixes for Assistant AI and X-Ray pages, plus a light/dark theme toggle now in the sidebar.",
       "Portfolio X-Ray's Ticker Signals now render as a compact table, and tapping the article count opens a list of the source articles.",
     ],
   },
