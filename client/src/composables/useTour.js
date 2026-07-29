@@ -9,6 +9,14 @@ const SEEN_KEYS = {
 }
 const runningPhases = new Set()
 
+// Set by AppLayout while a blocking modal (What's New, trial welcome) is
+// open, so any tour phase — not just the nav one triggered from AppLayout —
+// waits instead of popping up underneath/over the modal.
+let modalBlocking = false
+export function setTourBlocked(value) {
+  modalBlocking = value
+}
+
 // Phase 1 — cross-section overview, anchored to the nav (Dashboard route).
 function navSteps() {
   return [
@@ -339,19 +347,19 @@ export function useTour() {
   // but `?tour` always wins.
   function maybeStartNavPhase({blocked = false} = {}) {
     if (forcedParam()) { clearForcedParam(); localStorage.removeItem(SEEN_KEYS.nav); return startNavPhase() }
-    if (blocked || localStorage.getItem(SEEN_KEYS.nav)) return
+    if (blocked || modalBlocking || localStorage.getItem(SEEN_KEYS.nav)) return
     startNavPhase()
   }
 
   function maybeStartPositionPhase() {
     if (forcedParam()) { clearForcedParam(); localStorage.removeItem(SEEN_KEYS.position); return startPositionPhase() }
-    if (localStorage.getItem(SEEN_KEYS.position)) return
+    if (modalBlocking || localStorage.getItem(SEEN_KEYS.position)) return
     startPositionPhase()
   }
 
   function maybeStartWatchlistPhase() {
     if (forcedParam()) { clearForcedParam(); localStorage.removeItem(SEEN_KEYS.watchlist); return startWatchlistPhase() }
-    if (localStorage.getItem(SEEN_KEYS.watchlist)) return
+    if (modalBlocking || localStorage.getItem(SEEN_KEYS.watchlist)) return
     startWatchlistPhase()
   }
 

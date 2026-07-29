@@ -2,27 +2,38 @@
 import {onMounted, watch} from 'vue'
 import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useWhatsNew} from '@/composables/useWhatsNew'
-import {useTour} from '@/composables/useTour'
+import {useTour, setTourBlocked} from '@/composables/useTour'
 import MobileLayout from '@/layouts/MobileLayout.vue'
 import DesktopLayout from '@/layouts/DesktopLayout.vue'
 import WhatsNewModal from '@/components/ui/WhatsNewModal.vue'
+import TrialWelcomeModal from '@/components/ui/TrialWelcomeModal.vue'
 import AccountShortcut from '@/components/ui/AccountShortcut.vue'
 import AccountModal from '@/components/ui/AccountModal.vue'
-import {ref} from 'vue'
+import {useAuthStore} from '@/stores/auth'
+import {ref, computed} from 'vue'
 
 const {isDesktop} = useBreakpoint()
 const {checkForUpdates, visible: whatsNewVisible} = useWhatsNew()
 const {maybeStartNavPhase} = useTour()
 const showAccount = ref(false)
+const auth = useAuthStore()
+
+const trialModalVisible = computed(() =>
+  Boolean(auth.user && auth.user.trialEndsAt && !auth.user.welcomeModalSeenAt)
+)
+
+const anyBlockingModalVisible = computed(() => whatsNewVisible.value || trialModalVisible.value)
 
 onMounted(() => {
   checkForUpdates()
-  // Auto-tour defers to the What's New modal, but ?tour always forces it.
-  maybeStartNavPhase({blocked: whatsNewVisible.value})
+  setTourBlocked(anyBlockingModalVisible.value)
+  // Auto-tour defers to the What's New / trial-welcome modals, but ?tour always forces it.
+  maybeStartNavPhase({blocked: anyBlockingModalVisible.value})
 })
 
-watch(whatsNewVisible, (visible, wasVisible) => {
-  if (!visible && wasVisible) maybeStartNavPhase()
+watch(anyBlockingModalVisible, (blocked, wasBlocked) => {
+  setTourBlocked(blocked)
+  if (!blocked && wasBlocked) maybeStartNavPhase()
 })
 </script>
 
@@ -50,4 +61,5 @@ watch(whatsNewVisible, (visible, wasVisible) => {
   <AccountShortcut @click="showAccount = true"/>
   <AccountModal v-model:visible="showAccount"/>
   <WhatsNewModal/>
+  <TrialWelcomeModal/>
 </template>

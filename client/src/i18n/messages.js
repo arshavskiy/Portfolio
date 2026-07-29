@@ -177,6 +177,13 @@ export const messages = {
       googleFailed: "Google sign-in failed",
       signingIn: "Signing you in...",
     },
+    trialWelcome: {
+      title: "Welcome — Pro is on us for 24 hours",
+      subtitle: "Your account starts with full Pro access for one day, so you can try everything before deciding. After that you'll continue on the free plan.",
+      premiumGroupTitle: "Included in your Pro trial",
+      regularGroupTitle: "Also available on the free plan",
+      gotIt: "Got it",
+    },
     register: {
       heroTitleLine1: "Build your market workspace,",
       heroTitleLine2: "from the first position.",
@@ -1369,6 +1376,13 @@ export const messages = {
       registrationFailed: "Не удалось зарегистрироваться",
       googleFailed: "Не удалось войти через Google",
       signingIn: "Выполняется вход...",
+    },
+    trialWelcome: {
+      title: "Добро пожаловать — Pro бесплатно на 24 часа",
+      subtitle: "Ваш аккаунт начинается с полного доступа Pro на одни сутки, чтобы вы могли попробовать все возможности перед решением. После этого вы продолжите на бесплатном плане.",
+      premiumGroupTitle: "Включено в пробный период Pro",
+      regularGroupTitle: "Также доступно на бесплатном плане",
+      gotIt: "Понятно",
     },
     register: {
       heroTitleLine1: "Создайте свое рыночное рабочее место,",

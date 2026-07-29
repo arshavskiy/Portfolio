@@ -6,6 +6,18 @@ const {getQuotes} = require('./stockService')
 
 const DEMO_SEED_VERSION = 1
 const ALERT_ABOVE_PCT = 0.05 // demo alert target: 5% above the live price at signup time
+const TRIAL_DAYS = 1
+
+// One-time 24h Pro trial for every brand-new account. Guarded by trialEndsAt
+// already being set so re-running (e.g. a second seedDemoAccount call on an
+// existing user) never extends or re-grants it.
+async function grantTrial(user) {
+  if (!user || user.trialEndsAt) return false
+  user.userType = 'pro'
+  user.trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 86400000)
+  await user.save()
+  return true
+}
 
 const WATCHLIST_DEMO = [
   {
@@ -158,4 +170,4 @@ async function seedDemoAccount(user) {
   return true
 }
 
-module.exports = {seedDemoAccount, DEMO_SEED_VERSION}
+module.exports = {seedDemoAccount, grantTrial, DEMO_SEED_VERSION}

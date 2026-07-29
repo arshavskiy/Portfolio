@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 const {OAuth2Client} = require('google-auth-library')
 const User = require('../models/User')
 const MagicLinkToken = require('../models/MagicLinkToken')
-const {seedDemoAccount} = require('../services/demoSeedService')
+const {seedDemoAccount, grantTrial} = require('../services/demoSeedService')
 const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
@@ -39,6 +39,7 @@ exports.register = async (req, res) => {
     
     const user = await User.create({name, password, ...query})
     await seedDemoAccount(user)
+    await grantTrial(user)
     const token = signToken(user._id)
     res.status(201).json({ token, user })
   } catch (err) {
@@ -126,6 +127,15 @@ exports.updatePreferences = async (req, res) => {
   }
 }
 
+exports.dismissWelcomeModal = async (req, res) => {
+  try {
+    const user = await User.findByIdAndUpdate(req.user._id, {welcomeModalSeenAt: new Date()}, {new: true})
+    res.json({user})
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
 exports.google = async (req, res) => {
   try {
     const { credential } = req.body
@@ -150,7 +160,10 @@ exports.google = async (req, res) => {
       created = true
     }
 
-    if (created) await seedDemoAccount(user)
+    if (created) {
+      await seedDemoAccount(user)
+      await grantTrial(user)
+    }
 
     await recordLogin(user, 'google', req)
     const token = signToken(user._id)

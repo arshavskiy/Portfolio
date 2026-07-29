@@ -62,9 +62,19 @@ denied from datacenter IPs. `chart()` hits v8, which is keyless and keeps
 working. A browser UA does **not** fix this one.
 
 Fix: `getQuoteViaChart()` in `stockService.js` reconstructs quote fields from
-`chart().meta`, wired in via `quoteWithChartFallback()` and used by
-`getMarkets`, `getTrending`, and `getQuote`'s failure path (tried before
-serving a stale snapshot).
+`chart().meta` — including `regularMarketDayHigh/Low`, `regularMarketVolume`,
+and `fiftyTwoWeekHigh/Low` when Yahoo includes them — wired in via
+`quoteWithChartFallback()` and used by `getMarkets`, `getTrending`, and
+`getQuote`'s failure path (tried before serving a stale snapshot).
+
+`chart().meta` doesn't always carry day-high/low/volume even when present in
+`quote()`. When `getQuote()`'s chart fallback still leaves those null, it
+tries `resolveQuote()` in `quoteResolver.js` — a third-source chain (Finnhub
+→ Yahoo chart-meta again → Stooq CSV) that only fills the still-missing
+fields, it doesn't replace the chart-fallback price/change. Finnhub skips
+futures/`.TA`/crypto (`/[=.]|-USD$/`); Stooq skips crypto, futures, and `.TA`
+(unreliable coverage there). Needs `FINNHUB_API_KEY` set — no-ops (returns
+`null`) without it, which is fine, the chain just falls through to Stooq.
 
 ## chart meta traps
 
@@ -87,7 +97,10 @@ The chart-meta fallback is a degraded mode, not an equal substitute. Known
 gaps versus real `quote()`: crypto day change is materially off (BTC-USD
 `-0.37%` vs `-2.86%`) because 24/7 trading means a daily bar is not Yahoo's
 rolling previous close; index changes drift slightly. Extended-hours fields
-(`preMarket*` / `postMarket*`) are absent from meta entirely.
+(`preMarket*` / `postMarket*`) are absent from meta entirely — the
+Finnhub/Stooq resolver doesn't cover these either, only day-high/low/volume.
+`marketCap`, `trailingPE`, and dividend fields also stay null under any
+fallback path — none of the three sources carry them.
 
 ## Range strings
 
@@ -124,8 +137,9 @@ not reintroduce it.
 - **TASE scaling**: `.TA` tickers come back in agorot. Divide by `taFactor()`
   (100). Any new price path must apply it — including fallbacks.
 - **Never let a Yahoo failure surface as a raw error to the client.** The
-  layered degradation is: live quote → chart-meta fallback → in-memory cache →
-  persisted `QuoteSnapshot` → throw.
+  layered degradation is: live quote → chart-meta fallback (+ Finnhub/Stooq
+  gap-fill for day-high/low/volume) → in-memory cache → persisted
+  `QuoteSnapshot` → throw.
 - `withRetry()` only retries 429 and network errors; everything else throws
   immediately.
 - Errors are logged server-side with the real cause. In AI paths, upstream

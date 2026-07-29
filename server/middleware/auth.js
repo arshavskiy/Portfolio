@@ -11,6 +11,12 @@ module.exports = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
     req.user = await User.findById(decoded.id).select('-password')
     if (!req.user) return res.status(401).json({ message: 'User not found' })
+
+    if (req.user.trialEndsAt && req.user.trialEndsAt < new Date() && req.user.userType === 'pro') {
+      req.user.userType = 'regular'
+      await req.user.save()
+    }
+
     next()
   } catch {
     res.status(401).json({ message: 'Invalid token' })

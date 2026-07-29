@@ -71,6 +71,15 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value
   }
 
+  async function dismissWelcomeModal() {
+    const data = await api.post('/auth/me/welcome-modal-seen')
+    if (data?.user) {
+      user.value = data.user
+      localStorage.setItem('user', JSON.stringify(data.user))
+    }
+    return user.value
+  }
+
     return {
       token,
       user,
@@ -85,6 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
       loginWithMagicLink,
       logout,
       fetchMe,
-      updatePreferences
+      updatePreferences,
+      dismissWelcomeModal
     }
 })

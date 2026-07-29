@@ -3,7 +3,7 @@ const crypto = require('crypto')
 const mongoose = require('mongoose')
 const User = require('../models/User')
 const MagicLinkToken = require('../models/MagicLinkToken')
-const {seedDemoAccount} = require('../services/demoSeedService')
+const {seedDemoAccount, grantTrial} = require('../services/demoSeedService')
 
 const EXPIRY_DAYS = 7
 
@@ -20,6 +20,7 @@ async function main() {
   if (!user) {
     user = await User.create({name, email: email.toLowerCase().trim(), magicLinkOnly: true})
     await seedDemoAccount(user)
+    await grantTrial(user)
   }
 
   const token = crypto.randomBytes(32).toString('hex')

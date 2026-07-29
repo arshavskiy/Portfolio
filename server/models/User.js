@@ -41,6 +41,8 @@ const userSchema = new mongoose.Schema(
       },
       demoSeedVersion: {type: Number, default: 0},
       demoSeededAt: {type: Date},
+      trialEndsAt: {type: Date},
+      welcomeModalSeenAt: {type: Date},
       aiDailySummaryEnabled: {type: Boolean, default: true},
       aiDailySummaryCustomPrompt: {type: String, default: '', maxlength: 500},
       loginHistory: {
