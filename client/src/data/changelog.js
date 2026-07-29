@@ -2,6 +2,18 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.28',
+    date: 'Jul 28, 2026',
+    title: 'Portfolio X-Ray, dark mode, and a smarter AI assistant',
+    changes: [
+      "New Portfolio X-Ray page — a rules-based health check of your holdings (concentration, diversification, dividend income, and more) with pass/watch/risk badges, a Premium feature.",
+      "New light/dark theme toggle, available from Account settings.",
+      "The AI portfolio assistant chat got a visual refresh and clearer message flow.",
+      "AI Daily Summary now shares the same daily token budget as the assistant chat, so heavy summary use no longer bypasses your usage limit.",
+      "Markets card and position page polish.",
+    ],
+  },
+  {
     version: '2026.07.22',
     date: 'Jul 22, 2026',
     title: 'Insider activity on the Watchlist, and news accuracy fixes',
