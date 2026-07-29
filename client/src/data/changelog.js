@@ -2,6 +2,16 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.29',
+    date: 'Jul 29, 2026',
+    title: 'Updates',
+    changes: [
+      "Light theme now uses muted colors instead of neon accents, and the theme toggle is now in the desktop sidebar too.",
+      "Desktop layout fixes for the Assistant AI and X-Ray pages.",
+      "Portfolio X-Ray's Ticker Signals now render as a compact table, and tapping the article count opens a list of the source articles.",
+    ],
+  },
+  {
     version: '2026.07.28',
     date: 'Jul 28, 2026',
     title: 'Portfolio X-Ray, dark mode, and a smarter AI assistant',
