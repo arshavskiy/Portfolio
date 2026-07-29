@@ -78,7 +78,8 @@ app.use((req, res, next) => {
     const ttl = ttlMatch ? `ttl=${ttlMatch[1]}s` : null
     const cacheInfo = [xCache, ttl].filter(Boolean).join(' ')
     const cachePart = cacheInfo ? ` [${cacheInfo}]` : ''
-    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms${cachePart}`)
+    const userPart = req.user ? ` (${req.user.email || req.user.username || req.user._id})` : ''
+    console.log(`${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms${cachePart}${userPart}`)
   })
   next()
 })

@@ -11,6 +11,15 @@ function signToken(id) {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN })
 }
 
+const LOGIN_HISTORY_LIMIT = 20
+
+async function recordLogin(user, method, req) {
+  user.loginHistory.push({method, ip: req.ip, at: new Date()})
+  if (user.loginHistory.length > LOGIN_HISTORY_LIMIT)
+    user.loginHistory = user.loginHistory.slice(-LOGIN_HISTORY_LIMIT)
+  await user.save()
+}
+
 const EMAIL_RULE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 exports.register = async (req, res) => {
@@ -48,6 +57,7 @@ exports.login = async (req, res) => {
     if (!user || !(await user.comparePassword(password)))
       return res.status(401).json({ message: 'Invalid credentials' })
 
+    await recordLogin(user, 'password', req)
     const token = signToken(user._id)
     res.json({ token, user })
   } catch (err) {
@@ -67,6 +77,7 @@ exports.magicLink = async (req, res) => {
     const user = await User.findById(record.user)
     if (!user) return res.status(401).json({message: 'Invalid or expired link'})
 
+    await recordLogin(user, 'magic-link', req)
     const jwtToken = signToken(user._id)
     res.json({token: jwtToken, user})
   } catch (err) {
@@ -141,6 +152,7 @@ exports.google = async (req, res) => {
 
     if (created) await seedDemoAccount(user)
 
+    await recordLogin(user, 'google', req)
     const token = signToken(user._id)
     res.json({ token, user })
   } catch (err) {

@@ -43,6 +43,14 @@ const userSchema = new mongoose.Schema(
       demoSeededAt: {type: Date},
       aiDailySummaryEnabled: {type: Boolean, default: true},
       aiDailySummaryCustomPrompt: {type: String, default: '', maxlength: 500},
+      loginHistory: {
+          type: [{
+              method: {type: String, enum: ['password', 'google', 'magic-link']},
+              ip: String,
+              at: {type: Date, default: Date.now},
+          }],
+          default: [],
+      },
   },
   { timestamps: true }
 )
@@ -71,6 +79,7 @@ userSchema.methods.toJSON = function () {
   const resolvedUserType = obj.userType || 'regular'
   delete obj.password
   delete obj.aiUsage
+  delete obj.loginHistory
   obj.aiUsageSummary = {
     todayCount,
     dailyLimit: resolvedUserType === 'regular' ? REGULAR_AI_DAILY_LIMIT : null,
