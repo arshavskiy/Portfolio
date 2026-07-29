@@ -343,7 +343,7 @@ function formatVol(v) {
 .market-dot {
   width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
 }
-.dot-open   { background: var(--neon-green, #00ff88); box-shadow: 0 0 4px var(--neon-green, #00ff88); }
+.dot-open   { background: var(--neon-green); box-shadow: 0 0 4px var(--neon-green); }
 .dot-ext    { background: #facc15; box-shadow: 0 0 4px #facc15; }
 .dot-closed { background: var(--text-secondary); }
 
@@ -451,8 +451,8 @@ function formatVol(v) {
   border-radius: 6px;
   cursor: default;
 }
-.chip-up   { background: rgba(0,255,136,0.12); color: var(--neon-green, #00ff88); border: 1px solid rgba(0,255,136,0.25); }
-.chip-down { background: rgba(255,51,102,0.12); color: #ff3366; border: 1px solid rgba(255,51,102,0.25); }
+.chip-up   { background: color-mix(in srgb, var(--neon-green) 12%, transparent); color: var(--neon-green); border: 1px solid color-mix(in srgb, var(--neon-green) 25%, transparent); }
+.chip-down { background: color-mix(in srgb, var(--neon-red) 12%, transparent); color: var(--neon-red); border: 1px solid color-mix(in srgb, var(--neon-red) 25%, transparent); }
 .chip-neutral { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
 
 /* Full page link */

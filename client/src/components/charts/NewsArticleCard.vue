@@ -55,8 +55,8 @@ function fmtDate(value) {
 }
 
 .article-card:hover {
-  border-color: rgba(0, 207, 255, 0.55);
-  box-shadow: 0 0 14px rgba(0, 207, 255, 0.12), inset 0 0 10px rgba(0, 207, 255, 0.03);
+  border-color: color-mix(in srgb, var(--neon-blue) 55%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--neon-blue) 12%, transparent), inset 0 0 10px color-mix(in srgb, var(--neon-blue) 3%, transparent);
 }
 
 .article-card:active {
@@ -69,7 +69,7 @@ function fmtDate(value) {
   left: 0;
   width: 3px;
   height: 100%;
-  background: linear-gradient(180deg, var(--neon-blue), #a855f7, var(--neon-red));
+  background: linear-gradient(180deg, var(--neon-blue), var(--purple), var(--neon-red));
   opacity: 0.85;
 }
 
@@ -118,7 +118,7 @@ h2 {
 }
 
 .topic-pill {
-  border: 1px solid rgba(0, 207, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--neon-blue) 35%, transparent);
   border-radius: 999px;
   color: var(--neon-blue);
   padding: 2px 8px;
@@ -134,7 +134,7 @@ h2 {
 }
 
 .symbol-pill {
-  border: 1px solid rgba(0, 255, 136, 0.35);
+  border: 1px solid color-mix(in srgb, var(--neon-green) 35%, transparent);
   border-radius: 6px;
   color: var(--neon-green);
   padding: 2px 6px;

@@ -410,8 +410,8 @@ const netMarginTitle = computed(() => {
   font-weight: 700;
   padding: 1px 5px;
   border-radius: 5px;
-  background: rgba(0, 195, 106, 0.12);
-  color: #00c36a;
+  background: color-mix(in srgb, var(--green) 12%, transparent);
+  color: var(--green);
   vertical-align: middle;
   line-height: 1.4;
   margin-left: 4px;
@@ -439,13 +439,13 @@ const netMarginTitle = computed(() => {
 }
 
 .insider-badge.insider-buy {
-  background: rgba(0, 255, 136, 0.12);
-  color: var(--neon-green, #00ff88);
+  background: color-mix(in srgb, var(--neon-green) 12%, transparent);
+  color: var(--neon-green);
 }
 
 .insider-badge.insider-sell {
-  background: rgba(255, 51, 102, 0.12);
-  color: var(--neon-red, #ff3366);
+  background: color-mix(in srgb, var(--neon-red) 12%, transparent);
+  color: var(--neon-red);
 }
 
 .fundamentals-badge {
@@ -466,13 +466,13 @@ const netMarginTitle = computed(() => {
 }
 
 .fundamentals-badge.margin-positive {
-  background: rgba(0, 255, 136, 0.12);
-  color: var(--neon-green, #00ff88);
+  background: color-mix(in srgb, var(--neon-green) 12%, transparent);
+  color: var(--neon-green);
 }
 
 .fundamentals-badge.margin-negative {
-  background: rgba(255, 51, 102, 0.12);
-  color: var(--neon-red, #ff3366);
+  background: color-mix(in srgb, var(--neon-red) 12%, transparent);
+  color: var(--neon-red);
 }
 
 .company {
@@ -572,13 +572,13 @@ const netMarginTitle = computed(() => {
 }
 
 .dot-open {
-  background: #00c36a;
-  box-shadow: 0 0 4px #00c36a;
+  background: var(--green);
+  box-shadow: 0 0 4px var(--green);
 }
 
 .dot-ext {
-  background: #c084fc;
-  box-shadow: 0 0 4px #c084fc;
+  background: var(--purple);
+  box-shadow: 0 0 4px var(--purple);
 }
 
 .dot-closed {
@@ -596,12 +596,12 @@ const netMarginTitle = computed(() => {
 }
 
 .badge-gain {
-  background: #00c36a;
+  background: var(--green);
   color: #fff;
 }
 
 .badge-loss {
-  background: #e02d4a;
+  background: var(--red);
   color: #fff;
 }
 
@@ -634,11 +634,11 @@ const netMarginTitle = computed(() => {
 }
 
 .ext-price.purple {
-  color: #c084fc;
+  color: var(--purple);
 }
 
 .ext-price.gold {
-  color: #fbbf24;
+  color: var(--gold);
 }
 
 .purple {
@@ -657,7 +657,7 @@ const netMarginTitle = computed(() => {
 
 .ext-icon {
   font-size: 0.55rem;
-  color: #c084fc;
+  color: var(--purple);
 }
 
 .ext-val {
@@ -667,11 +667,11 @@ const netMarginTitle = computed(() => {
 
 
 .extended-gain {
-  color: #00c36a;
+  color: var(--green);
 }
 
 .extended-loss {
-  color: #e02d4a;
+  color: var(--red);
 }
 
 .signal-badge {
@@ -694,37 +694,37 @@ const netMarginTitle = computed(() => {
 }
 
 .sig-max-bull {
-  background: rgba(0, 195, 106, 0.28);
-  color: #00c36a;
-  box-shadow: 0 0 8px rgba(0, 195, 106, 0.5);
+  background: color-mix(in srgb, var(--green) 28%, transparent);
+  color: var(--green);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--green) 50%, transparent);
 }
 
 .sig-strong-bull {
-  background: rgba(0, 195, 106, 0.18);
-  color: #00c36a;
-  box-shadow: 0 0 5px rgba(0, 195, 106, 0.3);
+  background: color-mix(in srgb, var(--green) 18%, transparent);
+  color: var(--green);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--green) 30%, transparent);
 }
 
 .sig-bull {
-  background: rgba(0, 195, 106, 0.1);
-  color: #00c36a;
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  color: var(--green);
 }
 
 .sig-max-bear {
-  background: rgba(224, 45, 74, 0.28);
-  color: #e02d4a;
-  box-shadow: 0 0 8px rgba(224, 45, 74, 0.5);
+  background: color-mix(in srgb, var(--red) 28%, transparent);
+  color: var(--red);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--red) 50%, transparent);
 }
 
 .sig-strong-bear {
-  background: rgba(224, 45, 74, 0.18);
-  color: #e02d4a;
-  box-shadow: 0 0 5px rgba(224, 45, 74, 0.3);
+  background: color-mix(in srgb, var(--red) 18%, transparent);
+  color: var(--red);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--red) 30%, transparent);
 }
 
 .sig-bear {
-  background: rgba(224, 45, 74, 0.1);
-  color: #e02d4a;
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  color: var(--red);
 }
 
 .sig-neutral {

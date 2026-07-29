@@ -519,17 +519,17 @@ header {
 }
 
 .held-filter-btn :deep(.pi-briefcase) {
-  color: #fbbf24;
+  color: var(--gold);
 }
 
 .held-filter-btn.active {
-  background: color-mix(in srgb, #fbbf24 18%, transparent);
+  background: color-mix(in srgb, var(--gold) 18%, transparent);
   border-radius: 8px;
 }
 
 .held-filter-btn.active :deep(.pi-briefcase) {
-  color: #fbbf24;
-  text-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
+  color: var(--gold);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--gold) 60%, transparent);
 }
 
 .mobile-held-filter {
@@ -544,9 +544,9 @@ header {
 }
 
 .mobile-held-filter :deep(.p-button.active) {
-  border-color: rgba(251, 191, 36, 0.6);
-  background: color-mix(in srgb, #fbbf24 18%, var(--bg-card));
-  box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  background: color-mix(in srgb, var(--gold) 18%, var(--bg-card));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--gold) 30%, transparent);
 }
 
 .market-header {
@@ -559,7 +559,7 @@ header {
   -webkit-background-clip: text;
   background-clip: text;
   padding: 0.6rem 0.25rem 0.3rem;
-  border-bottom: 1px solid rgba(0, 207, 255, 0.18);
+  border-bottom: 1px solid color-mix(in srgb, var(--neon-blue) 18%, transparent);
 }
 
 .empty i {
@@ -670,6 +670,6 @@ header {
 }
 
 .cache-status.stale {
-  color: #fbbf24;
+  color: var(--gold);
 }
 </style>

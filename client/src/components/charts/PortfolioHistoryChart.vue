@@ -39,7 +39,10 @@ function draw() {
   // portfolio is up since 1999. Prefer the live dayPnl (matches the rest of
   // the dashboard); fall back to the history's own last-day close diff.
   const isWin = props.dayPnl != null ? props.dayPnl >= 0 : last.value >= (prev.value || 0)
-  const color = isWin ? '#00ff88' : '#ff3366'
+  const rootStyle = getComputedStyle(document.documentElement)
+  const winColor = rootStyle.getPropertyValue('--green').trim()
+  const loseColor = rootStyle.getPropertyValue('--red').trim()
+  const color = isWin ? winColor : loseColor
 
   const x = d3.scaleLinear().domain([0, data.length - 1]).range([0, W])
   const yMin = d3.min(data, (d) => Math.min(d.value, d.cost))
@@ -65,7 +68,7 @@ function draw() {
 
   svg.append('path')
       .datum(data)
-      .attr('fill', isWin ? 'rgba(0,255,136,0.08)' : 'rgba(255,51,102,0.08)')
+      .attr('fill', isWin ? `color-mix(in srgb, ${winColor} 8%, transparent)` : `color-mix(in srgb, ${loseColor} 8%, transparent)`)
       .attr('d', area)
 
   // Cost basis baseline (dashed, muted)
@@ -88,12 +91,13 @@ function draw() {
       .y((d) => y(d.value))
       .curve(d3.curveMonotoneX)
 
+  const isDark = document.documentElement.classList.contains('dark')
   svg.append('path')
       .datum(data)
       .attr('fill', 'none')
       .attr('stroke', color)
       .attr('stroke-width', 1.5)
-      .attr('filter', `url(#${filterId})`)
+      .attr('filter', isDark ? `url(#${filterId})` : null)
       .attr('d', line)
 
   // First-buy marker: vertical dashed line where the portfolio actually

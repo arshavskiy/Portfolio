@@ -137,12 +137,12 @@ function labelFor(opt) {
 }
 
 .btn-directional-bull.active {
-  background: rgba(0, 195, 106, 0.2);
-  color: #00c36a;
+  background: color-mix(in srgb, var(--green) 20%, transparent);
+  color: var(--green);
 }
 
 .btn-directional-bear.active {
-  background: rgba(224, 45, 74, 0.2);
-  color: #e02d4a;
+  background: color-mix(in srgb, var(--red) 20%, transparent);
+  color: var(--red);
 }
 </style>

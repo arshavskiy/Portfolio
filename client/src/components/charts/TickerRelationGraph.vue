@@ -20,8 +20,11 @@ const error = ref('')
 const related = ref([])
 let simulation = null
 
-const SENTIMENT_POS = '#00ff88'
-const SENTIMENT_NEG = '#ff3366'
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+const SENTIMENT_POS = cssVar('--green')
+const SENTIMENT_NEG = cssVar('--red')
 const SENTIMENT_NEUTRAL = '#94a3b8'
 const CENTER_COLOR = '#3b82f6'
 

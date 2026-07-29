@@ -17,19 +17,22 @@ const error = ref('')
 
 // validated categorical palette, derived from the app's own accent/neon-blue/purple/gold —
 // dimmed only where needed to pass the CVD/contrast checks against the dark card surface.
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
 const GROUP_COLORS = {
   style: {
-    growth: '#3b82f6', blend: '#0891b2', speculative: '#a855f7', value: '#b8760a', unknown: '#4b5563',
+    growth: '#3b82f6', blend: '#0891b2', speculative: cssVar('--purple'), value: '#b8760a', unknown: '#4b5563',
   },
   marketCapClass: {
-    mega: '#3b82f6', large: '#0891b2', mid: '#a855f7', small: '#b8760a', micro: '#c2410c', unknown: '#4b5563',
+    mega: '#3b82f6', large: '#0891b2', mid: cssVar('--purple'), small: '#b8760a', micro: '#c2410c', unknown: '#4b5563',
   },
   volatilityClass: {
-    high: '#a855f7', medium: '#0891b2', low: '#3b82f6', unknown: '#4b5563',
+    high: cssVar('--purple'), medium: '#0891b2', low: '#3b82f6', unknown: '#4b5563',
   },
   primaryIndustry: {unknown: '#4b5563'},
 }
-const FALLBACK_COLORS = ['#3b82f6', '#0891b2', '#a855f7', '#b8760a', '#c2410c', '#059669', '#dc2626']
+const FALLBACK_COLORS = ['#3b82f6', '#0891b2', cssVar('--purple'), '#b8760a', '#c2410c', '#059669', '#dc2626']
 
 function colorFor(group, key) {
   const palette = GROUP_COLORS[group] || {}

@@ -420,8 +420,8 @@ function logout() {
 }
 
 .type-chip-regular {
-  background: rgba(0, 207, 255, 0.12);
-  border-color: rgba(0, 207, 255, 0.35);
+  background: color-mix(in srgb, var(--neon-blue) 12%, transparent);
+  border-color: color-mix(in srgb, var(--neon-blue) 35%, transparent);
   color: var(--neon-blue);
 }
 
@@ -434,7 +434,7 @@ function logout() {
 .type-chip-max {
   background: rgba(245, 158, 11, 0.14);
   border-color: rgba(245, 158, 11, 0.35);
-  color: #fbbf24;
+  color: var(--gold);
 }
 
 .type-chip-admin {
@@ -444,9 +444,9 @@ function logout() {
 }
 
 .type-chip-plan {
-  background: rgba(168, 85, 247, 0.14);
-  border-color: rgba(168, 85, 247, 0.35);
-  color: #c084fc;
+  background: color-mix(in srgb, var(--purple) 14%, transparent);
+  border-color: color-mix(in srgb, var(--purple) 35%, transparent);
+  color: var(--purple);
 }
 
 .stats-card {

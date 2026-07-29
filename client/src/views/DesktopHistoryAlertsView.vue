@@ -667,7 +667,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
   padding: 0.65rem 0.85rem;
 }
 
-.alert-row.triggered { border-color: rgba(0, 195, 106, 0.5); }
+.alert-row.triggered { border-color: color-mix(in srgb, var(--green) 50%, transparent); }
 
 .alert-main {
   display: flex;
@@ -690,6 +690,6 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
 }
 
 .cond i { font-size: 0.72rem; }
-.triggered-tag { font-size: 0.68rem; color: #00c36a; }
+.triggered-tag { font-size: 0.68rem; color: var(--green); }
 .alert-actions { display: flex; align-items: center; gap: 0.25rem; flex-shrink: 0; }
 </style>

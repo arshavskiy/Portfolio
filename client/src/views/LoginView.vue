@@ -7,6 +7,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
+import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import {useI18n} from '@/composables/useI18n'
 
@@ -324,7 +325,10 @@ watch(locale, updateLoginHead)
           <div class="brand">
             <span class="brand-mark">📈</span>
             <span class="brand-name gradient-title">StockFolio</span>
-            <LanguageSelect class="hero-language"/>
+            <div class="hero-controls">
+              <ThemeToggle/>
+              <LanguageSelect/>
+            </div>
           </div>
 
           <h1 id="login-hero-title" class="hero-title">
@@ -525,21 +529,21 @@ watch(locale, updateLoginHead)
                     <svg class="mk-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
                       <defs>
                         <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="#00ff88" stop-opacity="0.22"/>
-                          <stop offset="100%" stop-color="#00ff88" stop-opacity="0"/>
+                          <stop offset="0%" stop-color="var(--green)" stop-opacity="0.22"/>
+                          <stop offset="100%" stop-color="var(--green)" stop-opacity="0"/>
                         </linearGradient>
                       </defs>
                       <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="url(#chartGrad)"/>
-                      <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="none" stroke="#00ff88" stroke-width="1.5"/>
+                      <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="none" stroke="var(--green)" stroke-width="1.5"/>
                       <!-- pre-market gold segment -->
                       <path d="M0,55 C10,50 20,45 30,48" fill="none" stroke="#facc15" stroke-width="1.5"/>
                       <!-- after-hours purple -->
                       <path d="M180,6 C190,4 195,5 200,4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-                      <circle cx="200" cy="4" r="2.5" fill="#00ff88"/>
+                      <circle cx="200" cy="4" r="2.5" fill="var(--green)"/>
                     </svg>
                     <div class="mk-chart-labels">
                       <span class="mk-clabel" style="color:#facc15">Pre</span>
-                      <span class="mk-clabel" style="color:#00ff88">Market</span>
+                      <span class="mk-clabel" style="color:var(--green)">Market</span>
                       <span class="mk-clabel" style="color:#a78bfa">After</span>
                     </div>
                     <div class="mk-card mk-flat" style="margin-top:4px">
@@ -768,8 +772,8 @@ watch(locale, updateLoginHead)
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(60% 50% at 20% 0%, rgba(0, 207, 255, 0.12), transparent 70%),
-  radial-gradient(50% 50% at 90% 20%, rgba(168, 85, 247, 0.12), transparent 70%);
+  background: radial-gradient(60% 50% at 20% 0%, color-mix(in srgb, var(--neon-blue) 12%, transparent), transparent 70%),
+  radial-gradient(50% 50% at 90% 20%, color-mix(in srgb, var(--purple) 12%, transparent), transparent 70%);
   pointer-events: none;
 }
 
@@ -786,7 +790,10 @@ watch(locale, updateLoginHead)
   margin-bottom: 1.75rem;
 }
 
-.hero-language {
+.hero-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-left: auto;
 }
 
@@ -828,6 +835,30 @@ watch(locale, updateLoginHead)
 }
 
 .phone {
+  /* This mockup is a fixed dark-mode phone illustration — always render its
+     internal .mk-* content with dark-theme colors, regardless of the site's
+     active theme, so text/cards never flip to light-theme values and vanish
+     against the phone's always-dark screen. */
+  --bg-primary: #000000;
+  --bg-secondary: #111111;
+  --bg-card: #070707;
+  --border: #222222;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --green: #00ff88;
+  --red: #ff3366;
+  --accent: #3b82f6;
+  --neon-green: #00ff88;
+  --neon-red: #ff3366;
+  --neon-blue: #00cfff;
+  --purple: #a855f7;
+  --gold: #fbbf24;
+  /* body sets `color: var(--text-primary)` and its already-resolved computed
+     value is what plain inheritance passes down — descendants don't
+     re-evaluate the variable on their own, so without this the shadowed
+     --text-primary above never actually reaches any .mk-* text. */
+  color: var(--text-primary);
+
   position: relative;
   width: 230px;
   background: linear-gradient(155deg, #1c1c1e 0%, #0a0a0a 55%);
@@ -837,7 +868,7 @@ watch(locale, updateLoginHead)
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
   0 0 0 1px rgba(255, 255, 255, 0.05) inset,
   0 2px 0 rgba(255, 255, 255, 0.06) inset,
-  0 0 60px rgba(0, 207, 255, 0.08);
+  0 0 60px color-mix(in srgb, var(--neon-blue) 8%, transparent);
   transform: rotate(-3deg);
   transition: transform 0.3s;
 }
@@ -894,7 +925,7 @@ watch(locale, updateLoginHead)
   height: 6px;
   border-radius: 50%;
   background: #1a1a2e;
-  box-shadow: 0 0 0 1px rgba(0, 207, 255, 0.25), inset 0 0 2px rgba(0, 207, 255, 0.4);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-blue) 25%, transparent), inset 0 0 2px color-mix(in srgb, var(--neon-blue) 40%, transparent);
 }
 
 .phone-screen {
@@ -928,6 +959,16 @@ watch(locale, updateLoginHead)
   font-weight: 800;
 }
 
+/* The mockup title reuses .gradient-title, but that class flattens to plain
+   text on the site's light theme (see style.css) — restore the rainbow
+   gradient look here since the phone mockup always renders dark-mode style. */
+.phone .mk-title.gradient-title {
+  background: linear-gradient(135deg, #00cfff 0%, #a855f7 50%, #ff3366 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
 .mk-total {
   font-size: 0.82rem;
   font-weight: 700;
@@ -942,13 +983,13 @@ watch(locale, updateLoginHead)
 }
 
 .mk-gain {
-  border-color: rgba(0, 195, 106, 0.4);
-  box-shadow: 0 0 12px rgba(0, 195, 106, 0.12);
+  border-color: color-mix(in srgb, var(--green) 40%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--green) 12%, transparent);
 }
 
 .mk-loss {
-  border-color: rgba(224, 45, 74, 0.4);
-  box-shadow: 0 0 12px rgba(224, 45, 74, 0.12);
+  border-color: color-mix(in srgb, var(--red) 40%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--red) 12%, transparent);
 }
 
 .mk-row {
@@ -987,12 +1028,12 @@ watch(locale, updateLoginHead)
 }
 
 .mk-badge.up {
-  background: #00c36a;
+  background: var(--green);
   color: #fff;
 }
 
 .mk-badge.down {
-  background: #e02d4a;
+  background: var(--red);
   color: #fff;
 }
 
@@ -1010,13 +1051,13 @@ watch(locale, updateLoginHead)
 }
 
 .spark-up {
-  stroke: #00ff88;
-  filter: drop-shadow(0 0 2px rgba(0, 255, 136, 0.6));
+  stroke: var(--green);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--green) 60%, transparent));
 }
 
 .spark-down {
-  stroke: #ff3366;
-  filter: drop-shadow(0 0 2px rgba(255, 51, 102, 0.6));
+  stroke: var(--red);
+  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--red) 60%, transparent));
 }
 
 .mk-pills {
@@ -1199,7 +1240,7 @@ watch(locale, updateLoginHead)
 }
 
 .d-b {
-  stroke: #00ff88;
+  stroke: var(--green);
 }
 
 .d-c {
@@ -1234,7 +1275,7 @@ watch(locale, updateLoginHead)
 }
 
 .dot.b {
-  background: #00ff88;
+  background: var(--green);
 }
 
 .dot.c {
@@ -1296,8 +1337,8 @@ watch(locale, updateLoginHead)
 
 .mk-topic.active {
   color: var(--neon-blue);
-  border-color: rgba(0, 207, 255, 0.55);
-  box-shadow: 0 0 8px rgba(0, 207, 255, 0.16);
+  border-color: color-mix(in srgb, var(--neon-blue) 55%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--neon-blue) 16%, transparent);
 }
 
 .mk-news-card {
@@ -1314,7 +1355,7 @@ watch(locale, updateLoginHead)
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: linear-gradient(180deg, var(--neon-blue), #a855f7, var(--neon-red));
+  background: linear-gradient(180deg, var(--neon-blue), var(--purple), var(--neon-red));
 }
 
 .mk-news-source {
@@ -1340,7 +1381,7 @@ watch(locale, updateLoginHead)
 
 .mk-symbols span {
   color: var(--neon-green);
-  border: 1px solid rgba(0, 255, 136, 0.35);
+  border: 1px solid color-mix(in srgb, var(--neon-green) 35%, transparent);
   border-radius: 5px;
   padding: 1px 4px;
   font-size: 0.48rem;
@@ -1384,10 +1425,6 @@ watch(locale, updateLoginHead)
 .feature-icon {
   font-size: 1.05rem;
   color: var(--accent);
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  border-radius: 10px;
-  padding: 9px;
   flex-shrink: 0;
 }
 
@@ -1671,7 +1708,7 @@ watch(locale, updateLoginHead)
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 9px 10px;
-  background: linear-gradient(135deg, rgba(0, 207, 255, 0.08) 0%, rgba(168, 85, 247, 0.08) 100%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--neon-blue) 8%, transparent) 0%, color-mix(in srgb, var(--purple) 8%, transparent) 100%);
 }
 
 .mk-summary-text {

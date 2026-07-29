@@ -101,7 +101,7 @@ const {t} = useI18n()
 }
 
 .entry-changes i {
-  color: var(--neon-green, #00c36a);
+  color: var(--neon-green);
   font-size: 0.75rem;
   margin-top: 0.2rem;
   flex-shrink: 0;

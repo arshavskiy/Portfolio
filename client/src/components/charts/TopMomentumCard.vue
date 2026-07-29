@@ -227,14 +227,14 @@ const bearish = computed(() =>
 }
 
 /* Signal colours (mirrors WatchRow) */
-.sig-max-bull   { background: rgba(0,195,106,0.28); color: #00c36a; box-shadow: 0 0 8px rgba(0,195,106,0.5); }
-.sig-strong-bull { background: rgba(0,195,106,0.18); color: #00c36a; }
-.sig-bull        { background: rgba(0,195,106,0.1);  color: #00c36a; }
-.sig-max-bear    { background: rgba(224,45,74,0.28); color: #e02d4a; box-shadow: 0 0 8px rgba(224,45,74,0.5); }
-.sig-strong-bear { background: rgba(224,45,74,0.18); color: #e02d4a; }
-.sig-bear        { background: rgba(224,45,74,0.1);  color: #e02d4a; }
+.sig-max-bull   { background: color-mix(in srgb, var(--green) 28%, transparent); color: var(--green); box-shadow: 0 0 8px color-mix(in srgb, var(--green) 50%, transparent); }
+.sig-strong-bull { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
+.sig-bull        { background: color-mix(in srgb, var(--green) 10%, transparent);  color: var(--green); }
+.sig-max-bear    { background: color-mix(in srgb, var(--red) 28%, transparent); color: var(--red); box-shadow: 0 0 8px color-mix(in srgb, var(--red) 50%, transparent); }
+.sig-strong-bear { background: color-mix(in srgb, var(--red) 18%, transparent); color: var(--red); }
+.sig-bear        { background: color-mix(in srgb, var(--red) 10%, transparent); color: var(--red); }
 .sig-neutral     { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
 
-.gain { color: #00c36a; }
-.loss { color: #e02d4a; }
+.gain { color: var(--green); }
+.loss { color: var(--red); }
 </style>

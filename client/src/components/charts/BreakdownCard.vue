@@ -15,7 +15,10 @@ const {t} = useI18n()
 const svgRef = ref(null)
 
 // Shared categorical palette for allocation slices + legend dots.
-const COLORS = ['#3b82f6', '#00ff88', '#f59e0b', '#ff3366', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
+function cssVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+}
+const COLORS = ['#3b82f6', cssVar('--green'), '#f59e0b', cssVar('--red'), '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
 
 const isMixed = computed(() =>
     new Set(props.positions.map((p) => p.currency)).size > 1

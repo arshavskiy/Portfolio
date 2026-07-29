@@ -133,7 +133,7 @@ onMounted(loadArticle)
   left: 0;
   width: 3px;
   height: 100%;
-  background: linear-gradient(180deg, var(--neon-blue), #a855f7, var(--neon-red));
+  background: linear-gradient(180deg, var(--neon-blue), var(--purple), var(--neon-red));
 }
 
 .article-meta {
@@ -177,7 +177,7 @@ h1 {
 }
 
 .topic-pill {
-  border: 1px solid rgba(0, 207, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--neon-blue) 35%, transparent);
   border-radius: 999px;
   color: var(--neon-blue);
   padding: 2px 8px;
@@ -193,7 +193,7 @@ h1 {
 }
 
 .symbol-pill {
-  border: 1px solid rgba(0, 255, 136, 0.35);
+  border: 1px solid color-mix(in srgb, var(--neon-green) 35%, transparent);
   border-radius: 6px;
   color: var(--neon-green);
   padding: 2px 7px;

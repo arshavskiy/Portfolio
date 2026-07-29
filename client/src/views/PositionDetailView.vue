@@ -2555,35 +2555,35 @@ async function toggleWatchlist() {
 }
 
 .sig-max-bull {
-  background: rgba(0, 195, 106, 0.28);
-  color: #00c36a;
-  box-shadow: 0 0 8px rgba(0, 195, 106, 0.5);
+  background: color-mix(in srgb, var(--green) 28%, transparent);
+  color: var(--green);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--green) 50%, transparent);
 }
 
 .sig-strong-bull {
-  background: rgba(0, 195, 106, 0.18);
-  color: #00c36a;
+  background: color-mix(in srgb, var(--green) 18%, transparent);
+  color: var(--green);
 }
 
 .sig-bull {
-  background: rgba(0, 195, 106, 0.1);
-  color: #00c36a;
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  color: var(--green);
 }
 
 .sig-max-bear {
-  background: rgba(224, 45, 74, 0.28);
-  color: #e02d4a;
-  box-shadow: 0 0 8px rgba(224, 45, 74, 0.5);
+  background: color-mix(in srgb, var(--red) 28%, transparent);
+  color: var(--red);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--red) 50%, transparent);
 }
 
 .sig-strong-bear {
-  background: rgba(224, 45, 74, 0.18);
-  color: #e02d4a;
+  background: color-mix(in srgb, var(--red) 18%, transparent);
+  color: var(--red);
 }
 
 .sig-bear {
-  background: rgba(224, 45, 74, 0.1);
-  color: #e02d4a;
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  color: var(--red);
 }
 
 .sig-neutral {
@@ -2942,9 +2942,9 @@ async function toggleWatchlist() {
   position: relative;
   margin: -0.35rem 0 0.9rem;
   padding: 0.55rem 2.25rem 0.55rem 0.7rem;
-  border: 1px solid rgba(0, 207, 255, 0.38);
+  border: 1px solid color-mix(in srgb, var(--neon-blue) 38%, transparent);
   border-radius: 10px;
-  background: rgba(0, 207, 255, 0.05);
+  background: color-mix(in srgb, var(--neon-blue) 5%, transparent);
   font-size: 0.76rem;
   line-height: 1.35;
   animation: chart-help-pulse 1.8s ease-in-out infinite;
@@ -2976,18 +2976,18 @@ async function toggleWatchlist() {
 
 .chart-selection-help-close:hover {
   color: var(--text-primary);
-  border-color: rgba(0, 207, 255, 0.6);
+  border-color: color-mix(in srgb, var(--neon-blue) 60%, transparent);
 }
 
 @keyframes chart-help-pulse {
   0%,
   100% {
-    border-color: rgba(0, 207, 255, 0.32);
-    box-shadow: 0 0 0 rgba(0, 207, 255, 0);
+    border-color: color-mix(in srgb, var(--neon-blue) 32%, transparent);
+    box-shadow: 0 0 0 color-mix(in srgb, var(--neon-blue) 0%, transparent);
   }
   50% {
-    border-color: rgba(0, 207, 255, 0.82);
-    box-shadow: 0 0 16px rgba(0, 207, 255, 0.14);
+    border-color: color-mix(in srgb, var(--neon-blue) 82%, transparent);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--neon-blue) 14%, transparent);
   }
 }
 
@@ -3024,7 +3024,7 @@ async function toggleWatchlist() {
 }
 
 .stat-extended {
-  background: rgba(168, 85, 247, 0.08);
+  background: color-mix(in srgb, var(--purple) 8%, transparent);
 }
 
 .stat-label-info {
@@ -3069,7 +3069,7 @@ async function toggleWatchlist() {
 }
 
 .div-yield-val {
-  color: #fbbf24;
+  color: var(--gold);
   font-weight: 600;
 }
 
@@ -3424,7 +3424,7 @@ async function toggleWatchlist() {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.06em;
-  background: rgba(0, 195, 106, 0.15);
+  background: color-mix(in srgb, var(--green) 15%, transparent);
   color: var(--neon-green);
   border-radius: 4px;
   padding: 1px 5px;
@@ -3482,21 +3482,21 @@ async function toggleWatchlist() {
 }
 
 .chip-bull {
-  background: rgba(0, 195, 106, 0.08);
-  border-color: rgba(0, 195, 106, 0.3);
+  background: color-mix(in srgb, var(--green) 8%, transparent);
+  border-color: color-mix(in srgb, var(--green) 30%, transparent);
 }
 
 .chip-bull .chip-value {
-  color: #00c36a;
+  color: var(--green);
 }
 
 .chip-bear {
-  background: rgba(224, 45, 74, 0.08);
-  border-color: rgba(224, 45, 74, 0.3);
+  background: color-mix(in srgb, var(--red) 8%, transparent);
+  border-color: color-mix(in srgb, var(--red) 30%, transparent);
 }
 
 .chip-bear .chip-value {
-  color: #e02d4a;
+  color: var(--red);
 }
 
 .chip-neutral {
@@ -3578,11 +3578,11 @@ async function toggleWatchlist() {
 }
 
 .fill-above {
-  background: linear-gradient(90deg, rgba(0, 195, 106, 0.5), #00c36a);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--green) 50%, transparent), var(--green));
 }
 
 .fill-below {
-  background: linear-gradient(90deg, rgba(224, 45, 74, 0.5), #e02d4a);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--red) 50%, transparent), var(--red));
 }
 
 .fill-hit {

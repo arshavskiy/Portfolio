@@ -23,7 +23,8 @@ function draw() {
   const isWin = props.pnlPercent != null
     ? props.pnlPercent >= 0
     : (lastClose ?? 0) >= (firstClose ?? 0)
-  const color = isWin ? '#00ff88' : '#ff3366'
+  const rootStyle = getComputedStyle(document.documentElement)
+  const color = isWin ? rootStyle.getPropertyValue('--green').trim() : rootStyle.getPropertyValue('--red').trim()
 
   const yMin = d3.min(props.data, d => d.close)
   const yMax = d3.max(props.data, d => d.close)
@@ -48,12 +49,13 @@ function draw() {
   feMerge.append('feMergeNode').attr('in', 'SourceGraphic')
 
   // Line with glow (transparent background — no area fill)
+  const isDark = document.documentElement.classList.contains('dark')
   svg.append('path')
     .datum(props.data)
     .attr('fill', 'none')
     .attr('stroke', color)
     .attr('stroke-width', 1.5)
-    .attr('filter', `url(#${filterId})`)
+    .attr('filter', isDark ? `url(#${filterId})` : null)
     .attr('d', line)
 }
 

@@ -13,10 +13,10 @@ const {t} = useI18n()
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 2px solid rgba(0, 207, 255, 0.14);
+  border: 2px solid color-mix(in srgb, var(--neon-blue) 14%, transparent);
   border-top-color: var(--neon-blue);
-  border-right-color: #a855f7;
-  box-shadow: 0 0 12px rgba(0, 207, 255, 0.22), inset 0 0 8px rgba(168, 85, 247, 0.08);
+  border-right-color: var(--purple);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--neon-blue) 22%, transparent), inset 0 0 8px color-mix(in srgb, var(--purple) 8%, transparent);
   animation: appSpin 0.75s linear infinite;
 }
 

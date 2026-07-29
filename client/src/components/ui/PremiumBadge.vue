@@ -21,10 +21,10 @@ defineProps({
   width: fit-content;
   min-height: 1.25rem;
   padding: 0.1rem 0.4rem;
-  border: 1px solid rgba(250, 204, 21, 0.35);
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
   border-radius: 999px;
-  background: rgba(250, 204, 21, 0.12);
-  color: #facc15;
+  background: color-mix(in srgb, var(--gold) 12%, transparent);
+  color: var(--gold);
   font-size: 0.68rem;
   font-weight: 800;
   line-height: 1;

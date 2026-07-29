@@ -83,7 +83,7 @@ function onClick() {
 }
 
 .type-badge-max {
-  color: #fbbf24;
+  color: var(--gold);
 }
 
 .type-badge-admin {
@@ -91,13 +91,13 @@ function onClick() {
 }
 
 .type-badge-plan {
-  color: #c084fc;
+  color: var(--purple);
 }
 
 .account-shortcut:hover {
   color: var(--neon-blue);
-  border-color: rgba(0, 207, 255, 0.45);
-  box-shadow: 0 0 10px rgba(0, 207, 255, 0.25);
+  border-color: color-mix(in srgb, var(--neon-blue) 45%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--neon-blue) 25%, transparent);
 }
 
 @media (min-width: 1024px) {

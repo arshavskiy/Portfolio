@@ -177,7 +177,7 @@ async function remove(alert) {
 }
 
 .alert-row.triggered {
-  border-color: rgba(0, 195, 106, 0.5);
+  border-color: color-mix(in srgb, var(--green) 50%, transparent);
 }
 
 .alert-main {
@@ -207,7 +207,7 @@ async function remove(alert) {
 
 .triggered-tag {
   font-size: 0.7rem;
-  color: #00c36a;
+  color: var(--green);
 }
 
 .alert-actions {

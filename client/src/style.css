@@ -56,6 +56,10 @@ html, body, #app {
   -webkit-font-smoothing: antialiased;
 }
 
+:root.light body {
+  filter: grayscale(0.6);
+}
+
 /* ── Neon text ── */
 .gain { color: var(--neon-green); }
 .loss { color: var(--neon-red); }
@@ -116,6 +120,28 @@ h2.gradient-h2 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* ── Light theme: gradient titles render as plain dark text ── */
+:root.light .gradient-title,
+:root.light .gradient-title ~ * h2,
+:root.light h2.gradient-h2,
+:root.light .section-h2,
+:root.light .section h2,
+:root.light .section-title,
+:root.light .card-title,
+:root.light .fee-section-title {
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: var(--text-primary);
+  background-clip: unset;
+  color: var(--text-primary);
+}
+
+:root.light .premium-badge {
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  color: var(--text-secondary);
 }
 
 /* Position research stack: match analyst-card text styling across analyst, insight, and relation cards. */
@@ -266,6 +292,22 @@ h2.gradient-h2 {
   color: var(--text-primary);
 }
 
+:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) {
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) .p-button-icon,
+:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) .p-button-label {
+  color: currentColor;
+}
+
+:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast):hover {
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  background: color-mix(in srgb, var(--text-primary) 6%, transparent);
+}
+
 /* ── Toast: keep within the mobile viewport (default 25rem overflows phones) ── */
 .p-toast {
   width: min(25rem, calc(100vw - 1.5rem));
@@ -294,4 +336,44 @@ h2.gradient-h2 {
   ::-webkit-scrollbar {
     width: 8px;
   }
+}
+
+/* ── Light theme: suppress dark-theme neon glow effects ── */
+:root.light .article-card:hover,
+:root.light .sig-max-bull,
+:root.light .sig-strong-bull,
+:root.light .sig-max-bear,
+:root.light .sig-strong-bear,
+:root.light .dot-open,
+:root.light .dot-ext,
+:root.light .account-shortcut:hover,
+:root.light .app-loader,
+:root.light .mk-topic.active,
+:root.light .phone,
+:root.light .phone-camera,
+:root.light .chart-selection-help,
+:root.light .chart-selection-help-close:hover,
+:root.light .fill-hit,
+:root.light .held-filter-btn.active .pi-briefcase,
+:root.light .mobile-held-filter .p-button.active {
+  box-shadow: none !important;
+}
+
+:root.light .alert-badge i,
+:root.light .spark-up,
+:root.light .spark-down {
+  filter: none !important;
+}
+
+:root.light .held-filter-btn.active .pi-briefcase {
+  text-shadow: none !important;
+}
+
+@keyframes chart-help-pulse-light {
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: none; }
+}
+
+:root.light .chart-selection-help {
+  animation: chart-help-pulse-light 1.8s ease-in-out infinite;
 }
