@@ -2,6 +2,7 @@ const YahooFinance = require('yahoo-finance2').default
 const crypto = require('crypto')
 const ExtendedQuote = require('../models/ExtendedQuote')
 const QuoteSnapshot = require('../models/QuoteSnapshot')
+const {resolveQuote} = require('./quoteResolver')
 const yahooFinance = new YahooFinance({
   suppressNotices: ['yahooSurvey'],
   fetchOptions: {
@@ -370,6 +371,16 @@ async function getQuote(ticker) {
       if (viaChart?.regularMarketPrice != null) {
         console.warn(`[quote] quote() failed for ${key}, using chart fallback: ${error.message}`)
         result = viaChart
+        // Chart meta sometimes omits day-high/low/volume too — try Finnhub/
+        // Stooq to fill those gaps rather than showing "—" in the UI.
+        if (result.regularMarketDayHigh == null || result.regularMarketVolume == null) {
+          const resolved = await resolveQuote(key).catch(() => null)
+          if (resolved) {
+            result.regularMarketDayHigh ??= resolved.dayHigh
+            result.regularMarketDayLow ??= resolved.dayLow
+            result.regularMarketVolume ??= resolved.volume
+          }
+        }
       } else {
         // In-memory stale cache first, then persisted snapshot, then error.
         if (cached?.data) return cached.data
@@ -408,12 +419,12 @@ async function getQuote(ticker) {
       volume: result.regularMarketVolume,
       avgVolume: result.averageVolume ?? result.averageDailyVolume3Month ?? null,
       marketCap: result.marketCap != null ? result.marketCap / f : null,
-      dayHigh: result.regularMarketDayHigh / f,
-      dayLow: result.regularMarketDayLow / f,
-      open: result.regularMarketOpen / f,
-      week52High: result.fiftyTwoWeekHigh / f,
-      week52Low: result.fiftyTwoWeekLow / f,
-      pe: result.trailingPE,
+      dayHigh: result.regularMarketDayHigh != null ? result.regularMarketDayHigh / f : null,
+      dayLow: result.regularMarketDayLow != null ? result.regularMarketDayLow / f : null,
+      open: result.regularMarketOpen != null ? result.regularMarketOpen / f : null,
+      week52High: result.fiftyTwoWeekHigh != null ? result.fiftyTwoWeekHigh / f : null,
+      week52Low: result.fiftyTwoWeekLow != null ? result.fiftyTwoWeekLow / f : null,
+      pe: result.trailingPE ?? null,
       dividendRate: dividend.dividendRate,
       dividendYield: dividend.dividendYield,
       marketState: result.marketState || null,
@@ -489,12 +500,12 @@ async function getQuotes(tickers) {
           volume: result.regularMarketVolume,
           avgVolume: result.averageVolume ?? result.averageDailyVolume3Month ?? null,
           marketCap: result.marketCap != null ? result.marketCap / f : null,
-          dayHigh: result.regularMarketDayHigh / f,
-          dayLow: result.regularMarketDayLow / f,
-          open: result.regularMarketOpen / f,
-          week52High: result.fiftyTwoWeekHigh / f,
-          week52Low: result.fiftyTwoWeekLow / f,
-          pe: result.trailingPE,
+          dayHigh: result.regularMarketDayHigh != null ? result.regularMarketDayHigh / f : null,
+          dayLow: result.regularMarketDayLow != null ? result.regularMarketDayLow / f : null,
+          open: result.regularMarketOpen != null ? result.regularMarketOpen / f : null,
+          week52High: result.fiftyTwoWeekHigh != null ? result.fiftyTwoWeekHigh / f : null,
+          week52Low: result.fiftyTwoWeekLow != null ? result.fiftyTwoWeekLow / f : null,
+          pe: result.trailingPE ?? null,
           dividendRate: dividend.dividendRate,
           dividendYield: dividend.dividendYield,
           marketState: result.marketState || null,
@@ -990,6 +1001,11 @@ async function getQuoteViaChart(ticker) {
     regularMarketChange: change,
     regularMarketChangePercent: prev ? (change / prev) * 100 : null,
     regularMarketPreviousClose: prev,
+    regularMarketDayHigh: m.regularMarketDayHigh ?? null,
+    regularMarketDayLow: m.regularMarketDayLow ?? null,
+    regularMarketVolume: m.regularMarketVolume ?? null,
+    fiftyTwoWeekHigh: m.fiftyTwoWeekHigh ?? null,
+    fiftyTwoWeekLow: m.fiftyTwoWeekLow ?? null,
     shortName: m.shortName || m.longName || undefined,
     longName: m.longName || undefined,
     currency: m.currency,
