@@ -2,6 +2,14 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.07.30',
+    date: 'Jul 30, 2026',
+    title: 'Updates',
+    changes: [
+      "Fixed missing day high/low, volume, and other stats sometimes showing as dashes on the position page.",
+    ],
+  },
+  {
     version: '2026.07.29',
     date: 'Jul 29, 2026',
     title: 'Updates',
