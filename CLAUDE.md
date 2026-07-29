@@ -134,3 +134,4 @@ Client needs: `VITE_API_URL`, `VITE_GOOGLE_CLIENT_ID`
 - `docs/API.md` — all REST endpoints
 - `docs/momentum-signal.md` — momentum score algorithm
 - `docs/buy-simulator-math.md` — fee/tax calculation math
+- `docs/analytics.md` — GA4 events reference
