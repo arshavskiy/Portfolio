@@ -4,6 +4,7 @@ import {useRouter} from 'vue-router'
 import Button from 'primevue/button'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import TickerArticlesModal from '@/components/ui/TickerArticlesModal.vue'
 import api from '@/composables/useApi'
 import {useCurrency, usePercent} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
@@ -20,19 +21,19 @@ const summary = computed(() => data.value?.summary || {pass: 0, warn: 0, fail: 0
 const analytics = computed(() => data.value?.analytics || null)
 const portfolioSummary = computed(() => analytics.value?.summary || {})
 
-const statusMeta = {
-  pass: {icon: 'pi pi-check-circle', label: 'Pass'},
-  warn: {icon: 'pi pi-exclamation-triangle', label: 'Watch'},
-  fail: {icon: 'pi pi-times-circle', label: 'Risk'},
-}
+const statusMeta = computed(() => ({
+  pass: {icon: 'pi pi-check-circle', label: t('xray.pass')},
+  warn: {icon: 'pi pi-exclamation-triangle', label: t('xray.watch')},
+  fail: {icon: 'pi pi-times-circle', label: t('xray.risk')},
+}))
 
 const topAllocations = computed(() => {
   const allocations = analytics.value?.allocations || {}
   return [
-    {title: 'Top Holding', row: allocations.holding?.[0], labelKey: 'ticker'},
-    {title: 'Top Sector', row: allocations.sector?.[0], labelKey: 'sector'},
-    {title: 'Top Currency', row: allocations.currency?.[0], labelKey: 'currency'},
-    {title: 'Top Market', row: allocations.market?.[0], labelKey: 'market'},
+    {title: t('xray.topHolding'), row: allocations.holding?.[0], labelKey: 'ticker'},
+    {title: t('xray.topSector'), row: allocations.sector?.[0], labelKey: 'sector'},
+    {title: t('xray.topCurrency'), row: allocations.currency?.[0], labelKey: 'currency'},
+    {title: t('xray.topMarket'), row: allocations.market?.[0], labelKey: 'market'},
   ].filter((item) => item.row)
 })
 
@@ -44,38 +45,38 @@ const summaryMetricCards = computed(() => {
   return [
     {
       icon: 'pi pi-dollar',
-      label: 'Annual Dividend Income',
+      label: t('xray.annualDividendIncome'),
       value: formatUsd(s.annualDividendIncomeUsd),
       tone: numberValue(s.annualDividendIncomeUsd) > 0 ? 'positive' : '',
     },
     {
       icon: 'pi pi-percentage',
-      label: 'Yield On Portfolio',
+      label: t('xray.yieldOnPortfolio'),
       value: formatSignedPercent(s.dividendIncomeYield),
       tone: numberValue(s.dividendIncomeYield) > 0 ? 'positive' : '',
     },
     {
       icon: 'pi pi-users',
-      label: 'Positions Paying Dividends',
+      label: t('xray.positionsPayingDividends'),
       value: `${numberValue(s.dividendPayerCount)} / ${numberValue(s.positionCount)}`,
     },
     {
       icon: 'pi pi-star-fill',
-      label: 'Largest Position',
+      label: t('xray.largestPosition'),
       value: largestHolding?.ticker || '-',
       detail: largestHolding ? usePercent(largestHolding.percent) : '-',
     },
     {
       icon: 'pi pi-th-large',
-      label: 'Sector Spread',
+      label: t('xray.sectorSpread'),
       value: numberValue(s.sectorCount),
-      detail: `${numberValue(s.sectorCount)} sectors tracked`,
+      detail: t('xray.sectorsTracked', {n: numberValue(s.sectorCount)}),
     },
     {
       icon: 'pi pi-bell',
-      label: 'Active Alerts',
+      label: t('xray.activeAlerts'),
       value: numberValue(s.activeAlertCount),
-      detail: `${numberValue(s.positionsWithAlerts)} holdings covered`,
+      detail: t('xray.holdingsCovered', {n: numberValue(s.positionsWithAlerts)}),
     },
   ]
 })
@@ -93,33 +94,33 @@ const summarySections = computed(() => {
 
   return [
     [
-      {label: 'Time in Market', value: formatTimeInMarket(s.timeInMarketDays)},
-      {label: `${numberValue(s.activityCount)} activities`, value: '', hint: true},
+      {label: t('xray.timeInMarket'), value: formatTimeInMarket(s.timeInMarketDays)},
+      {label: t('xray.activitiesCount', {n: numberValue(s.activityCount)}), value: '', hint: true},
     ],
     [
-      {label: 'Buy', value: formatUsd(s.buyTotalUsd)},
-      {label: 'Sell', value: formatUsd(s.sellTotalUsd)},
+      {label: t('xray.buy'), value: formatUsd(s.buyTotalUsd)},
+      {label: t('xray.sell'), value: formatUsd(s.sellTotalUsd)},
     ],
     [
-      {label: 'Investment', value: formatUsd(investment)},
-      {label: 'Absolute Gross Performance', value: formatSignedUsd(grossPerformance), tone: toneFor(grossPerformance)},
-      {label: 'Fees', value: formatUsd(s.feesUsd), tone: numberValue(s.feesUsd) > 0 ? 'negative' : ''},
+      {label: t('xray.investment'), value: formatUsd(investment)},
+      {label: t('xray.absoluteGrossPerformance'), value: formatSignedUsd(grossPerformance), tone: toneFor(grossPerformance)},
+      {label: t('xray.fees'), value: formatUsd(s.feesUsd), tone: numberValue(s.feesUsd) > 0 ? 'negative' : ''},
     ],
     [
-      {label: 'Absolute Net Performance', value: formatSignedUsd(netPerformance), tone: toneFor(netPerformance)},
-      {label: 'Net Performance (ROAI)', value: formatSignedPercent(investment > 0 ? (netPerformance / investment) * 100 : 0), tone: toneFor(netPerformance), inset: true},
+      {label: t('xray.absoluteNetPerformance'), value: formatSignedUsd(netPerformance), tone: toneFor(netPerformance)},
+      {label: t('xray.netPerformanceRoai'), value: formatSignedPercent(investment > 0 ? (netPerformance / investment) * 100 : 0), tone: toneFor(netPerformance), inset: true},
     ],
     [
-      {label: 'Total Assets', value: formatUsd(netWorth)},
-      {label: 'Holdings', value: formatUsd(s.totalValueUsd), inset: true},
-      {label: 'Excluded from Analysis', value: formatUsd(0)},
+      {label: t('xray.totalAssets'), value: formatUsd(netWorth)},
+      {label: t('xray.holdings'), value: formatUsd(s.totalValueUsd), inset: true},
+      {label: t('xray.excludedFromAnalysis'), value: formatUsd(0)},
     ],
     [
-      {label: 'Net Worth', value: formatUsd(netWorth), strong: true},
-      {label: 'Annualized Performance', value: formatSignedPercent(annualizedPerformance), tone: toneFor(annualizedPerformance), inset: true},
+      {label: t('xray.netWorth'), value: formatUsd(netWorth), strong: true},
+      {label: t('xray.annualizedPerformance'), value: formatSignedPercent(annualizedPerformance), tone: toneFor(annualizedPerformance), inset: true},
     ],
     [
-      {label: 'Dividend Received', value: formatUsd(s.dividendsUsd)},
+      {label: t('xray.dividendReceived'), value: formatUsd(s.dividendsUsd)},
     ],
   ]
 })
@@ -151,14 +152,15 @@ function formatSignedPercent(value) {
 }
 
 function formatTimeInMarket(days) {
-  if (days == null) return 'No activity yet'
-  if (days <= 0) return 'less than a day'
-  if (days === 1) return '1 day'
-  if (days < 30) return `${days} days`
-  if (days < 365) return `${Math.floor(days / 30)} mo ${days % 30} d`
+  if (days == null) return t('xray.noActivityYet')
+  if (days <= 0) return t('xray.lessThanADay')
+  if (days === 1) return t('xray.oneDay')
+  if (days < 30) return t('xray.daysCount', {n: days})
+  if (days < 365) return t('xray.monthsDays', {months: Math.floor(days / 30), days: days % 30})
   const years = Math.floor(days / 365)
   const months = Math.floor((days % 365) / 30)
-  return `${years} yr${years > 1 ? 's' : ''}${months ? ` ${months} mo` : ''}`
+  const base = t('xray.yearsCount', {years, plural: years > 1 ? 's' : ''})
+  return months ? `${base} ${t('xray.monthsSuffix', {months})}` : base
 }
 
 function toneFor(value) {
@@ -179,14 +181,14 @@ function signalClass(row) {
 
 function signalLabel(row) {
   const cls = signalClass(row)
-  if (cls === 'negative') return 'Watch'
-  if (cls === 'positive') return 'Supportive'
-  if (cls === 'muted') return 'No coverage'
-  return 'Neutral'
+  if (cls === 'negative') return t('xray.statusWatch')
+  if (cls === 'positive') return t('xray.statusSupportive')
+  if (cls === 'muted') return t('xray.statusNoCoverage')
+  return t('xray.statusNeutral')
 }
 
 function formatMomentum(value) {
-  if (value == null) return 'No momentum'
+  if (value == null) return t('xray.noMomentum')
   return `${value > 0 ? '+' : ''}${value.toFixed(2)}`
 }
 
@@ -196,7 +198,7 @@ async function load() {
   try {
     data.value = await api.get('/portfolio/x-ray')
   } catch (err) {
-    error.value = err.message || 'Could not load Portfolio X-Ray'
+    error.value = err.message || t('xray.loadFailed')
   } finally {
     loading.value = false
   }
@@ -204,6 +206,15 @@ async function load() {
 
 function openTicker(ticker) {
   router.push(`/position/${encodeURIComponent(ticker)}`)
+}
+
+const articlesModalTicker = ref('')
+const articlesModalVisible = ref(false)
+
+function openArticlesModal(row) {
+  if (!row?.hasInsightData) return
+  articlesModalTicker.value = row.ticker
+  articlesModalVisible.value = true
 }
 
 onMounted(load)
@@ -214,17 +225,17 @@ onMounted(load)
     <header class="xray-header">
       <div>
         <div class="title-row">
-          <h1 class="gradient-title">Portfolio X-Ray</h1>
+          <h1 class="gradient-title">{{ t('xray.title') }}</h1>
           <PremiumBadge :label="t('common.premium')" :title="t('common.premiumFeature')" compact/>
         </div>
-        <p class="text-muted">Portfolio-level risk rules combined with ticker insight and analyst signals.</p>
+        <p class="text-muted">{{ t('xray.subtitle') }}</p>
       </div>
       <Button :disabled="loading" icon="pi pi-refresh" rounded text @click="load"/>
     </header>
 
     <div v-if="loading" class="loading-state">
       <AppLoader/>
-      <span class="text-muted">Scanning portfolio...</span>
+      <span class="text-muted">{{ t('xray.scanning') }}</span>
     </div>
 
     <p v-else-if="error" class="error-state">
@@ -235,19 +246,19 @@ onMounted(load)
     <template v-else-if="data">
       <section class="score-grid">
         <div class="score-card risk">
-          <span class="score-label">Risk</span>
+          <span class="score-label">{{ t('xray.risk') }}</span>
           <strong>{{ summary.fail }}</strong>
         </div>
         <div class="score-card watch">
-          <span class="score-label">Watch</span>
+          <span class="score-label">{{ t('xray.watch') }}</span>
           <strong>{{ summary.warn }}</strong>
         </div>
         <div class="score-card pass">
-          <span class="score-label">Pass</span>
+          <span class="score-label">{{ t('xray.pass') }}</span>
           <strong>{{ summary.pass }}</strong>
         </div>
         <div class="score-card">
-          <span class="score-label">Value</span>
+          <span class="score-label">{{ t('xray.value') }}</span>
           <strong>{{ formatPortfolioValue(analytics?.summary?.totalValueUsd || 0) }}</strong>
         </div>
       </section>
@@ -263,10 +274,10 @@ onMounted(load)
       <section class="portfolio-summary-panel">
         <div class="panel-head">
           <div>
-            <h2>Summary</h2>
-            <p class="text-muted">Activity, performance, assets, and income tracked by Portfolio X-Ray.</p>
+            <h2>{{ t('xray.summary') }}</h2>
+            <p class="text-muted">{{ t('xray.summarySubtitle') }}</p>
           </div>
-          <span class="checked-pill">{{ analytics?.summary?.positionCount || 0 }} holdings</span>
+          <span class="checked-pill">{{ t('xray.holdingsCount', {n: analytics?.summary?.positionCount || 0}) }}</span>
         </div>
         <div class="summary-metric-grid">
           <article v-for="card in summaryMetricCards" :key="card.label" class="summary-metric-card">
@@ -319,49 +330,70 @@ onMounted(load)
       <section v-if="data.tickerSignals?.length" class="signals-panel">
         <div class="panel-head">
           <div>
-            <h2>Ticker Signals</h2>
-            <p class="text-muted">Insight, analyst, valuation, and allocation context per holding.</p>
+            <h2>{{ t('xray.tickerSignalsTitle') }}</h2>
+            <p class="text-muted">{{ t('xray.tickerSignalsSubtitle') }}</p>
           </div>
-          <span class="checked-pill">{{ data.tickerSignals.length }} checked</span>
+          <span class="checked-pill">{{ t('xray.checkedCount', {n: data.tickerSignals.length}) }}</span>
         </div>
-        <div class="signals-grid">
-          <article
-              v-for="row in data.tickerSignals"
-              :key="row.ticker"
-              :class="signalClass(row)"
-              class="signal-card"
-              role="button"
-              tabindex="0"
-              @click="openTicker(row.ticker)"
-              @keydown.enter="openTicker(row.ticker)"
-              @keydown.space.prevent="openTicker(row.ticker)"
-          >
-            <div class="signal-top">
-              <strong>{{ row.ticker }}</strong>
-              <span class="signal-state">{{ signalLabel(row) }}</span>
-            </div>
-            <span class="allocation-meter" aria-hidden="true">
-              <span :style="{width: `${Math.min(100, Math.max(0, row.allocationPercent || 0))}%`}"/>
-            </span>
-            <div class="signal-meta">
-              <span class="signal-stat">
-                <small>Allocation</small>
-                <b>{{ usePercent(row.allocationPercent) }}</b>
-              </span>
-              <span class="signal-stat">
-                <small>Momentum</small>
-                <b :class="{negative: row.momentum < 0, positive: row.momentum > 0}">{{ formatMomentum(row.momentum) }}</b>
-              </span>
-            </div>
-            <div class="signal-chips">
-              <span class="signal-chip">{{ row.rating || 'No rating' }}</span>
-              <span class="signal-chip">{{ row.valuation || 'No valuation' }}</span>
-              <span class="signal-chip">{{ row.hasInsightData ? `${row.articleCount7d || 0} articles` : 'No insight' }}</span>
-            </div>
-          </article>
+        <div class="signals-table-wrap">
+          <table class="signals-table">
+            <thead>
+              <tr>
+                <th>{{ t('xray.colTicker') }}</th>
+                <th>{{ t('xray.colStatus') }}</th>
+                <th>{{ t('xray.colAllocation') }}</th>
+                <th>{{ t('xray.colMomentum') }}</th>
+                <th>{{ t('xray.colRating') }}</th>
+                <th>{{ t('xray.colValuation') }}</th>
+                <th>{{ t('xray.colArticles') }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                  v-for="row in data.tickerSignals"
+                  :key="row.ticker"
+                  :class="signalClass(row)"
+                  class="signal-row"
+                  role="button"
+                  tabindex="0"
+                  @click="openTicker(row.ticker)"
+                  @keydown.enter="openTicker(row.ticker)"
+                  @keydown.space.prevent="openTicker(row.ticker)"
+              >
+                <td class="signal-ticker">{{ row.ticker }}</td>
+                <td><span class="signal-state">{{ signalLabel(row) }}</span></td>
+                <td>
+                  <div class="signal-allocation">
+                    <span class="allocation-meter" aria-hidden="true">
+                      <span :style="{width: `${Math.min(100, Math.max(0, row.allocationPercent || 0))}%`}"/>
+                    </span>
+                    <b>{{ usePercent(row.allocationPercent) }}</b>
+                  </div>
+                </td>
+                <td>
+                  <b :class="{negative: row.momentum < 0, positive: row.momentum > 0}">{{ formatMomentum(row.momentum) }}</b>
+                </td>
+                <td>{{ row.rating || t('xray.noRating') }}</td>
+                <td>{{ row.valuation || t('xray.noValuation') }}</td>
+                <td>
+                  <button
+                      v-if="row.hasInsightData"
+                      class="articles-link"
+                      type="button"
+                      @click.stop="openArticlesModal(row)"
+                  >
+                    {{ t('xray.articlesCount', {n: row.articleCount7d || 0}) }}
+                  </button>
+                  <span v-else>{{ t('xray.noInsight') }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </section>
     </template>
+
+    <TickerArticlesModal v-model:visible="articlesModalVisible" :ticker="articlesModalTicker"/>
   </main>
 </template>
 
@@ -373,12 +405,21 @@ onMounted(load)
   color: var(--text-primary);
 }
 
+@media (min-width: 1024px) {
+  .xray-page {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem 2rem;
+  }
+}
+
 .xray-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .title-row {
@@ -395,8 +436,6 @@ p {
 
 .xray-header h1 {
   font-size: 1.5rem;
-  font-weight: 900;
-  line-height: 1.15;
 }
 
 .score-grid {
@@ -503,7 +542,7 @@ p {
   left: 0;
   right: 0;
   height: 2px;
-  background: linear-gradient(90deg, #00cfff 0%, #a855f7 100%);
+  background: linear-gradient(90deg, var(--neon-blue) 0%, var(--purple) 100%);
   opacity: 0.65;
 }
 
@@ -519,7 +558,7 @@ p {
 .summary-metric-card span {
   color: var(--text-secondary);
   font-size: 0.68rem;
-  font-weight: 800;
+  font-weight: 400;
   line-height: 1.2;
   padding-right: 1.35rem;
   text-transform: uppercase;
@@ -528,7 +567,7 @@ p {
 .summary-metric-card strong {
   color: var(--text-primary);
   font-size: 1.25rem;
-  font-weight: 900;
+  font-weight: 400;
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
@@ -586,7 +625,7 @@ p {
 
 .summary-row.strong span,
 .summary-row.strong strong {
-  font-weight: 900;
+  font-weight: 400;
 }
 
 .summary-row.muted span,
@@ -608,7 +647,7 @@ p {
 .summary-row strong {
   color: var(--text-primary);
   font-size: 0.88rem;
-  font-weight: 750;
+  font-weight: 400;
   text-align: right;
   white-space: nowrap;
 }
@@ -641,7 +680,7 @@ p {
   gap: 0.35rem;
   flex-shrink: 0;
   font-size: 0.78rem;
-  font-weight: 800;
+  font-weight: 400;
 }
 
 .suggestion {
@@ -657,12 +696,12 @@ p {
 }
 
 .ticker-pill {
-  border: 1px solid rgba(0, 207, 255, 0.35);
+  border: 1px solid color-mix(in srgb, var(--neon-blue) 35%, transparent);
   border-radius: 999px;
-  background: rgba(0, 207, 255, 0.1);
+  background: color-mix(in srgb, var(--neon-blue) 10%, transparent);
   color: var(--neon-blue);
   font-size: 0.75rem;
-  font-weight: 800;
+  font-weight: 400;
   padding: 0.25rem 0.55rem;
 }
 
@@ -695,92 +734,99 @@ p {
   border-radius: 999px;
   color: var(--text-secondary);
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 400;
   padding: 0.25rem 0.55rem;
 }
 
-.signals-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+.signals-table-wrap {
+  overflow-x: auto;
   padding: 0.85rem;
 }
 
-.signal-card {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.6rem;
+.signals-table {
   width: 100%;
-  min-height: 0;
-  padding: 0.85rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.025);
-  color: inherit;
+  min-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.signals-table th {
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 400;
   text-align: left;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.signal-card:hover {
-  border-color: rgba(0, 207, 255, 0.45);
-  background: rgba(0, 207, 255, 0.06);
-  transform: translateY(-1px);
+.signal-row {
+  cursor: pointer;
+  transition: background 0.15s;
 }
 
-.signal-card.positive {
-  border-color: rgba(34, 197, 94, 0.28);
+.signal-row:hover {
+  background: color-mix(in srgb, var(--neon-blue) 6%, transparent);
 }
 
-.signal-card.negative {
-  border-color: rgba(239, 68, 68, 0.32);
+.signal-row td {
+  padding: 0.6rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
-.signal-card.muted {
+.signal-ticker {
+  font-weight: 400;
+}
+
+.signal-row.positive .signal-ticker {
+  color: var(--green, #22c55e);
+}
+
+.signal-row.negative .signal-ticker {
+  color: var(--red, #ef4444);
+}
+
+.signal-row.muted {
   opacity: 0.78;
 }
 
-.signal-top,
-.signal-meta {
+.signal-state {
+  display: inline-flex;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 400;
+  padding: 0.2rem 0.5rem;
+  text-transform: uppercase;
+}
+
+.signal-row.positive .signal-state {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--green, #22c55e);
+}
+
+.signal-row.negative .signal-state {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--red, #ef4444);
+}
+
+.signal-allocation {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.signal-top {
-  justify-content: space-between;
-}
-
-.signal-top strong {
-  font-size: 1rem;
-}
-
-.signal-state {
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-secondary);
-  font-size: 0.68rem;
-  font-weight: 850;
-  padding: 0.2rem 0.5rem;
-  text-transform: uppercase;
-}
-
-.signal-card.positive .signal-state {
-  background: rgba(34, 197, 94, 0.12);
-  color: var(--green, #22c55e);
-}
-
-.signal-card.negative .signal-state {
-  background: rgba(239, 68, 68, 0.12);
-  color: var(--red, #ef4444);
-}
-
 .allocation-meter {
   display: block;
+  width: 60px;
   height: 5px;
   overflow: hidden;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.07);
+  flex: 0 0 auto;
 }
 
 .allocation-meter span {
@@ -790,51 +836,15 @@ p {
   background: linear-gradient(90deg, var(--neon-blue), #facc15);
 }
 
-.signal-meta {
-  justify-content: space-between;
+.articles-link {
+  color: var(--neon-blue);
+  font-size: inherit;
+  font-weight: 400;
+  text-decoration: none;
 }
 
-.signal-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 0.12rem;
-  min-width: 0;
-}
-
-.signal-meta small {
-  color: var(--text-secondary);
-  font-size: 0.68rem;
-}
-
-.signal-meta b {
-  font-size: 0.85rem;
-}
-
-.signal-chips {
-  display: flex;
-  align-items: flex-start;
-  align-content: flex-start;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  min-height: 1.45rem;
-}
-
-.signal-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: max-content;
-  height: 1.45rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.045);
-  color: var(--text-primary);
-  font-size: 0.68rem;
-  font-weight: 750;
-  line-height: 1;
-  padding: 0.18rem 0.45rem;
-  white-space: nowrap;
+.articles-link:hover {
+  text-decoration: underline;
 }
 
 .loading-state,
@@ -869,8 +879,7 @@ p {
     text-align: left;
   }
 
-  .signals-grid {
-    grid-template-columns: 1fr;
+  .signals-table-wrap {
     padding: 0.7rem;
   }
 

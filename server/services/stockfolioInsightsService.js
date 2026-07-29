@@ -338,16 +338,25 @@ async function getTickerNews(ticker, {page = 1, limit = 10, days = 90} = {}) {
     }
 }
 
+function escapeRegExp(value) {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 async function getInsightsDataOverview({ticker, source, limit = 25} = {}) {
     const key = ticker ? String(ticker).trim().toUpperCase() : ''
+    // A bare suffix like ".TA" isn't a real ticker — treat it as "match any
+    // ticker ending in .TA" so the admin page can browse a whole exchange
+    // instead of only supporting exact-symbol lookups.
+    const isSuffixQuery = key.startsWith('.')
+    const tickerMatch = isSuffixQuery ? new RegExp(`${escapeRegExp(key)}$`) : key
     const sourceKey = source ? String(source).trim() : ''
     const pageSize = Math.min(50, Math.max(5, Math.floor(Number(limit) || 25)))
 
     const articleFilter = {}
-    if (key) articleFilter.tickers = key
+    if (key) articleFilter.tickers = tickerMatch
     if (sourceKey) articleFilter.source = sourceKey
 
-    const insightFilter = key ? {ticker: key} : {}
+    const insightFilter = key ? {ticker: tickerMatch} : {}
 
     const [
         articleCount,
@@ -381,6 +390,11 @@ async function getInsightsDataOverview({ticker, source, limit = 25} = {}) {
         Article.aggregate([
             {$match: {...articleFilter, analyzed: true, tickers: {$ne: []}}},
             {$unwind: '$tickers'},
+            // articleFilter.tickers matches the array pre-unwind (any element),
+            // which would still group by every OTHER ticker in a multi-ticker
+            // article without this — re-apply the same filter per-element so
+            // "top tickers" only lists ones matching the query, not co-mentions.
+            ...(key ? [{$match: {tickers: tickerMatch}}] : []),
             {$group: {_id: '$tickers', articles: {$sum: 1}, avgSentiment: {$avg: '$sentiment'}}},
             {$sort: {articles: -1}},
             {$limit: 20},
