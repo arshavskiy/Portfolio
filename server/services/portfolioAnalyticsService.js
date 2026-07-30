@@ -4,6 +4,7 @@ const Alert = require('../models/Alert')
 require('../models/FeeProfile')
 const {getQuotes, getIlsToUsd, getAnalystInsight} = require('./stockService')
 const {getEnrichment} = require('./stockfolioInsightsService')
+const {resolveFindings} = require('./xray/resolve')
 
 function numberValue(value) {
   const n = Number(value)
@@ -283,6 +284,14 @@ async function getPortfolioXRay(userId) {
   const losingPositions = positions.filter((p) => p.pnlPercent <= -10)
   const feeDrag = totalValueUsd > 0 ? (analytics.summary.feesUsd / totalValueUsd) * 100 : 0
 
+  // Driver tickers per bucket — the set of tickers that actually compose
+  // that bucket's value, used to fingerprint correlated findings (e.g. when
+  // one ticker alone accounts for the top holding, sector, market, and
+  // currency, all four rules describe the same fact and should collapse).
+  const tickersInSector = (sector) => positions.filter((p) => p.sector === sector).map((p) => p.ticker)
+  const tickersInMarket = (market) => positions.filter((p) => p.market === market).map((p) => p.ticker)
+  const tickersInCurrency = (currency) => positions.filter((p) => p.currency === currency).map((p) => p.ticker)
+
   addRule(rules, {
     key: 'holding-concentration',
     status: ruleStatus(largestHolding?.percent || 0, 20, 35),
@@ -290,6 +299,11 @@ async function getPortfolioXRay(userId) {
     message: `${largestHolding?.ticker || 'Largest holding'} is ${numberValue(largestHolding?.percent).toFixed(1)}% of the portfolio.`,
     suggestion: 'Consider a rebalance target if one position becomes too dominant.',
     affectedTickers: largestHolding?.ticker ? [largestHolding.ticker] : [],
+    cls: 'concentration',
+    dimension: 'holding',
+    drivers: largestHolding?.ticker ? [largestHolding.ticker] : [],
+    value: numberValue(largestHolding?.percent) / 100,
+    actionability: 0.9,
   })
 
   addRule(rules, {
@@ -298,6 +312,11 @@ async function getPortfolioXRay(userId) {
     title: 'Sector concentration',
     message: `${largestSector?.sector || 'Top sector'} is ${numberValue(largestSector?.percent).toFixed(1)}% of portfolio value.`,
     suggestion: 'Check whether this sector exposure is intentional.',
+    cls: 'concentration',
+    dimension: 'sector',
+    drivers: largestSector?.sector ? tickersInSector(largestSector.sector) : [],
+    value: numberValue(largestSector?.percent) / 100,
+    actionability: 0.5,
   })
 
   addRule(rules, {
@@ -306,6 +325,11 @@ async function getPortfolioXRay(userId) {
     title: 'Currency concentration',
     message: `${largestCurrency?.currency || 'Top currency'} exposure is ${numberValue(largestCurrency?.percent).toFixed(1)}%.`,
     suggestion: 'Mixed-currency portfolios may need explicit FX risk awareness.',
+    cls: 'concentration',
+    dimension: 'currency',
+    drivers: largestCurrency?.currency ? tickersInCurrency(largestCurrency.currency) : [],
+    value: numberValue(largestCurrency?.percent) / 100,
+    actionability: 0.2,
   })
 
   addRule(rules, {
@@ -314,6 +338,11 @@ async function getPortfolioXRay(userId) {
     title: 'Market concentration',
     message: `${largestMarket?.market || 'Top market'} exposure is ${numberValue(largestMarket?.percent).toFixed(1)}%.`,
     suggestion: 'Compare this exposure with your target markets.',
+    cls: 'concentration',
+    dimension: 'market',
+    drivers: largestMarket?.market ? tickersInMarket(largestMarket.market) : [],
+    value: numberValue(largestMarket?.percent) / 100,
+    actionability: 0.3,
   })
 
   addRule(rules, {
@@ -322,6 +351,11 @@ async function getPortfolioXRay(userId) {
     title: 'Israeli market exposure',
     message: `TASE exposure is ${taseExposure.toFixed(1)}% of portfolio value.`,
     suggestion: 'Useful to track separately because ILS fees, FX, and local coverage behave differently.',
+    cls: 'concentration',
+    dimension: 'market',
+    drivers: tickersInMarket('TASE'),
+    value: taseExposure / 100,
+    actionability: 0.3,
   })
 
   addRule(rules, {
@@ -330,6 +364,8 @@ async function getPortfolioXRay(userId) {
     title: 'Fee drag',
     message: `Recorded fees equal ${feeDrag.toFixed(2)}% of current portfolio value.`,
     suggestion: 'Review fee profiles and repeated small trades if this climbs.',
+    cls: 'hygiene',
+    actionability: 0.6,
   })
 
   addRule(rules, {
@@ -341,6 +377,8 @@ async function getPortfolioXRay(userId) {
       : 'No position is down 10% or more.',
     suggestion: 'Review thesis notes, alerts, or position sizing for weak holdings.',
     affectedTickers: losingPositions.map((p) => p.ticker),
+    cls: 'performance',
+    actionability: 0.7,
   })
 
   const largePositionsWithoutAlerts = positions.filter((p) => p.allocationPercent >= 10 && !p.hasAlert)
@@ -353,6 +391,8 @@ async function getPortfolioXRay(userId) {
       : 'Major holdings have active alert coverage.',
     suggestion: 'Add alerts on major holdings so large moves do not hide in the list.',
     affectedTickers: largePositionsWithoutAlerts.map((p) => p.ticker),
+    cls: 'hygiene',
+    actionability: 0.9,
   })
 
   const tickerSignals = await getTickerSignals(positions)
@@ -365,15 +405,24 @@ async function getPortfolioXRay(userId) {
     numberValue(row.daysToCover) >= 4
   )
 
+  // Coverage is not Pass — a momentum of 0.00 for a ticker with no analyzed
+  // articles is missing data, not an assessment. Report it as a fact about
+  // data availability, gated on materiality so a handful of untracked
+  // micro-positions don't trigger a finding nobody can act on.
+  const noInsightAllocation = tickerSignals
+    .filter((row) => !row.hasInsightData)
+    .reduce((sum, row) => sum + numberValue(row.allocationPercent), 0)
   addRule(rules, {
     key: 'news-coverage',
-    status: noInsight.length >= Math.ceil(tickerSignals.length / 2) ? 'warn' : 'pass',
+    status: noInsightAllocation >= 25 ? 'warn' : 'pass',
     title: 'Ticker insight coverage',
     message: noInsight.length
-      ? `${noInsight.length} of ${tickerSignals.length} checked holdings have little or no recent insight coverage.`
+      ? `${noInsightAllocation.toFixed(1)}% of portfolio (${noInsight.length} of ${tickerSignals.length} checked holdings) has no signal coverage.`
       : 'Checked holdings have recent insight coverage.',
     suggestion: 'For .TA tickers this may mean the scraper needs more Israeli sources, not that the company is quiet.',
     affectedTickers: noInsight.map((row) => row.ticker),
+    cls: 'coverage',
+    actionability: 0.1,
   })
 
   addRule(rules, {
@@ -385,12 +434,16 @@ async function getPortfolioXRay(userId) {
       : 'No bearish ticker-level signals found in checked holdings.',
     suggestion: 'Open affected position pages to inspect Ticker Insight and Analyst Research before acting.',
     affectedTickers: bearishSignals.map((row) => row.ticker),
+    cls: 'performance',
+    actionability: 0.6,
   })
+
+  const resolvedRules = resolveFindings(rules)
 
   return {
     generatedAt: new Date().toISOString(),
-    summary: summarizeRules(rules),
-    rules: rules.sort((a, b) => b.severity - a.severity),
+    summary: summarizeRules(resolvedRules),
+    rules: resolvedRules,
     analytics,
     tickerSignals,
   }

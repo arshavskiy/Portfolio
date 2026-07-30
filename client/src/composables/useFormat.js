@@ -54,6 +54,15 @@ export function usePercent(val) {
     return `${sign}${n.toFixed(2)}%`
 }
 
+// A share of the portfolio (allocation, weight) is never signed — '+57.69%'
+// reads as a gain. Only P&L/return figures should carry a sign; use
+// usePercent for those.
+export function useShare(val) {
+    const n = toFiniteNumber(val)
+    if (n == null) return '—'
+    return `${n.toFixed(2)}%`
+}
+
 export function useLargeNumber(val, ticker) {
     const n = toFiniteNumber(val)
     if (n == null) return '—'

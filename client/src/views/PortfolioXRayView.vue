@@ -6,7 +6,7 @@ import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import TickerArticlesModal from '@/components/ui/TickerArticlesModal.vue'
 import api from '@/composables/useApi'
-import {useCurrency, usePercent} from '@/composables/useFormat'
+import {useCurrency, usePercent, useShare} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
 
 const router = useRouter()
@@ -64,7 +64,7 @@ const summaryMetricCards = computed(() => {
       icon: 'pi pi-star-fill',
       label: t('xray.largestPosition'),
       value: largestHolding?.ticker || '-',
-      detail: largestHolding ? usePercent(largestHolding.percent) : '-',
+      detail: largestHolding ? useShare(largestHolding.percent) : '-',
     },
     {
       icon: 'pi pi-th-large',
@@ -88,9 +88,16 @@ const summarySections = computed(() => {
   const netPerformance = grossPerformance - numberValue(s.feesUsd)
   const investment = numberValue(s.totalCostUsd)
   const netWorth = numberValue(s.totalValueUsd)
-  const annualizedPerformance = numberValue(s.timeInMarketDays) > 0 && investment > 0
-    ? (Math.pow(1 + (netPerformance / Math.max(1, investment)), 365 / Math.max(1, s.timeInMarketDays)) - 1) * 100
-    : 0
+  // Annualizing a sub-year holding period extrapolates noise — a 3-month
+  // -13.82% would extrapolate to -45.30%, which isn't information. Only
+  // annualize once the position has actually run a full year; otherwise
+  // show the real (non-annualized) return so the row isn't misleading.
+  const daysInMarket = numberValue(s.timeInMarketDays)
+  const totalReturnPct = investment > 0 ? (netPerformance / investment) * 100 : 0
+  const canAnnualize = daysInMarket >= 365 && investment > 0
+  const annualizedPerformance = canAnnualize
+    ? (Math.pow(1 + (netPerformance / Math.max(1, investment)), 365 / daysInMarket) - 1) * 100
+    : null
 
   return [
     [
@@ -117,7 +124,9 @@ const summarySections = computed(() => {
     ],
     [
       {label: t('xray.netWorth'), value: formatUsd(netWorth), strong: true},
-      {label: t('xray.annualizedPerformance'), value: formatSignedPercent(annualizedPerformance), tone: toneFor(annualizedPerformance), inset: true},
+      canAnnualize
+        ? {label: t('xray.annualizedPerformance'), value: formatSignedPercent(annualizedPerformance), tone: toneFor(annualizedPerformance), inset: true}
+        : {label: t('xray.totalPerformance'), value: formatSignedPercent(totalReturnPct), tone: toneFor(totalReturnPct), inset: true},
     ],
     [
       {label: t('xray.dividendReceived'), value: formatUsd(s.dividendsUsd)},
@@ -267,7 +276,7 @@ onMounted(load)
         <div v-for="item in topAllocations" :key="item.title" class="allocation-chip">
           <span class="text-muted">{{ item.title }}</span>
           <strong>{{ item.row[item.labelKey] }}</strong>
-          <small>{{ usePercent(item.row.percent) }}</small>
+          <small>{{ useShare(item.row.percent) }}</small>
         </div>
       </section>
 
@@ -312,6 +321,9 @@ onMounted(load)
             <h2>{{ rule.title }}</h2>
           </div>
           <p>{{ rule.message }}</p>
+          <p v-if="rule.consequences?.length" class="consequences text-muted">
+            {{ t('xray.alsoDrives') }} {{ rule.consequences.map((c) => c.title).join(' · ') }}
+          </p>
           <p class="suggestion text-muted">{{ rule.suggestion }}</p>
           <div v-if="rule.affectedTickers?.length" class="affected-row">
             <button
@@ -367,7 +379,7 @@ onMounted(load)
                     <span class="allocation-meter" aria-hidden="true">
                       <span :style="{width: `${Math.min(100, Math.max(0, row.allocationPercent || 0))}%`}"/>
                     </span>
-                    <b>{{ usePercent(row.allocationPercent) }}</b>
+                    <b>{{ useShare(row.allocationPercent) }}</b>
                   </div>
                 </td>
                 <td>
@@ -681,6 +693,11 @@ p {
   flex-shrink: 0;
   font-size: 0.78rem;
   font-weight: 400;
+}
+
+.consequences {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
 }
 
 .suggestion {
