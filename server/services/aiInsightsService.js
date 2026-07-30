@@ -749,10 +749,13 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
         {
             role: 'system',
             content: 'You are a portfolio analysis assistant inside a personal stock tracking app. ' +
-                'Write a short daily summary (4-6 sentences) covering: how the user\'s holdings did today, ' +
+                'Write a short daily summary (3-5 bullet points using <ul><li>) covering: how the user\'s holdings did today, ' +
                 'anything notable on their watchlist today, and how the main markets performed today. ' +
                 'Use the context provided. Be concise and specific with numbers. You are not a licensed ' +
-                'financial advisor — do not give personalized investment recommendations, describe what the data shows.' +
+                'financial advisor — do not give personalized investment recommendations, describe what the data shows. ' +
+                'IMPORTANT: Respond in HTML only. Use <ul> and <li> for the bullets. ' +
+                'Wrap each ticker symbol that appears in the summary in <strong> tags (e.g. <strong>AAPL</strong>). ' +
+                'Never use markdown, asterisks, or pipe characters.' +
                 languageInstruction + customPromptInstruction,
         },
         {role: 'user', content: contextText + newsText + marketsText},
@@ -763,7 +766,7 @@ async function getDailySummary(userId, {force = false, lang = 'en'} = {}) {
         completion = await openai.chat.completions.create({
             model: MODEL,
             messages,
-            max_tokens: 300,
+            max_tokens: 500,
         })
     } catch (cause) {
         console.error('[ai-daily-summary] upstream OpenAI failure:', cause.status, cause.message)

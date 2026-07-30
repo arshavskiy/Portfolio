@@ -1,6 +1,7 @@
 <script setup>
 import {computed, ref, onBeforeUnmount, onMounted, watch} from 'vue'
 import {useStorage} from '@vueuse/core'
+import DOMPurify from 'dompurify'
 import api from '@/composables/useApi'
 import {useI18n} from '@/composables/useI18n'
 import {useAuthStore} from '@/stores/auth'
@@ -12,8 +13,22 @@ const {t, locale} = useI18n()
 const auth = useAuthStore()
 const portfolio = usePortfolioStore()
 const watchlist = useWatchlistStore()
-const {splitTickers} = useTickerLinkify()
+const {knownTickers} = useTickerLinkify()
 const canRefreshSummary = computed(() => !auth.isRegularUser)
+
+function safeHtml(text) {
+  if (!text) return ''
+  const clean = DOMPurify.sanitize(text, {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'b', 'i', 'ul', 'ol', 'li', 'span'],
+    ALLOWED_ATTR: [],
+  })
+  if (!knownTickers.value.size) return clean
+  return clean.replace(/<strong>(\^?[A-Z0-9]{1,8}(?:[.-][A-Z0-9]{1,5})?)<\/strong>/g, (_, ticker) => {
+    const known = knownTickers.value.get(ticker.toUpperCase())
+    if (!known) return `<strong>${ticker}</strong>`
+    return `<strong><a class="summary-ticker-link" href="/position/${encodeURIComponent(known)}">${ticker}</a></strong>`
+  })
+}
 
 const summary = ref('')
 const generatedAt = ref(null)
@@ -107,12 +122,7 @@ watch(locale, () => load())
     </div>
 
     <template v-else>
-      <p class="summary-text">
-        <template v-for="(seg, si) in splitTickers(summary)" :key="si">
-          <RouterLink v-if="seg.ticker" :to="`/position/${encodeURIComponent(seg.ticker)}`" class="summary-ticker-link">{{ seg.label }}</RouterLink>
-          <template v-else>{{ seg.text }}</template>
-        </template>
-      </p>
+      <div class="summary-text summary-html" v-html="safeHtml(summary)" />
       <span v-if="generatedAt" class="summary-time">{{ t('dailySummary.updatedAt', {time: formatTime(generatedAt)}) }}</span>
     </template>
   </section>
@@ -193,13 +203,31 @@ watch(locale, () => load())
   line-height: 1.6;
 }
 
-.summary-ticker-link {
+.summary-html :deep(ul) {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.summary-html :deep(li) {
+  line-height: 1.55;
+}
+
+.summary-html :deep(p) {
+  margin: 0;
+}
+
+.summary-ticker-link,
+.summary-html :deep(.summary-ticker-link) {
   color: var(--neon-blue);
   text-decoration: none;
   border-bottom: 1px solid rgba(0, 207, 255, 0.4);
 }
 
-.summary-ticker-link:hover {
+.summary-ticker-link:hover,
+.summary-html :deep(.summary-ticker-link:hover) {
   border-bottom-color: var(--neon-blue);
 }
 
