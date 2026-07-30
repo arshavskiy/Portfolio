@@ -68,8 +68,8 @@ export const messages = {
       week52Low: "52W Low",
       afterHours: "After hours",
       preMarket: "Pre-market",
-      afterHoursLastSeen: "After hours (last seen)",
-      preMarketLastSeen: "Pre-market (last seen)",
+      afterHoursLastSeen: "After hours",
+      preMarketLastSeen: "Pre-market",
     },
     nav: {
       transactions: "Transactions",
@@ -179,7 +179,8 @@ export const messages = {
     },
     trialWelcome: {
       title: "Welcome — Pro is on us for 24 hours",
-      subtitle: "Your account starts with full Pro access for one day, so you can try everything before deciding. After that you'll continue on the free plan.",
+      subtitle:
+        "Your account starts with full Pro access for one day, so you can try everything before deciding. After that you'll continue on the free plan.",
       premiumGroupTitle: "Included in your Pro trial",
       regularGroupTitle: "Also available on the free plan",
       gotIt: "Got it",
@@ -402,14 +403,15 @@ export const messages = {
       insiderTooltip: "{direction}: {shares} shares net, trailing 3 months",
       insiderTooltipPct:
         "{direction}: {shares} shares net ({pct} of market cap), trailing 3 months",
-      netMarginTooltip: "Net margin (latest fiscal year): {pct} — net income as a % of revenue, from SEC filings",
+      netMarginTooltip:
+        "Net margin (latest fiscal year): {pct} — net income as a % of revenue, from SEC filings",
       noWatchlistItems: "No watchlist items",
       marketOpenLive: "Market open — live price",
       preMarket: "Pre-market",
       afterHours: "After-hours",
       marketClosedLastClose: "Market closed — last close price",
-      afterHoursLastSeen: "After hours (last seen)",
-      preMarketLastSeen: "Pre-market (last seen)",
+      afterHoursLastSeen: "After hours",
+      preMarketLastSeen: "Pre-market",
     },
     importModal: {
       importHoldings: "Import Holdings",
@@ -868,7 +870,8 @@ export const messages = {
     },
     xray: {
       title: "Portfolio X-Ray",
-      subtitle: "Portfolio-level risk rules combined with ticker insight and analyst signals.",
+      subtitle:
+        "Portfolio-level risk rules combined with ticker insight and analyst signals.",
       scanning: "Scanning portfolio...",
       loadFailed: "Could not load Portfolio X-Ray",
       risk: "Risk",
@@ -880,7 +883,8 @@ export const messages = {
       topCurrency: "Top Currency",
       topMarket: "Top Market",
       summary: "Summary",
-      summarySubtitle: "Activity, performance, assets, and income tracked by Portfolio X-Ray.",
+      summarySubtitle:
+        "Activity, performance, assets, and income tracked by Portfolio X-Ray.",
       holdingsCount: "{n} holdings",
       annualDividendIncome: "Annual Dividend Income",
       yieldOnPortfolio: "Yield On Portfolio",
@@ -908,7 +912,8 @@ export const messages = {
       dividendReceived: "Dividend Received",
       alsoDrives: "Also drives:",
       tickerSignalsTitle: "Ticker Signals",
-      tickerSignalsSubtitle: "Insight, analyst, valuation, and allocation context per holding.",
+      tickerSignalsSubtitle:
+        "Insight, analyst, valuation, and allocation context per holding.",
       checkedCount: "{n} checked",
       colTicker: "Ticker",
       colStatus: "Status",
@@ -935,7 +940,8 @@ export const messages = {
       noActivityYet: "No activity yet",
       articlesModalTitle: "titles",
       noArticlesFound: "No titles found for {ticker}",
-      noArticlesHint: "The title count comes from a daily summary that may reference titles no longer in the archive.",
+      noArticlesHint:
+        "The title count comes from a daily summary that may reference titles no longer in the archive.",
       articlesLoadFailed: "Could not load titles",
     },
     newsPage: {
@@ -1121,7 +1127,8 @@ export const messages = {
       subtitle:
         "Portfolio questions, risk checks, and ticker context in one AI workspace.",
       assistantChatTitle: "Portfolio Assistant",
-      assistantChatSubtitle: "Ask about holdings, fees, risk, dividends, and next moves.",
+      assistantChatSubtitle:
+        "Ask about holdings, fees, risk, dividends, and next moves.",
       assistantStats: {
         positions: "Positions",
         value: "Portfolio Value",
@@ -1381,7 +1388,8 @@ export const messages = {
     },
     trialWelcome: {
       title: "Добро пожаловать — Pro бесплатно на 24 часа",
-      subtitle: "Ваш аккаунт начинается с полного доступа Pro на одни сутки, чтобы вы могли попробовать все возможности перед решением. После этого вы продолжите на бесплатном плане.",
+      subtitle:
+        "Ваш аккаунт начинается с полного доступа Pro на одни сутки, чтобы вы могли попробовать все возможности перед решением. После этого вы продолжите на бесплатном плане.",
       premiumGroupTitle: "Включено в пробный период Pro",
       regularGroupTitle: "Также доступно на бесплатном плане",
       gotIt: "Понятно",
@@ -1607,14 +1615,15 @@ export const messages = {
       insiderTooltip: "{direction}: {shares} акций нетто за 3 месяца",
       insiderTooltipPct:
         "{direction}: {shares} акций нетто ({pct} от капитализации) за 3 месяца",
-      netMarginTooltip: "Чистая маржа (последний фискальный год): {pct} — чистая прибыль в % от выручки, по данным SEC",
+      netMarginTooltip:
+        "Чистая маржа (последний фискальный год): {pct} — чистая прибыль в % от выручки, по данным SEC",
       noWatchlistItems: "В списке наблюдения пока нет активов",
       marketOpenLive: "Рынок открыт — цена в реальном времени",
       preMarket: "Премаркет",
       afterHours: "После закрытия",
       marketClosedLastClose: "Рынок закрыт — цена последнего закрытия",
-      afterHoursLastSeen: "После закрытия (последнее значение)",
-      preMarketLastSeen: "Премаркет (последнее значение)",
+      afterHoursLastSeen: "После закрытия",
+      preMarketLastSeen: "Премаркет",
     },
     importModal: {
       importHoldings: "Импорт позиций",
@@ -2073,7 +2082,8 @@ export const messages = {
     },
     xray: {
       title: "Портфель: рентген",
-      subtitle: "Риск-правила по портфелю в сочетании с новостными сигналами и аналитикой по тикерам.",
+      subtitle:
+        "Риск-правила по портфелю в сочетании с новостными сигналами и аналитикой по тикерам.",
       scanning: "Сканирование портфеля...",
       loadFailed: "Не удалось загрузить Portfolio X-Ray",
       risk: "Риск",
@@ -2085,7 +2095,8 @@ export const messages = {
       topCurrency: "Основная валюта",
       topMarket: "Основной рынок",
       summary: "Сводка",
-      summarySubtitle: "Активность, доходность, активы и доход, отслеживаемые Portfolio X-Ray.",
+      summarySubtitle:
+        "Активность, доходность, активы и доход, отслеживаемые Portfolio X-Ray.",
       holdingsCount: "{n} позиций",
       annualDividendIncome: "Годовой дивидендный доход",
       yieldOnPortfolio: "Доходность портфеля",
@@ -2113,7 +2124,8 @@ export const messages = {
       dividendReceived: "Получено дивидендов",
       alsoDrives: "Также влияет на:",
       tickerSignalsTitle: "Сигналы по тикерам",
-      tickerSignalsSubtitle: "Инсайты, аналитика, оценка и доля в портфеле по каждой позиции.",
+      tickerSignalsSubtitle:
+        "Инсайты, аналитика, оценка и доля в портфеле по каждой позиции.",
       checkedCount: "проверено: {n}",
       colTicker: "Тикер",
       colStatus: "Статус",
@@ -2140,7 +2152,8 @@ export const messages = {
       noActivityYet: "Пока нет активности",
       articlesModalTitle: "статьи",
       noArticlesFound: "Статьи по тикеру {ticker} не найдены",
-      noArticlesHint: "Счетчик статей берется из дневной сводки и может ссылаться на статьи, которых уже нет в архиве.",
+      noArticlesHint:
+        "Счетчик статей берется из дневной сводки и может ссылаться на статьи, которых уже нет в архиве.",
       articlesLoadFailed: "Не удалось загрузить статьи",
     },
     newsPage: {
