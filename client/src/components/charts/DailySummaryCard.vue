@@ -202,6 +202,7 @@ watch(locale, () => load())
   color: var(--text-primary);
   font-size: 0.88rem;
   line-height: 1.6;
+  font-family: 'Literata', Georgia, serif;
 }
 
 .summary-html :deep(ul) {
