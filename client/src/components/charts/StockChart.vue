@@ -798,8 +798,9 @@ function draw() {
         .attr('fill', '#0f172a')
         .attr('stroke', stroke)
         .attr('stroke-width', 2)
-      const labelText = `${isBuy ? 'Buy' : 'Sell'} · ${txDateFmt(new Date(tx.date))}`
-      const pillW = labelText.length * 6 + 10
+      const priceStr = tx.price != null ? ` · $${tx.price}` : ''
+      const labelText = `${isBuy ? 'Buy' : 'Sell'} · ${txDateFmt(new Date(tx.date))}${priceStr}`
+      const pillW = labelText.length * 6
       const pillH = 14
       const pillX = cx - pillW / 2
       const pillY = labelUp ? cy - 10 - pillH : cy + 6
@@ -807,14 +808,14 @@ function draw() {
         .attr('x', pillX).attr('y', pillY)
         .attr('width', pillW).attr('height', pillH)
         .attr('rx', 4).attr('ry', 4)
-        .attr('fill', stroke)
+        .attr('fill', '#ffffff').attr('stroke', '#000000').attr('stroke-width', 1)
       marker.append('text')
         .attr('x', cx)
         .attr('y', pillY + pillH - 3)
         .attr('text-anchor', 'middle')
         .attr('font-size', '10px')
         .attr('font-weight', '700')
-        .attr('fill', '#0f172a')
+        .attr('fill', '#000000')
         .text(labelText)
       marker.append('title')
         .text(
