@@ -426,7 +426,7 @@ function handleChartSelection(points) {
             }})
           </p>
           <div v-if="extendedHours" class="extended-row">
-            <span class="extended-price">
+            <span class="extended-price" :class="extendedHours.label.startsWith('Pre') ? 'gold' : 'purple'">
               {{ useTickerCurrency(extendedHours.price, ticker) }}
               <span
                 v-if="extendedHours.shekelPrice != null"
@@ -658,7 +658,11 @@ function handleChartSelection(points) {
 .extended-price {
   font-size: 1.65rem;
   font-weight: 700;
-  color: #f59e0b;
+  color: var(--purple);
+}
+
+.extended-price.gold {
+  color: var(--gold);
 }
 
 .extended-ils {

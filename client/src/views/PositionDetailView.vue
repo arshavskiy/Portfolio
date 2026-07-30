@@ -1408,7 +1408,7 @@ async function toggleWatchlist() {
               }}</span>
             </p>
             <div v-if="extendedHours" class="extended-row">
-              <span class="extended-price">
+              <span class="extended-price" :class="extendedHours.label === t('common.preMarket') ? 'gold' : 'purple'">
                 {{ useTickerCurrency(extendedHours.price, ticker) }}
                 <span
                   v-if="extendedHours.shekelPrice != null"
@@ -2645,7 +2645,11 @@ async function toggleWatchlist() {
 .extended-price {
   font-size: 1.65rem;
   font-weight: 700;
-  color: #f59e0b;
+  color: var(--purple);
+}
+
+.extended-price.gold {
+  color: var(--gold);
 }
 
 .extended-ils {
