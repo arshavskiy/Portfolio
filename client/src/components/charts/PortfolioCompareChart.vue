@@ -127,60 +127,25 @@ function draw() {
   svg.selectAll('*').remove()
 
   const W = wrapRef.value.clientWidth || 320
-  const H = 180
-  const margin = {top: 8, right: 8, bottom: 28, left: 40}
-  const innerW = Math.max(W - margin.left - margin.right, 40)
-  const innerH = Math.max(H - margin.top - margin.bottom, 40)
+  const H = 160
   svg.attr('width', W).attr('height', H)
-  svg.attr('viewBox', `0 0 ${W} ${H}`)
-
-  const chart = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
   const allPoints = normalized.value.flatMap((s) => s.points)
-  // Use actual dates for x, not array index — different tickers (e.g. crypto
-  // trading 7 days/week vs. equities) don't have the same point count, so
-  // indexing by position misaligns/squishes shorter series and makes lines
-  // look like they're running backwards.
   const x = d3.scaleTime()
       .domain(d3.extent(allPoints, (d) => new Date(d.date)))
-      .range([0, innerW])
+      .range([0, W])
   const yMin = d3.min(allPoints, (d) => d.pct)
   const yMax = d3.max(allPoints, (d) => d.pct)
   const yPad = (yMax - yMin) * 0.1 || 1
-  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([innerH, 0]).nice(4)
+  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([H - 4, 4])
 
-  const yTicks = y.ticks(4)
-  chart.selectAll('.y-grid')
-      .data(yTicks)
-      .enter()
-      .append('line')
-      .attr('x1', 0)
-      .attr('x2', innerW)
-      .attr('y1', (d) => y(d))
-      .attr('y2', (d) => y(d))
-      .attr('stroke', '#e9e2dd')
-      .attr('stroke-width', 1)
-
-  chart.selectAll('.y-label')
-      .data(yTicks)
-      .enter()
-      .append('text')
-      .attr('x', -10)
-      .attr('y', (d) => y(d))
-      .attr('dy', '0.32em')
-      .attr('text-anchor', 'end')
-      .attr('fill', '#a0958d')
-      .attr('font-size', 10)
-      .text((d) => `${d > 0 ? '+' : ''}${d3.format('~f')(d)}%`)
-
-  // Zero baseline (the "start of range" reference)
-  chart.append('line')
-      .attr('x1', 0).attr('x2', innerW)
+  svg.append('line')
+      .attr('x1', 0).attr('x2', W)
       .attr('y1', y(0)).attr('y2', y(0))
-      .attr('stroke', '#64748b')
+      .attr('stroke', '#c9c4be')
       .attr('stroke-width', 1)
       .attr('stroke-dasharray', '3 3')
-      .attr('opacity', 0.5)
+      .attr('opacity', 0.8)
 
   const line = d3.line()
       .x((d) => x(new Date(d.date)))
@@ -188,7 +153,7 @@ function draw() {
       .curve(d3.curveMonotoneX)
 
   normalized.value.forEach((s) => {
-    const path = chart.append('path')
+    const path = svg.append('path')
         .datum(s.points)
         .attr('fill', 'none')
         .attr('stroke', s.color)
@@ -200,19 +165,6 @@ function draw() {
       path.style('cursor', 'pointer').on('click', () => openPosition(s.ticker))
     }
   })
-
-  const axisTickCount = Math.min(8, Math.max(4, Math.floor(W / 90)))
-  const xTicks = x.ticks(axisTickCount)
-  chart.selectAll('.x-label')
-      .data(xTicks)
-      .enter()
-      .append('text')
-      .attr('x', (d) => x(d))
-      .attr('y', innerH + 20)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#a0958d')
-      .attr('font-size', 10)
-      .text((d) => d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}))
 }
 
 let ro
@@ -331,14 +283,18 @@ watch(series, () => nextTick(draw), {deep: true})
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: rgba(255, 255, 255, 0.03);
+  background: #fbfaf8;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px 10px;
+  border-radius: 10px;
+  padding: 6px 10px;
   cursor: pointer;
   font: inherit;
   color: inherit;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.legend-item:hover {
+  background: #fff;
 }
 
 .legend-item:active {
@@ -354,8 +310,8 @@ watch(series, () => nextTick(draw), {deep: true})
 
 .legend-name {
   font-size: 0.72rem;
-  font-weight: 700;
-  max-width: 130px;
+  font-weight: 500;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -365,11 +321,13 @@ watch(series, () => nextTick(draw), {deep: true})
   font-size: 0.7rem;
   font-weight: 700;
   flex-shrink: 0;
+  color: var(--text-secondary);
 }
 
 .legend-pct {
   font-size: 0.78rem;
   font-weight: 600;
+  margin-left: auto;
 }
 
 .legend-pct.up {
@@ -385,7 +343,7 @@ watch(series, () => nextTick(draw), {deep: true})
 }
 
 .bench-item.bench-off {
-  opacity: 0.45;
+  opacity: 0.65;
 }
 
 .bench-dot {

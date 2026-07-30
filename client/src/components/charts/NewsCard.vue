@@ -1,69 +1,92 @@
 <script setup>
-import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
-import {useStorage} from '@vueuse/core'
-import {useRouter} from 'vue-router'
-import {DEFAULT_NEWS_TOPICS, useNewsStore} from '@/stores/news'
-import {useI18n} from '@/composables/useI18n'
-import NewsArticleCard from '@/components/charts/NewsArticleCard.vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+import { useStorage } from "@vueuse/core";
+import { useRouter } from "vue-router";
+import { DEFAULT_NEWS_TOPICS, useNewsStore } from "@/stores/news";
+import { useI18n } from "@/composables/useI18n";
+import NewsArticleCard from "@/components/charts/NewsArticleCard.vue";
 
-const router = useRouter()
-const news = useNewsStore()
-const {t} = useI18n()
-const topic = useStorage('desktop-news-topic', 'for-you')
-const scrollRef = ref(null)
-const FEED_LIMIT = 4
-const articles = computed(() => news.getFeed(topic.value))
-const loading = computed(() => news.isLoading(topic.value) && !articles.value.length)
-const loadingMore = computed(() => news.isLoadingMore(topic.value))
-const hasMore = computed(() => news.hasMore(topic.value))
-const topics = computed(() => news.topics?.length ? news.topics : DEFAULT_NEWS_TOPICS)
+const router = useRouter();
+const news = useNewsStore();
+const { t } = useI18n();
+const topic = useStorage("desktop-news-topic", "for-you");
+const scrollRef = ref(null);
+const FEED_LIMIT = 3;
+const articles = computed(() => news.getFeed(topic.value));
+const loading = computed(
+  () => news.isLoading(topic.value) && !articles.value.length,
+);
+const loadingMore = computed(() => news.isLoadingMore(topic.value));
+const hasMore = computed(() => news.hasMore(topic.value));
+const topics = computed(() =>
+  news.topics?.length ? news.topics : DEFAULT_NEWS_TOPICS,
+);
 
 function openArticle(article) {
-  if (!article?.url) return
-  window.open(article.url, '_blank', 'noopener,noreferrer')
+  if (!article?.url) return;
+  window.open(article.url, "_blank", "noopener,noreferrer");
 }
 
 function setTopic(value) {
-  if (value === topic.value) return
-  topic.value = value
+  if (value === topic.value) return;
+  topic.value = value;
 }
 
-async function loadFeed({reset = false} = {}) {
-  await news.fetchFeed(topic.value, {reset, limit: FEED_LIMIT})
+async function loadFeed({ reset = false } = {}) {
+  await news.fetchFeed(topic.value, { reset, limit: FEED_LIMIT });
 }
 
 async function handleScroll() {
-  const el = scrollRef.value
-  if (!el || loadingMore.value || loading.value || !hasMore.value) return
-  const remaining = el.scrollHeight - el.scrollTop - el.clientHeight
-  if (remaining > 80) return
-  await loadFeed()
+  const el = scrollRef.value;
+  if (!el || loadingMore.value || loading.value || !hasMore.value) return;
+  const remaining = el.scrollHeight - el.scrollTop - el.clientHeight;
+  if (remaining > 80) return;
+  await loadFeed();
+}
+
+async function loadMore() {
+  if (loading.value || loadingMore.value || !hasMore.value) return;
+  await loadFeed();
 }
 
 onMounted(() => {
-  loadFeed({reset: true}).then(() => nextTick(handleScroll)).catch(() => {})
-})
+  loadFeed({ reset: true })
+    .then(() => nextTick(handleScroll))
+    .catch(() => {});
+});
 
 watch(topic, (value) => {
-  loadFeed({reset: true}).then(() => nextTick(() => {
-    if (scrollRef.value) scrollRef.value.scrollTop = 0
-    handleScroll()
-  })).catch(() => {})
-})
+  loadFeed({ reset: true })
+    .then(() =>
+      nextTick(() => {
+        if (scrollRef.value) scrollRef.value.scrollTop = 0;
+        handleScroll();
+      }),
+    )
+    .catch(() => {});
+});
 
 onBeforeUnmount(() => {
-  if (scrollRef.value) scrollRef.value.onscroll = null
-})
+  if (scrollRef.value) scrollRef.value.onscroll = null;
+});
 </script>
 
 <template>
   <section v-if="loading || articles.length" class="news-card">
     <div class="news-head">
       <div class="news-title-wrap">
-        <h2 class="card-title"><i class="pi pi-globe"/> News</h2>
-        <span class="news-subtitle">For You feed</span>
+        <h2 class="card-title"><i class="pi pi-globe" /> News</h2>
       </div>
-      <button class="view-all" @click="router.push('/news')">{{ t('dashboard.viewAll') }}</button>
+      <button class="view-all" @click="router.push('/news')">
+        {{ t("dashboard.viewAll") }}
+      </button>
     </div>
 
     <div class="topic-strip">
@@ -71,7 +94,7 @@ onBeforeUnmount(() => {
         v-for="item in topics"
         :key="item.value"
         class="topic-chip"
-        :class="{active: topic === item.value}"
+        :class="{ active: topic === item.value }"
         type="button"
         @click="setTopic(item.value)"
       >
@@ -99,6 +122,15 @@ onBeforeUnmount(() => {
       </div>
       <div v-if="loadingMore" class="news-loading-more">Loading more...</div>
     </div>
+    <!-- <div v-if="!loading && articles.length" class="news-load-more">
+      <button
+        :disabled="!hasMore || loadingMore"
+        type="button"
+        @click="loadMore"
+      >
+        {{ hasMore ? "Load more" : "No more news" }}
+      </button>
+    </div> -->
   </section>
 </template>
 
@@ -202,8 +234,23 @@ onBeforeUnmount(() => {
 }
 
 .news-feed {
-  max-height: 360px;
+  max-height: 130px;
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
+}
+
+.news-feed::-webkit-scrollbar {
+  width: 6px;
+}
+
+.news-feed::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.news-feed::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
 }
 
 .news-loading-more {
@@ -213,15 +260,33 @@ onBeforeUnmount(() => {
   text-align: center;
 }
 
-.skeleton {
-  height: 180px;
-  background: #f4efea;
-  border-top: 1px solid #ece4dd;
+.news-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 0.15rem 1rem 1rem;
 }
 
-@media (min-width: 720px) {
-  .news-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.news-load-more button {
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text-primary);
+  padding: 0 0.9rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.news-load-more button:disabled {
+  color: var(--text-secondary);
+  background: #faf7f4;
+  cursor: default;
+}
+
+.skeleton {
+  height: 50px;
+  background: #f4efea;
+  border-top: 1px solid #ece4dd;
 }
 </style>

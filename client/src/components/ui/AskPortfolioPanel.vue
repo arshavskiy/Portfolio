@@ -247,6 +247,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
 }
 
 .ask-panel-body {
@@ -254,6 +255,7 @@ onMounted(() => {
   flex-direction: column;
   gap: 0.75rem;
   min-height: 0;
+  height: 100%;
 }
 
 .ask-body-top {
@@ -354,13 +356,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
-  min-height: 340px;
-  max-height: 64vh;
+  min-height: 300px;
+  flex: 1;
   overflow-y: auto;
-  border-radius: 14px;
+  border-radius: 16px;
   background: transparent;
-  border: 0;
-  padding: 0.85rem 0.75rem;
+  border: 1px solid rgba(232, 226, 222, 0.85);
+  padding: 0.9rem 0.8rem;
   scroll-behavior: smooth;
   box-shadow: none;
   scrollbar-width: thin;
@@ -387,37 +389,39 @@ onMounted(() => {
   justify-content: center;
   gap: 0.45rem;
   min-height: 300px;
-  border: 0;
-  border-radius: 14px;
-  padding: 1rem;
+  flex: 1;
+  border: 1px solid rgba(232, 226, 222, 0.85);
+  border-radius: 16px;
+  padding: 1.4rem 1rem;
   text-align: center;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .ask-empty i {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
-  border: 0;
-  border-radius: 8px;
-  color: var(--neon-blue);
-  background: transparent;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(232, 226, 222, 0.95);
+  border-radius: 12px;
+  color: #a08f84;
+  background: #fff;
   font-size: 1rem;
 }
 
 .ask-empty p {
   margin: 0;
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.95rem;
+  font-weight: 750;
+  color: #2f2a27;
 }
 
 .ask-empty span,
 .ask-footnote {
   color: var(--text-secondary);
-  font-size: 0.75rem;
-  line-height: 1.4;
+  font-size: 0.77rem;
+  line-height: 1.45;
 }
 
 .ask-prompts {
@@ -630,17 +634,17 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 0;
-  border-radius: 14px;
-  background: transparent;
-  padding: 0.4rem;
+  border: 1px solid rgba(232, 226, 222, 0.92);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  padding: 0.45rem;
 }
 
 .ask-form input {
   flex: 1;
   min-width: 0;
   min-height: 42px;
-  border: 1px solid var(--border);
+  border: 0;
   border-radius: 10px;
   padding: 0 0.8rem;
   color: var(--text-primary);
@@ -650,7 +654,6 @@ onMounted(() => {
 }
 
 .ask-form input:focus {
-  border-color: var(--neon-blue);
   box-shadow: none;
 }
 
@@ -662,10 +665,10 @@ onMounted(() => {
   min-height: 42px;
   width: 42px;
   flex-shrink: 0;
-  border: 0;
+  border: 1px solid rgba(232, 226, 222, 0.92);
   border-radius: 10px;
-  color: var(--neon-blue);
-  background: transparent;
+  color: #6f635b;
+  background: #fff;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;

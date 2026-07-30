@@ -29,6 +29,9 @@ const isDashboard = computed(() => route.path === '/')
 const PANEL_ROUTES = ['/watchlist']
 const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)))
 
+const accountLabel = computed(() => auth.user?.name || auth.user?.email || 'Account')
+const accountInitial = computed(() => (accountLabel.value || 'A').trim().charAt(0).toUpperCase())
+
 const navItems = computed(() => [
   {key: 'dashboard', name: 'Home', to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
   {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
@@ -64,13 +67,20 @@ function toggleDetailPanel() {
     <nav class="sidebar" :class="{collapsed: menuCollapsed}">
       <div class="sidebar-brand">
         <button
-          v-tooltip.right="'Account'"
-          class="brand-mark brand-account"
+          v-tooltip.right="menuCollapsed ? 'Account' : null"
+          class="brand-account"
           data-tour="nav-account"
           type="button"
           @click="openAccount"
         >
-          <i class="pi pi-user"/>
+          <span class="account-avatar">
+            <span v-if="!menuCollapsed">{{ accountInitial }}</span>
+            <i v-else class="pi pi-user"/>
+          </span>
+          <span v-if="!menuCollapsed" class="account-copy">
+            <strong>{{ accountLabel }}</strong>
+            <small>Account</small>
+          </span>
         </button>
       </div>
       <div class="sidebar-language">
@@ -84,7 +94,7 @@ function toggleDetailPanel() {
             :class="{active: isActive(item)}"
             :data-tour="`nav-${item.tourKey}`"
             class="sidebar-item"
-            v-tooltip.right="item.name"
+            v-tooltip.right="menuCollapsed ? item.name : null"
             @click="trackNav(item)"
         >
           <i :class="item.icon"/>
@@ -187,37 +197,86 @@ function toggleDetailPanel() {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0 0 0.7rem;
+  padding: 0 0.45rem 0.7rem;
   margin-bottom: 0.35rem;
 }
 
 .sidebar.collapsed .sidebar-brand {
-  justify-content: center;
-}
-
-.brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid #efe7e2;
-  border-radius: 999px;
-  background: #fff;
-  color: #a59a92;
-  font-size: 0.86rem;
-  font-weight: 750;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.035);
+  padding-inline: 0;
 }
 
 .brand-account {
-  border: 1px solid #e8e2de;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  min-height: 42px;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid #ece4de;
+  border-radius: 12px;
+  background: #fff;
+  color: #3d3733;
   cursor: pointer;
-  flex-shrink: 0;
+  text-align: left;
+  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.04);
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.brand-account i {
-  font-size: 0.82rem;
+.brand-account:hover {
+  border-color: #ddd1ca;
+  background: #fffdfb;
+}
+
+.sidebar.collapsed .brand-account {
+  width: 36px;
+  min-height: 36px;
+  justify-content: center;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.account-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: #f7efe9;
+  color: #8b7366;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.account-avatar i {
+  font-size: 0.8rem;
+}
+
+.account-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.06rem;
+}
+
+.account-copy strong,
+.account-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-copy strong {
+  font-size: 0.83rem;
+  font-weight: 700;
+}
+
+.account-copy small {
+  color: #8e857d;
+  font-size: 0.69rem;
+  font-weight: 600;
 }
 
 .sidebar-nav {

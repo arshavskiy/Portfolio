@@ -7,6 +7,7 @@ import Select from "primevue/select";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useAuthStore } from "@/stores/auth";
 import { useDesktopFocusStore } from "@/stores/desktopFocus";
+import { useAiChatStore } from "@/stores/aiChat";
 import AskPortfolioPanel from "@/components/ui/AskPortfolioPanel.vue";
 import AppLoader from "@/components/ui/AppLoader.vue";
 import {
@@ -45,6 +46,7 @@ const DividendCalendarCard = defineAsyncComponent(
 const emit = defineEmits(["open-account"]);
 const dashboard = useDashboardStore();
 const auth = useAuthStore();
+const aiChat = useAiChatStore();
 const router = useRouter();
 const desktopFocus = useDesktopFocusStore();
 const { t } = useI18n();
@@ -63,6 +65,7 @@ const {
   historyLoading,
   historyRange,
 } = storeToRefs(dashboard);
+const { messages: advisorMessages } = storeToRefs(aiChat);
 
 const HISTORY_RANGES = [
   { label: "1D", value: "1d" },
@@ -256,6 +259,7 @@ onUnmounted(() => {
                       :model-value="historyRange"
                       :options="historyRangeOptions"
                       class="period-select"
+                      overlay-class="period-select-panel"
                       option-label="label"
                       option-value="value"
                       size="small"
@@ -274,7 +278,6 @@ onUnmounted(() => {
 
               <PortfolioCompareChart
                 v-if="portfolioPositions.length"
-                class="folio-card compare-card"
                 :positions="portfolioPositions"
                 :range="historyRange"
               />
@@ -368,6 +371,13 @@ onUnmounted(() => {
           <span>Portfolio advisor</span>
         </div>
       </div>
+      <div v-if="!advisorMessages.length" class="advisor-hero">
+        <span class="advisor-hero-mark">
+          <i class="pi pi-comments" />
+        </span>
+        <strong>Folio advisor</strong>
+        <p>Ask about risk, concentration, rebalancing, and what moved today.</p>
+      </div>
       <AskPortfolioPanel class="advisor-panel" />
       <div class="suggestions">
         <span>Suggestions</span>
@@ -382,7 +392,7 @@ onUnmounted(() => {
 <style scoped>
 .desktop-home {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 25vw;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 30vw);
   height: 100%;
   overflow: hidden;
   background: #fbfaf8;
@@ -628,36 +638,51 @@ onUnmounted(() => {
 }
 
 .period-select {
-  position: relative;
   display: inline-flex;
   align-items: center;
   min-height: 34px;
-  padding: 0 1.9rem 0 0.8rem;
   border: 1px solid #e4ded9;
   border-radius: 9px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(40, 34, 28, 0.04);
 }
 
-.period-select select {
-  appearance: none;
-  border: 0;
-  background: transparent;
+.period-select :deep(.p-select-label) {
+  padding: 0.48rem 0 0.48rem 0.8rem;
   color: #393633;
-  font: inherit;
   font-size: 0.78rem;
   font-weight: 700;
-  outline: none;
-  cursor: pointer;
-  padding-right: 0.1rem;
+  line-height: 1.1;
 }
 
-.period-select i {
-  position: absolute;
-  right: 0.75rem;
-  font-size: 0.72rem;
+.period-select :deep(.p-select-dropdown) {
+  width: 1.9rem;
   color: #817870;
-  pointer-events: none;
+}
+
+.period-select :deep(.p-select-dropdown-icon) {
+  font-size: 0.72rem;
+}
+
+:deep(.p-select-overlay.period-select-panel) {
+  padding: 0.25rem;
+  border: 1px solid #e4ded9;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(40, 34, 28, 0.08);
+}
+
+:deep(.period-select-panel .p-select-list) {
+  gap: 0.1rem;
+}
+
+:deep(.period-select-panel .p-select-option) {
+  min-height: 36px;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  color: #817870;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .allocation-card {
@@ -758,11 +783,6 @@ button.records-row:hover {
   white-space: nowrap;
 }
 
-.compare-card {
-  padding: 1rem;
-  margin-bottom: 0.9rem;
-}
-
 .advisor-rail {
   display: flex;
   flex-direction: column;
@@ -794,7 +814,7 @@ button.records-row:hover {
 .advisor-head {
   justify-content: space-between;
   gap: 1rem;
-  padding-bottom: 0.8rem;
+  padding-bottom: 0.65rem;
   flex-shrink: 0;
 }
 
@@ -824,6 +844,47 @@ button.records-row:hover {
   min-height: 0;
   flex: 1;
   overflow: hidden;
+}
+
+.advisor-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1rem 0.95rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.advisor-hero-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid #ece3de;
+  color: #a08f84;
+  box-shadow: 0 1px 2px rgba(40, 34, 28, 0.05);
+}
+
+.advisor-hero-mark i {
+  font-size: 1rem;
+}
+
+.advisor-hero strong {
+  font-size: 0.98rem;
+  font-weight: 750;
+  color: #2f2a27;
+}
+
+.advisor-hero p {
+  margin: 0;
+  max-width: 260px;
+  color: #8c837c;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .suggestions {

@@ -52,25 +52,6 @@ const legend = computed(() =>
     }))
 )
 
-// Movers strip: every holding with a known day change, sorted by magnitude
-// (biggest movers first) so stocks AND crypto both appear.
-const movers = computed(() => {
-  return props.positions
-      .map((p) => {
-        const change = p.change
-        const changePercent = p.changePercent
-        if (typeof changePercent !== 'number' || !Number.isFinite(changePercent)) return null
-        return {
-          ...p,
-          displayName: stockName(p),
-          apiChange: typeof change === 'number' && Number.isFinite(change) ? change : null,
-          apiChangePercent: changePercent,
-        }
-      })
-      .filter(Boolean)
-      .sort((a, b) => Math.abs(b.apiChangePercent) - Math.abs(a.apiChangePercent))
-})
-
 function draw() {
   if (!svgRef.value || !props.positions.length) return
   const svg = d3.select(svgRef.value)
@@ -143,27 +124,6 @@ watch(() => props.combinedUsd, () => nextTick(draw))
         </div>
       </div>
     </div>
-
-    <!-- Movers strip -->
-    <template v-if="movers.length">
-      <div class="divider"/>
-      <div class="movers-strip">
-        <span class="movers-label text-muted">{{ t('dashboard.today') }}</span>
-        <div class="movers-items">
-          <button
-              v-for="m in movers"
-              :key="m.ticker"
-              class="mover"
-              @click="openPosition(m.ticker)"
-          >
-            <span class="mover-name" :title="`${m.displayName} · ${m.ticker}`">{{ m.displayName }}</span>
-            <span :class="m.apiChangePercent >= 0 ? 'up' : 'down'" class="mover-pct">
-              {{ m.apiChangePercent >= 0 ? '+' : '' }}{{ m.apiChangePercent.toFixed(2) }}%
-            </span>
-          </button>
-        </div>
-      </div>
-    </template>
   </section>
 </template>
 
@@ -256,69 +216,4 @@ watch(() => props.combinedUsd, () => nextTick(draw))
 }
 
 /* Divider */
-.divider {
-  height: 1px;
-  background: var(--border);
-  margin: 0.85rem 0;
-}
-
-/* Movers strip */
-.movers-strip {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.movers-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  flex-shrink: 0;
-}
-
-.movers-items {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  flex: 1;
-}
-
-.mover {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: border-color 0.15s;
-}
-
-.mover:active {
-  border-color: var(--accent);
-}
-
-.mover-name {
-  font-size: 0.72rem;
-  font-weight: 700;
-  max-width: 110px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mover-pct {
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.mover-pct.up {
-  color: var(--neon-green);
-}
-
-.mover-pct.down {
-  color: var(--neon-red);
-}
 </style>
