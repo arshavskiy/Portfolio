@@ -14,7 +14,7 @@ const MODEL = 'gpt-4o-mini'
 const REGULAR_DAILY_LIMIT = 3
 const DAILY_TOKEN_LIMIT = 100000
 const QUESTION_MAX_LENGTH = 500
-const MAX_TOOL_ROUNDS = 4
+const MAX_TOOL_ROUNDS = 6
 // Prior chat turns replayed to the model so follow-ups keep context. Kept small
 // because the static portfolio context is resent every turn and counts against
 // the user's daily token quota.
@@ -168,15 +168,27 @@ async function buildPortfolioContext(userId) {
     const quotes = await getQuotes(allTickers)
     const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
 
+    const totalValueUsd = positions.reduce((sum, p) => {
+        const q = quoteMap[p.ticker] || {}
+        const fx = String(p.ticker).toUpperCase().endsWith('.TA') ? 1 : 1
+        return sum + (q.price || 0) * (p.shares || 0)
+    }, 0)
+
     const holdingsText = positions.length
         ? positions
             .map((p) => {
                 const q = quoteMap[p.ticker] || {}
                 const price = q.price ?? null
                 const changePercent = q.changePercent ?? null
-                return `${p.ticker} (${p.companyName || p.ticker}): ${p.shares} shares, avg cost ${p.avgCost?.toFixed(2)}, ` +
-                    `current price ${price ?? 'n/a'}, today ${changePercent != null ? changePercent.toFixed(2) + '%' : 'n/a'}, ` +
-                    `sector ${p.sector || 'unknown'}, dividend yield ${q.dividendYield ?? 'n/a'}`
+                const avgCost = p.avgCost ?? null
+                const pnlPct = price != null && avgCost > 0 ? ((price - avgCost) / avgCost * 100).toFixed(2) : null
+                const value = price != null ? (price * p.shares).toFixed(2) : null
+                const allocation = value != null && totalValueUsd > 0 ? ((price * p.shares / totalValueUsd) * 100).toFixed(1) : null
+                return `${p.ticker} (${p.companyName || p.ticker}): ${p.shares} sh @ avg ${avgCost?.toFixed(2)}, ` +
+                    `price ${price ?? 'n/a'}, today ${changePercent != null ? changePercent.toFixed(2) + '%' : 'n/a'}, ` +
+                    `P&L ${pnlPct != null ? pnlPct + '%' : 'n/a'}, value ${value ?? 'n/a'}, ` +
+                    `allocation ${allocation != null ? allocation + '%' : 'n/a'}, ` +
+                    `sector ${p.sector || 'unknown'}, div yield ${q.dividendYield ?? 'n/a'}`
             })
             .join('\n')
         : 'None.'
@@ -308,6 +320,14 @@ const TOOLS = [
                     range: {type: 'string', enum: ['1mo', '3mo', '6mo', '1y', 'max', 'all'], description: 'Lookback range for the daily TWR series. Defaults to all.'},
                 },
             },
+        },
+    },
+    {
+        type: 'function',
+        function: {
+            name: 'get_watchlist_movers',
+            description: 'Get today\'s price change % for every ticker on the watchlist (both holdings and watch-only). Use for "what moved most today", "top gainers/losers today", or any today-focused watchlist question.',
+            parameters: {type: 'object', properties: {}},
         },
     },
 ]
@@ -527,6 +547,28 @@ async function toolGetReturnMetrics(userId, args) {
     }
 }
 
+async function toolGetWatchlistMovers(userId) {
+    const [positions, watchlist] = await Promise.all([
+        Position.find({user: userId}).lean(),
+        Watchlist.find({user: userId}).lean(),
+    ])
+    const allTickers = [...new Set([...positions.map((p) => p.ticker), ...watchlist.map((w) => w.ticker)])]
+    if (!allTickers.length) return {movers: []}
+    const heldTickers = new Set(positions.map((p) => p.ticker))
+    const quotes = await getQuotes(allTickers)
+    const movers = quotes
+        .filter(Boolean)
+        .map((q) => ({
+            ticker: q.ticker,
+            held: heldTickers.has(q.ticker),
+            price: q.price ?? null,
+            changePercent: q.changePercent != null ? round(q.changePercent, 2) : null,
+            change: q.change != null ? round(q.change, 2) : null,
+        }))
+        .sort((a, b) => (b.changePercent ?? 0) - (a.changePercent ?? 0))
+    return {movers}
+}
+
 const TOOL_HANDLERS = {
     get_price_return: toolGetPriceReturn,
     get_transactions: toolGetTransactions,
@@ -535,6 +577,7 @@ const TOOL_HANDLERS = {
     get_portfolio_summary: toolGetPortfolioSummary,
     get_risk_exposure: toolGetRiskExposure,
     get_return_metrics: toolGetReturnMetrics,
+    get_watchlist_movers: toolGetWatchlistMovers,
 }
 
 async function runTool(userId, name, argsJson) {
@@ -589,16 +632,19 @@ async function askAboutPortfolio(userId, question) {
     const messages = [
         {
             role: 'system',
-            content: 'You are a portfolio analysis assistant inside a personal stock tracking app. ' +
-                'Answer questions about the user\'s holdings AND watchlist using the context provided plus the ' +
-                'tools available to you — call get_price_return for any "best/worst performer over X" or ' +
-                'historical-return question (it is NOT in the static context), get_transactions/get_realized_gains/' +
-                'get_dividend_summary for questions about trade history, gains, or dividends received, ' +
-                'get_portfolio_summary for current value/P&L/concentration, get_risk_exposure for sector/beta ' +
-                'questions, and get_return_metrics for IRR/TWR/performance questions. The static ' +
-                'context clearly separates stocks the user owns from stocks they are only watching; keep that ' +
-                'distinction clear in your answer. Be concise (3-5 sentences). You are not a licensed financial ' +
-                'advisor — do not give personalized investment recommendations; describe what the data shows instead.',
+            content: 'You are a sharp portfolio analysis assistant inside a personal stock tracking app. ' +
+                'Be analytical, specific, and cite the numbers. For multi-ticker comparisons use a markdown table or bullet list. ' +
+                'Tool usage rules — call the right tool proactively, never guess:\n' +
+                '• get_watchlist_movers → "what moved today", top gainers/losers today on any list\n' +
+                '• get_price_return → "best/worst over X period", historical return for any ticker (NOT in static context)\n' +
+                '• get_portfolio_summary → portfolio value, P&L, concentration, allocation overview\n' +
+                '• get_risk_exposure → sector breakdown, diversification, beta, stress test\n' +
+                '• get_return_metrics → IRR, TWR, money-weighted / time-weighted return quality\n' +
+                '• get_transactions → trade history, when bought/sold, number of trades\n' +
+                '• get_realized_gains → capital gains/losses from sells by year\n' +
+                '• get_dividend_summary → total dividends received per ticker\n' +
+                'The static context clearly labels stocks the user OWNS vs WATCHES — keep that distinction in every answer. ' +
+                'You are not a licensed financial advisor; describe what the data shows, do not give personalized buy/sell recommendations.',
         },
         {role: 'system', content: contextText + newsText},
         ...history,
@@ -614,7 +660,7 @@ async function askAboutPortfolio(userId, question) {
                 model: MODEL,
                 messages,
                 tools: TOOLS,
-                max_tokens: 400,
+                max_tokens: 700,
             })
             totalPromptTokens += completion.usage?.prompt_tokens ?? 0
             totalCompletionTokens += completion.usage?.completion_tokens ?? 0
