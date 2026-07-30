@@ -56,12 +56,13 @@ export const useNewsStore = defineStore('news', () => {
   }
 
   async function fetchPreview(topic = 'for-you', limit = 4, {force = false} = {}) {
-    if (!force && previewByTopic.value[topic]?.length) return previewByTopic.value[topic]
+    const cachedPreview = previewByTopic.value[topic] || []
+    if (!force && cachedPreview.length >= limit) return cachedPreview.slice(0, limit)
 
     loadingByTopic.value = {...loadingByTopic.value, [topic]: true}
     try {
       const data = await api.get(`/stocks/news?topic=${encodeURIComponent(topic)}&limit=${limit}${langParam()}`)
-      previewByTopic.value = {...previewByTopic.value, [topic]: data.articles || []}
+      previewByTopic.value = {...previewByTopic.value, [topic]: (data.articles || []).slice(0, limit)}
       if (data.topics?.length) topics.value = data.topics
       return previewByTopic.value[topic]
     } finally {

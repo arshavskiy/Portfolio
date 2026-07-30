@@ -10,6 +10,7 @@ import AppLoader from '@/components/ui/AppLoader.vue'
 const props = defineProps({
   positions: {type: Array, default: () => []},
   range: {type: String, default: '1mo'}, // dashboard history range (e.g. '1mo', '1wk')
+  embedded: {type: Boolean, default: false},
 })
 
 const {openPosition} = useNavigateToPosition()
@@ -126,8 +127,14 @@ function draw() {
   svg.selectAll('*').remove()
 
   const W = wrapRef.value.clientWidth || 320
-  const H = 160
+  const H = 180
+  const margin = {top: 8, right: 8, bottom: 28, left: 40}
+  const innerW = Math.max(W - margin.left - margin.right, 40)
+  const innerH = Math.max(H - margin.top - margin.bottom, 40)
   svg.attr('width', W).attr('height', H)
+  svg.attr('viewBox', `0 0 ${W} ${H}`)
+
+  const chart = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
   const allPoints = normalized.value.flatMap((s) => s.points)
   // Use actual dates for x, not array index — different tickers (e.g. crypto
@@ -136,15 +143,39 @@ function draw() {
   // look like they're running backwards.
   const x = d3.scaleTime()
       .domain(d3.extent(allPoints, (d) => new Date(d.date)))
-      .range([0, W])
+      .range([0, innerW])
   const yMin = d3.min(allPoints, (d) => d.pct)
   const yMax = d3.max(allPoints, (d) => d.pct)
   const yPad = (yMax - yMin) * 0.1 || 1
-  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([H - 4, 4])
+  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([innerH, 0]).nice(4)
+
+  const yTicks = y.ticks(4)
+  chart.selectAll('.y-grid')
+      .data(yTicks)
+      .enter()
+      .append('line')
+      .attr('x1', 0)
+      .attr('x2', innerW)
+      .attr('y1', (d) => y(d))
+      .attr('y2', (d) => y(d))
+      .attr('stroke', '#e9e2dd')
+      .attr('stroke-width', 1)
+
+  chart.selectAll('.y-label')
+      .data(yTicks)
+      .enter()
+      .append('text')
+      .attr('x', -10)
+      .attr('y', (d) => y(d))
+      .attr('dy', '0.32em')
+      .attr('text-anchor', 'end')
+      .attr('fill', '#a0958d')
+      .attr('font-size', 10)
+      .text((d) => `${d > 0 ? '+' : ''}${d3.format('~f')(d)}%`)
 
   // Zero baseline (the "start of range" reference)
-  svg.append('line')
-      .attr('x1', 0).attr('x2', W)
+  chart.append('line')
+      .attr('x1', 0).attr('x2', innerW)
       .attr('y1', y(0)).attr('y2', y(0))
       .attr('stroke', '#64748b')
       .attr('stroke-width', 1)
@@ -157,7 +188,7 @@ function draw() {
       .curve(d3.curveMonotoneX)
 
   normalized.value.forEach((s) => {
-    const path = svg.append('path')
+    const path = chart.append('path')
         .datum(s.points)
         .attr('fill', 'none')
         .attr('stroke', s.color)
@@ -169,6 +200,19 @@ function draw() {
       path.style('cursor', 'pointer').on('click', () => openPosition(s.ticker))
     }
   })
+
+  const axisTickCount = Math.min(8, Math.max(4, Math.floor(W / 90)))
+  const xTicks = x.ticks(axisTickCount)
+  chart.selectAll('.x-label')
+      .data(xTicks)
+      .enter()
+      .append('text')
+      .attr('x', (d) => x(d))
+      .attr('y', innerH + 20)
+      .attr('text-anchor', 'middle')
+      .attr('fill', '#a0958d')
+      .attr('font-size', 10)
+      .text((d) => d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'}))
 }
 
 let ro
@@ -185,8 +229,8 @@ watch(series, () => nextTick(draw), {deep: true})
 </script>
 
 <template>
-  <section v-if="positions.length" class="compare-card">
-    <h2 class="card-title">{{ t('dashboard.stockPerformance') }}</h2>
+  <component :is="embedded ? 'div' : 'section'" v-if="positions.length" class="compare-card" :class="{embedded}">
+    <h2 v-if="!embedded" class="card-title">{{ t('dashboard.stockPerformance') }}</h2>
 
     <div ref="wrapRef" class="compare-wrap">
       <div v-if="loading && !normalized.length" class="compare-state">
@@ -225,7 +269,7 @@ watch(series, () => nextTick(draw), {deep: true})
         </span>
       </button>
     </div>
-  </section>
+  </component>
 </template>
 
 <style scoped>
@@ -269,6 +313,18 @@ watch(series, () => nextTick(draw), {deep: true})
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 0.75rem;
+}
+
+.compare-card.embedded {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+
+.compare-card.embedded .compare-wrap {
+  margin-top: 0.1rem;
 }
 
 .legend-item {

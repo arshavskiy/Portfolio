@@ -21,19 +21,19 @@ const gainers = computed(() =>
   props.items
     .filter((item) => item?.ticker && moverChangePercent(item) != null && moverChangePercent(item) >= 0)
     .sort((a, b) => moverChangePercent(b) - moverChangePercent(a))
-    .slice(0, 5)
+    .slice(0, 7)
 )
 
 const losers = computed(() =>
   props.items
     .filter((item) => item?.ticker && moverChangePercent(item) != null && moverChangePercent(item) < 0)
     .sort((a, b) => moverChangePercent(a) - moverChangePercent(b))
-    .slice(0, 5)
+    .slice(0, 7)
 )
 
 const hasMovers = computed(() => gainers.value.length || losers.value.length)
 const moverPairs = computed(() =>
-  Array.from({length: 5}, (_, index) => ({
+  Array.from({length: 7}, (_, index) => ({
     gainer: gainers.value[index] || null,
     loser: losers.value[index] || null,
   }))
@@ -92,7 +92,7 @@ function openStock(item) {
     </div>
 
     <div v-if="loading && !hasMovers" class="movers-chart skeleton-chart">
-      <div v-for="n in 10" :key="n" class="mover-col skeleton"/>
+      <div v-for="n in 14" :key="n" class="mover-col skeleton"/>
     </div>
 
     <div v-else class="movers-chart">
@@ -183,7 +183,7 @@ function openStock(item) {
 
 .movers-pairs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.65rem;
   min-height: 260px;
 }

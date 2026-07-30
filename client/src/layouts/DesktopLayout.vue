@@ -1,5 +1,6 @@
 <script setup>
 import {computed} from 'vue'
+import {useStorage} from '@vueuse/core'
 import {useRoute} from 'vue-router'
 import {useDesktopFocusStore} from '@/stores/desktopFocus'
 import {useAuthStore} from '@/stores/auth'
@@ -17,6 +18,8 @@ const route = useRoute()
 const focus = useDesktopFocusStore()
 const auth = useAuthStore()
 const {t} = useI18n()
+const menuCollapsed = useStorage('desktop-menu-collapsed', false)
+const detailPanelCollapsed = useStorage('desktop-detail-panel-collapsed', false)
 
 function trackNav(item) {
   trackEvent('nav_click', {nav_item: item.key})
@@ -27,7 +30,7 @@ const PANEL_ROUTES = ['/watchlist']
 const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)))
 
 const navItems = computed(() => [
-  {key: 'dashboard', name: t('common.dashboard'), to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
+  {key: 'dashboard', name: 'Home', to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
   {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
   {key: 'assistant', name: t('common.insights'), to: '/assistant', icon: 'pi pi-comments', tourKey: 'assistant', premium: true},
   {key: 'x-ray', name: t('common.xRay'), to: '/x-ray', icon: 'pi pi-shield', tourKey: 'x-ray', premium: true},
@@ -46,13 +49,29 @@ function isActive(item) {
   if (item.to === '/assistant') return route.path === '/assistant' || route.path === '/insights'
   return route.path.startsWith(item.to)
 }
+
+function toggleMenu() {
+  menuCollapsed.value = !menuCollapsed.value
+}
+
+function toggleDetailPanel() {
+  detailPanelCollapsed.value = !detailPanelCollapsed.value
+}
 </script>
 
 <template>
-  <div class="desktop-shell">
-    <nav class="sidebar">
+  <div class="desktop-shell" :class="{'menu-collapsed': menuCollapsed}">
+    <nav class="sidebar" :class="{collapsed: menuCollapsed}">
       <div class="sidebar-brand">
-        <span class="brand-name gradient-title">StockFolio</span>
+        <button
+          v-tooltip.right="'Account'"
+          class="brand-mark brand-account"
+          data-tour="nav-account"
+          type="button"
+          @click="openAccount"
+        >
+          <i class="pi pi-user"/>
+        </button>
       </div>
       <div class="sidebar-language">
         <ThemeToggle/>
@@ -65,6 +84,7 @@ function isActive(item) {
             :class="{active: isActive(item)}"
             :data-tour="`nav-${item.tourKey}`"
             class="sidebar-item"
+            v-tooltip.right="item.name"
             @click="trackNav(item)"
         >
           <i :class="item.icon"/>
@@ -79,32 +99,40 @@ function isActive(item) {
         </RouterLink>
       </div>
 
-      <div class="sidebar-footer">
-        <button
-            class="sidebar-item"
-            data-tour="nav-account"
-            type="button"
-            @click="openAccount"
-        >
-          <i class="pi pi-user"/>
-          <span class="sidebar-label">{{ t('common.account') }}</span>
-        </button>
-      </div>
+      <div class="sidebar-footer"/>
     </nav>
 
     <!-- Dashboard: custom split layout (left=dashboard, right=watchlist) -->
-    <DesktopDashboardView v-if="isDashboard" class="content-area"/>
+    <DesktopDashboardView v-if="isDashboard" class="content-area" @open-account="openAccount"/>
 
     <!-- Holdings/Watchlist: main col + right position panel -->
     <template v-else-if="showPanel">
       <main class="main-col">
+        <button
+          v-tooltip.left="detailPanelCollapsed ? 'Show detail panel' : 'Hide detail panel'"
+          class="panel-toggle panel-toggle-main"
+          type="button"
+          @click="toggleDetailPanel"
+        >
+          <i class="pi pi-window-maximize"/>
+          <span>{{ detailPanelCollapsed ? 'Show panel' : 'Hide panel' }}</span>
+        </button>
         <RouterView v-slot="{ Component, route: r }">
           <ErrorBoundary :key="r.fullPath">
             <component :is="Component"/>
           </ErrorBoundary>
         </RouterView>
       </main>
-      <aside class="right-col">
+      <aside class="right-col" :class="{collapsed: detailPanelCollapsed}">
+        <button
+          v-tooltip.left="'Hide detail panel'"
+          class="panel-toggle panel-toggle-side"
+          type="button"
+          @click="toggleDetailPanel"
+        >
+          <i class="pi pi-window-maximize"/>
+          <span>Hide panel</span>
+        </button>
         <div v-if="!focus.ticker" class="right-empty">
           <i class="pi pi-chart-line"/>
           <p>{{ t('nav.clickRowToViewPosition') }}</p>
@@ -134,119 +162,161 @@ function isActive(item) {
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: var(--bg-primary);
+  background: #fbfaf8;
 }
 
 /* Sidebar */
 .sidebar {
   width: 200px;
   flex-shrink: 0;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid #ece7e3;
   display: flex;
   flex-direction: column;
-  padding: 0.75rem 0;
-  background: var(--bg-secondary);
+  align-items: stretch;
+  padding: 0.55rem 0;
+  background: #fff9f7;
+  transition: width 0.18s ease, padding 0.18s ease, border-color 0.18s ease;
+}
+
+.sidebar.collapsed {
+  width: 52px;
+  align-items: center;
 }
 
 .sidebar-brand {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0 0 0.7rem;
+  margin-bottom: 0.35rem;
 }
 
-.brand-icon { font-size: 1.4rem; }
-
-.brand-name {
-  font-size: 1.75rem;
-  font-weight: 800;
-  text-align: center;
-  width: 100%;
-  background: linear-gradient(135deg, #00cfff 0%, #a855f7 40%, #ff3366 70%, #00cfff 100%);
-  background-size: 250% 250%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: brand-flow 3s ease infinite;
+.sidebar.collapsed .sidebar-brand {
+  justify-content: center;
 }
 
-@keyframes brand-flow {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #efe7e2;
+  border-radius: 999px;
+  background: #fff;
+  color: #a59a92;
+  font-size: 0.86rem;
+  font-weight: 750;
+  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.035);
 }
 
-:root.light .brand-name {
-  animation: none;
+.brand-account {
+  border: 1px solid #e8e2de;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.brand-account i {
+  font-size: 0.82rem;
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 0 8px;
+  align-items: stretch;
+  gap: 0.25rem;
+  padding: 0 0.45rem;
+  width: 100%;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  align-items: center;
+  padding: 0;
 }
 
 .sidebar-language {
-  display: flex;
-  justify-content: center;
-  padding: 0 1rem 0.75rem;
+  display: none;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  justify-content: flex-start;
+  gap: 0.7rem;
   width: 100%;
-  padding: 0.6rem 0.85rem;
+  min-height: 38px;
+  padding: 0 0.8rem;
   border: none;
-  border-radius: 10px;
+  border-radius: 9px;
   background: none;
-  color: var(--text-secondary);
+  color: #7d746d;
   text-decoration: none;
   font: inherit;
-  font-size: 0.88rem;
-  font-weight: 500;
-  text-align: left;
+  font-size: 0.84rem;
+  font-weight: 650;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  overflow: hidden;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s, width 0.18s ease, padding 0.18s ease, gap 0.18s ease;
+}
+
+.sidebar.collapsed .sidebar-item {
+  justify-content: center;
+  width: 34px;
+  min-height: 34px;
+  padding: 0;
 }
 
 .sidebar-footer {
   margin-top: auto;
-  padding: 0.5rem 8px;
-  border-top: 1px solid var(--border);
+  padding: 0.5rem 0.45rem 0;
+}
+
+.sidebar.collapsed .sidebar-footer {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .sidebar-item i {
-  font-size: 15px;
+  font-size: 0.9rem;
   flex-shrink: 0;
-  width: 18px;
+  width: 14px;
   text-align: center;
 }
 
 .sidebar-label {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  max-width: 120px;
+  opacity: 1;
+  transform: translateX(0);
+  transition: max-width 0.18s ease, opacity 0.14s ease, transform 0.18s ease, margin 0.18s ease;
 }
 
 .sidebar-premium {
-  margin-left: auto;
-  flex-shrink: 0;
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-label {
+  max-width: 0;
+  opacity: 0;
+  transform: translateX(-6px);
+  margin: 0;
 }
 
 .sidebar-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
+  background: #fff;
+  color: #1f1f1f;
+  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.06);
 }
 
 .sidebar-item.active {
-  background: rgba(0, 207, 255, 0.12);
-  color: var(--neon-blue);
-  font-weight: 600;
+  background: #fff;
+  color: #111;
+  box-shadow: 0 1px 3px rgba(38, 32, 27, 0.08);
 }
 
 /* Dashboard fills remaining space after sidebar */
@@ -263,6 +333,7 @@ function isActive(item) {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
+  position: relative;
 }
 
 .main-inner {
@@ -292,6 +363,45 @@ function isActive(item) {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  opacity: 1;
+  transition: width 0.22s ease, flex 0.22s ease, opacity 0.18s ease, border-color 0.22s ease;
+}
+
+.right-col.collapsed {
+  width: 0;
+  flex: 0 0 0;
+  border-left-color: transparent;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.panel-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 32px;
+  border: 1px solid #e4ded9;
+  border-radius: 8px;
+  background: #fff;
+  color: #6e655f;
+  padding: 0 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.05);
+}
+
+.panel-toggle-main {
+  position: sticky;
+  top: 0.9rem;
+  z-index: 3;
+  margin: 0.9rem 0 0 auto;
+  display: flex;
+}
+
+.panel-toggle-side {
+  align-self: flex-end;
+  margin: 0.75rem 0.75rem 0 0;
 }
 
 
