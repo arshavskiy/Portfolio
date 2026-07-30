@@ -784,7 +784,8 @@ function draw() {
       const cx = xPos(nearest)
       const cy = y(nearest.close)
       const isBuy = tx.type === 'buy'
-      const stroke = isBuy ? '#22c55e' : '#ef4444'
+      const stroke = '#fff'
+      const fill = isBuy ? '#22c55e' : '#ef4444'
       // Alternate label above/below the marker so consecutive transactions
       // near the same price don't overlap each other's text.
       const labelUp = i % 2 === 0
@@ -795,7 +796,7 @@ function draw() {
         .attr('cx', cx)
         .attr('cy', cy)
         .attr('r', 5)
-        .attr('fill', '#0f172a')
+          .attr('fill', fill)
         .attr('stroke', stroke)
         .attr('stroke-width', 2)
       const priceStr = tx.price != null ? ` · $${tx.price}` : ''
