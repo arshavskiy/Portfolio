@@ -365,7 +365,7 @@ function handleChartSelection(points) {
       <div class="header-actions">
         <Button
           v-tooltip.bottom="t('common.buy')"
-          icon="pi pi-plus-circle"
+          icon="pi pi-plus"
           rounded
           text
           @click="showTxModal = true"

@@ -19,7 +19,6 @@ import api from "@/composables/useApi";
 import { fetchCachedQuote } from "@/composables/useQuoteCache";
 import {
   getMarketHoursState,
-  isRegularSessionBar,
   MARKET_HOURS_BY_GROUP,
 } from "@/composables/useMarketHours";
 import { useTour } from "@/composables/useTour";
@@ -83,7 +82,7 @@ const watchedItem = ref(null);
 const showModal = ref(false);
 const showAlertModal = ref(false);
 const showDividendModal = ref(false);
-const showSimulator = ref(true);
+const showSimulator = ref(false);
 const simulatorTab = ref("buy");
 const editingTx = ref(null);
 const simPrice = ref(null);
@@ -1141,75 +1140,10 @@ const selectedDelta = computed(() => {
   };
 });
 
-// Low → high of a set of bars, in chronological order so the sign reflects the
-// actual move between the two extremes.
-function lowHighDelta(rows) {
-  const valid = rows.filter((d) => d?.close != null);
-  if (valid.length < 2) return null;
-
-  let lo = valid[0];
-  let hi = valid[0];
-  for (const d of valid) {
-    if (d.close < lo.close) lo = d;
-    if (d.close > hi.close) hi = d;
-  }
-  if (lo === hi) return null;
-
-  const [start, end] =
-    new Date(lo.date) <= new Date(hi.date) ? [lo, hi] : [hi, lo];
-  const startPrice = start.close;
-  const endPrice = end.close;
-  const amount = endPrice - startPrice;
-  const percent = startPrice ? (amount / startPrice) * 100 : null;
-  const startDate = new Date(start.date);
-  const endDate = new Date(end.date);
-  const hours = Math.abs(endDate - startDate) / 36e5;
-
-  return {
-    amount,
-    percent,
-    startPrice,
-    endPrice,
-    startPoint: {
-      date: start.date,
-      close: start.close,
-    },
-    endPoint: {
-      date: end.date,
-      close: end.close,
-    },
-    startLabel: startDate.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    }),
-    endLabel: endDate.toLocaleString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    }),
-    spanLabel:
-      hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
-  };
-}
-
-// Default measurement (low → high) across all loaded bars, incl. pre/after-hours.
-const defaultDelta = computed(() => lowHighDelta(history.value));
-
-// Same low → high measurement restricted to regular trading-hours bars.
-const regularHoursDelta = computed(() =>
-  lowHighDelta(
-    history.value.filter((d) => isRegularSessionBar(d.date, ticker.value)),
-  ),
-);
-
-// Single measure row: selection takes over; otherwise show the trading-hours
-// low → high (falling back to the full range if no regular-session bars exist).
-const measureDelta = computed(
-  () => selectedDelta.value ?? regularHoursDelta.value ?? defaultDelta.value,
-);
+// Measure row only shows the user's dragged selection — an auto-computed
+// close-to-close default here read as a mismatch against the API-sourced Day
+// High/Low fields just below it (different metric, same-looking numbers).
+const measureDelta = computed(() => selectedDelta.value);
 
 const measureLabel = computed(() => {
   if (selectedDelta.value) return t("positionDetail.selectedRange");
@@ -1218,6 +1152,12 @@ const measureLabel = computed(() => {
     ? t("positionDetail.highToLow")
     : t("positionDetail.lowToHigh");
 });
+
+const chartTransactionMarkers = computed(() =>
+  transactions.value
+    .filter((tx) => tx.type === "buy" || tx.type === "sell")
+    .map((tx) => ({ date: tx.date, type: tx.type, shares: tx.shares, price: tx.price })),
+);
 
 const measureMarkerPoints = computed(() => {
   if (
@@ -1508,6 +1448,7 @@ async function toggleWatchlist() {
         :data="history"
         :loading="chartLoading"
         :marker-points="measureMarkerPoints"
+        :transaction-markers="chartTransactionMarkers"
         :mode="chartMode"
         :persistent-range-selection="true"
         :range="selectedRange"
@@ -1824,7 +1765,7 @@ async function toggleWatchlist() {
               class="pi pi-info-circle info-icon"
               tabindex="0"
           /></span>
-          <span>{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
+          <span class="day-range-value">{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
         </div>
         <div class="stat">
           <span class="text-muted stat-label-info"
@@ -1834,7 +1775,7 @@ async function toggleWatchlist() {
               class="pi pi-info-circle info-icon"
               tabindex="0"
           /></span>
-          <span>{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
+          <span class="day-range-value">{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
         </div>
         <div class="stat">
           <span class="text-muted stat-label-info"
@@ -2059,20 +2000,24 @@ async function toggleWatchlist() {
             <div v-if="showSimulator" class="sim-tabs" role="tablist">
               <button
                 :class="{ active: simulatorTab === 'buy' }"
-                class="sim-tab"
+                :aria-label="t('common.buy')"
+                :title="t('common.buy')"
+                class="sim-tab sim-tab-icon"
                 type="button"
                 @click="simulatorTab = 'buy'"
               >
-                {{ t("common.buy") }}
+                <i class="pi pi-plus" />
               </button>
               <button
                 :class="{ active: simulatorTab === 'sell' }"
                 :disabled="!summary"
-                class="sim-tab"
+                :aria-label="t('common.sell')"
+                :title="t('common.sell')"
+                class="sim-tab sim-tab-icon"
                 type="button"
                 @click="simulatorTab = 'sell'"
               >
-                {{ t("common.sell") }}
+                <i class="pi pi-minus" />
               </button>
             </div>
             <button
@@ -3027,6 +2972,10 @@ async function toggleWatchlist() {
   background: color-mix(in srgb, var(--purple) 8%, transparent);
 }
 
+.day-range-value {
+  color: var(--accent);
+}
+
 .stat-label-info {
   display: inline-flex;
   align-items: center;
@@ -3085,7 +3034,7 @@ async function toggleWatchlist() {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.55rem 0.75rem;
   background: var(--bg-card);
 }
 
@@ -3113,10 +3062,18 @@ async function toggleWatchlist() {
 .sim-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-width: 132px;
+  min-width: 52px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
+}
+
+.sim-tab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 0.82rem;
 }
 
 .sim-tab {
@@ -3189,28 +3146,28 @@ async function toggleWatchlist() {
 }
 
 .sim-body {
-  padding: 1rem;
+  padding: 0.75rem;
   background: var(--bg-card);
   border-top: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.65rem;
 }
 
 .sim-inputs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.75rem;
+  gap: 0.5rem;
 }
 
 .sim-field {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.25rem;
 }
 
 .sim-field label {
-  font-size: 0.8rem;
+  font-size: 0.76rem;
   color: var(--text-secondary);
 }
 
@@ -3220,11 +3177,11 @@ async function toggleWatchlist() {
   gap: 6px;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 8px;
-  padding: 0.75rem;
+  padding: 0.55rem 0.65rem;
 }
 
 .sim-mode-bar {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   width: 100%;
 }
 

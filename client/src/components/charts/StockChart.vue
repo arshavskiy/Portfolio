@@ -8,6 +8,7 @@ const props = defineProps({
   data: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   markerPoints: { type: Array, default: () => [] },
+  transactionMarkers: { type: Array, default: () => [] }, // [{date, type: 'buy'|'sell', shares, price}]
   mode: { type: String, default: 'line' }, // 'line' | 'candle'
   range: { type: String, default: '3mo' },
   ticker: { type: String, default: '' },
@@ -760,6 +761,70 @@ function draw() {
         .attr('stroke-width', 2)
     })
 
+  // Buy/sell transaction markers — snapped to the nearest loaded bar since a
+  // transaction's exact timestamp rarely lines up with a bar's own date.
+  // Skipped entirely when a transaction has no date (nothing to place it at).
+  if (props.transactionMarkers?.length && parsed.length) {
+    const txLayer = g.append('g')
+    const txDateFmt = d3.timeFormat('%b %-d')
+    const txTitleFmt = d3.timeFormat('%b %-d, %Y')
+    props.transactionMarkers.forEach((tx, i) => {
+      if (!tx?.date) return
+      const txTime = new Date(tx.date).getTime()
+      if (!Number.isFinite(txTime)) return
+      if (txTime < parsed[0].date.getTime()) return
+      let nearest = parsed[0]
+      let minDist = Math.abs(parsed[0].date.getTime() - txTime)
+      for (const d of parsed) {
+        const dist = Math.abs(d.date.getTime() - txTime)
+        if (dist < minDist) { minDist = dist; nearest = d }
+      }
+      if (!Number.isFinite(nearest.close)) return
+
+      const cx = xPos(nearest)
+      const cy = y(nearest.close)
+      const isBuy = tx.type === 'buy'
+      const stroke = isBuy ? '#22c55e' : '#ef4444'
+      // Alternate label above/below the marker so consecutive transactions
+      // near the same price don't overlap each other's text.
+      const labelUp = i % 2 === 0
+      const labelY = labelUp ? cy - 10 : cy + 18
+
+      const marker = txLayer.append('g').style('cursor', 'default')
+      marker.append('circle')
+        .attr('cx', cx)
+        .attr('cy', cy)
+        .attr('r', 5)
+        .attr('fill', '#0f172a')
+        .attr('stroke', stroke)
+        .attr('stroke-width', 2)
+      const labelText = `${isBuy ? 'Buy' : 'Sell'} · ${txDateFmt(new Date(tx.date))}`
+      const pillW = labelText.length * 6 + 10
+      const pillH = 14
+      const pillX = cx - pillW / 2
+      const pillY = labelUp ? cy - 10 - pillH : cy + 6
+      marker.append('rect')
+        .attr('x', pillX).attr('y', pillY)
+        .attr('width', pillW).attr('height', pillH)
+        .attr('rx', 4).attr('ry', 4)
+        .attr('fill', stroke)
+      marker.append('text')
+        .attr('x', cx)
+        .attr('y', pillY + pillH - 3)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '10px')
+        .attr('font-weight', '700')
+        .attr('fill', '#0f172a')
+        .text(labelText)
+      marker.append('title')
+        .text(
+          `${isBuy ? 'Buy' : 'Sell'} · ${txTitleFmt(new Date(tx.date))}` +
+          (tx.shares != null ? ` · ${tx.shares} sh` : '') +
+          (tx.price != null ? ` @ $${tx.price}` : '')
+        )
+    })
+  }
+
   // Crosshair + selection
   const bisect = d3.bisector((d) => d.date).left
 
@@ -942,7 +1007,7 @@ function draw() {
 }
 
 onMounted(() => nextTick(draw))
-watch(() => [props.data, props.loading, props.markerPoints, props.mode, props.range, props.currentPrice], () => nextTick(draw))
+watch(() => [props.data, props.loading, props.markerPoints, props.transactionMarkers, props.mode, props.range, props.currentPrice], () => nextTick(draw))
 watch(() => props.data, () => {
   dragPreview.value = null
   dragStartPoints.value = []
