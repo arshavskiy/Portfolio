@@ -76,6 +76,7 @@ function formatTime(value) {
   return new Date(value).toLocaleTimeString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false,
   })
 }
 
