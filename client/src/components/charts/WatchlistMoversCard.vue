@@ -202,13 +202,12 @@ function openStock(item) {
 }
 
 .mover-half {
+  position: relative;
   width: 100%;
   min-height: 130px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-end;
-  gap: 0.4rem;
   padding: 0;
   border: none;
   background: none;
@@ -231,6 +230,7 @@ function openStock(item) {
 }
 
 .mover-label {
+  position: absolute;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -239,11 +239,11 @@ function openStock(item) {
 }
 
 .label-up {
-  margin-bottom: 0.15rem;
+  top: 0;
 }
 
 .label-down {
-  margin-top: 0.15rem;
+  bottom: 0;
 }
 
 .pct-label {
