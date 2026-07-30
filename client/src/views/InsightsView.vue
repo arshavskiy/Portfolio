@@ -558,6 +558,7 @@ onMounted(() => {
   justify-content: space-between;
   gap: 1.5rem;
   margin-bottom: 1.25rem;
+  margin-top: .5rem;
 }
 
 .insights-header > div {

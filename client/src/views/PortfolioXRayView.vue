@@ -314,28 +314,17 @@ onMounted(load)
       <section class="rules-list">
         <article v-for="rule in rules" :key="rule.key" :class="rule.status" class="rule-card">
           <div class="rule-head">
+            <h2>{{ rule.title }}</h2>
             <span class="rule-status">
               <i :class="statusMeta[rule.status]?.icon"/>
               {{ statusMeta[rule.status]?.label || rule.status }}
             </span>
-            <h2>{{ rule.title }}</h2>
           </div>
           <p>{{ rule.message }}</p>
           <p v-if="rule.consequences?.length" class="consequences text-muted">
             {{ t('xray.alsoDrives') }} {{ rule.consequences.map((c) => c.title).join(' · ') }}
           </p>
           <p class="suggestion text-muted">{{ rule.suggestion }}</p>
-          <div v-if="rule.affectedTickers?.length" class="affected-row">
-            <button
-                v-for="ticker in rule.affectedTickers"
-                :key="ticker"
-                class="ticker-pill"
-                type="button"
-                @click="openTicker(ticker)"
-            >
-              {{ ticker }}
-            </button>
-          </div>
         </article>
       </section>
 
@@ -430,7 +419,6 @@ onMounted(load)
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
-  margin-top: 0.5rem;
   margin-bottom: 1.25rem;
 }
 
@@ -453,8 +441,8 @@ p {
 .score-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .score-card,
@@ -470,18 +458,19 @@ p {
 .score-card {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  min-height: 76px;
-  padding: 0.85rem;
+  gap: 0.15rem;
+  min-height: unset;
+  padding: 0.45rem 0.65rem;
 }
 
 .score-label {
   color: var(--text-secondary);
-  font-size: 0.76rem;
+  font-size: 0.68rem;
 }
 
 .score-card strong {
-  font-size: 1.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
 .score-card.risk strong,
@@ -504,19 +493,31 @@ p {
 .allocation-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
 }
 
 .allocation-chip {
   display: flex;
   flex-direction: column;
-  gap: 0.18rem;
-  padding: 0.75rem;
+  gap: 0.12rem;
+  padding: 0.45rem 0.65rem;
 }
 
-.allocation-chip strong,
+.allocation-chip span {
+  font-size: 0.68rem;
+}
+
+.allocation-chip strong {
+  font-size: 0.8rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .allocation-chip small {
+  font-size: 0.72rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -538,13 +539,13 @@ p {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  min-height: 96px;
+  gap: 0.15rem;
+  min-height: unset;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.025);
-  padding: 0.65rem;
+  background: var(--bg-primary);
+  padding: 0.45rem 0.6rem;
 }
 
 .summary-metric-card::before {
@@ -578,8 +579,8 @@ p {
 
 .summary-metric-card strong {
   color: var(--text-primary);
-  font-size: 1.25rem;
-  font-weight: 400;
+  font-size: 0.8rem;
+  font-weight: 600;
   line-height: 1.1;
   overflow-wrap: anywhere;
 }
@@ -591,10 +592,8 @@ p {
 }
 
 .metric-value-glow {
-  background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--text-primary);
+  -webkit-text-fill-color: var(--text-primary);
 }
 
 .summary-sheet {
@@ -658,58 +657,68 @@ p {
 
 .summary-row strong {
   color: var(--text-primary);
-  font-size: 0.88rem;
-  font-weight: 400;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-align: right;
   white-space: nowrap;
 }
 
 .rules-list {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.45rem;
 }
 
 .rule-card {
-  padding: 0.85rem;
+  padding: 0.55rem 0.75rem;
 }
 
 .rule-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.45rem;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  overflow: hidden;
 }
 
 .rule-head h2 {
-  font-size: 0.98rem;
-  text-align: right;
+  font-size: 0.88rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+}
+
+.rule-card p {
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin: 0;
 }
 
 .rule-status {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.3rem;
   flex-shrink: 0;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 400;
 }
 
 .consequences {
-  margin-top: 0.35rem;
-  font-size: 0.78rem;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
 }
 
 .suggestion {
-  margin-top: 0.35rem;
-  font-size: 0.82rem;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
 }
 
 .affected-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.65rem;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
 }
 
 .ticker-pill {
@@ -882,14 +891,16 @@ p {
     padding: 0.8rem 0.8rem 5.5rem;
   }
 
-  .score-grid,
+  .score-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .allocation-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .rule-head {
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: center;
   }
 
   .rule-head h2 {
@@ -931,5 +942,9 @@ p {
     gap: 0.7rem;
     font-size: 0.84rem;
   }
+}
+
+:root.light .summary-metric-card::before {
+  background: linear-gradient(90deg, #94a3b8 0%, #cbd5e1 100%);
 }
 </style>
