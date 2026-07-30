@@ -224,7 +224,6 @@ function openStock(item) {
 .mover-down {
   justify-content: flex-start;
   padding-top: 0;
-  border-top: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 .empty-half {
