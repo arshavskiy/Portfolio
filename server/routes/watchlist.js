@@ -4,6 +4,7 @@ const {
     getWatchlist,
     getWatchlistSkeleton,
     getWatchlistItem,
+    getWatchlistMovers,
     addToWatchlist,
     removeFromWatchlist,
     syncHoldings,
@@ -13,6 +14,7 @@ const {
 router.use(auth)
 router.get('/', getWatchlist)
 router.get('/skeleton', getWatchlistSkeleton)
+router.get('/movers', getWatchlistMovers)
 router.get('/item/:ticker', getWatchlistItem)
 router.post('/', addToWatchlist)
 router.post('/sync-holdings', syncHoldings)

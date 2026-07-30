@@ -93,6 +93,26 @@ exports.getWatchlist = async (req, res) => {
   }
 }
 
+exports.getWatchlistMovers = async (req, res) => {
+  try {
+    const watched = await Watchlist.find({user: req.user._id}).lean()
+    const held = await Position.find({user: req.user._id}).lean()
+    const tickers = [...new Set([
+      ...watched.map((i) => i.ticker),
+      ...held.map((p) => p.ticker),
+    ])]
+    if (!tickers.length) return res.json([])
+    const quotes = await getQuotes(tickers)
+    const items = quotes
+      .filter((q) => q && typeof q.changePercent === 'number' && isFinite(q.changePercent))
+      .map((q) => ({ticker: q.ticker, companyName: q.shortName || q.longName || q.ticker, changePercent: q.changePercent, change: q.regularMarketChange ?? null}))
+      .sort((a, b) => b.changePercent - a.changePercent)
+    res.json(items)
+  } catch (err) {
+    res.status(500).json({message: err.message})
+  }
+}
+
 exports.getWatchlistSkeleton = async (req, res) => {
   try {
     const watched = await Watchlist.find({user: req.user._id}).sort({addedAt: -1}).lean()

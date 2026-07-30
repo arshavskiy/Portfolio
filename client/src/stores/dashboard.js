@@ -60,9 +60,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
         if (!hadData) dashboardWatchlistLoading.value = true
         try {
             dashboardWatchlistItems.value = await cachedFetch(
-                `watchlist:${DASHBOARD_RANGE}`,
+                'watchlist:movers',
                 DASHBOARD_WATCHLIST_TTL_MS,
-                () => api.get(`/watchlist?range=${DASHBOARD_RANGE}`)
+                () => api.get('/watchlist/movers')
             )
         } catch {
             dashboardWatchlistItems.value = []
