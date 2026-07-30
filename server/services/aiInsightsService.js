@@ -644,10 +644,13 @@ async function askAboutPortfolio(userId, question) {
                 '• get_realized_gains → capital gains/losses from sells by year\n' +
                 '• get_dividend_summary → total dividends received per ticker\n' +
                 'The static context clearly labels stocks the user OWNS vs WATCHES — keep that distinction in every answer. ' +
-                'You are not a licensed financial advisor; describe what the data shows, do not give personalized buy/sell recommendations.',
+                'You are not a licensed financial advisor; describe what the data shows, do not give personalized buy/sell recommendations. ' +
+                'IMPORTANT: Respond in HTML only. Never use markdown. Never use | pipe characters for tables. Never use ** for bold. Never use # for headings. Never use - bullet dashes. ' +
+                'Use only these HTML tags: <p> <strong> <em> <ul> <ol> <li> <table> <thead> <tbody> <tr> <th> <td>. No other tags. No attributes. No code blocks.',
         },
         {role: 'system', content: contextText + newsText},
         ...history,
+        {role: 'system', content: 'REMINDER: your reply must be valid HTML. No markdown, no pipe tables, no ** bold, no # headings, no - dashes for lists. Use <p>, <strong>, <ul>, <li>, <table>, <thead>, <tbody>, <tr>, <th>, <td> only.'},
         {role: 'user', content: trimmed},
     ]
 

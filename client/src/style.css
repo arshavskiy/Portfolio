@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 :root {
   --bg-primary: #f8fafc;
@@ -8,7 +14,7 @@
   --bg-card: #ffffff;
   --border: #dbe3ef;
   --text-primary: #0f172a;
-  --text-secondary: #64748b;
+  --text-secondary: #585859;
   --green: #059669;
   --red: #e11d48;
   --accent: #2563eb;
@@ -48,11 +54,17 @@
   color-scheme: dark;
 }
 
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -61,9 +73,15 @@ html, body, #app {
 }
 
 /* ── Neon text ── */
-.gain { color: var(--neon-green); }
-.loss { color: var(--neon-red); }
-.text-muted { color: var(--text-secondary); }
+.gain {
+  color: var(--neon-green);
+}
+.loss {
+  color: var(--neon-red);
+}
+.text-muted {
+  color: var(--text-secondary);
+}
 
 .p-dialog .p-dialog-close-button,
 .p-dialog .p-dialog-header-icon {
@@ -172,12 +190,16 @@ h2.gradient-h2 {
 
 /* ── Neon card borders ── */
 .neon-card-gain {
-  border-color: rgba(0,255,136,0.5) !important;
-  box-shadow: 0 0 12px rgba(0,255,136,0.25), inset 0 0 8px rgba(0,255,136,0.04);
+  border-color: rgba(0, 255, 136, 0.5) !important;
+  box-shadow:
+    0 0 12px rgba(0, 255, 136, 0.25),
+    inset 0 0 8px rgba(0, 255, 136, 0.04);
 }
 .neon-card-loss {
-  border-color: rgba(255,51,102,0.5) !important;
-  box-shadow: 0 0 12px rgba(255,51,102,0.25), inset 0 0 8px rgba(255,51,102,0.04);
+  border-color: rgba(255, 51, 102, 0.5) !important;
+  box-shadow:
+    0 0 12px rgba(255, 51, 102, 0.25),
+    inset 0 0 8px rgba(255, 51, 102, 0.04);
 }
 
 /* ── Neon glow on active nav ── */
@@ -185,7 +207,9 @@ h2.gradient-h2 {
   filter: drop-shadow(0 0 6px var(--neon-blue));
 }
 
-.safe-bottom { padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem); }
+.safe-bottom {
+  padding-bottom: calc(var(--nav-height) + var(--safe-bottom) + 1rem);
+}
 
 /* ── Shared empty-state container ── */
 .empty {
@@ -201,7 +225,9 @@ h2.gradient-h2 {
 }
 
 /* ── Shared page-header title ── */
-.page-header h1 { font-size: 1.5rem; }
+.page-header h1 {
+  font-size: 1.5rem;
+}
 
 /* ── Shared loader container ── */
 .page-loader {
@@ -280,29 +306,53 @@ h2.gradient-h2 {
   color: #fff;
 }
 
-:root.light .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) {
+:root.light
+  .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) {
   color: var(--text-secondary);
 }
 
-:root.light .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) .p-button-icon {
+:root.light
+  .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast)
+  .p-button-icon {
   color: currentColor;
 }
 
-:root.light .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast):hover {
+:root.light
+  .p-button.p-button-text:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast):hover {
   color: var(--text-primary);
 }
 
-:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) {
+:root.light
+  .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) {
   color: var(--text-secondary);
   border-color: var(--border);
 }
 
-:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) .p-button-icon,
-:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast) .p-button-label {
+:root.light
+  .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast)
+  .p-button-icon,
+:root.light
+  .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast)
+  .p-button-label {
   color: currentColor;
 }
 
-:root.light .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(.p-button-info):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast):hover {
+:root.light
+  .p-button.p-button-outlined:not(.p-button-danger):not(.p-button-success):not(
+    .p-button-info
+  ):not(.p-button-warn):not(.p-button-help):not(.p-button-contrast):hover {
   color: var(--text-primary);
   border-color: var(--text-primary);
   background: color-mix(in srgb, var(--text-primary) 6%, transparent);
@@ -323,9 +373,16 @@ h2.gradient-h2 {
   overflow-wrap: anywhere;
 }
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
+}
 
 /* ── Desktop (sidebar layout): no bottom nav to clear ── */
 @media (min-width: 1024px) {
@@ -370,8 +427,13 @@ h2.gradient-h2 {
 }
 
 @keyframes chart-help-pulse-light {
-  0%, 100% { box-shadow: none; }
-  50% { box-shadow: none; }
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  50% {
+    box-shadow: none;
+  }
 }
 
 :root.light .chart-selection-help {

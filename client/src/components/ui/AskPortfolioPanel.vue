@@ -1,87 +1,118 @@
 <script setup>
-import {computed, nextTick, onMounted, ref} from 'vue'
-import {storeToRefs} from 'pinia'
-import {useI18n} from '@/composables/useI18n'
-import {useAiChatStore} from '@/stores/aiChat'
-import {usePortfolioStore} from '@/stores/portfolio'
-import {useWatchlistStore} from '@/stores/watchlist'
-import {useTickerLinkify} from '@/composables/useTickerLinkify'
+import { computed, nextTick, onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
+import DOMPurify from "dompurify";
+import { useI18n } from "@/composables/useI18n";
+import { useAiChatStore } from "@/stores/aiChat";
+import { usePortfolioStore } from "@/stores/portfolio";
+import { useWatchlistStore } from "@/stores/watchlist";
+import { useTickerLinkify } from "@/composables/useTickerLinkify";
 
-const {t} = useI18n()
-const chat = useAiChatStore()
-const portfolio = usePortfolioStore()
-const watchlist = useWatchlistStore()
-const {messages, sending, loaded} = storeToRefs(chat)
-const {splitTickers} = useTickerLinkify()
+const { t } = useI18n();
+const chat = useAiChatStore();
+const portfolio = usePortfolioStore();
+const watchlist = useWatchlistStore();
+const { messages, sending, loaded } = storeToRefs(chat);
+const { splitTickers } = useTickerLinkify();
 
-const askQuestion = ref('')
-const chatBox = ref(null)
-const showAllHistory = ref(false)
-const justSent = ref(false)
+function safeHtml(text) {
+  if (!text) return ''
+  return DOMPurify.sanitize(text, {
+    ALLOWED_TAGS: ['p','br','strong','em','b','i','ul','ol','li','table','thead','tbody','tr','th','td','h1','h2','h3','h4','span'],
+    ALLOWED_ATTR: [],
+  })
+}
+
+const askQuestion = ref("");
+const chatBox = ref(null);
+const showAllHistory = ref(false);
+const justSent = ref(false);
 
 // Recent messages shown by default; older turns hidden behind the history toggle.
-const RECENT_MESSAGE_COUNT = 6
+const RECENT_MESSAGE_COUNT = 6;
 
 const visibleMessages = computed(() => {
-  if (showAllHistory.value || messages.value.length <= RECENT_MESSAGE_COUNT) return messages.value
-  return messages.value.slice(-RECENT_MESSAGE_COUNT)
-})
+  if (showAllHistory.value || messages.value.length <= RECENT_MESSAGE_COUNT)
+    return messages.value;
+  return messages.value.slice(-RECENT_MESSAGE_COUNT);
+});
 
-const hiddenHistoryCount = computed(() => messages.value.length - visibleMessages.value.length)
+const hiddenHistoryCount = computed(
+  () => messages.value.length - visibleMessages.value.length,
+);
 
 function formatMessageDate(createdAt) {
-  if (!createdAt) return ''
-  const date = new Date(createdAt)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}) + ' ' +
-    date.toLocaleTimeString(undefined, {hour: '2-digit', minute: '2-digit'})
+  if (!createdAt) return "";
+  const date = new Date(createdAt);
+  if (Number.isNaN(date.getTime())) return "";
+  return (
+    date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }) +
+    " " +
+    date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+  );
 }
 
 // Prompt-chip suggestions hidden for now — flip back on when ready to ship again.
-const SHOW_PROMPT_CHIPS = false
+const SHOW_PROMPT_CHIPS = false;
 
 const promptChips = computed(() => [
-  t('insights.askPromptPerformance'),
-  t('insights.askPromptRisk'),
-  t('insights.askPromptIncome'),
-])
+  t("insights.askPromptPerformance"),
+  t("insights.askPromptRisk"),
+  t("insights.askPromptIncome"),
+]);
 
 async function scrollToBottom() {
-  await nextTick()
-  if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight
+  await nextTick();
+  if (chatBox.value) chatBox.value.scrollTop = chatBox.value.scrollHeight;
 }
 
 async function submitAskQuestion() {
-  const question = askQuestion.value.trim()
-  if (!question || sending.value) return
-  askQuestion.value = ''
-  justSent.value = true
-  setTimeout(() => { justSent.value = false }, 500)
-  scrollToBottom()
+  const question = askQuestion.value.trim();
+  if (!question || sending.value) return;
+  askQuestion.value = "";
+  justSent.value = true;
+  setTimeout(() => {
+    justSent.value = false;
+  }, 500);
+  scrollToBottom();
   try {
-    await chat.sendMessage(question, {errorText: t('insights.askError'), limitText: t('insights.askLimitReached')})
+    await chat.sendMessage(question, {
+      errorText: t("insights.askError"),
+      limitText: t("insights.askLimitReached"),
+    });
   } catch {
     // error message already appended to the chat by the store
   } finally {
-    scrollToBottom()
+    scrollToBottom();
   }
 }
 
 function askPrompt(prompt) {
-  askQuestion.value = prompt
-  submitAskQuestion()
+  askQuestion.value = prompt;
+  submitAskQuestion();
 }
 
 async function clearChat() {
-  if (sending.value) return
-  await chat.clearHistory()
+  if (sending.value) return;
+  await chat.clearHistory();
 }
 
 onMounted(() => {
-  if (!loaded.value) chat.fetchHistory().then(() => { if (messages.value.length) scrollToBottom() }).catch(() => {})
-  if (!portfolio.positions.length && !portfolio.loading) portfolio.fetchPortfolio().catch(() => {})
-  if (!watchlist.items.length) watchlist.fetchWatchlist().catch(() => {})
-})
+  if (!loaded.value)
+    chat
+      .fetchHistory()
+      .then(() => {
+        if (messages.value.length) scrollToBottom();
+      })
+      .catch(() => {});
+  if (!portfolio.positions.length && !portfolio.loading)
+    portfolio.fetchPortfolio().catch(() => {});
+  if (!watchlist.items.length) watchlist.fetchWatchlist().catch(() => {});
+});
 </script>
 
 <template>
@@ -89,66 +120,104 @@ onMounted(() => {
     <div class="ask-panel-body">
       <div class="ask-body-top">
         <div class="ask-body-left">
-          <span>{{ messages.length ? t('insights.askHistoryLabel') : t('insights.askStarterLabel') }}</span>
-          <button v-if="messages.length > RECENT_MESSAGE_COUNT" :class="{active: showAllHistory}" class="ask-history-toggle" type="button" @click="showAllHistory = !showAllHistory">
-            <i class="pi pi-history"/>
-            <span>{{ showAllHistory ? t('insights.askHideHistory') : t('insights.askShowHistory') }}</span>
+          <span>{{
+            messages.length
+              ? t("insights.askHistoryLabel")
+              : t("insights.askStarterLabel")
+          }}</span>
+          <button
+            v-if="messages.length > RECENT_MESSAGE_COUNT"
+            :class="{ active: showAllHistory }"
+            class="ask-history-toggle"
+            type="button"
+            @click="showAllHistory = !showAllHistory"
+          >
+            <i class="pi pi-history" />
+            <span>{{
+              showAllHistory
+                ? t("insights.askHideHistory")
+                : t("insights.askShowHistory")
+            }}</span>
           </button>
         </div>
-        <button v-if="messages.length" :disabled="sending" class="ask-clear" type="button" @click="clearChat">
-          <i class="pi pi-trash"/>
-          <span>{{ t('insights.askClear') }}</span>
+        <button
+          v-if="messages.length"
+          :disabled="sending"
+          class="ask-clear"
+          type="button"
+          @click="clearChat"
+        >
+          <i class="pi pi-trash" />
+          <span>{{ t("insights.askClear") }}</span>
         </button>
       </div>
 
       <div v-if="messages.length || sending" ref="chatBox" class="ask-chat">
         <div v-if="hiddenHistoryCount > 0" class="ask-history-hint">
-          {{ t('insights.askHiddenHistory', {count: hiddenHistoryCount}) }}
+          {{ t("insights.askHiddenHistory", { count: hiddenHistoryCount }) }}
         </div>
-        <div v-for="(msg, i) in visibleMessages" :key="i" :class="`chat-row chat-row-${msg.role}`">
+        <div
+          v-for="(msg, i) in visibleMessages"
+          :key="i"
+          :class="`chat-row chat-row-${msg.role}`"
+        >
           <div class="chat-avatar">
-            <i :class="msg.role === 'user' ? 'pi pi-user' : msg.role === 'error' ? 'pi pi-exclamation-triangle' : 'pi pi-comment'"/>
+            <i
+              :class="
+                msg.role === 'user'
+                  ? 'pi pi-user'
+                  : msg.role === 'error'
+                    ? 'pi pi-exclamation-triangle'
+                    : 'pi pi-comment'
+              "
+            />
           </div>
           <div class="chat-bubble-col">
-            <p class="chat-bubble">
-              <template v-for="(seg, si) in splitTickers(msg.text)" :key="si">
-                <RouterLink v-if="seg.ticker" :to="`/position/${encodeURIComponent(seg.ticker)}`" class="chat-ticker-link">{{ seg.label }}</RouterLink>
-                <template v-else>{{ seg.text }}</template>
-              </template>
-            </p>
+            <p v-if="msg.role === 'user'" class="chat-bubble">{{ msg.text }}</p>
+            <div v-else class="chat-bubble chat-bubble-html" v-html="safeHtml(msg.text)" />
             <div class="chat-meta">
-              <span v-if="msg.createdAt" class="chat-msg-date">{{ formatMessageDate(msg.createdAt) }}</span>
-              <span v-if="msg.usage?.promptTokens != null" class="chat-msg-tokens">
-                {{ t('insights.askTokens', {inTok: msg.usage.promptTokens, outTok: msg.usage.completionTokens}) }}
+              <span v-if="msg.createdAt" class="chat-msg-date">{{
+                formatMessageDate(msg.createdAt)
+              }}</span>
+              <span
+                v-if="msg.usage?.promptTokens != null"
+                class="chat-msg-tokens"
+              >
+                {{
+                  t("insights.askTokens", {
+                    inTok: msg.usage.promptTokens,
+                    outTok: msg.usage.completionTokens,
+                  })
+                }}
               </span>
             </div>
           </div>
         </div>
         <div v-if="sending" class="chat-row chat-row-assistant">
           <div class="chat-avatar">
-            <i class="pi pi-comment"/>
+            <i class="pi pi-comment" />
           </div>
           <div class="chat-bubble-col">
             <p class="chat-bubble chat-bubble-thinking">
-              <span class="thinking-dots"><span/><span/><span/></span>
+              <span class="thinking-dots"><span /><span /><span /></span>
             </p>
           </div>
         </div>
       </div>
 
       <div v-else class="ask-empty">
-        <i class="pi pi-comments"/>
-        <p>{{ t('insights.askEmptyTitle') }}</p>
-        <span>{{ t('insights.askEmptyText') }}</span>
+        <i class="pi pi-comments" />
+        <p>{{ t("insights.askEmptyTitle") }}</p>
+        <span>{{ t("insights.askEmptyText") }}</span>
       </div>
 
       <div v-if="SHOW_PROMPT_CHIPS" class="ask-prompts">
         <button
-            v-for="prompt in promptChips"
-            :key="prompt"
-            :disabled="sending"
-            type="button"
-            @click="askPrompt(prompt)"
+          v-for="prompt in promptChips"
+          :key="prompt"
+          :disabled="sending"
+          type="button"
+          @click="askPrompt(prompt)"
         >
           {{ prompt }}
         </button>
@@ -156,17 +225,19 @@ onMounted(() => {
 
       <form class="ask-form" @submit.prevent="submitAskQuestion">
         <input
-            v-model="askQuestion"
-            :disabled="sending"
-            :placeholder="t('insights.askPlaceholderShort')"
-            type="text"
+          v-model="askQuestion"
+          :disabled="sending"
+          :placeholder="t('insights.askPlaceholderShort')"
+          type="text"
+        />
+        <button
+          :class="{ thinking: sending, sent: justSent }"
+          :disabled="sending || !askQuestion.trim()"
+          type="submit"
         >
-        <button :class="{thinking: sending, sent: justSent}" :disabled="sending || !askQuestion.trim()" type="submit">
-          <i class="pi pi-send"/>
+          <i class="pi pi-send" />
         </button>
       </form>
-
-      <p class="ask-footnote">{{ t('insights.askFootnote') }}</p>
     </div>
   </article>
 </template>
@@ -218,7 +289,10 @@ onMounted(() => {
   font-size: 0.72rem;
   text-transform: none;
   letter-spacing: 0;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    color 0.15s;
 }
 
 .ask-clear {
@@ -362,7 +436,9 @@ onMounted(() => {
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  transition:
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .ask-prompts button:hover:not(:disabled) {
@@ -436,6 +512,51 @@ onMounted(() => {
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.chat-bubble-html {
+  white-space: normal;
+}
+
+.chat-bubble-html :deep(p) {
+  margin: 0 0 0.4rem;
+}
+
+.chat-bubble-html :deep(p:last-child) {
+  margin-bottom: 0;
+}
+
+.chat-bubble-html :deep(ul),
+.chat-bubble-html :deep(ol) {
+  margin: 0.25rem 0 0.4rem 1.2rem;
+  padding: 0;
+}
+
+.chat-bubble-html :deep(li) {
+  margin-bottom: 0.15rem;
+}
+
+.chat-bubble-html :deep(table) {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.75rem;
+  margin: 0.4rem 0;
+  overflow-x: auto;
+  display: block;
+}
+
+.chat-bubble-html :deep(th),
+.chat-bubble-html :deep(td) {
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.chat-bubble-html :deep(th) {
+  background: var(--bg-secondary);
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 .chat-ticker-link {
@@ -573,7 +694,8 @@ onMounted(() => {
 }
 
 @keyframes thinking-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 0 rgba(0, 207, 255, 0);
   }
   50% {
@@ -618,7 +740,9 @@ onMounted(() => {
 }
 
 @keyframes thinking-dot-bounce {
-  0%, 60%, 100% {
+  0%,
+  60%,
+  100% {
     opacity: 0.3;
     transform: translateY(0);
   }
