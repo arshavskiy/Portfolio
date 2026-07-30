@@ -7,6 +7,7 @@ export const changelog = [
     title: 'Updates',
     changes: [
       "Fixed missing day high/low, volume, and other stats sometimes showing as dashes on the position page.",
+      "Portfolio X-Ray now groups related risk findings together instead of listing the same fact five different ways, and fixed a couple of display bugs (allocation percentages showing a '+' sign, short-lived positions showing an inflated annualized return).",
     ],
   },
   {
