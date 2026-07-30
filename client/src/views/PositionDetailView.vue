@@ -2645,7 +2645,7 @@ async function toggleWatchlist() {
 .extended-price {
   font-size: 1.65rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #f59e0b;
 }
 
 .extended-ils {
