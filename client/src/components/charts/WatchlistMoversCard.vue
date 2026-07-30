@@ -189,13 +189,7 @@ function openStock(item) {
 }
 
 .zero-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 1px;
-  background: rgba(148, 163, 184, 0.24);
-  pointer-events: none;
+  display: none;
 }
 
 .mover-pair {
@@ -230,6 +224,7 @@ function openStock(item) {
 .mover-down {
   justify-content: flex-start;
   padding-top: 0;
+  border-top: 1px solid rgba(148, 163, 184, 0.24);
 }
 
 .empty-half {
