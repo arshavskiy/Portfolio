@@ -13,6 +13,7 @@ const {
   NEWS_TOPICS,
   getIlsToUsd,
   getAnalystInsight,
+  getTickerDividendHistory,
 } = require('../services/stockService')
 const {askAboutPortfolio, getChatHistory, clearChatHistory, getDailySummary} = require('../services/aiInsightsService')
 
@@ -232,6 +233,16 @@ exports.search = async (req, res) => {
     if (!q) return res.json([])
     const results = await searchTicker(q)
     res.json(results)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.getDividendHistory = async (req, res) => {
+  try {
+    const { since } = req.query
+    const data = await getTickerDividendHistory(req.params.ticker, since || null)
+    res.json(data)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

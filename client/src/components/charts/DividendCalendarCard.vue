@@ -13,6 +13,8 @@ const props = defineProps({
 
 const events = ref([])
 const loading = ref(true)
+const pastPayments = ref([])
+const showPast = ref(false)
 
 onMounted(async () => {
   try {
@@ -23,9 +25,28 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  try {
+    const data = await api.get('/portfolio/dividends/history')
+    pastPayments.value = data?.payments || []
+  } catch {
+    pastPayments.value = []
+  }
 })
 
 const upcoming = computed(() => events.value.slice(0, 6))
+
+// Flatten all past payments into a single list sorted newest first
+const allPastPayments = computed(() => {
+  const rows = []
+  for (const pos of pastPayments.value) {
+    for (const p of pos.payments) {
+      rows.push({ticker: pos.ticker, companyName: pos.companyName, shares: pos.shares, ...p})
+    }
+  }
+  return rows.sort((a, b) => new Date(b.date) - new Date(a.date))
+})
+
+const pastTotal = computed(() => allPastPayments.value.reduce((s, p) => s + (p.total ?? 0), 0))
 
 function formatDate(d) {
   if (!d) return '—'
@@ -55,7 +76,7 @@ function exDivLabel(event) {
 </script>
 
 <template>
-  <section v-if="(loading && !props.hideLoading) || upcoming.length" class="div-calendar-card">
+  <section v-if="(loading && !props.hideLoading) || upcoming.length || allPastPayments.length" class="div-calendar-card">
     <h2 class="section-title">{{ t('dividendCalendar.title') }}</h2>
 
     <div v-if="loading && !upcoming.length && !props.hideLoading" class="cal-list">
@@ -93,6 +114,39 @@ function exDivLabel(event) {
           </span>
         </div>
       </button>
+    </div>
+
+    <!-- Past dividend payments across all holdings -->
+    <div v-if="allPastPayments.length" class="past-section">
+      <button class="past-toggle" type="button" @click="showPast = !showPast">
+        <span class="past-toggle-label">
+          <i class="pi pi-history" />
+          Past payments
+          <span class="past-count">{{ allPastPayments.length }}</span>
+        </span>
+        <span class="past-toggle-right">
+          <span v-if="pastTotal" class="past-total gain">+{{ useTickerCurrency(pastTotal, 'USD') }}</span>
+          <i :class="showPast ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="past-chevron" />
+        </span>
+      </button>
+      <div v-if="showPast" class="cal-list past-list">
+        <button
+            v-for="p in allPastPayments"
+            :key="`${p.ticker}-${p.date}`"
+            class="cal-row"
+            type="button"
+            @click="openPosition(p.ticker, p.companyName)"
+        >
+          <div class="cal-left">
+            <span class="ticker">{{ p.ticker }}</span>
+            <span class="company text-muted">{{ formatDate(p.date) }}</span>
+          </div>
+          <div class="cal-right">
+            <span v-if="p.total" class="payout gain">+{{ useTickerCurrency(p.total, p.ticker) }}</span>
+            <span v-if="p.amount" class="per-share text-muted">{{ useTickerCurrency(p.amount, p.ticker) }} {{ t('dividendCalendar.perShare') }}</span>
+          </div>
+        </button>
+      </div>
     </div>
   </section>
 </template>
@@ -202,6 +256,53 @@ function exDivLabel(event) {
 .per-share {
   font-size: 0.68rem;
 }
+
+.past-section {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.past-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.55rem 0;
+  cursor: pointer;
+  color: inherit;
+  gap: 0.5rem;
+}
+
+.past-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.past-toggle-label i { font-size: 0.72rem; }
+
+.past-count {
+  background: color-mix(in srgb, var(--text-secondary) 15%, transparent);
+  border-radius: 8px;
+  padding: 0 5px;
+  font-size: 0.65rem;
+}
+
+.past-toggle-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.past-total { font-size: 0.8rem; font-weight: 700; }
+.past-chevron { font-size: 0.65rem; color: var(--text-secondary); }
+
+.past-list { padding-top: 0.25rem; }
 
 .skeleton {
   min-height: 44px;

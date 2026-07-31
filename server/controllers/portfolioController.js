@@ -5,7 +5,7 @@ const Transaction = require('../models/Transaction')
 // undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
 // feeAmount stays in profile currency; totalWithFees/netProceeds convert it first.
 const Watchlist = require('../models/Watchlist')
-const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar, getDividendFrequency} = require('../services/stockService')
+const {getQuotes, getTickerProfile, invalidateCache, getIlsToUsd, getDividendCalendar, getDividendFrequency, getTickerDividendHistory} = require('../services/stockService')
 const {
   computeTransactionCosts,
   convertFeeToTransactionCurrency,
@@ -701,6 +701,59 @@ exports.getDividendFrequencies = async (req, res) => {
         if (!positions.length) return res.json({frequencies: {}})
         const frequencies = await getDividendFrequency(positions.map((p) => p.ticker))
         res.json({frequencies})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+exports.getDividendPaymentHistory = async (req, res) => {
+    try {
+        const positions = await Position.find({user: req.user._id, shares: {$gt: 0}}).lean()
+        if (!positions.length) return res.json({payments: []})
+
+        // Get earliest buy date per ticker from transactions
+        const tickers = positions.map((p) => p.ticker)
+        const txs = await Transaction.find({
+            user: req.user._id,
+            ticker: {$in: tickers},
+            type: 'buy',
+        }).select('ticker date shares').lean()
+
+        const firstBuyByTicker = {}
+        for (const tx of txs) {
+            const t = tx.ticker
+            if (!firstBuyByTicker[t] || tx.date < firstBuyByTicker[t].date) {
+                firstBuyByTicker[t] = tx
+            }
+        }
+
+        const sharesByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.shares]))
+        const nameByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.companyName || null]))
+
+        const results = await Promise.all(
+            tickers.map(async (ticker) => {
+                const since = firstBuyByTicker[ticker]?.date ?? null
+                const history = await getTickerDividendHistory(ticker, since)
+                if (!history.length) return null
+                const shares = sharesByTicker[ticker] ?? 0
+                return {
+                    ticker,
+                    companyName: nameByTicker[ticker],
+                    shares,
+                    payments: history.map((d) => ({
+                        date: d.date,
+                        amount: d.amount,
+                        total: shares > 0 && d.amount ? Math.round(shares * d.amount * 100) / 100 : null,
+                    })),
+                }
+            })
+        )
+
+        const payments = results
+            .filter(Boolean)
+            .sort((a, b) => a.ticker.localeCompare(b.ticker))
+
+        res.json({payments})
     } catch (err) {
         res.status(500).json({message: err.message})
     }

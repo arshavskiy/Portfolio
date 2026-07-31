@@ -427,6 +427,8 @@ async function getQuote(ticker) {
       pe: result.trailingPE ?? null,
       dividendRate: dividend.dividendRate,
       dividendYield: dividend.dividendYield,
+      exDividendDate: result.exDividendDate ?? null,
+      dividendDate: result.dividendDate ?? null,
       marketState: result.marketState || null,
       regularMarketTime: result.regularMarketTime ?? null,
       earningsTimestamp: result.earningsTimestamp ?? result.earningsTimestampStart ?? null,
@@ -904,6 +906,31 @@ async function getDividendFrequency(tickers) {
     }
   }
   return map
+}
+
+const dividendHistoryCache = new Map()
+const DIVIDEND_HISTORY_TTL = 12 * 60 * 60 * 1000 // 12h
+
+async function getTickerDividendHistory(ticker, since) {
+  const symbol = ticker.toUpperCase()
+  const cacheKey = `${symbol}:${since}`
+  const cached = dividendHistoryCache.get(cacheKey)
+  if (cached && Date.now() - cached.ts < DIVIDEND_HISTORY_TTL) return cached.data
+
+  const period1 = since ? new Date(since) : (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 5); return d })()
+  try {
+    const result = await withRetry(() =>
+      yahooFinance.chart(symbol, { period1, period2: new Date(), interval: '1d', events: 'div' })
+    )
+    const raw = result?.events?.dividends || []
+    const data = raw
+      .map((d) => ({ date: d.date instanceof Date ? d.date.toISOString() : d.date, amount: d.amount ?? null }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date))
+    dividendHistoryCache.set(cacheKey, { data, ts: Date.now() })
+    return data
+  } catch {
+    return []
+  }
 }
 
 // ── Global market indices ──
@@ -1497,5 +1524,6 @@ module.exports = {
   NEWS_TOPICS,
   getDividendCalendar,
   getDividendFrequency,
+  getTickerDividendHistory,
   getAnalystInsight,
 }

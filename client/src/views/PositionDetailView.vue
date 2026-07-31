@@ -263,6 +263,7 @@ async function fetchLots() {
     transactions.value = data.transactions.sort(
       (a, b) => new Date(a.date) - new Date(b.date),
     );
+    loadYahooDividends();
   } catch (err) {
     toast.add({
       severity: "error",
@@ -318,8 +319,43 @@ const dividendTxs = computed(() =>
     .filter((tx) => tx.type === "dividend")
     .sort((a, b) => new Date(b.date) - new Date(a.date)),
 );
+
+// Historical dividend payments from Yahoo during holding period
+const yahooDiv = ref([]);
+async function loadYahooDividends() {
+  if (!ticker.value) return;
+  const lots = holdingLots.value;
+  const since = lots.length
+    ? lots.reduce((min, l) => (l.date < min ? l.date : min), lots[0].date)
+    : null;
+  try {
+    const params = since ? `?since=${encodeURIComponent(since)}` : '';
+    yahooDiv.value = await api.get(`/stocks/dividends/${encodeURIComponent(ticker.value)}${params}`);
+  } catch { yahooDiv.value = []; }
+}
 const totalDividends = computed(() =>
   dividendTxs.value.reduce((s, d) => s + (d.total || 0), 0),
+);
+
+// Pair Yahoo historical payments with shares held at each ex-div date
+const yahooDivWithShares = computed(() => {
+  const txsSorted = [...transactions.value].sort((a, b) => new Date(a.date) - new Date(b.date));
+  return yahooDiv.value.map((d) => {
+    const divDate = new Date(d.date);
+    let shares = 0;
+    for (const tx of txsSorted) {
+      if (new Date(tx.date) > divDate) break;
+      if (tx.type === 'buy') shares += tx.shares || 0;
+      else if (tx.type === 'sell') shares -= tx.shares || 0;
+      else if (tx.type === 'dividend' && tx.drip) shares += tx.shares || 0;
+    }
+    shares = Math.max(0, shares);
+    return { date: d.date, amount: d.amount, shares, total: shares > 0 && d.amount ? shares * d.amount : null };
+  }).filter((d) => d.shares > 0);
+});
+
+const yahooDivTotal = computed(() =>
+  yahooDivWithShares.value.reduce((s, d) => s + (d.total ?? 0), 0),
 );
 const holdingLots = computed(() => {
   const openLots = [];
@@ -1877,6 +1913,14 @@ async function toggleWatchlist() {
           /></span>
           <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
         </div>
+        <div v-if="quote.exDividendDate" class="stat">
+          <span class="text-muted">{{ t('dividendCalendar.exDiv') }}</span>
+          <span>{{ new Date(quote.exDividendDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
+        </div>
+        <div v-if="quote.dividendDate" class="stat">
+          <span class="text-muted">{{ t('dividendCalendar.payDate') }}</span>
+          <span>{{ new Date(quote.dividendDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
+        </div>
         <div v-if="normalizedDividendYield" class="stat">
           <span class="text-muted stat-label-info"
             >{{ t("positionDetail.divYield") }}
@@ -2035,6 +2079,31 @@ async function toggleWatchlist() {
               text
               @click.stop="editingTx = lot"
             />
+          </div>
+        </div>
+      </div>
+
+      <!-- Historical dividend payments from Yahoo during holding period -->
+      <div v-if="yahooDivWithShares.length" class="dividends-section">
+        <div class="dividends-header">
+          <h2 class="section-title">{{ t('positionDetail.dividends') }}</h2>
+          <div class="dividends-summary">
+            <span class="text-muted">{{ yahooDivWithShares.length }} {{ yahooDivWithShares.length === 1 ? 'payment' : 'payments' }}</span>
+            <span v-if="yahooDivTotal" class="div-total gain">≈ +{{ useTickerCurrency(yahooDivTotal, ticker) }}</span>
+          </div>
+        </div>
+        <div v-for="d in [...yahooDivWithShares].reverse()" :key="d.date" class="lot-row">
+          <div class="lot-left">
+            <div class="lot-top">
+              <span class="div-badge">DIV</span>
+              <span class="lot-date text-muted">{{ formatDate(d.date) }}</span>
+            </div>
+            <div class="lot-detail">
+              {{ useTickerCurrency(d.amount, ticker) }} {{ t('positionDetail.perShare') }} · {{ d.shares }} {{ t('common.shares') }}
+            </div>
+          </div>
+          <div class="lot-right">
+            <span v-if="d.total" class="lot-total gain">≈ +{{ useTickerCurrency(d.total, ticker) }}</span>
           </div>
         </div>
       </div>
@@ -3460,6 +3529,18 @@ async function toggleWatchlist() {
   color: var(--neon-green);
   border-radius: 4px;
   padding: 1px 5px;
+}
+
+.yahoo-div-badge {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: color-mix(in srgb, var(--text-secondary) 15%, transparent);
+  color: var(--text-secondary);
+  border-radius: 4px;
+  padding: 1px 5px;
+  vertical-align: middle;
+  margin-left: 0.4rem;
 }
 
 .drip-tag {

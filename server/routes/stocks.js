@@ -14,7 +14,8 @@ const {
     getAiChatHistory,
     deleteAiChatHistory,
     getAiDailySummary,
-    getAnalystResearch
+    getAnalystResearch,
+    getDividendHistory
 } = require('../controllers/stockController')
 
 router.use(auth)
@@ -32,5 +33,6 @@ router.post('/validate-tickers', validateTickers)
 router.get('/analyst/:ticker', getAnalystResearch)
 router.get('/quote/:ticker', getQuote)
 router.get('/history/:ticker', getHistory)
+router.get('/dividends/:ticker', getDividendHistory)
 
 module.exports = router

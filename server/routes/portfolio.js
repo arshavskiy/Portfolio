@@ -13,6 +13,7 @@ const {
     getDividendSummary,
     getDividendCalendar,
     getDividendFrequencies,
+    getDividendPaymentHistory,
     getRealizedGains,
     updateTransaction,
     deleteTransaction,
@@ -37,6 +38,7 @@ router.get('/transactions', getTransactions)
 router.get('/dividends/summary', getDividendSummary)
 router.get('/dividends/calendar', getDividendCalendar)
 router.get('/dividends/frequency', getDividendFrequencies)
+router.get('/dividends/history', getDividendPaymentHistory)
 router.get('/realized-gains', getRealizedGains)
 router.put('/transaction/:id', updateTransaction)
 router.delete('/transaction/:id', deleteTransaction)
