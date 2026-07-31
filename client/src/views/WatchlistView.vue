@@ -532,6 +532,7 @@ function groupLabel(group) {
             :key="`${section.group ?? ''}-${item._id}`"
             :data-tour="sIdx === 0 && iIdx === 0 ? 'wl-row' : null"
             :data-watchlist-ticker="item.ticker"
+            :group-mode="groupMode"
             :highlight-held="item.isHeld"
             :item="item"
             @edit-groups="openGroups"

@@ -218,7 +218,8 @@ const priceTargets = computed(() => {
 // Pre-fill sim price with current price once loaded
 watch(currentPrice, (p) => {
   if (p && !simPrice.value) simPrice.value = p;
-  if (!simShares.value && summary.value?.shares > 0) simShares.value = summary.value.shares;
+  if (!simShares.value && summary.value?.shares > 0)
+    simShares.value = summary.value.shares;
   if (p && !simValue.value && summary.value?.shares > 0) {
     simValue.value = p * (simShares.value || summary.value.shares);
   }
@@ -569,7 +570,9 @@ function defaultFeeProfile() {
 }
 
 function feeCurrencyForTransaction(profile) {
-  return tickerCurr.value === "ILS" ? "ILS" : profile?.currency || tickerCurr.value;
+  return tickerCurr.value === "ILS"
+    ? "ILS"
+    : profile?.currency || tickerCurr.value;
 }
 
 function feeProfileLabel(profile) {
@@ -665,6 +668,20 @@ const quoteChange = computed(() => ({
   amount: quote.value?.change ?? null,
   percent: quote.value?.changePercent ?? null,
 }));
+
+const pctFromDayHigh = computed(() => {
+  const price = quote.value?.price;
+  const high = quote.value?.dayHigh;
+  if (price == null || high == null || high === 0) return null;
+  return ((price - high) / high) * 100;
+});
+
+const pctFromDayLow = computed(() => {
+  const price = quote.value?.price;
+  const low = quote.value?.dayLow;
+  if (price == null || low == null || low === 0) return null;
+  return ((price - low) / low) * 100;
+});
 const normalizedDividendYield = computed(() => {
   const value = quote.value?.dividendYield;
   if (!Number.isFinite(value) || value <= 0) return null;
@@ -983,7 +1000,8 @@ const simulation = computed(() => {
 
   const netProceeds = grossProceeds - sellFeeInTickerCurrency - tax;
   const costBasis = avgCost * shares;
-  const allocatedBuyFees = heldShares > 0 ? totalBuyFees * (shares / heldShares) : 0;
+  const allocatedBuyFees =
+    heldShares > 0 ? totalBuyFees * (shares / heldShares) : 0;
   // Net profit = net proceeds - proportional original cost - proportional buy fees already paid
   const netProfit = netProceeds - costBasis - allocatedBuyFees;
   const netProfitPct =
@@ -1156,7 +1174,12 @@ const measureLabel = computed(() => {
 const chartTransactionMarkers = computed(() =>
   transactions.value
     .filter((tx) => tx.type === "buy" || tx.type === "sell")
-    .map((tx) => ({ date: tx.date, type: tx.type, shares: tx.shares, price: tx.price })),
+    .map((tx) => ({
+      date: tx.date,
+      type: tx.type,
+      shares: tx.shares,
+      price: tx.price,
+    })),
 );
 
 const measureMarkerPoints = computed(() => {
@@ -1390,50 +1413,71 @@ async function toggleWatchlist() {
       <div v-if="quote" class="quote-summary" data-tour="pos-overview">
         <div class="price-row">
           <div class="price-main">
-            <div class="current-price">
-              {{ useTickerCurrency(quote.price, ticker) }}
-              <span v-if="shekelValue != null">
-                {{ useCurrency(shekelValue, "ILS") }}
-              </span>
-            </div>
-            <p
-              :class="gainLossClass(displayedPriceChange.amount)"
-              class="price-change"
-            >
-              {{ useTickerCurrency(displayedPriceChange.amount, ticker) }} ({{
-                usePercent(displayedPriceChange.percent)
-              }})
-              <span class="price-change-label">{{
-                displayedPriceChangeLabel
-              }}</span>
-            </p>
-            <div v-if="extendedHours" class="extended-row">
-              <span class="extended-price" :class="extendedHours.label === t('common.preMarket') ? 'gold' : 'purple'">
-                {{ useTickerCurrency(extendedHours.price, ticker) }}
-                <span
-                  v-if="extendedHours.shekelPrice != null"
-                  class="extended-ils"
-                >
-                  {{ useCurrency(extendedHours.shekelPrice, "ILS") }}
+            <template v-if="selectedDelta">
+              <div class="current-price">
+                {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
+              </div>
+              <p :class="gainLossClass(selectedDelta.amount)" class="price-change">
+                {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
+                <span class="price-change-label">{{ t('positionDetail.selectedRange') }}</span>
+              </p>
+              <p class="hours-line text-muted">
+                {{ selectedDelta.startLabel }} → {{ selectedDelta.endLabel }}
+              </p>
+            </template>
+            <template v-else>
+              <div class="current-price">
+                {{ useTickerCurrency(quote.price, ticker) }}
+                <span v-if="shekelValue != null">
+                  {{ useCurrency(shekelValue, "ILS") }}
                 </span>
-              </span>
-              <span
-                v-if="extendedHoursChangeText"
-                :class="gainLossClass(extendedHours.change)"
-                class="extended-change"
+              </div>
+              <p
+                :class="gainLossClass(displayedPriceChange.amount)"
+                class="price-change"
               >
-                {{ extendedHoursChangeText }}
-              </span>
-            </div>
-            <p v-if="extendedHours" class="hours-line text-muted">
-              {{ extendedHours.label
-              }}{{
-                extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : ""
-              }}
-            </p>
-            <p v-else-if="sessionMetaText" class="hours-line text-muted">
-              {{ sessionMetaText }}
-            </p>
+                {{ useTickerCurrency(displayedPriceChange.amount, ticker) }} ({{
+                  usePercent(displayedPriceChange.percent)
+                }})
+                <span class="price-change-label">{{
+                  displayedPriceChangeLabel
+                }}</span>
+              </p>
+              <div v-if="extendedHours" class="extended-row">
+                <span
+                  class="extended-price"
+                  :class="
+                    extendedHours.label === t('common.preMarket')
+                      ? 'gold'
+                      : 'purple'
+                  "
+                >
+                  {{ useTickerCurrency(extendedHours.price, ticker) }}
+                  <span
+                    v-if="extendedHours.shekelPrice != null"
+                    class="extended-ils"
+                  >
+                    {{ useCurrency(extendedHours.shekelPrice, "ILS") }}
+                  </span>
+                </span>
+                <span
+                  v-if="extendedHoursChangeText"
+                  :class="gainLossClass(extendedHours.change)"
+                  class="extended-change"
+                >
+                  {{ extendedHoursChangeText }}
+                </span>
+              </div>
+              <p v-if="extendedHours" class="hours-line text-muted">
+                {{ extendedHours.label
+                }}{{
+                  extendedHours.timeLabel ? `: ${extendedHours.timeLabel}` : ""
+                }}
+              </p>
+              <p v-else-if="sessionMetaText" class="hours-line text-muted">
+                {{ sessionMetaText }}
+              </p>
+            </template>
           </div>
         </div>
       </div>
@@ -1488,7 +1532,7 @@ async function toggleWatchlist() {
       </div>
 
       <div class="chart-measure">
-        <div v-if="measureDelta" class="measure-summary">
+        <div v-if="measureDelta && !selectedDelta" class="measure-summary">
           <span class="measure-tag text-muted">
             {{ measureLabel }}
           </span>
@@ -1765,7 +1809,10 @@ async function toggleWatchlist() {
               class="pi pi-info-circle info-icon"
               tabindex="0"
           /></span>
-          <span class="day-range-value">{{ useTickerCurrency(quote.dayHigh, ticker) }}</span>
+          <span class="day-range-value">
+            {{ useTickerCurrency(quote.dayHigh, ticker) }}
+            <span v-if="pctFromDayHigh != null" class="range-pct loss">{{ usePercent(pctFromDayHigh) }}</span>
+          </span>
         </div>
         <div class="stat">
           <span class="text-muted stat-label-info"
@@ -1775,7 +1822,10 @@ async function toggleWatchlist() {
               class="pi pi-info-circle info-icon"
               tabindex="0"
           /></span>
-          <span class="day-range-value">{{ useTickerCurrency(quote.dayLow, ticker) }}</span>
+          <span class="day-range-value">
+            {{ useTickerCurrency(quote.dayLow, ticker) }}
+            <span v-if="pctFromDayLow != null" class="range-pct gain">+{{ usePercent(pctFromDayLow) }}</span>
+          </span>
         </div>
         <div class="stat">
           <span class="text-muted stat-label-info"
@@ -2026,7 +2076,11 @@ async function toggleWatchlist() {
               type="button"
               @click="showSimulator = !showSimulator"
             >
-              <i :class="showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" />
+              <i
+                :class="
+                  showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
+                "
+              />
             </button>
           </div>
         </div>
@@ -2205,7 +2259,10 @@ async function toggleWatchlist() {
             </span>
           </div>
         </div>
-        <div v-if="showSimulator && simulatorTab === 'sell' && summary" class="sim-body">
+        <div
+          v-if="showSimulator && simulatorTab === 'sell' && summary"
+          class="sim-body"
+        >
           <div class="sim-inputs">
             <div class="sim-field">
               <label>{{ t("positionDetail.sellPricePerShare") }}</label>
@@ -2354,7 +2411,10 @@ async function toggleWatchlist() {
 
       <!-- News-driven ticker insights (stockfolio-insights microservice) -->
       <template v-if="auth.canUsePremiumFeatures">
-        <AnalystResearchCard :current-price="quote?.price ?? null" :ticker="ticker" />
+        <AnalystResearchCard
+          :current-price="quote?.price ?? null"
+          :ticker="ticker"
+        />
         <TickerInsightCard :ticker="ticker" />
         <TickerRelationGraph :ticker="ticker" />
       </template>
@@ -2410,7 +2470,6 @@ async function toggleWatchlist() {
       <!--        <p class="text-muted">{{ t('positionDetail.noTransactionsYet') }}</p>-->
       <!--        <Button :label="t('positionDetail.addTransaction')" @click="showModal = true"/>-->
       <!--      </div>-->
-
     </template>
 
     <AddTransactionModal
@@ -2459,8 +2518,8 @@ async function toggleWatchlist() {
 .position-detail.panel-mode {
   padding: 0.5rem 0.75rem 2rem;
   height: 100%;
-  overflow-y: auto;
-  overflow-x: hidden;
+  max-width: 800px;
+  margin: 2rem auto;
 }
 
 .page-header {
@@ -2978,6 +3037,15 @@ async function toggleWatchlist() {
 
 .day-range-value {
   color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.range-pct {
+  font-size: 0.72rem;
+  font-weight: 500;
+  opacity: 0.85;
 }
 
 .stat-label-info {
@@ -3116,7 +3184,10 @@ async function toggleWatchlist() {
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  transition:
+    color 0.15s,
+    border-color 0.15s,
+    background 0.15s;
 }
 
 .sim-collapse-btn:hover {
@@ -3539,11 +3610,19 @@ async function toggleWatchlist() {
 }
 
 .fill-above {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--green) 50%, transparent), var(--green));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--green) 50%, transparent),
+    var(--green)
+  );
 }
 
 .fill-below {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--red) 50%, transparent), var(--red));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--red) 50%, transparent),
+    var(--red)
+  );
 }
 
 .fill-hit {

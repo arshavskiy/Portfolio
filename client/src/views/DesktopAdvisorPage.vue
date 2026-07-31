@@ -8,10 +8,12 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import AskPortfolioPanel from '@/components/ui/AskPortfolioPanel.vue'
 import { useAuthStore } from '@/stores/auth'
 import { useAiChatStore } from '@/stores/aiChat'
+import { useI18n } from '@/composables/useI18n'
 
 const auth = useAuthStore()
 const aiChat = useAiChatStore()
 const { messages } = storeToRefs(aiChat)
+const { t } = useI18n()
 
 const advisorPanelRef = ref(null)
 const showConsentModal = ref(false)
@@ -67,12 +69,12 @@ function sendAdvisorPrompt(prompt) {
   <div class="advisor-page">
     <div class="advisor-head">
       <div>
-        <strong>AI Chat</strong>
-        <span>Portfolio advisor</span>
+        <strong>{{ t('insights.advisorTitle') }}</strong>
+        <span>{{ t('insights.advisorSubtitle') }}</span>
       </div>
       <div class="advisor-actions">
         <Button
-          v-tooltip.bottom="'Open history'"
+          v-tooltip.bottom="t('insights.advisorOpenHistory')"
           class="advisor-action-btn"
           icon="pi pi-history"
           severity="secondary"
@@ -82,7 +84,7 @@ function sendAdvisorPrompt(prompt) {
           @click="toggleAdvisorHistory"
         />
         <Button
-          v-tooltip.bottom="'Settings'"
+          v-tooltip.bottom="t('insights.advisorSettings')"
           class="advisor-action-btn"
           icon="pi pi-cog"
           severity="secondary"
@@ -92,7 +94,7 @@ function sendAdvisorPrompt(prompt) {
           @click="openConsentModal"
         />
         <Button
-          v-tooltip.bottom="'New session'"
+          v-tooltip.bottom="t('insights.advisorNewSession')"
           class="advisor-action-btn"
           icon="pi pi-plus"
           severity="secondary"
@@ -108,17 +110,13 @@ function sendAdvisorPrompt(prompt) {
       <span class="advisor-hero-mark">
         <i class="pi pi-comments" />
       </span>
-      <strong>Folio advisor</strong>
-      <p v-if="aiDataSharingConsent">
-        Ask about risk, concentration, rebalancing, and what moved today.
-      </p>
-      <p v-else>
-        Update your AI settings and data sharing preferences to unlock tailored answers.
-      </p>
+      <strong>{{ t('insights.advisorHeroTitle') }}</strong>
+      <p v-if="aiDataSharingConsent">{{ t('insights.advisorHeroText') }}</p>
+      <p v-else>{{ t('insights.advisorHeroTextNoConsent') }}</p>
       <Button
         class="advisor-hero-cta"
         :icon="aiDataSharingConsent ? 'pi pi-sparkles' : 'pi pi-shield'"
-        :label="aiDataSharingConsent ? 'Ask your first question' : 'Enable AI Advisor'"
+        :label="aiDataSharingConsent ? t('insights.advisorHeroCta') : t('insights.advisorHeroCtaNoConsent')"
         outlined
         @click="aiDataSharingConsent ? advisorPanelRef?.focusInput?.() : openConsentModal()"
       />
@@ -131,7 +129,7 @@ function sendAdvisorPrompt(prompt) {
     />
 
     <div v-if="aiDataSharingConsent" class="suggestions">
-      <span>Suggestions</span>
+      <span>{{ t('insights.advisorSuggestions') }}</span>
       <Button
         v-for="prompt in suggestionPrompts"
         :key="prompt"
@@ -154,8 +152,8 @@ function sendAdvisorPrompt(prompt) {
         <div class="consent-dialog-title">
           <i class="pi pi-sparkles" />
           <div>
-            <strong>StockFolio AI Advisor</strong>
-            <span>Update your AI settings and data sharing preferences here.</span>
+            <strong>{{ t('insights.consentTitle') }}</strong>
+            <span>{{ t('insights.consentSubtitle') }}</span>
           </div>
         </div>
       </template>
@@ -166,22 +164,19 @@ function sendAdvisorPrompt(prompt) {
               <ToggleSwitch v-model="consentDraft" />
             </div>
             <div class="consent-copy">
-              <strong>AI data sharing consent</strong>
-              <p>
-                StockFolio AI Advisor can provide more relevant answers if you choose
-                to share different levels of data. This feature is powered by third-party AI providers.
-              </p>
+              <strong>{{ t('insights.consentToggleLabel') }}</strong>
+              <p>{{ t('insights.consentToggleText') }}</p>
             </div>
           </div>
         </template>
       </Card>
       <template #footer>
         <div class="consent-footer">
-          <Button label="Cancel" outlined @click="closeConsentModal" />
+          <Button :label="t('common.cancel')" outlined @click="closeConsentModal" />
           <Button
             :disabled="!consentDirty || savingConsent"
             :loading="savingConsent"
-            label="Save changes"
+            :label="t('transactions.saveChanges')"
             @click="saveConsentModal"
           />
         </div>

@@ -22,12 +22,12 @@ const activeTab = ref('history')
 const transactions = ref([])
 const loadingHistory = ref(false)
 const filterTicker = ref('')
-const filterType = ref(null)
+const filterType = ref('')
 const editTx = ref(null)
 const showEdit = ref(false)
 
 const typeOptions = computed(() => [
-  {label: t('transactions.allTypes'), value: null},
+  {label: t('transactions.allTypes'), value: ''},
   {label: t('common.buy'), value: 'buy'},
   {label: t('common.sell'), value: 'sell'},
   {label: t('common.dividend'), value: 'dividend'},
@@ -187,7 +187,7 @@ watch(activeTab, (tab) => {
     <!-- Left: Transactions -->
     <div class="tx-col">
       <header class="col-header">
-        <h1 class="gradient-title">Records</h1>
+        <h1 class="gradient-title">{{ t('nav.records') }}</h1>
         <Button
             v-if="activeTab === 'history'"
             :disabled="!filtered.length"
@@ -220,7 +220,7 @@ watch(activeTab, (tab) => {
           <div class="filters">
             <InputText v-model="filterTicker" :placeholder="t('transactions.filterTicker')" class="filter-input"
                        size="small"/>
-            <Select v-model="filterType" :options="typeOptions" class="filter-select" option-label="label" option-value="value" size="small"/>
+            <Select v-model="filterType" :options="typeOptions" class="filter-select" option-label="label" option-value="value" size="small" :placeholder="t('transactions.allTypes')"/>
           </div>
 
           <div v-if="loadingHistory" class="page-loader">
@@ -233,21 +233,28 @@ watch(activeTab, (tab) => {
           <div v-else class="tx-list">
             <div v-for="tx in filtered" :key="tx._id" class="tx-row" @click="openEdit(tx)">
               <div class="tx-left">
-                <span class="ticker">{{ tx.ticker }}</span>
+                <div class="tx-ticker-row">
+                  <span class="ticker">{{ tx.ticker }}</span>
+                  <Tag
+                    :severity="tx.type === 'buy' ? 'success' : tx.type === 'sell' ? 'danger' : 'info'"
+                    :value="tx.type === 'buy' ? t('common.buy') : tx.type === 'sell' ? t('common.sell') : t('common.dividend')"
+                    class="tx-type-tag"
+                  />
+                </div>
                 <span class="tx-date text-muted">{{ formatDate(tx.date) }}</span>
               </div>
               <div class="tx-mid">
-                <span v-if="tx.type === 'dividend'" class="text-muted">
-                  {{ useTickerCurrency(tx.price, tx.ticker) }}{{
-                    t('transactions.perShareShort')
-                  }}{{ tx.drip ? ' · DRIP' : '' }}
+                <span v-if="tx.type === 'dividend'" class="tx-detail">
+                  <span class="tx-shares">{{ t('common.dividend') }}</span>
+                  <span class="text-muted">{{ useTickerCurrency(tx.price, tx.ticker) }}/sh{{ tx.drip ? ' · DRIP' : '' }}</span>
                 </span>
-                <span v-else class="text-muted">{{ tx.shares }} × {{ useTickerCurrency(tx.price, tx.ticker) }}</span>
+                <span v-else class="tx-detail">
+                  <span class="tx-shares">{{ tx.shares }} {{ t('common.shares').toLowerCase() }}</span>
+                  <span class="text-muted">@ {{ useTickerCurrency(tx.price, tx.ticker) }}</span>
+                </span>
               </div>
               <div class="tx-right">
-                <Tag :severity="tx.type === 'buy' ? 'success' : tx.type === 'sell' ? 'danger' : 'info'"
-                     :value="tx.type === 'buy' ? t('common.buy') : tx.type === 'sell' ? t('common.sell') : t('common.dividend')"/>
-                <span :class="tx.type === 'sell' || tx.type === 'dividend' ? 'gain' : ''" class="total">
+                <span :class="tx.type === 'sell' || tx.type === 'dividend' ? 'gain' : 'loss'" class="total">
                   {{ tx.type === 'sell' || tx.type === 'dividend' ? '+' : '-' }}{{ useTickerCurrency(tx.total, tx.ticker) }}
                 </span>
               </div>
@@ -481,27 +488,59 @@ watch(activeTab, (tab) => {
 .filter-input { flex: 1; }
 .filter-select { width: 130px; }
 
+.filter-select :deep(.p-select-label),
+.filter-select :deep(.p-select-label.p-placeholder) {
+  color: var(--text-primary);
+}
+
 
 .empty { height: auto; }
 
 .empty i { font-size: 3rem; color: var(--text-secondary); }
 
-.tx-list { display: flex; flex-direction: column; }
+.tx-list { display: flex; flex-direction: column; gap: 0.15rem; }
 
 .tx-row {
   display: flex;
   align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--border);
-  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  gap: 0.75rem;
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.tx-row:active { background: rgba(255, 255, 255, 0.03); }
+.tx-row:hover { background: var(--bg-card); }
+.tx-row:active { background: color-mix(in srgb, var(--text-primary) 6%, transparent); }
 
-.tx-left { flex: 0 0 90px; }
+.tx-left { flex: 0 0 160px; }
+
+.tx-ticker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.15rem;
+}
+
+.tx-type-tag :deep(.p-tag) {
+  font-size: 0.65rem;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
 .tx-mid { flex: 1; font-size: 0.82rem; }
+
+.tx-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tx-shares {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
 
 .tx-right {
   display: flex;
@@ -510,8 +549,9 @@ watch(activeTab, (tab) => {
   gap: 4px;
 }
 
-.total { font-size: 0.88rem; font-weight: 500; }
-.edit-hint { font-size: 0.7rem; flex-shrink: 0; margin-left: 2px; }
+.total { font-size: 0.9rem; font-weight: 600; }
+.edit-hint { font-size: 0.7rem; flex-shrink: 0; opacity: 0.4; }
+.tx-row:hover .edit-hint { opacity: 1; }
 .count { margin-top: 0.75rem; font-size: 0.8rem; text-align: center; }
 
 .gains-filter { margin-bottom: 1rem; }

@@ -71,6 +71,7 @@ function draw() {
   const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([innerH, 0]).nice(4)
 
   const yTicks = y.ticks(4)
+
   chart.selectAll('.y-grid')
       .data(yTicks)
       .enter()
@@ -82,6 +83,8 @@ function draw() {
       .attr('y2', (d) => y(d))
       .attr('stroke', getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#333')
       .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '4,6')
+      .attr('opacity', 0.25)
 
   chart.selectAll('.y-label')
       .data(yTicks)

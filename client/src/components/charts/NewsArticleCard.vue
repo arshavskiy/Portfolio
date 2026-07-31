@@ -1,23 +1,23 @@
 <script setup>
-import {useI18n} from '@/composables/useI18n'
+import { useI18n } from "@/composables/useI18n";
 
 defineProps({
-  article: {type: Object, required: true},
-})
+  article: { type: Object, required: true },
+});
 
-const emit = defineEmits(['open'])
-const {t} = useI18n()
+const emit = defineEmits(["open"]);
+const { t } = useI18n();
 
 function fmtDate(value) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 </script>
 
@@ -26,13 +26,22 @@ function fmtDate(value) {
     <div class="article-main">
       <h2>{{ article.title }}</h2>
       <div class="article-meta">
-        <span class="source">{{ article.source || t('newsPage.marketNews') }}</span>
-        <span v-if="fmtDate(article.publishedAt)" class="text-muted">{{ fmtDate(article.publishedAt) }}</span>
+        <span class="source">{{
+          article.source || t("newsPage.marketNews")
+        }}</span>
+        <span v-if="fmtDate(article.publishedAt)" class="text-muted">{{
+          fmtDate(article.publishedAt)
+        }}</span>
       </div>
     </div>
 
     <div v-if="article.symbols?.length" class="symbol-row">
-      <span v-for="symbol in article.symbols.slice(0, 2)" :key="symbol" class="symbol-pill">{{ symbol }}</span>
+      <span
+        v-for="symbol in article.symbols.slice(0, 2)"
+        :key="symbol"
+        class="symbol-pill"
+        >{{ symbol }}</span
+      >
     </div>
     <div v-else class="symbol-row symbol-row-empty">
       <span class="symbol-pill muted-pill">News</span>
@@ -47,7 +56,7 @@ function fmtDate(value) {
   gap: 0.8rem;
   background: transparent;
   border: 0;
-  border-top: 1px solid #f0ebe7;
+  /* border-top: 1px solid #f0ebe7; */
   border-radius: 0;
   padding: 0.75rem 1rem;
   cursor: pointer;

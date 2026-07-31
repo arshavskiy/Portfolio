@@ -101,7 +101,7 @@ const showPanel = computed(() =>
 );
 
 const accountLabel = computed(
-  () => auth.user?.name || auth.user?.email || "Account",
+  () => auth.user?.name || auth.user?.email || t("common.account"),
 );
 const accountInitial = computed(() =>
   (accountLabel.value || "A").trim().charAt(0).toUpperCase(),
@@ -111,7 +111,7 @@ const dashboardNavItems = computed(() =>
   [
     {
       key: "dashboard",
-      name: "Home",
+      name: t("nav.home"),
       to: "/",
       icon: "pi pi-home",
       tourKey: "dashboard",
@@ -152,7 +152,7 @@ const toolsNavItems = computed(() =>
   [
     {
       key: "assistant",
-      name: "Assistant AI",
+      name: t("nav.assistantAI"),
       to: "/assistant",
       icon: "pi pi-comments",
       tourKey: "assistant",
@@ -175,17 +175,17 @@ const toolsNavItems = computed(() =>
 
 // Breadcrumb label map
 const breadcrumbMap = {
-  "/": "Home",
+  "/": t("nav.home"),
   "/watchlist": t("common.watchlist"),
   "/x-ray": t("common.xRay"),
   "/news": t("common.news"),
   "/help": t("common.about"),
-  "/assistant": "Assistant AI",
-  "/insights": "Assistant AI",
+  "/assistant": t("nav.assistantAI"),
+  "/insights": t("nav.assistantAI"),
   "/insights-data": t("common.data"),
-  "/transactions": "Records",
-  "/rebalance": "Rebalance",
-  "/typology-map": "Typology Map",
+  "/transactions": t("nav.records"),
+  "/rebalance": t("rebalance.title"),
+  "/typology-map": t("common.insights"),
 };
 
 const breadcrumbLabel = computed(() => {
@@ -226,7 +226,7 @@ function toggleDetailPanel() {
     <nav class="sidebar" :class="{ collapsed: menuCollapsed }">
       <div class="sidebar-brand">
         <button
-          v-tooltip.right="menuCollapsed ? 'Account' : null"
+          v-tooltip.right="menuCollapsed ? t('common.account') : null"
           class="brand-account"
           data-tour="nav-account"
           type="button"
@@ -238,13 +238,13 @@ function toggleDetailPanel() {
           </span>
           <span v-if="!menuCollapsed" class="account-copy">
             <strong>{{ accountLabel }}</strong>
-            <small>Account</small>
+            <small>{{ t('common.account') }}</small>
           </span>
         </button>
       </div>
 
       <div class="sidebar-nav">
-        <span v-if="!menuCollapsed" class="nav-group-label">Dashboard</span>
+        <span v-if="!menuCollapsed" class="nav-group-label">{{ t('common.dashboard') }}</span>
         <RouterLink
           v-for="item in dashboardNavItems"
           :key="item.key"
@@ -263,7 +263,7 @@ function toggleDetailPanel() {
           <span
             v-if="!menuCollapsed"
             class="nav-group-label nav-group-label--tools"
-            >Tools</span
+            >{{ t('nav.tools') }}</span
           >
           <div v-else class="nav-group-divider" />
           <RouterLink
@@ -311,7 +311,7 @@ function toggleDetailPanel() {
           <button
             v-if="!isAssistant"
             v-tooltip.bottom="
-              aiPanelCollapsed ? 'Show AI panel' : 'Hide AI panel'
+              aiPanelCollapsed ? t('insights.advisorShowPanel') : t('insights.advisorHidePanel')
             "
             class="ai-toggle-btn"
             type="button"
@@ -382,12 +382,12 @@ function toggleDetailPanel() {
     >
       <div class="advisor-head">
         <div>
-          <strong>AI Chat</strong>
-          <span>Portfolio advisor</span>
+          <strong>{{ t('insights.advisorTitle') }}</strong>
+          <span>{{ t('insights.advisorSubtitle') }}</span>
         </div>
         <div class="advisor-actions">
           <Button
-            v-tooltip.bottom="'Open history'"
+            v-tooltip.bottom="t('insights.advisorOpenHistory')"
             class="advisor-action-btn"
             icon="pi pi-history"
             severity="secondary"
@@ -397,7 +397,7 @@ function toggleDetailPanel() {
             @click="toggleAdvisorHistory"
           />
           <Button
-            v-tooltip.bottom="'Settings'"
+            v-tooltip.bottom="t('insights.advisorSettings')"
             class="advisor-action-btn"
             icon="pi pi-cog"
             severity="secondary"
@@ -407,7 +407,7 @@ function toggleDetailPanel() {
             @click="openConsentModal"
           />
           <Button
-            v-tooltip.bottom="'New session'"
+            v-tooltip.bottom="t('insights.advisorNewSession')"
             class="advisor-action-btn"
             icon="pi pi-plus"
             severity="secondary"
@@ -422,26 +422,15 @@ function toggleDetailPanel() {
         <span class="advisor-hero-mark">
           <i class="pi pi-comments" />
         </span>
-        <strong>Folio advisor</strong>
-        <p v-if="aiDataSharingConsent">
-          Ask about risk, concentration, rebalancing, and what moved today.
-        </p>
-        <p v-else>
-          Update your AI settings and data sharing preferences to unlock
-          tailored answers.
-        </p>
+        <strong>{{ t('insights.advisorHeroTitle') }}</strong>
+        <p v-if="aiDataSharingConsent">{{ t('insights.advisorHeroText') }}</p>
+        <p v-else>{{ t('insights.advisorHeroTextNoConsent') }}</p>
         <Button
           class="advisor-hero-cta"
           :icon="aiDataSharingConsent ? 'pi pi-sparkles' : 'pi pi-shield'"
-          :label="
-            aiDataSharingConsent ? 'Open full AI chat' : 'Enable AI Advisor'
-          "
+          :label="aiDataSharingConsent ? t('insights.advisorOpenFullChat') : t('insights.advisorEnableAi')"
           outlined
-          @click="
-            aiDataSharingConsent
-              ? router.push('/assistant')
-              : openConsentModal()
-          "
+          @click="aiDataSharingConsent ? router.push('/assistant') : openConsentModal()"
         />
       </div>
       <AskPortfolioPanel
@@ -450,7 +439,7 @@ function toggleDetailPanel() {
         class="advisor-panel"
       />
       <div v-if="aiDataSharingConsent" class="suggestions">
-        <span>Suggestions</span>
+        <span>{{ t('insights.advisorSuggestions') }}</span>
         <Button
           v-for="prompt in suggestionPrompts"
           :key="prompt"
@@ -474,10 +463,8 @@ function toggleDetailPanel() {
         <div class="consent-dialog-title">
           <i class="pi pi-sparkles" />
           <div>
-            <strong>StockFolio AI Advisor</strong>
-            <span
-              >Update your AI settings and data sharing preferences here.</span
-            >
+            <strong>{{ t('insights.consentTitle') }}</strong>
+            <span>{{ t('insights.consentSubtitle') }}</span>
           </div>
         </div>
       </template>
@@ -488,23 +475,19 @@ function toggleDetailPanel() {
               <ToggleSwitch v-model="consentDraft" />
             </div>
             <div class="consent-copy">
-              <strong>AI data sharing consent</strong>
-              <p>
-                StockFolio AI Advisor can provide more relevant answers if you
-                choose to share different levels of data. This feature is
-                powered by third-party AI providers.
-              </p>
+              <strong>{{ t('insights.consentToggleLabel') }}</strong>
+              <p>{{ t('insights.consentToggleText') }}</p>
             </div>
           </div>
         </template>
       </Card>
       <template #footer>
         <div class="consent-footer">
-          <Button label="Cancel" outlined @click="closeConsentModal" />
+          <Button :label="t('common.cancel')" outlined @click="closeConsentModal" />
           <Button
             :disabled="!consentDirty || savingConsent"
             :loading="savingConsent"
-            label="Save changes"
+            :label="t('transactions.saveChanges')"
             @click="saveConsentModal"
           />
         </div>

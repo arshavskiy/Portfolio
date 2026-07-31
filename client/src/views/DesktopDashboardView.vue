@@ -116,9 +116,9 @@ const firstName = computed(() => {
 
 const greeting = computed(() => {
   const hour = new Date().getHours();
-  if (hour < 12) return "Morning";
-  if (hour < 18) return "Afternoon";
-  return "Evening";
+  if (hour < 12) return t("dashboard.greetingMorning");
+  if (hour < 18) return t("dashboard.greetingAfternoon");
+  return t("dashboard.greetingEvening");
 });
 
 const netWorth = computed(() => portfolioCombinedUsd.value?.value ?? 0);
@@ -134,7 +134,7 @@ const monthChangePercent = computed(
 );
 const latestHistoryDate = computed(() => {
   const last = history.value?.[history.value.length - 1]?.date;
-  if (!last) return "Latest close";
+  if (!last) return t("dashboard.latestClose");
   return new Date(last).toLocaleDateString(undefined, {
     month: "short",
     day: "numeric",
@@ -184,7 +184,7 @@ onUnmounted(() => {
       <Teleport to="#layout-topbar-actions" defer>
         <div class="top-actions">
           <button
-            v-tooltip.bottom="'Add'"
+            v-tooltip.bottom="t('common.add')"
             class="top-action primary"
             type="button"
             @click="addMenu?.toggle($event)"
@@ -194,13 +194,13 @@ onUnmounted(() => {
           </button>
           <Menu ref="addMenu" :model="addMenuItems" popup />
           <button
-            v-tooltip.bottom="'Portfolio records'"
+            v-tooltip.bottom="t('nav.portfolioRecords')"
             class="top-action"
             type="button"
             @click="router.push('/transactions')"
           >
             <i class="pi pi-list" />
-            <span>Records</span>
+            <span>{{ t(`nav.records`) }}</span>
           </button>
         </div>
       </Teleport>
@@ -209,11 +209,14 @@ onUnmounted(() => {
         <section class="home-hero">
           <div>
             <h1>{{ greeting }}, {{ firstName }}</h1>
-            <p>Here’s your portfolio summary</p>
+            <p>{{ t(`dashboard.portfolioSummary`) }}</p>
           </div>
           <div class="freshness">
             <i class="pi pi-clock" />
-            <span>{{ latestHistoryDate }} · typically one day behind</span>
+            <span
+              >{{ latestHistoryDate }} ·
+              {{ t(`dashboard.typicallyOneDayBehind`) }}</span
+            >
           </div>
         </section>
 
@@ -223,13 +226,17 @@ onUnmounted(() => {
               <article class="folio-card net-card">
                 <div class="metric-row">
                   <div>
-                    <span class="metric-label">Net Worth</span>
+                    <span class="metric-label">{{
+                      t("dashboard.netWorth")
+                    }}</span>
                     <strong class="net-worth">{{
                       useCurrency(netWorth, "USD")
                     }}</strong>
                   </div>
                   <div>
-                    <span class="metric-label">Change</span>
+                    <span class="metric-label">{{
+                      t("dashboard.change")
+                    }}</span>
                     <strong
                       :class="gainLossClass(monthChange)"
                       class="change-value"
@@ -277,7 +284,7 @@ onUnmounted(() => {
                 class="records-card folio-card"
               >
                 <div class="records-head">
-                  <h2>Holdings</h2>
+                  <h2>{{ t("dashboard.holdings") }}</h2>
                   <!-- <button type="button" @click="router.push('/transactions')">
                     <span>View all</span>
                     <i class="pi pi-arrow-right" />
@@ -285,11 +292,11 @@ onUnmounted(() => {
                 </div>
                 <div class="records-table">
                   <div class="records-row records-header">
-                    <span>Position</span>
-                    <span>Quantity</span>
-                    <span>Unit Value</span>
-                    <span>Total Value</span>
-                    <span>Today</span>
+                    <span>{{ t("dashboard.colPosition") }}</span>
+                    <span>{{ t("dashboard.colQuantity") }}</span>
+                    <span>{{ t("dashboard.colUnitValue") }}</span>
+                    <span>{{ t("dashboard.colTotalValue") }}</span>
+                    <span>{{ t("dashboard.today") }}</span>
                   </div>
                   <button
                     v-for="position in portfolioRows"

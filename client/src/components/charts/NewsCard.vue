@@ -82,7 +82,10 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section v-if="(loading && !props.hideLoading) || articles.length" class="news-card">
+  <section
+    v-if="(loading && !props.hideLoading) || articles.length"
+    class="news-card"
+  >
     <div class="news-head">
       <div class="news-title-wrap">
         <h2 class="card-title"><i class="pi pi-globe" /> News</h2>
@@ -105,7 +108,10 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <div v-if="loading && !articles.length && !props.hideLoading" class="news-grid">
+    <div
+      v-if="loading && !articles.length && !props.hideLoading"
+      class="news-grid"
+    >
       <div v-for="n in 4" :key="n" class="article-tile skeleton" />
     </div>
 
@@ -237,7 +243,7 @@ onBeforeUnmount(() => {
 }
 
 .news-feed {
-  max-height: 130px;
+  max-height: 180px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
