@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema(
       trialEndsAt: {type: Date},
       welcomeModalSeenAt: {type: Date},
       aiDailySummaryEnabled: {type: Boolean, default: true},
+      aiDataSharingConsent: {type: Boolean, default: false},
       aiDailySummaryCustomPrompt: {type: String, default: '', maxlength: 500},
       loginHistory: {
           type: [{

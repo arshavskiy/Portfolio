@@ -101,6 +101,38 @@ async function clearChat() {
   await chat.clearHistory();
 }
 
+async function startNewSession() {
+  if (sending.value) return;
+  showAllHistory.value = false;
+  askQuestion.value = "";
+  await clearChat();
+  await scrollToBottom();
+}
+
+function toggleHistory() {
+  if (messages.value.length <= RECENT_MESSAGE_COUNT) return;
+  showAllHistory.value = !showAllHistory.value;
+  nextTick(() => {
+    if (showAllHistory.value && chatBox.value) chatBox.value.scrollTop = 0;
+  });
+}
+
+async function sendPrompt(prompt) {
+  const question = prompt?.trim();
+  if (!question || sending.value) return;
+  askQuestion.value = question;
+  await submitAskQuestion();
+}
+
+defineExpose({
+  clearChat,
+  startNewSession,
+  toggleHistory,
+  sendPrompt,
+  canToggleHistory: computed(() => messages.value.length > RECENT_MESSAGE_COUNT),
+  showingFullHistory: showAllHistory,
+});
+
 onMounted(() => {
   if (!loaded.value)
     chat

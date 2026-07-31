@@ -95,7 +95,7 @@ const AI_DAILY_SUMMARY_CUSTOM_PROMPT_MAX_LENGTH = 500
 
 exports.updatePreferences = async (req, res) => {
   try {
-    const {aiDailySummaryEnabled, aiDailySummaryCustomPrompt} = req.body
+    const {aiDailySummaryEnabled, aiDailySummaryCustomPrompt, aiDataSharingConsent} = req.body
     const update = {}
     const unset = {}
 
@@ -103,6 +103,12 @@ exports.updatePreferences = async (req, res) => {
       if (typeof aiDailySummaryEnabled !== 'boolean')
         return res.status(400).json({message: 'aiDailySummaryEnabled must be a boolean'})
       update.aiDailySummaryEnabled = aiDailySummaryEnabled
+    }
+
+    if (aiDataSharingConsent !== undefined) {
+      if (typeof aiDataSharingConsent !== 'boolean')
+        return res.status(400).json({message: 'aiDataSharingConsent must be a boolean'})
+      update.aiDataSharingConsent = aiDataSharingConsent
     }
 
     if (aiDailySummaryCustomPrompt !== undefined) {

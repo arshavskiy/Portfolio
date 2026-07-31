@@ -1,15 +1,18 @@
 <script setup>
-import { computed, defineAsyncComponent, onMounted, onUnmounted } from "vue";
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from "vue";
 import { useStorage } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
+import Card from "primevue/card";
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
 import Select from "primevue/select";
+import ToggleSwitch from "primevue/toggleswitch";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useAuthStore } from "@/stores/auth";
 import { useDesktopFocusStore } from "@/stores/desktopFocus";
 import { useAiChatStore } from "@/stores/aiChat";
 import AskPortfolioPanel from "@/components/ui/AskPortfolioPanel.vue";
-import AppLoader from "@/components/ui/AppLoader.vue";
 import {
   gainLossClass,
   useCurrency,
@@ -66,6 +69,10 @@ const {
   historyRange,
 } = storeToRefs(dashboard);
 const { messages: advisorMessages } = storeToRefs(aiChat);
+const advisorPanelRef = ref(null);
+const showConsentModal = ref(false);
+const consentDraft = ref(false);
+const savingConsent = ref(false);
 
 const HISTORY_RANGES = [
   { label: "1D", value: "1d" },
@@ -124,6 +131,12 @@ const historyRangeOptions = HISTORY_RANGES.map((item) => ({
   label: item.label,
   value: item.value,
 }));
+const aiDataSharingConsent = computed(
+  () => auth.user?.aiDataSharingConsent === true,
+);
+const consentDirty = computed(
+  () => consentDraft.value !== aiDataSharingConsent.value,
+);
 
 function openPosition(position) {
   if (!position?.ticker) return;
@@ -146,8 +159,47 @@ function openAccount() {
   emit("open-account");
 }
 
+function openAssistantPage() {
+  router.push("/assistant");
+}
+
+function openConsentModal() {
+  consentDraft.value = aiDataSharingConsent.value;
+  showConsentModal.value = true;
+}
+
+function closeConsentModal() {
+  showConsentModal.value = false;
+  consentDraft.value = aiDataSharingConsent.value;
+}
+
+async function saveConsentModal() {
+  if (!consentDirty.value) return;
+  savingConsent.value = true;
+  try {
+    await auth.updatePreferences({ aiDataSharingConsent: consentDraft.value });
+    showConsentModal.value = false;
+  } catch {
+  } finally {
+    savingConsent.value = false;
+  }
+}
+
+function toggleAdvisorHistory() {
+  advisorPanelRef.value?.toggleHistory?.();
+}
+
+async function startNewAdvisorSession() {
+  await advisorPanelRef.value?.startNewSession?.();
+}
+
+function sendAdvisorPrompt(prompt) {
+  advisorPanelRef.value?.sendPrompt?.(prompt);
+}
+
 onMounted(async () => {
   try {
+    auth.fetchMe().catch(() => {});
     await dashboard.initialize();
   } catch {}
 });
@@ -168,7 +220,7 @@ onUnmounted(() => {
             type="button"
             @click="toggleMenu"
           >
-            <i class="pi pi-window-maximize" />
+            <span class="panel-toggle-glyph" aria-hidden="true" />
           </button>
           <span>Home</span>
         </div>
@@ -204,12 +256,12 @@ onUnmounted(() => {
             v-tooltip.bottom="
               aiPanelCollapsed ? 'Show AI panel' : 'Hide AI panel'
             "
-            class="top-action"
+            class="top-action top-action-icon"
             type="button"
             @click="toggleAiPanel"
           >
-            <i class="pi pi-window-maximize" />
-            <span>{{ aiPanelCollapsed ? "Show panel" : "Hide panel" }}</span>
+            <span class="panel-toggle-glyph" aria-hidden="true" />
+            <!-- <span>{{ aiPanelCollapsed ? "Show panel" : "Hide panel" }}</span> -->
           </button>
         </div>
       </header>
@@ -226,11 +278,7 @@ onUnmounted(() => {
           </div>
         </section>
 
-        <div v-if="!ready" class="dash-loader">
-          <div v-for="n in 5" :key="n" class="dash-skeleton" />
-        </div>
-
-        <template v-else>
+        <template v-if="ready">
           <section class="content-grid">
             <div class="left-column">
               <article class="folio-card net-card">
@@ -271,6 +319,7 @@ onUnmounted(() => {
                   :key="historyRange"
                   :data="history"
                   :day-pnl="portfolioCombinedUsd?.dayPnl"
+                  :hide-loading="true"
                   :loading="historyLoading"
                   :range="historyRange"
                 />
@@ -282,7 +331,7 @@ onUnmounted(() => {
                 :range="historyRange"
               />
 
-              <NewsCard class="folio-card news-home-card" />
+              <NewsCard class="folio-card news-home-card" :hide-loading="true" />
 
               <section
                 v-if="portfolioPositions.length"
@@ -334,7 +383,6 @@ onUnmounted(() => {
                   </button>
                 </div>
               </section>
-
             </div>
 
             <div class="right-stack">
@@ -345,15 +393,22 @@ onUnmounted(() => {
               />
               <WatchlistMoversCard
                 class="folio-card movers-top-card"
+                :hide-loading="true"
                 :items="watchlistMoversItems"
                 :loading="watchlistMoversLoading"
+                :max-items="7"
               />
               <DividendCalendarCard
                 v-if="portfolioPositions.length"
                 class="folio-card dividends-home-card"
+                :hide-loading="true"
               />
               <TrendingCard v-else-if="showTrending" class="folio-card" />
-              <MarketsCard class="folio-card markets-top-card" />
+              <MarketsCard
+                class="folio-card markets-top-card"
+                :desktop-layout="true"
+                :hide-loading="true"
+              />
             </div>
           </section>
 
@@ -370,44 +425,168 @@ onUnmounted(() => {
           <strong>AI Chat</strong>
           <span>Portfolio advisor</span>
         </div>
+        <div class="advisor-actions">
+          <Button
+            v-tooltip.bottom="'Open history'"
+            class="advisor-action-btn"
+            icon="pi pi-history"
+            severity="secondary"
+            text
+            rounded
+            type="button"
+            @click="toggleAdvisorHistory"
+          />
+          <Button
+            v-tooltip.bottom="'Settings'"
+            class="advisor-action-btn"
+            icon="pi pi-cog"
+            severity="secondary"
+            text
+            rounded
+            type="button"
+            @click="openConsentModal"
+          />
+          <Button
+            v-tooltip.bottom="'New session'"
+            class="advisor-action-btn"
+            icon="pi pi-plus"
+            severity="secondary"
+            text
+            rounded
+            type="button"
+            @click="startNewAdvisorSession"
+          />
+        </div>
       </div>
       <div v-if="!advisorMessages.length" class="advisor-hero">
         <span class="advisor-hero-mark">
           <i class="pi pi-comments" />
         </span>
         <strong>Folio advisor</strong>
-        <p>Ask about risk, concentration, rebalancing, and what moved today.</p>
+        <p v-if="aiDataSharingConsent">
+          Ask about risk, concentration, rebalancing, and what moved today.
+        </p>
+        <p v-else>
+          Update your AI settings and data sharing preferences to unlock tailored answers.
+        </p>
+        <Button
+          class="advisor-hero-cta"
+          :icon="aiDataSharingConsent ? 'pi pi-sparkles' : 'pi pi-shield'"
+          :label="aiDataSharingConsent ? 'Open full AI chat' : 'Enable AI Advisor'"
+          outlined
+          @click="aiDataSharingConsent ? openAssistantPage() : openConsentModal()"
+        />
       </div>
-      <AskPortfolioPanel class="advisor-panel" />
-      <div class="suggestions">
+      <AskPortfolioPanel
+        v-if="aiDataSharingConsent"
+        ref="advisorPanelRef"
+        class="advisor-panel"
+      />
+      <div v-if="aiDataSharingConsent" class="suggestions">
         <span>Suggestions</span>
-        <button v-for="prompt in suggestionPrompts" :key="prompt" type="button">
-          {{ prompt }}
-        </button>
+        <Button
+          v-for="prompt in suggestionPrompts"
+          :key="prompt"
+          class="suggestion-btn"
+          severity="secondary"
+          text
+          :label="prompt"
+          @click="sendAdvisorPrompt(prompt)"
+        />
       </div>
     </aside>
+
+    <Dialog
+      v-model:visible="showConsentModal"
+      :draggable="false"
+      :style="{ width: '95vw', maxWidth: '560px' }"
+      modal
+      @hide="closeConsentModal"
+    >
+      <template #header>
+        <div class="consent-dialog-title">
+          <i class="pi pi-sparkles" />
+          <div>
+            <strong>StockFolio AI Advisor</strong>
+            <span>Update your AI settings and data sharing preferences here.</span>
+          </div>
+        </div>
+      </template>
+
+      <Card class="consent-card">
+        <div class="consent-toggle-row">
+          <div class="consent-switch-wrap">
+            <ToggleSwitch v-model="consentDraft" />
+          </div>
+          <div class="consent-copy">
+            <strong>AI data sharing consent</strong>
+            <p>
+              StockFolio AI Advisor can provide more relevant answers if you choose
+              to share different levels of data. This feature is powered by third-party AI providers.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <template #footer>
+        <div class="consent-footer">
+          <Button
+            class="consent-cancel"
+            label="Cancel"
+            outlined
+            @click="closeConsentModal"
+          />
+          <Button
+            :disabled="!consentDirty || savingConsent"
+            :loading="savingConsent"
+            class="consent-save"
+            label="Save changes"
+            @click="saveConsentModal"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <style scoped>
 .desktop-home {
+  --desktop-surface: var(--bg-primary);
+  --desktop-panel: var(--bg-secondary);
+  --desktop-card: var(--bg-card);
+  --desktop-border: var(--border);
+  --desktop-border-soft: color-mix(in srgb, var(--border) 82%, transparent);
+  --desktop-text: var(--text-primary);
+  --desktop-muted: var(--text-secondary);
+  --desktop-hover: color-mix(in srgb, var(--text-primary) 6%, transparent);
+  --desktop-hover-strong: color-mix(in srgb, var(--text-primary) 10%, transparent);
+  --desktop-elevated-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 8%, transparent);
+  --desktop-overlay-shadow: 0 8px 24px color-mix(in srgb, var(--text-primary) 10%, transparent);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 30vw);
   height: 100%;
   overflow: hidden;
-  background: #fbfaf8;
-  color: #232323;
+  background: var(--desktop-surface);
+  color: var(--desktop-text);
 }
 
 .desktop-home.ai-collapsed {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.desktop-home.ai-collapsed .home-main {
+  border-right: 0;
+}
+
+.desktop-home.ai-collapsed .advisor-rail {
+  display: none;
+}
+
 .home-main {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid #e8e2de;
+  border-right: 1px solid var(--desktop-border);
   overflow-x: auto;
 }
 
@@ -418,8 +597,8 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 1rem;
   padding: 0 1rem;
-  border-bottom: 1px solid #ece7e3;
-  background: rgba(255, 255, 255, 0.76);
+  border-bottom: 1px solid var(--desktop-border-soft);
+  background: color-mix(in srgb, var(--desktop-panel) 76%, transparent);
   backdrop-filter: blur(18px);
   flex-shrink: 0;
 }
@@ -436,7 +615,7 @@ onUnmounted(() => {
 
 .crumbs {
   gap: 0.65rem;
-  color: #817a74;
+  color: var(--desktop-muted);
   font-size: 0.82rem;
   font-weight: 600;
 }
@@ -445,18 +624,15 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  border: 1px solid #e8e2de;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--desktop-border);
   border-radius: 8px;
-  background: #fff;
-  color: #7d746d;
+  background: var(--desktop-panel);
+  color: var(--desktop-muted);
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.04);
-}
-
-.crumb-toggle i {
-  font-size: 1rem;
+  box-shadow: var(--desktop-elevated-shadow);
+  flex-shrink: 0;
 }
 
 .crumbs i {
@@ -481,23 +657,54 @@ onUnmounted(() => {
 .top-action,
 .advisor-head button,
 .records-head button {
-  min-height: 34px;
+  min-height: 36px;
   gap: 0.45rem;
-  border: 1px solid #e4ded9;
+  border: 1px solid var(--desktop-border);
   border-radius: 7px;
-  background: #fff;
-  color: #393633;
-  padding: 0 0.75rem;
+  background: var(--desktop-panel);
+  color: var(--desktop-text);
+  padding: 0 0.8rem;
   font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(40, 34, 28, 0.04);
+  box-shadow: var(--desktop-elevated-shadow);
+}
+
+.top-action i {
+  font-size: 0.86rem;
+}
+
+.top-action-icon {
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+  justify-content: center;
+}
+
+.panel-toggle-glyph {
+  position: relative;
+  display: inline-flex;
+  width: 15px;
+  height: 15px;
+  border: 1.7px solid currentColor;
+  border-radius: 4px;
+}
+
+.panel-toggle-glyph::before {
+  content: "";
+  position: absolute;
+  top: 1.6px;
+  bottom: 1.6px;
+  left: 4px;
+  width: 1.7px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
 .top-action.primary {
-  background: #111;
-  border-color: #111;
-  color: #fff;
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--bg-secondary);
 }
 
 .home-scroll {
@@ -505,6 +712,8 @@ onUnmounted(() => {
   min-height: 0;
   overflow-y: auto;
   padding: 1.35rem 1.5rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .home-hero {
@@ -525,13 +734,13 @@ onUnmounted(() => {
 
 .home-hero p {
   margin: 0.25rem 0 0;
-  color: #827a73;
+  color: var(--desktop-muted);
   font-size: 0.94rem;
 }
 
 .freshness {
   gap: 0.4rem;
-  color: #9a918b;
+  color: var(--desktop-muted);
   font-size: 0.75rem;
   font-weight: 600;
 }
@@ -552,10 +761,10 @@ onUnmounted(() => {
 }
 
 .folio-card {
-  border: 1px solid #e8e2de;
+  border: 1px solid var(--desktop-border);
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.035);
+  background: var(--desktop-card);
+  box-shadow: var(--desktop-elevated-shadow);
 }
 
 .net-card {
@@ -574,14 +783,14 @@ onUnmounted(() => {
 .metric-label {
   display: block;
   margin-bottom: 0.3rem;
-  color: #8f8780;
+  color: var(--desktop-muted);
   font-size: 0.78rem;
   font-weight: 600;
 }
 
 .net-worth {
   display: block;
-  color: #1f1f1f;
+  color: var(--desktop-text);
   font-size: 1.3rem;
   line-height: 1.1;
   letter-spacing: 0;
@@ -641,15 +850,15 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   min-height: 34px;
-  border: 1px solid #e4ded9;
+  border: 1px solid var(--desktop-border);
   border-radius: 9px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(40, 34, 28, 0.04);
+  background: var(--desktop-panel);
+  box-shadow: var(--desktop-elevated-shadow);
 }
 
 .period-select :deep(.p-select-label) {
   padding: 0.48rem 0 0.48rem 0.8rem;
-  color: #393633;
+  color: var(--desktop-text);
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.1;
@@ -657,7 +866,7 @@ onUnmounted(() => {
 
 .period-select :deep(.p-select-dropdown) {
   width: 1.9rem;
-  color: #817870;
+  color: var(--desktop-muted);
 }
 
 .period-select :deep(.p-select-dropdown-icon) {
@@ -666,10 +875,10 @@ onUnmounted(() => {
 
 :deep(.p-select-overlay.period-select-panel) {
   padding: 0.25rem;
-  border: 1px solid #e4ded9;
+  border: 1px solid var(--desktop-border);
   border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(40, 34, 28, 0.08);
+  background: var(--desktop-panel);
+  box-shadow: var(--desktop-overlay-shadow);
 }
 
 :deep(.period-select-panel .p-select-list) {
@@ -680,7 +889,7 @@ onUnmounted(() => {
   min-height: 36px;
   padding: 0.55rem 0.75rem;
   border-radius: 8px;
-  color: #817870;
+  color: var(--desktop-muted);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -714,7 +923,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 1rem;
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid #eee8e4;
+  border-bottom: 1px solid var(--desktop-border-soft);
 }
 
 .records-head h2 {
@@ -743,9 +952,9 @@ onUnmounted(() => {
   min-width: 760px;
   padding: 0.72rem 1rem;
   border: 0;
-  border-bottom: 1px solid #f0ebe7;
+  border-bottom: 1px solid var(--desktop-border-soft);
   background: transparent;
-  color: #393633;
+  color: var(--desktop-text);
   text-align: left;
   font: inherit;
   font-size: 0.82rem;
@@ -756,12 +965,12 @@ button.records-row {
 }
 
 button.records-row:hover {
-  background: #fbf7f4;
+  background: var(--desktop-hover);
 }
 
 .records-header {
-  color: #8e867f;
-  background: #fcf8f6;
+  color: var(--desktop-muted);
+  background: color-mix(in srgb, var(--desktop-panel) 72%, var(--desktop-surface));
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -778,7 +987,7 @@ button.records-row:hover {
 .records-row small {
   max-width: 230px;
   overflow: hidden;
-  color: #8e867f;
+  color: var(--desktop-muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -787,9 +996,9 @@ button.records-row:hover {
   display: flex;
   flex-direction: column;
   padding: 0.85rem 0.9rem;
-  background: #fff9f7;
+  background: color-mix(in srgb, var(--desktop-panel) 90%, var(--desktop-surface));
   overflow: hidden;
-  border-left: 1px solid #e8e2de;
+  border-left: 1px solid var(--desktop-border);
   transition:
     width 0.22s ease,
     min-width 0.22s ease,
@@ -818,7 +1027,27 @@ button.records-row:hover {
   flex-shrink: 0;
 }
 
-.advisor-head div {
+.advisor-actions {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.advisor-actions :deep(.advisor-action-btn.p-button) {
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  color: var(--desktop-muted);
+}
+
+.advisor-actions :deep(.advisor-action-btn.p-button:hover) {
+  background: var(--desktop-hover);
+  color: var(--desktop-text);
+}
+
+.advisor-head > div:first-child {
   display: flex;
   flex-direction: column;
   gap: 0.12rem;
@@ -829,15 +1058,8 @@ button.records-row:hover {
 }
 
 .advisor-head span {
-  color: #8c837c;
+  color: var(--desktop-muted);
   font-size: 0.73rem;
-}
-
-.advisor-head button {
-  min-height: 30px;
-  padding: 0 0.55rem;
-  border-radius: 8px;
-  font-size: 0.72rem;
 }
 
 .advisor-panel {
@@ -863,10 +1085,10 @@ button.records-row:hover {
   width: 48px;
   height: 48px;
   border-radius: 16px;
-  background: #fff;
-  border: 1px solid #ece3de;
-  color: #a08f84;
-  box-shadow: 0 1px 2px rgba(40, 34, 28, 0.05);
+  background: var(--desktop-panel);
+  border: 1px solid var(--desktop-border);
+  color: var(--desktop-muted);
+  box-shadow: var(--desktop-elevated-shadow);
 }
 
 .advisor-hero-mark i {
@@ -876,15 +1098,119 @@ button.records-row:hover {
 .advisor-hero strong {
   font-size: 0.98rem;
   font-weight: 750;
-  color: #2f2a27;
+  color: var(--desktop-text);
 }
 
 .advisor-hero p {
   margin: 0;
   max-width: 260px;
-  color: #8c837c;
+  color: var(--desktop-muted);
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+.advisor-hero-cta {
+  margin-top: 0.15rem;
+}
+
+.advisor-hero-cta:deep(.p-button) {
+  min-height: 34px;
+}
+
+.advisor-hero-cta:deep(.p-button-label) {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.consent-dialog-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.consent-dialog-title i {
+  font-size: 1rem;
+  color: var(--desktop-text);
+  margin-top: 0.15rem;
+}
+
+.consent-dialog-title div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.consent-dialog-title strong {
+  font-size: 1.05rem;
+  line-height: 1.15;
+  color: var(--desktop-text);
+}
+
+.consent-dialog-title span {
+  color: var(--desktop-muted);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.consent-card {
+  overflow: hidden;
+}
+
+.consent-card :deep(.p-card-body) {
+  padding: 1rem;
+}
+
+.consent-card :deep(.p-card-content) {
+  padding: 0;
+}
+
+.consent-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.consent-switch-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 36px;
+  min-width: 36px;
+  min-height: 28px;
+  padding-top: 0.1rem;
+}
+
+.consent-switch-wrap :deep(.p-toggleswitch) {
+  flex-shrink: 0;
+}
+
+.consent-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.consent-copy strong {
+  font-size: 0.95rem;
+  color: var(--desktop-text);
+}
+
+.consent-copy p {
+  margin: 0;
+  color: var(--desktop-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.consent-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.consent-save:disabled {
+  opacity: 0.72;
 }
 
 .suggestions {
@@ -896,45 +1222,38 @@ button.records-row:hover {
 }
 
 .suggestions > span {
-  color: #9b928b;
+  color: var(--desktop-muted);
   font-size: 0.78rem;
   font-weight: 700;
 }
 
-.suggestions button {
+.suggestions :deep(.suggestion-btn.p-button) {
+  justify-content: flex-start;
+  padding: 0;
   border: 0;
   background: transparent;
-  color: #3a3632;
-  text-align: left;
+  color: var(--desktop-text);
   font-size: 0.78rem;
   line-height: 1.35;
   font-weight: 650;
-  cursor: default;
 }
 
-.dash-loader {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 0.9rem;
+.suggestions :deep(.suggestion-btn.p-button .p-button-label) {
+  color: var(--desktop-text);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  font-weight: 650;
+  text-align: left;
+  white-space: normal;
 }
 
-.dash-skeleton {
-  min-height: 150px;
-  border: 1px solid #e8e2de;
-  border-radius: 8px;
-  background: linear-gradient(90deg, #fff 25%, #f7f1ed 50%, #fff 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
+.suggestions :deep(.suggestion-btn.p-button:hover) {
+  background: transparent;
+  color: var(--desktop-text);
 }
 
-.dash-skeleton:first-child {
-  min-height: 300px;
-}
-
-@keyframes shimmer {
-  to {
-    background-position: -200% 0;
-  }
+.suggestions :deep(.suggestion-btn.p-button:hover .p-button-label) {
+  color: var(--desktop-text);
 }
 
 :deep(.breakdown-card),
@@ -943,7 +1262,7 @@ button.records-row:hover {
 :deep(.news-card),
 :deep(.movers-card) {
   border-radius: 8px;
-  background: #fff;
+  background: var(--desktop-card);
   box-shadow: none;
 }
 
@@ -980,7 +1299,7 @@ button.records-row:hover {
 :deep(.section-title) {
   background: none;
   -webkit-text-fill-color: currentColor;
-  color: #34302d;
+  color: var(--desktop-text);
   letter-spacing: 0;
   text-transform: none;
   font-size: 0.98rem;
@@ -1010,10 +1329,10 @@ button.records-row:hover {
 }
 
 :deep(.ask-form) {
-  border: 1px solid #e8e2de;
+  border: 1px solid var(--desktop-border);
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.04);
+  background: var(--desktop-panel);
+  box-shadow: var(--desktop-elevated-shadow);
 }
 
 :deep(.ask-form input) {
@@ -1025,15 +1344,15 @@ button.records-row:hover {
 }
 
 :deep(.ask-form button) {
-  color: #68615b;
+  color: var(--desktop-muted);
 }
 
 .gain {
-  color: #15b76a;
+  color: var(--green);
 }
 
 .loss {
-  color: #d64b5f;
+  color: var(--red);
 }
 
 @media (max-width: 1360px) {

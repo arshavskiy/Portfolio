@@ -6,6 +6,8 @@ import {useI18n} from '@/composables/useI18n'
 const props = defineProps({
   items: {type: Array, default: () => []},
   loading: {type: Boolean, default: false},
+  maxItems: {type: Number, default: 5},
+  hideLoading: {type: Boolean, default: false},
 })
 
 const {openPosition} = useNavigateToPosition()
@@ -21,19 +23,20 @@ const gainers = computed(() =>
   props.items
     .filter((item) => item?.ticker && moverChangePercent(item) != null && moverChangePercent(item) >= 0)
     .sort((a, b) => moverChangePercent(b) - moverChangePercent(a))
-    .slice(0, 7)
+    .slice(0, props.maxItems)
 )
 
 const losers = computed(() =>
   props.items
     .filter((item) => item?.ticker && moverChangePercent(item) != null && moverChangePercent(item) < 0)
     .sort((a, b) => moverChangePercent(a) - moverChangePercent(b))
-    .slice(0, 7)
+    .slice(0, props.maxItems)
 )
 
 const hasMovers = computed(() => gainers.value.length || losers.value.length)
+const pairCount = computed(() => Math.max(1, props.maxItems))
 const moverPairs = computed(() =>
-  Array.from({length: 7}, (_, index) => ({
+  Array.from({length: pairCount.value}, (_, index) => ({
     gainer: gainers.value[index] || null,
     loser: losers.value[index] || null,
   }))
@@ -82,7 +85,7 @@ function openStock(item) {
 </script>
 
 <template>
-  <section v-if="loading || hasMovers" class="movers-card">
+  <section v-if="(loading && !hideLoading) || hasMovers" class="movers-card">
     <div class="movers-head">
       <h2 class="card-title">{{ t('dashboard.topMovers') }}</h2>
       <RouterLink :to="{ name: 'Watchlist' }" class="text-muted head-note head-link">{{
@@ -91,13 +94,17 @@ function openStock(item) {
       </RouterLink>
     </div>
 
-    <div v-if="loading && !hasMovers" class="movers-chart skeleton-chart">
-      <div v-for="n in 14" :key="n" class="mover-col skeleton"/>
+    <div
+      v-if="loading && !hasMovers && !hideLoading"
+      class="movers-chart skeleton-chart"
+      :style="{ gridTemplateColumns: `repeat(${pairCount}, minmax(0, 1fr))` }"
+    >
+      <div v-for="n in pairCount" :key="n" class="mover-col skeleton"/>
     </div>
 
     <div v-else class="movers-chart">
       <div class="zero-line"/>
-      <div class="movers-pairs">
+      <div class="movers-pairs" :style="{ gridTemplateColumns: `repeat(${pairCount}, minmax(0, 1fr))` }">
         <div v-for="(pair, index) in moverPairs" :key="index" class="mover-pair">
           <button
               v-if="pair.gainer"
@@ -183,7 +190,6 @@ function openStock(item) {
 
 .movers-pairs {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.65rem;
   min-height: 260px;
 }
@@ -290,7 +296,6 @@ function openStock(item) {
 
 .skeleton-chart {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0.65rem;
 }
 

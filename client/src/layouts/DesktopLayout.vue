@@ -1,70 +1,131 @@
 <script setup>
-import {computed} from 'vue'
-import {useStorage} from '@vueuse/core'
-import {useRoute} from 'vue-router'
-import {useDesktopFocusStore} from '@/stores/desktopFocus'
-import {useAuthStore} from '@/stores/auth'
-import {trackEvent} from '@/composables/useAnalytics'
-import {useI18n} from '@/composables/useI18n'
-import PositionDetailView from '@/views/PositionDetailView.vue'
-import DesktopDashboardView from '@/views/DesktopDashboardView.vue'
-import ErrorBoundary from '@/components/ui/ErrorBoundary.vue'
-import ThemeToggle from '@/components/ui/ThemeToggle.vue'
-import PremiumBadge from '@/components/ui/PremiumBadge.vue'
+import { computed } from "vue";
+import { useStorage } from "@vueuse/core";
+import { useRoute } from "vue-router";
+import { useDesktopFocusStore } from "@/stores/desktopFocus";
+import { useAuthStore } from "@/stores/auth";
+import { trackEvent } from "@/composables/useAnalytics";
+import { useI18n } from "@/composables/useI18n";
+import PositionDetailView from "@/views/PositionDetailView.vue";
+import DesktopDashboardView from "@/views/DesktopDashboardView.vue";
+import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
+import ThemeToggle from "@/components/ui/ThemeToggle.vue";
+import PremiumBadge from "@/components/ui/PremiumBadge.vue";
 
-const emit = defineEmits(['open-account'])
+const emit = defineEmits(["open-account"]);
 
-const route = useRoute()
-const focus = useDesktopFocusStore()
-const auth = useAuthStore()
-const {t} = useI18n()
-const menuCollapsed = useStorage('desktop-menu-collapsed', false)
-const detailPanelCollapsed = useStorage('desktop-detail-panel-collapsed', false)
+const route = useRoute();
+const focus = useDesktopFocusStore();
+const auth = useAuthStore();
+const { t } = useI18n();
+const menuCollapsed = useStorage("desktop-menu-collapsed", false);
+const detailPanelCollapsed = useStorage(
+  "desktop-detail-panel-collapsed",
+  false,
+);
 
 function trackNav(item) {
-  trackEvent('nav_click', {nav_item: item.key})
+  trackEvent("nav_click", { nav_item: item.key });
 }
 
-const isDashboard = computed(() => route.path === '/')
-const PANEL_ROUTES = ['/watchlist']
-const showPanel = computed(() => PANEL_ROUTES.some(p => route.path.startsWith(p)))
+const isDashboard = computed(() => route.path === "/");
+const PANEL_ROUTES = ["/watchlist"];
+const showPanel = computed(() =>
+  PANEL_ROUTES.some((p) => route.path.startsWith(p)),
+);
 
-const accountLabel = computed(() => auth.user?.name || auth.user?.email || 'Account')
-const accountInitial = computed(() => (accountLabel.value || 'A').trim().charAt(0).toUpperCase())
+const accountLabel = computed(
+  () => auth.user?.name || auth.user?.email || "Account",
+);
+const accountInitial = computed(() =>
+  (accountLabel.value || "A").trim().charAt(0).toUpperCase(),
+);
 
-const navItems = computed(() => [
-  {key: 'dashboard', name: 'Home', to: '/', icon: 'pi pi-chart-bar', tourKey: 'dashboard'},
-  {key: 'watchlist', name: t('common.watchlist'), to: '/watchlist', icon: 'pi pi-eye', tourKey: 'watchlist'},
-  {key: 'assistant', name: t('common.insights'), to: '/assistant', icon: 'pi pi-comments', tourKey: 'assistant', premium: true},
-  {key: 'x-ray', name: t('common.xRay'), to: '/x-ray', icon: 'pi pi-shield', tourKey: 'x-ray', premium: true},
-  ...(auth.isAdmin ? [{key: 'insights-data', name: t('common.data'), to: '/insights-data', icon: 'pi pi-database', tourKey: 'insights-data', premium: true}] : []),
-  {key: 'news', name: t('common.news'), to: '/news', icon: 'pi pi-globe', tourKey: 'news'},
-  {key: 'about', name: t('common.about'), to: '/help', icon: 'pi pi-info-circle', tourKey: 'about'},
-].filter(item => !item.premium || auth.canUsePremiumFeatures))
+const navItems = computed(() =>
+  [
+    {
+      key: "dashboard",
+      name: "Home",
+      to: "/",
+      icon: "pi pi-chart-bar",
+      tourKey: "dashboard",
+    },
+    {
+      key: "watchlist",
+      name: t("common.watchlist"),
+      to: "/watchlist",
+      icon: "pi pi-eye",
+      tourKey: "watchlist",
+    },
+    {
+      key: "assistant",
+      name: t("common.insights"),
+      to: "/assistant",
+      icon: "pi pi-comments",
+      tourKey: "assistant",
+      premium: true,
+    },
+    {
+      key: "x-ray",
+      name: t("common.xRay"),
+      to: "/x-ray",
+      icon: "pi pi-shield",
+      tourKey: "x-ray",
+      premium: true,
+    },
+    ...(auth.isAdmin
+      ? [
+          {
+            key: "insights-data",
+            name: t("common.data"),
+            to: "/insights-data",
+            icon: "pi pi-database",
+            tourKey: "insights-data",
+            premium: true,
+          },
+        ]
+      : []),
+    {
+      key: "news",
+      name: t("common.news"),
+      to: "/news",
+      icon: "pi pi-globe",
+      tourKey: "news",
+    },
+    {
+      key: "about",
+      name: t("common.about"),
+      to: "/help",
+      icon: "pi pi-info-circle",
+      tourKey: "about",
+    },
+  ].filter((item) => !item.premium || auth.canUsePremiumFeatures),
+);
 
 function openAccount() {
-  trackEvent('nav_click', {nav_item: 'account'})
-  emit('open-account')
+  trackEvent("nav_click", { nav_item: "account" });
+  emit("open-account");
 }
 
 function isActive(item) {
-  if (item.to === '/') return route.path === '/'
-  if (item.to === '/assistant') return route.path === '/assistant' || route.path === '/insights'
-  return route.path.startsWith(item.to)
+  if (item.to === "/") return route.path === "/";
+  if (item.to === "/assistant")
+    return route.path === "/assistant" || route.path === "/insights";
+  return route.path.startsWith(item.to);
 }
 
 function toggleMenu() {
-  menuCollapsed.value = !menuCollapsed.value
+  menuCollapsed.value = !menuCollapsed.value;
 }
 
 function toggleDetailPanel() {
-  detailPanelCollapsed.value = !detailPanelCollapsed.value
+  detailPanelCollapsed.value = !detailPanelCollapsed.value;
 }
 </script>
 
 <template>
-  <div class="desktop-shell" :class="{'menu-collapsed': menuCollapsed}">
-    <nav class="sidebar" :class="{collapsed: menuCollapsed}">
+  <div class="desktop-shell" :class="{ 'menu-collapsed': menuCollapsed }">
+    <nav class="sidebar" :class="{ collapsed: menuCollapsed }">
       <div class="sidebar-brand">
         <button
           v-tooltip.right="menuCollapsed ? 'Account' : null"
@@ -75,7 +136,7 @@ function toggleDetailPanel() {
         >
           <span class="account-avatar">
             <span v-if="!menuCollapsed">{{ accountInitial }}</span>
-            <i v-else class="pi pi-user"/>
+            <i v-else class="pi pi-user" />
           </span>
           <span v-if="!menuCollapsed" class="account-copy">
             <strong>{{ accountLabel }}</strong>
@@ -84,74 +145,80 @@ function toggleDetailPanel() {
         </button>
       </div>
       <div class="sidebar-language">
-        <ThemeToggle/>
+        <ThemeToggle />
       </div>
       <div class="sidebar-nav">
         <RouterLink
-            v-for="item in navItems"
-            :key="item.key"
-            :to="item.to"
-            :class="{active: isActive(item)}"
-            :data-tour="`nav-${item.tourKey}`"
-            class="sidebar-item"
-            v-tooltip.right="menuCollapsed ? item.name : null"
-            @click="trackNav(item)"
+          v-for="item in navItems"
+          :key="item.key"
+          :to="item.to"
+          :class="{ active: isActive(item) }"
+          :data-tour="`nav-${item.tourKey}`"
+          class="sidebar-item"
+          v-tooltip.right="menuCollapsed ? item.name : null"
+          @click="trackNav(item)"
         >
-          <i :class="item.icon"/>
+          <i :class="item.icon" />
           <span class="sidebar-label">{{ item.name }}</span>
           <PremiumBadge
-              v-if="item.premium"
-              :label="t('common.premium')"
-              :title="t('common.premiumFeature')"
-              compact
-              class="sidebar-premium"
+            v-if="item.premium"
+            :label="t('common.premium')"
+            :title="t('common.premiumFeature')"
+            compact
+            class="sidebar-premium"
           />
         </RouterLink>
       </div>
 
-      <div class="sidebar-footer"/>
+      <div class="sidebar-footer" />
     </nav>
 
     <!-- Dashboard: custom split layout (left=dashboard, right=watchlist) -->
-    <DesktopDashboardView v-if="isDashboard" class="content-area" @open-account="openAccount"/>
+    <DesktopDashboardView
+      v-if="isDashboard"
+      class="content-area"
+      @open-account="openAccount"
+    />
 
     <!-- Holdings/Watchlist: main col + right position panel -->
     <template v-else-if="showPanel">
       <main class="main-col">
         <button
-          v-tooltip.left="detailPanelCollapsed ? 'Show detail panel' : 'Hide detail panel'"
+          v-tooltip.left="
+            detailPanelCollapsed ? 'Show detail panel' : 'Hide detail panel'
+          "
           class="panel-toggle panel-toggle-main"
           type="button"
           @click="toggleDetailPanel"
         >
-          <i class="pi pi-window-maximize"/>
-          <span>{{ detailPanelCollapsed ? 'Show panel' : 'Hide panel' }}</span>
+          <i class="pi pi-window-maximize" />
+          <!-- <span>{{ detailPanelCollapsed ? 'Show panel' : 'Hide panel' }}</span> -->
         </button>
         <RouterView v-slot="{ Component, route: r }">
           <ErrorBoundary :key="r.fullPath">
-            <component :is="Component"/>
+            <component :is="Component" />
           </ErrorBoundary>
         </RouterView>
       </main>
-      <aside class="right-col" :class="{collapsed: detailPanelCollapsed}">
+      <aside class="right-col" :class="{ collapsed: detailPanelCollapsed }">
         <button
           v-tooltip.left="'Hide detail panel'"
           class="panel-toggle panel-toggle-side"
           type="button"
           @click="toggleDetailPanel"
         >
-          <i class="pi pi-window-maximize"/>
+          <i class="pi pi-window-maximize" />
           <span>Hide panel</span>
         </button>
         <div v-if="!focus.ticker" class="right-empty">
-          <i class="pi pi-chart-line"/>
-          <p>{{ t('nav.clickRowToViewPosition') }}</p>
+          <i class="pi pi-chart-line" />
+          <p>{{ t("nav.clickRowToViewPosition") }}</p>
         </div>
         <PositionDetailView
-            v-else
-            :key="focus.ticker"
-            :ticker-override="focus.ticker"
-            :panel-mode="true"
+          v-else
+          :key="focus.ticker"
+          :ticker-override="focus.ticker"
+          :panel-mode="true"
         />
       </aside>
     </template>
@@ -160,7 +227,7 @@ function toggleDetailPanel() {
     <main v-else class="main-col">
       <RouterView v-slot="{ Component, route: r }">
         <ErrorBoundary :key="r.fullPath">
-          <component :is="Component"/>
+          <component :is="Component" />
         </ErrorBoundary>
       </RouterView>
     </main>
@@ -185,7 +252,10 @@ function toggleDetailPanel() {
   align-items: stretch;
   padding: 0.55rem 0;
   background: #fff9f7;
-  transition: width 0.18s ease, padding 0.18s ease, border-color 0.18s ease;
+  transition:
+    width 0.18s ease,
+    padding 0.18s ease,
+    border-color 0.18s ease;
 }
 
 .sidebar.collapsed {
@@ -219,7 +289,10 @@ function toggleDetailPanel() {
   cursor: pointer;
   text-align: left;
   box-shadow: 0 1px 2px rgba(38, 32, 27, 0.04);
-  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
 }
 
 .brand-account:hover {
@@ -315,7 +388,13 @@ function toggleDetailPanel() {
   font-weight: 650;
   cursor: pointer;
   overflow: hidden;
-  transition: background 0.18s, color 0.18s, box-shadow 0.18s, width 0.18s ease, padding 0.18s ease, gap 0.18s ease;
+  transition:
+    background 0.18s,
+    color 0.18s,
+    box-shadow 0.18s,
+    width 0.18s ease,
+    padding 0.18s ease,
+    gap 0.18s ease;
 }
 
 .sidebar.collapsed .sidebar-item {
@@ -352,7 +431,11 @@ function toggleDetailPanel() {
   max-width: 120px;
   opacity: 1;
   transform: translateX(0);
-  transition: max-width 0.18s ease, opacity 0.14s ease, transform 0.18s ease, margin 0.18s ease;
+  transition:
+    max-width 0.18s ease,
+    opacity 0.14s ease,
+    transform 0.18s ease,
+    margin 0.18s ease;
 }
 
 .sidebar-premium {
@@ -411,7 +494,10 @@ function toggleDetailPanel() {
   text-align: center;
   padding: 2rem;
 }
-.right-empty i { font-size: 2.5rem; opacity: 0.2; }
+.right-empty i {
+  font-size: 2.5rem;
+  opacity: 0.2;
+}
 
 /* Right panel column */
 .right-col {
@@ -423,7 +509,11 @@ function toggleDetailPanel() {
   display: flex;
   flex-direction: column;
   opacity: 1;
-  transition: width 0.22s ease, flex 0.22s ease, opacity 0.18s ease, border-color 0.22s ease;
+  transition:
+    width 0.22s ease,
+    flex 0.22s ease,
+    opacity 0.18s ease,
+    border-color 0.22s ease;
 }
 
 .right-col.collapsed {
@@ -462,6 +552,4 @@ function toggleDetailPanel() {
   align-self: flex-end;
   margin: 0.75rem 0.75rem 0 0;
 }
-
-
 </style>

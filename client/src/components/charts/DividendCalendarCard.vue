@@ -7,6 +7,9 @@ import {useI18n} from '@/composables/useI18n'
 
 const {t, locale} = useI18n()
 const {openPosition} = useNavigateToPosition()
+const props = defineProps({
+  hideLoading: {type: Boolean, default: false},
+})
 
 const events = ref([])
 const loading = ref(true)
@@ -52,10 +55,10 @@ function exDivLabel(event) {
 </script>
 
 <template>
-  <section v-if="loading || upcoming.length" class="div-calendar-card">
+  <section v-if="(loading && !props.hideLoading) || upcoming.length" class="div-calendar-card">
     <h2 class="section-title">{{ t('dividendCalendar.title') }}</h2>
 
-    <div v-if="loading && !upcoming.length" class="cal-list">
+    <div v-if="loading && !upcoming.length && !props.hideLoading" class="cal-list">
       <div v-for="n in 3" :key="n" class="cal-row skeleton"/>
     </div>
 

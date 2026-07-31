@@ -8,6 +8,11 @@ import {useI18n} from '@/composables/useI18n'
 import SparklineChart from '@/components/charts/SparklineChart.vue'
 import MarketMetaList from '@/components/ui/MarketMetaList.vue'
 
+const props = defineProps({
+  desktopLayout: {type: Boolean, default: false},
+  hideLoading: {type: Boolean, default: false},
+})
+
 const {openPosition} = useNavigateToPosition()
 const {t} = useI18n()
 const marketData = useMarketDataStore()
@@ -89,9 +94,10 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
 </script>
 
 <template>
-  <section class="markets-card">
-    <div class="markets-head">
-      <div class="markets-topline">
+  <section class="markets-card" :class="{ 'markets-card-desktop': props.desktopLayout }">
+    <div class="markets-head" :class="{ 'markets-head-desktop': props.desktopLayout }">
+      <template v-if="props.desktopLayout">
+        <MarketMetaList class="markets-meta-row" />
         <div class="market-tabs">
           <button
               v-for="g in primaryGroups"
@@ -121,11 +127,42 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
             </div>
           </div>
         </div>
-        <MarketMetaList/>
+      </template>
+      <div v-else class="markets-topline">
+        <div class="market-tabs">
+          <button
+              v-for="g in primaryGroups"
+              :key="g"
+              :class="{ active: group === g }"
+              class="market-tab"
+              @click="selectGroup(g)"
+          >{{ displayMarketGroup(g) }}
+          </button>
+          <div v-if="extraGroups.length" class="market-more">
+            <button
+              :class="{ active: moreOpen || isExtraGroupActive }"
+              class="market-tab market-tab-plus"
+              type="button"
+              @click="moreOpen = !moreOpen"
+            >+</button>
+            <div v-if="moreOpen" class="market-more-menu">
+              <button
+                v-for="g in extraGroups"
+                :key="g"
+                :class="{ active: group === g }"
+                class="market-more-item"
+                type="button"
+                @click="selectGroup(g)"
+              >{{ displayMarketGroup(g) }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <MarketMetaList />
       </div>
     </div>
 
-    <div v-if="loading && !visibleIndices.length" class="markets-grid">
+    <div v-if="loading && !visibleIndices.length && !props.hideLoading" class="markets-grid">
       <div v-for="n in 6" :key="n" class="index-tile skeleton"/>
     </div>
 
@@ -154,7 +191,6 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
   padding: 0.9rem 1rem;
   padding-left: 0;
   margin-bottom: 0.75rem;
-
 }
 .markets-head {
   display: flex;
@@ -173,6 +209,11 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
   margin: 0;
 }
 
+.market-tabs {
+  display: flex;
+  gap: 2px;
+  position: relative;
+}
 .markets-topline {
   display: flex;
   align-items: flex-start;
@@ -181,7 +222,6 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
   width: 100%;
   flex-wrap: wrap;
 }
-.market-tabs { display: flex; gap: 2px; position: relative; }
 .market-tab {
   background: transparent;
   border: none;
@@ -290,4 +330,44 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
   animation: shimmer 1.4s infinite;
 }
 @keyframes shimmer { to { background-position: -200% 0; } }
+
+.markets-card-desktop {
+  padding-left: 1rem;
+  overflow: hidden;
+}
+
+.markets-card-desktop .markets-head {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.65rem;
+}
+
+.markets-card-desktop .markets-meta-row {
+  width: 100%;
+}
+
+.markets-card-desktop .market-tabs {
+  width: fit-content;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.markets-card-desktop .markets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  gap: 0.25rem 0.45rem;
+  width: 100%;
+  overflow: hidden;
+  padding-bottom: 0;
+}
+
+.markets-card-desktop .index-tile {
+  min-width: 0;
+}
+
+@media (max-width: 1100px) {
+  .markets-card-desktop .markets-grid {
+    grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  }
+}
 </style>

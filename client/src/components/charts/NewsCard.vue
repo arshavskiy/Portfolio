@@ -19,6 +19,9 @@ const { t } = useI18n();
 const topic = useStorage("desktop-news-topic", "for-you");
 const scrollRef = ref(null);
 const FEED_LIMIT = 3;
+const props = defineProps({
+  hideLoading: { type: Boolean, default: false },
+});
 const articles = computed(() => news.getFeed(topic.value));
 const loading = computed(
   () => news.isLoading(topic.value) && !articles.value.length,
@@ -79,7 +82,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section v-if="loading || articles.length" class="news-card">
+  <section v-if="(loading && !props.hideLoading) || articles.length" class="news-card">
     <div class="news-head">
       <div class="news-title-wrap">
         <h2 class="card-title"><i class="pi pi-globe" /> News</h2>
@@ -102,7 +105,7 @@ onBeforeUnmount(() => {
       </button>
     </div>
 
-    <div v-if="loading && !articles.length" class="news-grid">
+    <div v-if="loading && !articles.length && !props.hideLoading" class="news-grid">
       <div v-for="n in 4" :key="n" class="article-tile skeleton" />
     </div>
 
