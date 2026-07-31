@@ -283,7 +283,7 @@ watch(series, () => nextTick(draw), {deep: true})
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  background: #fbfaf8;
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 6px 10px;
@@ -294,7 +294,7 @@ watch(series, () => nextTick(draw), {deep: true})
 }
 
 .legend-item:hover {
-  background: #fff;
+  background: var(--bg-card);
 }
 
 .legend-item:active {

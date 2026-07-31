@@ -393,7 +393,7 @@ onMounted(() => {
   overflow-y: auto;
   border-radius: 16px;
   background: transparent;
-  border: 1px solid rgba(232, 226, 222, 0.85);
+  border: 1px solid var(--border);
   padding: 0.9rem 0.8rem;
   scroll-behavior: smooth;
   box-shadow: none;
@@ -422,11 +422,11 @@ onMounted(() => {
   gap: 0.45rem;
   min-height: 300px;
   flex: 1;
-  border: 1px solid rgba(232, 226, 222, 0.85);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.4rem 1rem;
   text-align: center;
-  background: rgba(255, 255, 255, 0.7);
+  background: transparent;
 }
 
 .ask-empty i {
@@ -435,10 +435,10 @@ onMounted(() => {
   justify-content: center;
   width: 42px;
   height: 42px;
-  border: 1px solid rgba(232, 226, 222, 0.95);
+  border: 1px solid var(--border);
   border-radius: 12px;
-  color: #a08f84;
-  background: #fff;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
   font-size: 1rem;
 }
 
@@ -446,7 +446,7 @@ onMounted(() => {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 750;
-  color: #2f2a27;
+  color: var(--text-primary);
 }
 
 .ask-empty span,
@@ -666,9 +666,9 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  border: 1px solid rgba(232, 226, 222, 0.92);
+  border: 1px solid var(--border);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--bg-secondary);
   padding: 0.45rem;
 }
 
@@ -697,10 +697,10 @@ onMounted(() => {
   min-height: 42px;
   width: 42px;
   flex-shrink: 0;
-  border: 1px solid rgba(232, 226, 222, 0.92);
+  border: 1px solid var(--border);
   border-radius: 10px;
-  color: #6f635b;
-  background: #fff;
+  color: var(--text-secondary);
+  background: var(--bg-card);
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;

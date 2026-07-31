@@ -80,7 +80,7 @@ function draw() {
       .attr('x2', innerW)
       .attr('y1', (d) => y(d))
       .attr('y2', (d) => y(d))
-      .attr('stroke', '#e9e2dd')
+      .attr('stroke', getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#333')
       .attr('stroke-width', 1)
 
   chart.selectAll('.y-label')

@@ -316,7 +316,7 @@ const netMarginTitle = computed(() => {
   display: flex;
   align-items: center;
   padding: 0.75rem 0.25rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: none;
   gap: 0.5rem;
   cursor: pointer;
   transition: background 0.15s;

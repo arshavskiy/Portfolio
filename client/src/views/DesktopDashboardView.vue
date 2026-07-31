@@ -1,18 +1,22 @@
 <script setup>
-import { computed, defineAsyncComponent, onMounted, onUnmounted, ref } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  onUnmounted,
+  ref,
+} from "vue";
 import { useStorage } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
-import Card from "primevue/card";
-import Dialog from "primevue/dialog";
 import Button from "primevue/button";
+import Menu from "primevue/menu";
 import Select from "primevue/select";
-import ToggleSwitch from "primevue/toggleswitch";
+import AddWatchlistModal from "@/components/ui/AddWatchlistModal.vue";
+import ImportModal from "@/components/ui/ImportModal.vue";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useAuthStore } from "@/stores/auth";
 import { useDesktopFocusStore } from "@/stores/desktopFocus";
-import { useAiChatStore } from "@/stores/aiChat";
-import AskPortfolioPanel from "@/components/ui/AskPortfolioPanel.vue";
 import {
   gainLossClass,
   useCurrency,
@@ -49,12 +53,40 @@ const DividendCalendarCard = defineAsyncComponent(
 const emit = defineEmits(["open-account"]);
 const dashboard = useDashboardStore();
 const auth = useAuthStore();
-const aiChat = useAiChatStore();
 const router = useRouter();
 const desktopFocus = useDesktopFocusStore();
 const { t } = useI18n();
-const aiPanelCollapsed = useStorage("desktop-ai-panel-collapsed", false);
-const menuCollapsed = useStorage("desktop-menu-collapsed", false);
+
+const addMenu = ref(null);
+const showAddModal = ref(false);
+const showImportModal = ref(false);
+const importMode = ref("watchlist");
+const addMenuItems = computed(() => [
+  {
+    label: t("watchlist.addToWatchlist"),
+    icon: "pi pi-eye",
+    command: () => {
+      showAddModal.value = true;
+    },
+  },
+  { separator: true },
+  {
+    label: t("watchlist.importWatchlist"),
+    icon: "pi pi-upload",
+    command: () => {
+      importMode.value = "watchlist";
+      showImportModal.value = true;
+    },
+  },
+  {
+    label: t("watchlist.importHoldings"),
+    icon: "pi pi-briefcase",
+    command: () => {
+      importMode.value = "holdings";
+      showImportModal.value = true;
+    },
+  },
+]);
 
 const {
   ready,
@@ -68,11 +100,6 @@ const {
   historyLoading,
   historyRange,
 } = storeToRefs(dashboard);
-const { messages: advisorMessages } = storeToRefs(aiChat);
-const advisorPanelRef = ref(null);
-const showConsentModal = ref(false);
-const consentDraft = ref(false);
-const savingConsent = ref(false);
 
 const HISTORY_RANGES = [
   { label: "1D", value: "1d" },
@@ -121,22 +148,10 @@ const portfolioRows = computed(() =>
     .slice(0, 7),
 );
 
-const suggestionPrompts = [
-  "What would happen to my portfolio if the market drops 30% tomorrow?",
-  "Which holdings are carrying the most concentration risk?",
-  "How should I rebalance while keeping upside potential?",
-  "Which watchlist names look most interesting today?",
-];
 const historyRangeOptions = HISTORY_RANGES.map((item) => ({
   label: item.label,
   value: item.value,
 }));
-const aiDataSharingConsent = computed(
-  () => auth.user?.aiDataSharingConsent === true,
-);
-const consentDirty = computed(
-  () => consentDraft.value !== aiDataSharingConsent.value,
-);
 
 function openPosition(position) {
   if (!position?.ticker) return;
@@ -147,54 +162,8 @@ function openPosition(position) {
   router.push(`/position/${encodeURIComponent(position.ticker)}`);
 }
 
-function toggleAiPanel() {
-  aiPanelCollapsed.value = !aiPanelCollapsed.value;
-}
-
-function toggleMenu() {
-  menuCollapsed.value = !menuCollapsed.value;
-}
-
 function openAccount() {
   emit("open-account");
-}
-
-function openAssistantPage() {
-  router.push("/assistant");
-}
-
-function openConsentModal() {
-  consentDraft.value = aiDataSharingConsent.value;
-  showConsentModal.value = true;
-}
-
-function closeConsentModal() {
-  showConsentModal.value = false;
-  consentDraft.value = aiDataSharingConsent.value;
-}
-
-async function saveConsentModal() {
-  if (!consentDirty.value) return;
-  savingConsent.value = true;
-  try {
-    await auth.updatePreferences({ aiDataSharingConsent: consentDraft.value });
-    showConsentModal.value = false;
-  } catch {
-  } finally {
-    savingConsent.value = false;
-  }
-}
-
-function toggleAdvisorHistory() {
-  advisorPanelRef.value?.toggleHistory?.();
-}
-
-async function startNewAdvisorSession() {
-  await advisorPanelRef.value?.startNewSession?.();
-}
-
-function sendAdvisorPrompt(prompt) {
-  advisorPanelRef.value?.sendPrompt?.(prompt);
 }
 
 onMounted(async () => {
@@ -210,30 +179,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="desktop-home" :class="{ 'ai-collapsed': aiPanelCollapsed }">
+  <div class="desktop-home">
     <main class="home-main">
-      <header class="home-topbar">
-        <div class="crumbs">
-          <button
-            v-tooltip.bottom="menuCollapsed ? 'Open menu' : 'Collapse menu'"
-            class="crumb-toggle"
-            type="button"
-            @click="toggleMenu"
-          >
-            <span class="panel-toggle-glyph" aria-hidden="true" />
-          </button>
-          <span>Home</span>
-        </div>
+      <Teleport to="#layout-topbar-actions" defer>
         <div class="top-actions">
           <button
             v-tooltip.bottom="'Add'"
             class="top-action primary"
             type="button"
-            @click="router.push('/watchlist')"
+            @click="addMenu?.toggle($event)"
           >
             <i class="pi pi-plus" />
             <span>{{ t("common.add") }}</span>
           </button>
+          <Menu ref="addMenu" :model="addMenuItems" popup />
           <button
             v-tooltip.bottom="'Portfolio records'"
             class="top-action"
@@ -243,19 +202,8 @@ onUnmounted(() => {
             <i class="pi pi-list" />
             <span>Records</span>
           </button>
-          <button
-            v-tooltip.bottom="
-              aiPanelCollapsed ? 'Show AI panel' : 'Hide AI panel'
-            "
-            class="top-action top-action-icon"
-            type="button"
-            @click="toggleAiPanel"
-          >
-            <span class="panel-toggle-glyph" aria-hidden="true" />
-            <!-- <span>{{ aiPanelCollapsed ? "Show panel" : "Hide panel" }}</span> -->
-          </button>
         </div>
-      </header>
+      </Teleport>
 
       <div class="home-scroll">
         <section class="home-hero">
@@ -322,18 +270,18 @@ onUnmounted(() => {
                 :range="historyRange"
               />
 
-              <NewsCard class="folio-card news-home-card" :hide-loading="true" />
+              <NewsCard class="folio-card news-home-card" />
 
               <section
                 v-if="portfolioPositions.length"
                 class="records-card folio-card"
               >
                 <div class="records-head">
-                  <h2>Portfolio Records</h2>
-                  <button type="button" @click="router.push('/transactions')">
+                  <h2>Holdings</h2>
+                  <!-- <button type="button" @click="router.push('/transactions')">
                     <span>View all</span>
                     <i class="pi pi-arrow-right" />
-                  </button>
+                  </button> -->
                 </div>
                 <div class="records-table">
                   <div class="records-row records-header">
@@ -410,133 +358,12 @@ onUnmounted(() => {
       </div>
     </main>
 
-    <aside class="advisor-rail" :class="{ collapsed: aiPanelCollapsed }">
-      <div class="advisor-head">
-        <div>
-          <strong>AI Chat</strong>
-          <span>Portfolio advisor</span>
-        </div>
-        <div class="advisor-actions">
-          <Button
-            v-tooltip.bottom="'Open history'"
-            class="advisor-action-btn"
-            icon="pi pi-history"
-            severity="secondary"
-            text
-            rounded
-            type="button"
-            @click="toggleAdvisorHistory"
-          />
-          <Button
-            v-tooltip.bottom="'Settings'"
-            class="advisor-action-btn"
-            icon="pi pi-cog"
-            severity="secondary"
-            text
-            rounded
-            type="button"
-            @click="openConsentModal"
-          />
-          <Button
-            v-tooltip.bottom="'New session'"
-            class="advisor-action-btn"
-            icon="pi pi-plus"
-            severity="secondary"
-            text
-            rounded
-            type="button"
-            @click="startNewAdvisorSession"
-          />
-        </div>
-      </div>
-      <div v-if="!advisorMessages.length" class="advisor-hero">
-        <span class="advisor-hero-mark">
-          <i class="pi pi-comments" />
-        </span>
-        <strong>Folio advisor</strong>
-        <p v-if="aiDataSharingConsent">
-          Ask about risk, concentration, rebalancing, and what moved today.
-        </p>
-        <p v-else>
-          Update your AI settings and data sharing preferences to unlock tailored answers.
-        </p>
-        <Button
-          class="advisor-hero-cta"
-          :icon="aiDataSharingConsent ? 'pi pi-sparkles' : 'pi pi-shield'"
-          :label="aiDataSharingConsent ? 'Open full AI chat' : 'Enable AI Advisor'"
-          outlined
-          @click="aiDataSharingConsent ? openAssistantPage() : openConsentModal()"
-        />
-      </div>
-      <AskPortfolioPanel
-        v-if="aiDataSharingConsent"
-        ref="advisorPanelRef"
-        class="advisor-panel"
-      />
-      <div v-if="aiDataSharingConsent" class="suggestions">
-        <span>Suggestions</span>
-        <Button
-          v-for="prompt in suggestionPrompts"
-          :key="prompt"
-          class="suggestion-btn"
-          severity="secondary"
-          text
-          :label="prompt"
-          @click="sendAdvisorPrompt(prompt)"
-        />
-      </div>
-    </aside>
-
-    <Dialog
-      v-model:visible="showConsentModal"
-      :draggable="false"
-      :style="{ width: '95vw', maxWidth: '560px' }"
-      modal
-      @hide="closeConsentModal"
-    >
-      <template #header>
-        <div class="consent-dialog-title">
-          <i class="pi pi-sparkles" />
-          <div>
-            <strong>StockFolio AI Advisor</strong>
-            <span>Update your AI settings and data sharing preferences here.</span>
-          </div>
-        </div>
-      </template>
-
-      <Card class="consent-card">
-        <div class="consent-toggle-row">
-          <div class="consent-switch-wrap">
-            <ToggleSwitch v-model="consentDraft" />
-          </div>
-          <div class="consent-copy">
-            <strong>AI data sharing consent</strong>
-            <p>
-              StockFolio AI Advisor can provide more relevant answers if you choose
-              to share different levels of data. This feature is powered by third-party AI providers.
-            </p>
-          </div>
-        </div>
-      </Card>
-
-      <template #footer>
-        <div class="consent-footer">
-          <Button
-            class="consent-cancel"
-            label="Cancel"
-            outlined
-            @click="closeConsentModal"
-          />
-          <Button
-            :disabled="!consentDirty || savingConsent"
-            :loading="savingConsent"
-            class="consent-save"
-            label="Save changes"
-            @click="saveConsentModal"
-          />
-        </div>
-      </template>
-    </Dialog>
+    <AddWatchlistModal v-model:visible="showAddModal" />
+    <ImportModal
+      v-model:visible="showImportModal"
+      :mode="importMode"
+      @imported="() => {}"
+    />
   </div>
 </template>
 
@@ -550,11 +377,17 @@ onUnmounted(() => {
   --desktop-text: var(--text-primary);
   --desktop-muted: var(--text-secondary);
   --desktop-hover: color-mix(in srgb, var(--text-primary) 6%, transparent);
-  --desktop-hover-strong: color-mix(in srgb, var(--text-primary) 10%, transparent);
-  --desktop-elevated-shadow: 0 1px 2px color-mix(in srgb, var(--text-primary) 8%, transparent);
-  --desktop-overlay-shadow: 0 8px 24px color-mix(in srgb, var(--text-primary) 10%, transparent);
+  --desktop-hover-strong: color-mix(
+    in srgb,
+    var(--text-primary) 10%,
+    transparent
+  );
+  --desktop-elevated-shadow: 0 1px 2px
+    color-mix(in srgb, var(--text-primary) 8%, transparent);
+  --desktop-overlay-shadow: 0 8px 24px
+    color-mix(in srgb, var(--text-primary) 10%, transparent);
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 30vw);
+  /* grid-template-columns: minmax(0, 1fr) minmax(360px, 30vw); */
   height: 100%;
   overflow: hidden;
   background: var(--desktop-surface);
@@ -581,20 +414,6 @@ onUnmounted(() => {
   overflow-x: auto;
 }
 
-.home-topbar {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 0 1rem;
-  border-bottom: 1px solid var(--desktop-border-soft);
-  background: color-mix(in srgb, var(--desktop-panel) 76%, transparent);
-  backdrop-filter: blur(18px);
-  flex-shrink: 0;
-}
-
-.crumbs,
 .top-actions,
 .freshness,
 .advisor-head,
@@ -602,32 +421,6 @@ onUnmounted(() => {
 .top-action {
   display: flex;
   align-items: center;
-}
-
-.crumbs {
-  gap: 0.65rem;
-  color: var(--desktop-muted);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.crumb-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--desktop-border);
-  border-radius: 8px;
-  background: var(--desktop-panel);
-  color: var(--desktop-muted);
-  cursor: pointer;
-  box-shadow: var(--desktop-elevated-shadow);
-  flex-shrink: 0;
-}
-
-.crumbs i {
-  font-size: 0.76rem;
 }
 
 .top-actions {
@@ -914,7 +707,6 @@ onUnmounted(() => {
   align-items: center;
   gap: 1rem;
   padding: 0.85rem 1rem;
-  border-bottom: 1px solid var(--desktop-border-soft);
 }
 
 .records-head h2 {
@@ -940,10 +732,9 @@ onUnmounted(() => {
   gap: 1rem;
   align-items: center;
   width: 100%;
-  min-width: 760px;
+  /* min-width: 760px; */
   padding: 0.72rem 1rem;
   border: 0;
-  border-bottom: 1px solid var(--desktop-border-soft);
   background: transparent;
   color: var(--desktop-text);
   text-align: left;
@@ -961,7 +752,11 @@ button.records-row:hover {
 
 .records-header {
   color: var(--desktop-muted);
-  background: color-mix(in srgb, var(--desktop-panel) 72%, var(--desktop-surface));
+  background: color-mix(
+    in srgb,
+    var(--desktop-panel) 72%,
+    var(--desktop-surface)
+  );
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -987,7 +782,11 @@ button.records-row:hover {
   display: flex;
   flex-direction: column;
   padding: 0.85rem 0.9rem;
-  background: color-mix(in srgb, var(--desktop-panel) 90%, var(--desktop-surface));
+  background: color-mix(
+    in srgb,
+    var(--desktop-panel) 90%,
+    var(--desktop-surface)
+  );
   overflow: hidden;
   border-left: 1px solid var(--desktop-border);
   transition:
@@ -1031,6 +830,8 @@ button.records-row:hover {
   min-width: 32px;
   height: 32px;
   color: var(--desktop-muted);
+  border: none;
+  box-shadow: none;
 }
 
 .advisor-actions :deep(.advisor-action-btn.p-button:hover) {

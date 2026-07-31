@@ -187,7 +187,7 @@ watch(activeTab, (tab) => {
     <!-- Left: Transactions -->
     <div class="tx-col">
       <header class="col-header">
-        <h1 class="gradient-title">{{ t('common.history') }}</h1>
+        <h1 class="gradient-title">Records</h1>
         <Button
             v-if="activeTab === 'history'"
             :disabled="!filtered.length"
