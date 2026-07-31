@@ -8,6 +8,7 @@ import { trackEvent } from "@/composables/useAnalytics";
 import { useI18n } from "@/composables/useI18n";
 import PositionDetailView from "@/views/PositionDetailView.vue";
 import DesktopDashboardView from "@/views/DesktopDashboardView.vue";
+import AskPortfolioPanel from "@/components/ui/AskPortfolioPanel.vue";
 import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
 import ThemeToggle from "@/components/ui/ThemeToggle.vue";
 import PremiumBadge from "@/components/ui/PremiumBadge.vue";
@@ -29,6 +30,7 @@ function trackNav(item) {
 }
 
 const isDashboard = computed(() => route.path === "/");
+const isAssistant = computed(() => route.path === "/assistant" || route.path === "/insights");
 const PANEL_ROUTES = ["/watchlist"];
 const showPanel = computed(() =>
   PANEL_ROUTES.some((p) => route.path.startsWith(p)),
@@ -180,6 +182,11 @@ function toggleDetailPanel() {
       @open-account="openAccount"
     />
 
+    <!-- Assistant: full-height AI chat panel -->
+    <main v-else-if="isAssistant" class="main-col assistant-page">
+      <AskPortfolioPanel class="assistant-panel-full" />
+    </main>
+
     <!-- Holdings/Watchlist: main col + right position panel -->
     <template v-else-if="showPanel">
       <main class="main-col">
@@ -239,19 +246,19 @@ function toggleDetailPanel() {
   display: flex;
   height: 100dvh;
   overflow: hidden;
-  background: #fbfaf8;
+  background: var(--bg-primary);
 }
 
 /* Sidebar */
 .sidebar {
   width: 200px;
   flex-shrink: 0;
-  border-right: 1px solid #ece7e3;
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   align-items: stretch;
   padding: 0.55rem 0;
-  background: #fff9f7;
+  background: var(--bg-secondary);
   transition:
     width 0.18s ease,
     padding 0.18s ease,
@@ -282,13 +289,13 @@ function toggleDetailPanel() {
   width: 100%;
   min-height: 42px;
   padding: 0.35rem 0.6rem;
-  border: 1px solid #ece4de;
+  border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fff;
-  color: #3d3733;
+  background: var(--bg-card);
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.04);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition:
     background 0.18s ease,
     border-color 0.18s ease,
@@ -296,8 +303,8 @@ function toggleDetailPanel() {
 }
 
 .brand-account:hover {
-  border-color: #ddd1ca;
-  background: #fffdfb;
+  border-color: var(--accent);
+  background: var(--bg-primary);
 }
 
 .sidebar.collapsed .brand-account {
@@ -316,8 +323,8 @@ function toggleDetailPanel() {
   height: 30px;
   flex-shrink: 0;
   border-radius: 999px;
-  background: #f7efe9;
-  color: #8b7366;
+  background: color-mix(in srgb, var(--accent) 15%, var(--bg-secondary));
+  color: var(--accent);
   font-size: 0.8rem;
   font-weight: 800;
 }
@@ -347,7 +354,7 @@ function toggleDetailPanel() {
 }
 
 .account-copy small {
-  color: #8e857d;
+  color: var(--text-secondary);
   font-size: 0.69rem;
   font-weight: 600;
 }
@@ -381,7 +388,7 @@ function toggleDetailPanel() {
   border: none;
   border-radius: 9px;
   background: none;
-  color: #7d746d;
+  color: var(--text-secondary);
   text-decoration: none;
   font: inherit;
   font-size: 0.84rem;
@@ -450,15 +457,15 @@ function toggleDetailPanel() {
 }
 
 .sidebar-item:hover {
-  background: #fff;
-  color: #1f1f1f;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.06);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .sidebar-item.active {
-  background: #fff;
-  color: #111;
-  box-shadow: 0 1px 3px rgba(38, 32, 27, 0.08);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 /* Dashboard fills remaining space after sidebar */
@@ -529,15 +536,15 @@ function toggleDetailPanel() {
   align-items: center;
   gap: 0.4rem;
   min-height: 32px;
-  border: 1px solid #e4ded9;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
-  color: #6e655f;
+  background: var(--bg-card);
+  color: var(--text-secondary);
   padding: 0 0.7rem;
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(38, 32, 27, 0.05);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .panel-toggle-main {
@@ -551,5 +558,16 @@ function toggleDetailPanel() {
 .panel-toggle-side {
   align-self: flex-end;
   margin: 0.75rem 0.75rem 0 0;
+}
+
+.assistant-page {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.assistant-panel-full {
+  flex: 1;
+  min-height: 0;
 }
 </style>

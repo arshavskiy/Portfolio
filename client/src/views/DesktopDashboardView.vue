@@ -244,15 +244,6 @@ onUnmounted(() => {
             <span>Records</span>
           </button>
           <button
-            v-tooltip.bottom="'Open AI chat'"
-            class="top-action"
-            type="button"
-            @click="router.push('/assistant')"
-          >
-            <i class="pi pi-comments" />
-            <span>AI Chat</span>
-          </button>
-          <button
             v-tooltip.bottom="
               aiPanelCollapsed ? 'Show AI panel' : 'Hide AI panel'
             "
@@ -814,9 +805,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 2px;
   padding: 3px;
-  border: 1px solid #eee8e4;
+  border: 1px solid var(--border);
   border-radius: 9px;
-  background: #fbf7f4;
+  background: var(--bg-secondary);
 }
 
 .mode-switch button {
@@ -825,7 +816,7 @@ onUnmounted(() => {
   border: 0;
   border-radius: 7px;
   background: transparent;
-  color: #7c746d;
+  color: var(--text-secondary);
   font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
@@ -836,14 +827,14 @@ onUnmounted(() => {
 }
 
 .mode-switch button.active {
-  background: #fff;
-  color: #1f1f1f;
-  box-shadow: 0 1px 3px rgba(40, 34, 28, 0.08);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .mode-switch button i {
   font-size: 0.72rem;
-  color: #a39890;
+  color: var(--text-secondary);
 }
 
 .period-select {
