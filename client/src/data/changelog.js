@@ -2,6 +2,19 @@
 // new entry) is what triggers the WhatsNewModal on the next load.
 export const changelog = [
   {
+    version: '2026.08.01',
+    date: 'Aug 1, 2026',
+    title: 'Records page & dividend history',
+    changes: [
+      "History renamed to Records and moved to the bottom navigation. About moved into the Account menu.",
+      "New Dividends tab on the Records page shows all historical dividend payments per ticker (sourced from Yahoo Finance), grouped and collapsible.",
+      "Realized Gains year filter now shows 'All Years' label by default instead of a blank dropdown.",
+      "Records added to the desktop sidebar navigation.",
+      "Fixed dividend calendar not showing upcoming payments when the ex-dividend date had already passed.",
+      "Fixed TASE (.TA) dividend amounts being shown in agorot — now correctly converted to shekels.",
+    ],
+  },
+  {
     version: '2026.07.30',
     date: 'Jul 30, 2026',
     title: 'Updates',

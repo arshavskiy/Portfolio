@@ -66,7 +66,8 @@ This mix exists so the tour can walk through Dashboard (P&L on a real position),
 
 ## Feature inventory (built — do NOT rebuild)
 - **Portfolio history chart**: `GET /portfolio/history?range=` reconstructs daily (or intraday for 1d) portfolio value by replaying transactions × price history — `PortfolioHistoryChart` on Dashboard + desktop views.
-- **Realized gains report**: `GET /portfolio/realized-gains` groups sells + dividends by year; Transactions page "Realized Gains" tab has per-year filter and CSV export (`exportGainsCSV`). Plain transactions CSV export also exists (`exportCSV`).
+- **Realized gains report**: `GET /portfolio/realized-gains` groups sells + dividends by year; Records page (`/records`, `TransactionsView.vue`) "Realized Gains" tab has per-year filter and CSV export (`exportGainsCSV`). Plain transactions CSV export also exists (`exportCSV`). `/transactions` redirects to `/records`.
+- **Dividend history tab**: Records page third tab fetches `GET /portfolio/dividends/history` (Yahoo chart div events from earliest buy date, agorot÷100 for `.TA` tickers) and renders collapsible per-ticker groups showing payment count, total, and individual payment rows.
 - **Dividend calendar**: `GET /portfolio/dividends/calendar` (Yahoo calendarEvents, 12h cache) → `DividendCalendarCard` on both dashboards; 08:00 ET cron pushes ex-div-tomorrow heads-up.
 - **Price targets**: position page renders active alerts as distance-to-target progress bars (`priceTargets` computed in PositionDetailView).
 - **Watchlist dividend grouping**: `GET /watchlist` quote enrichment includes `dividendRate` / `dividendYield`; group mode `dividend` splits rows into Dividend payers vs No dividend data and sorts payers by highest yield.
