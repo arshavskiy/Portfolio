@@ -959,7 +959,7 @@ function toggleDetailPanel() {
   overflow: hidden;
   border-left: 1px solid var(--desktop-border);
   min-width: 320px;
-  max-width: 30vw;
+  max-width: 25vw;
   transition:
     min-width 0.22s ease,
     max-width 0.22s ease,

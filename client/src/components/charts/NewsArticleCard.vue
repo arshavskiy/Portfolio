@@ -64,11 +64,11 @@ function fmtDate(value) {
 }
 
 .article-card:hover {
-  background: #fbf8f5;
+  background: var(--bg-secondary);
 }
 
 .article-card:active {
-  background: #f7f2ee;
+  background: var(--bg-card);
 }
 
 .article-main {
@@ -87,7 +87,7 @@ function fmtDate(value) {
 
 .source {
   min-width: 0;
-  color: #9b928b;
+  color: var(--text-secondary);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -115,10 +115,10 @@ h2 {
 }
 
 .symbol-pill {
-  border: 1px solid #e6dfda;
+  border: 1px solid var(--border);
   border-radius: 999px;
-  color: #6c645d;
-  background: #fff;
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
   padding: 0.18rem 0.52rem;
   font-size: 0.66rem;
   font-weight: 700;
@@ -126,7 +126,7 @@ h2 {
 }
 
 .muted-pill {
-  color: #a0958d;
+  color: var(--text-muted, var(--text-secondary));
 }
 
 .symbol-row-empty {

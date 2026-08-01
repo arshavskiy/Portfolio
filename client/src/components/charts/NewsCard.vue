@@ -215,7 +215,7 @@ onBeforeUnmount(() => {
 
 .topic-chip {
   flex: 0 0 auto;
-  background: #fff;
+  background: var(--bg-secondary);
   border: 1px solid var(--border);
   color: var(--text-secondary);
   border-radius: 8px;
@@ -226,9 +226,9 @@ onBeforeUnmount(() => {
 }
 
 .topic-chip.active {
-  color: #2563eb;
+  color: var(--neon-blue);
   border-color: rgba(37, 99, 235, 0.4);
-  background: #f8fbff;
+  background: var(--bg-card);
 }
 
 .view-all:active {
@@ -279,7 +279,7 @@ onBeforeUnmount(() => {
   min-height: 34px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--bg-secondary);
   color: var(--text-primary);
   padding: 0 0.9rem;
   font-size: 0.75rem;
@@ -289,13 +289,13 @@ onBeforeUnmount(() => {
 
 .news-load-more button:disabled {
   color: var(--text-secondary);
-  background: #faf7f4;
+  background: var(--bg-card);
   cursor: default;
 }
 
 .skeleton {
   height: 50px;
-  background: #f4efea;
-  border-top: 1px solid #ece4dd;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
 }
 </style>

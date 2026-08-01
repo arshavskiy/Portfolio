@@ -394,7 +394,7 @@ onUnmounted(() => {
   --desktop-overlay-shadow: 0 8px 24px
     color-mix(in srgb, var(--text-primary) 10%, transparent);
   display: grid;
-  /* grid-template-columns: minmax(0, 1fr) minmax(360px, 30vw); */
+  /* grid-template-columns: minmax(0, 1fr) minmax(360px, 25vw); */
   height: 100%;
   overflow: hidden;
   background: var(--desktop-surface);
@@ -493,9 +493,15 @@ onUnmounted(() => {
 }
 
 .top-action.primary {
-  background: var(--text-primary);
-  border-color: var(--text-primary);
-  color: var(--bg-secondary);
+  background: var(--neon-blue);
+  border-color: var(--neon-blue);
+  color: #000;
+}
+
+:root[data-theme="light"] .top-action.primary {
+  background: #1a6cf5;
+  border-color: #1a6cf5;
+  color: #fff;
 }
 
 .home-scroll {
@@ -1156,7 +1162,7 @@ button.records-row:hover {
 
 @media (max-width: 1360px) {
   .desktop-home {
-    grid-template-columns: minmax(0, 1fr) 30vw;
+    grid-template-columns: minmax(0, 1fr) 25vw;
   }
 
   .content-grid {
