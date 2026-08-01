@@ -23,7 +23,9 @@ function marketForTicker(ticker) {
 }
 
 function fxForTicker(ticker, ilsToUsd) {
-  return tickerCurrency(ticker) === 'ILS' ? numberValue(ilsToUsd) : 1
+  if (tickerCurrency(ticker) !== 'ILS') return 1
+  const fx = numberValue(ilsToUsd)
+  return fx > 0 ? fx : 1
 }
 
 function percent(value, total) {
@@ -179,7 +181,10 @@ async function getPortfolioAnalytics(userId) {
     summary.activityCount += 1
     if (tx.type === 'buy') summary.buyTotalUsd += total
     if (tx.type === 'sell') summary.sellTotalUsd += total
-    if (tx.type === 'dividend' && !tx.drip) summary.dividendsUsd += total
+    if (tx.type === 'dividend' && !tx.drip) {
+      const divRaw = numberValue(tx.total) || (numberValue(tx.shares) * numberValue(tx.price))
+      summary.dividendsUsd += divRaw * fx
+    }
     summary.feesUsd += fee
     const ts = new Date(tx.date).getTime()
     if (Number.isFinite(ts)) {

@@ -124,6 +124,12 @@ const dashboardNavItems = computed(() =>
       tourKey: "watchlist",
     },
     {
+      key: "records",
+      name: t("nav.records"),
+      to: "/transactions",
+      icon: "pi pi-list",
+    },
+    {
       key: "x-ray",
       name: t("common.xRay"),
       to: "/x-ray",
@@ -137,13 +143,6 @@ const dashboardNavItems = computed(() =>
       to: "/news",
       icon: "pi pi-globe",
       tourKey: "news",
-    },
-    {
-      key: "about",
-      name: t("common.about"),
-      to: "/help",
-      icon: "pi pi-info-circle",
-      tourKey: "about",
     },
   ].filter((item) => !item.premium || auth.canUsePremiumFeatures),
 );

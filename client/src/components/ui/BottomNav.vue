@@ -1,32 +1,72 @@
 <script setup>
-import {useRoute} from 'vue-router'
-import {trackEvent} from '@/composables/useAnalytics'
-import {computed} from 'vue'
-import {useI18n} from '@/composables/useI18n'
-import PremiumBadge from '@/components/ui/PremiumBadge.vue'
-import {useAuthStore} from '@/stores/auth'
+import { useRoute } from "vue-router";
+import { trackEvent } from "@/composables/useAnalytics";
+import { computed } from "vue";
+import { useI18n } from "@/composables/useI18n";
+import PremiumBadge from "@/components/ui/PremiumBadge.vue";
+import { useAuthStore } from "@/stores/auth";
 
-const route = useRoute()
-const auth = useAuthStore()
-const {t} = useI18n()
+const route = useRoute();
+const auth = useAuthStore();
+const { t } = useI18n();
 
 function trackNav(tab) {
-  trackEvent('nav_click', {nav_item: tab.key})
+  trackEvent("nav_click", { nav_item: tab.key });
 }
 
-const tabs = computed(() => [
-  {key: 'dashboard', to: '/', icon: 'pi pi-chart-bar', label: t('common.dashboard'), tourKey: 'dashboard'},
-  {key: 'watchlist', to: '/watchlist', icon: 'pi pi-eye', label: t('common.watchlist'), tourKey: 'watchlist'},
-  {key: 'assistant', to: '/assistant', icon: 'pi pi-comments', label: t('common.insights'), tourKey: 'assistant', premium: true},
-  {key: 'x-ray', to: '/x-ray', icon: 'pi pi-shield', label: t('common.xRay'), tourKey: 'x-ray', premium: true},
-  {key: 'news', to: '/news', icon: 'pi pi-globe', label: t('common.news'), tourKey: 'news'},
-  {key: 'about', to: '/help', icon: 'pi pi-info-circle', label: t('common.about')},
-].filter(tab => !tab.premium || auth.canUsePremiumFeatures))
+const tabs = computed(() =>
+  [
+    {
+      key: "dashboard",
+      to: "/",
+      icon: "pi pi-chart-bar",
+      label: t("common.dashboard"),
+      tourKey: "dashboard",
+    },
+    {
+      key: "watchlist",
+      to: "/watchlist",
+      icon: "pi pi-eye",
+      label: t("common.watchlist"),
+      tourKey: "watchlist",
+    },
+    {
+      key: "records",
+      to: "/transactions",
+      icon: "pi pi-list",
+      label: t("nav.records"),
+    },
+    {
+      key: "assistant",
+      to: "/assistant",
+      icon: "pi pi-comments",
+      label: t("common.insights"),
+      tourKey: "assistant",
+      premium: true,
+    },
+    {
+      key: "x-ray",
+      to: "/x-ray",
+      icon: "pi pi-shield",
+      label: t("common.xRay"),
+      tourKey: "x-ray",
+      premium: true,
+    },
+    {
+      key: "news",
+      to: "/news",
+      icon: "pi pi-globe",
+      label: t("common.news"),
+      tourKey: "news",
+    },
+  ].filter((tab) => !tab.premium || auth.canUsePremiumFeatures),
+);
 
 function isActive(tab) {
-  if (tab.to === '/') return route.path === '/'
-  if (tab.to === '/assistant') return route.path === '/assistant' || route.path === '/insights'
-  return route.path.startsWith(tab.to)
+  if (tab.to === "/") return route.path === "/";
+  if (tab.to === "/assistant")
+    return route.path === "/assistant" || route.path === "/insights";
+  return route.path.startsWith(tab.to);
 }
 </script>
 
@@ -38,22 +78,22 @@ function isActive(tab) {
     </div>
     <div class="nav-items">
       <RouterLink
-          v-for="tab in tabs"
-          :key="tab.key"
-          :class="{ active: isActive(tab), 'desktop-only': tab.desktopOnly }"
-          :to="tab.to"
-          :data-tour="tab.tourKey ? `nav-${tab.tourKey}` : null"
-          class="nav-item"
-          @click="trackNav(tab)"
+        v-for="tab in tabs"
+        :key="tab.key"
+        :class="{ active: isActive(tab), 'desktop-only': tab.desktopOnly }"
+        :to="tab.to"
+        :data-tour="tab.tourKey ? `nav-${tab.tourKey}` : null"
+        class="nav-item"
+        @click="trackNav(tab)"
       >
         <span class="nav-icon-wrap">
-          <i :class="tab.icon"/>
+          <i :class="tab.icon" />
           <PremiumBadge
-              v-if="tab.premium"
-              :label="t('common.premium')"
-              :title="t('common.premiumFeature')"
-              compact
-              class="nav-premium"
+            v-if="tab.premium"
+            :label="t('common.premium')"
+            :title="t('common.premiumFeature')"
+            compact
+            class="nav-premium"
           />
         </span>
         <span>{{ tab.label }}</span>
@@ -111,7 +151,10 @@ function isActive(tab) {
   justify-content: center;
 }
 
-.nav-item i { font-size: 20px; transition: filter 0.2s; }
+.nav-item i {
+  font-size: 20px;
+  transition: filter 0.2s;
+}
 
 .nav-premium {
   position: absolute;
@@ -121,9 +164,15 @@ function isActive(tab) {
   transform-origin: center;
 }
 
-.nav-item.active { color: var(--neon-blue); }
-.nav-item.active i { filter: none; }
-.nav-item.active span { text-shadow: none; }
+.nav-item.active {
+  color: var(--neon-blue);
+}
+.nav-item.active i {
+  filter: none;
+}
+.nav-item.active span {
+  text-shadow: none;
+}
 
 /* ── Desktop: vertical sidebar ── */
 @media (min-width: 1024px) {
@@ -174,7 +223,9 @@ function isActive(tab) {
     padding: 0.7rem 0.85rem;
     border-radius: 10px;
     font-size: 0.92rem;
-    transition: background 0.15s, color 0.15s;
+    transition:
+      background 0.15s,
+      color 0.15s;
   }
 
   .nav-item i {

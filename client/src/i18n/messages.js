@@ -526,6 +526,8 @@ export const messages = {
       net: "net",
       avg: "avg",
       perShareShort: "/sh",
+      payment: "payment",
+      payments: "payments",
     },
     transactionModal: {
       marketPriceUnavailable: "Market price unavailable",
@@ -1777,6 +1779,8 @@ export const messages = {
       net: "чистая",
       avg: "ср.",
       perShareShort: "/акц.",
+      payment: "выплата",
+      payments: "выплаты",
     },
     transactionModal: {
       marketPriceUnavailable: "Рыночная цена недоступна",

@@ -17,7 +17,7 @@ defineProps({
 const {locale, t} = useI18n()
 
 // ── Tab state ──────────────────────────────────────────────────────────────
-const activeTab = ref('history') // 'history' | 'gains'
+const activeTab = ref('history') // 'history' | 'gains' | 'dividends'
 
 // ── History tab ────────────────────────────────────────────────────────────
 const transactions = ref([])
@@ -151,10 +151,41 @@ function exportGainsCSV() {
   URL.revokeObjectURL(url)
 }
 
-// Load history on mount; load gains lazily when tab is opened
+// ── Dividends tab ──────────────────────────────────────────────────────────
+const dividendHistory = ref([])   // [{ticker, companyName, shares, payments:[{date,amount,total}]}]
+const loadingDividends = ref(false)
+
+async function fetchDividendHistory() {
+  if (dividendHistory.value.length) return
+  loadingDividends.value = true
+  try {
+    const data = await api.get('/portfolio/dividends/history')
+    dividendHistory.value = data?.payments || []
+  } catch {
+    dividendHistory.value = []
+  } finally {
+    loadingDividends.value = false
+  }
+}
+
+const dividendsByTicker = computed(() =>
+  dividendHistory.value
+    .map((pos) => ({
+      ticker: pos.ticker,
+      companyName: pos.companyName,
+      count: pos.payments.length,
+      total: pos.payments.reduce((s, p) => s + (p.total ?? 0), 0),
+      rows: [...pos.payments].sort((a, b) => new Date(b.date) - new Date(a.date)),
+    }))
+    .filter((g) => g.count > 0)
+    .sort((a, b) => b.total - a.total)
+)
+
+// Load history on mount; load gains/dividends lazily when tab is opened
 onMounted(fetchTransactions)
 watch(activeTab, (tab) => {
   if (tab === 'gains') fetchGains()
+  if (tab === 'dividends') fetchDividendHistory()
 })
 
 defineExpose({
@@ -162,7 +193,11 @@ defineExpose({
     if (activeTab.value === 'history') exportCSV()
     else if (activeTab.value === 'gains') exportGainsCSV()
   },
-  canExport: computed(() => activeTab.value === 'history' ? filtered.value.length > 0 : visibleYears.value.length > 0),
+  canExport: computed(() => {
+    if (activeTab.value === 'history') return filtered.value.length > 0
+    if (activeTab.value === 'gains') return visibleYears.value.length > 0
+    return false
+  }),
 })
 </script>
 
@@ -194,6 +229,9 @@ defineExpose({
       </button>
       <button :class="{active: activeTab === 'gains'}" class="tab-btn" @click="activeTab = 'gains'">
         {{ t('transactions.realizedGains') }}
+      </button>
+      <button :class="{active: activeTab === 'dividends'}" class="tab-btn" @click="activeTab = 'dividends'">
+        {{ t('common.dividends') }}
       </button>
     </div>
 
@@ -339,6 +377,39 @@ defineExpose({
             </div>
           </div>
         </template>
+      </template>
+    </template>
+
+    <!-- ── Dividends tab ── -->
+    <template v-else-if="activeTab === 'dividends'">
+      <div v-if="loadingDividends" class="page-loader">
+        <AppLoader/>
+      </div>
+      <div v-else-if="!dividendsByTicker.length" class="empty">
+        <i class="pi pi-dollar"/>
+        <p class="text-muted">{{ t('transactions.noTransactions') }}</p>
+      </div>
+      <template v-else>
+        <div v-for="group in dividendsByTicker" :key="group.ticker" class="div-group">
+          <div class="div-group-header">
+            <span class="ticker">{{ group.ticker }}</span>
+            <span v-if="group.companyName" class="text-muted div-group-name">{{ group.companyName }}</span>
+            <span class="text-muted div-group-count">{{ group.count }} {{ group.count === 1 ? t('transactions.payment') : t('transactions.payments') }}</span>
+            <span class="gain div-group-total">+{{ useTickerCurrency(group.total, group.ticker) }}</span>
+          </div>
+          <div v-for="d in group.rows" :key="d.date" class="tx-row">
+            <div class="tx-left">
+              <span class="ticker">{{ group.ticker }}</span>
+              <span class="tx-date text-muted">{{ formatDate(d.date) }}</span>
+            </div>
+            <div class="tx-mid">
+              <span class="text-muted">{{ useTickerCurrency(d.amount, group.ticker) }}{{ t('transactions.perShareShort') }}</span>
+            </div>
+            <div class="tx-right">
+              <span class="total gain">+{{ useTickerCurrency(d.total, group.ticker) }}</span>
+            </div>
+          </div>
+        </div>
       </template>
     </template>
 
@@ -589,5 +660,47 @@ defineExpose({
 
 .tx-date {
   font-size: 0.75rem;
+}
+
+/* Dividends tab */
+.div-grand-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0 0.75rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.5rem;
+}
+
+.div-group {
+  margin-bottom: 0.5rem;
+}
+
+.div-group-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.div-group-name {
+  font-size: 0.75rem;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.div-group-count {
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.div-group-total {
+  font-size: 0.88rem;
+  font-weight: 700;
 }
 </style>

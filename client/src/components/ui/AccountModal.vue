@@ -14,7 +14,6 @@ import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import {useI18n} from '@/composables/useI18n'
-import TransactionsView from '@/views/TransactionsView.vue'
 import AlertsView from '@/views/AlertsView.vue'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Textarea from 'primevue/textarea'
@@ -26,9 +25,7 @@ const toast = useToast()
 const auth = useAuthStore()
 const portfolio = usePortfolioStore()
 const showFeeProfiles = ref(false)
-const showHistory = ref(false)
 const showAlerts = ref(false)
-const historyView = ref(null)
 const {locale, t} = useI18n()
 
 const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFullscreen()
@@ -209,11 +206,16 @@ function logout() {
             <span>{{ t('account.priceAlerts') }}</span>
             <i class="pi pi-chevron-right text-muted"/>
           </button>
-          <button class="menu-item" @click="showHistory = true">
+          <RouterLink class="menu-item" to="/transactions" @click="visible = false">
             <i class="pi pi-list menu-icon"/>
-            <span>{{ t('common.history') }}</span>
+            <span>{{ t('nav.records') }}</span>
             <i class="pi pi-chevron-right text-muted"/>
-          </button>
+          </RouterLink>
+          <RouterLink class="menu-item" to="/help" @click="visible = false">
+            <i class="pi pi-info-circle menu-icon"/>
+            <span>{{ t('common.about') }}</span>
+            <i class="pi pi-chevron-right text-muted"/>
+          </RouterLink>
         </div>
 
         <div class="menu-list">
@@ -277,30 +279,6 @@ function logout() {
     </div>
 
     <FeeProfilesModal v-model:visible="showFeeProfiles"/>
-
-    <Dialog
-        v-model:visible="showHistory"
-        class="history-dialog"
-        :draggable="false"
-        :style="{ width: '95vw', maxWidth: '640px' }"
-        modal
-    >
-      <template #header>
-        <div class="history-dialog-head">
-          <span class="gradient-title">{{ t('common.history') }}</span>
-          <Button
-              :disabled="!historyView?.canExport"
-              class="history-export-btn"
-              icon="pi pi-download"
-              outlined
-              rounded
-              size="small"
-              @click="historyView?.exportActive()"
-          />
-        </div>
-      </template>
-      <TransactionsView ref="historyView" embedded/>
-    </Dialog>
 
     <Dialog
         v-model:visible="showAlerts"
@@ -576,68 +554,6 @@ function logout() {
   margin-top: 0.5rem;
 }
 
-:deep(.history-dialog .p-dialog-header) {
-  align-items: center;
-  min-height: 56px;
-  padding: 1rem 1.25rem 0.4rem;
-}
-
-:deep(.history-dialog .p-dialog-title) {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.history-dialog-head {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  width: 100%;
-  gap: 0.75rem;
-}
-
-:deep(.history-export-btn.p-button) {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
-  background: color-mix(in srgb, var(--accent) 10%, var(--bg-card));
-  color: var(--accent);
-}
-
-:deep(.history-export-btn.p-button .p-button-icon) {
-  color: currentColor;
-}
-
-:deep(.history-export-btn.p-button:hover:not(:disabled)) {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 16%, var(--bg-card));
-  color: var(--accent);
-}
-
-:deep(.history-dialog .p-dialog-content) {
-  padding: 0.25rem 1.25rem 0.5rem;
-}
-
-:deep(.history-dialog .p-dialog-close-button) {
-  width: 44px;
-  height: 44px;
-  margin: 0;
-  border-color: transparent;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-:deep(.history-dialog .p-dialog-close-button .p-button-icon) {
-  color: currentColor;
-}
-
-:deep(.history-dialog .p-dialog-close-button:hover) {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 9%, var(--bg-card));
-  color: var(--text-primary);
-}
 
 @media (max-width: 380px) {
   .profile-card {
