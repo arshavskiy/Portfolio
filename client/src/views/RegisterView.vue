@@ -354,9 +354,6 @@ async function submit() {
 .auth-card {
   width: 100%;
   max-width: 420px;
-  /* background: var(--bg-card); */
-  /* border: 1px solid var(--border); */
-  border-radius: 16px;
   padding: 1.75rem;
   display: flex;
   flex-direction: column;

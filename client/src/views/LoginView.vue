@@ -6,7 +6,6 @@ import { useAuthStore } from "@/stores/auth";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";
-import LanguageSelect from "@/components/ui/LanguageSelect.vue";
 import ThemeToggle from "@/components/ui/ThemeToggle.vue";
 import PremiumBadge from "@/components/ui/PremiumBadge.vue";
 import { useI18n } from "@/composables/useI18n";
@@ -424,6 +423,9 @@ function loadGoogleScript() {
 }
 
 watch(mode, () => nextTick(renderGoogleButtons));
+watch(showAuthModal, (open) => {
+  if (open) nextTick(renderGoogleButtons);
+});
 watch(locale, updateLoginHead);
 </script>
 
@@ -441,10 +443,6 @@ watch(locale, updateLoginHead);
       </div>
       <div class="nav-controls">
         <ThemeToggle />
-        <LanguageSelect />
-        <button class="get-started-btn" type="button" @click="showAuthModal = true">
-          {{ t('login.signIn') }}
-        </button>
       </div>
     </nav>
 
@@ -965,6 +963,10 @@ watch(locale, updateLoginHead);
             </div>
           </div>
 
+          <button class="get-started-btn" type="button" @click="showAuthModal = true">
+            {{ t('login.signIn') }}
+          </button>
+
           <div class="features" aria-label="Product features">
             <div v-for="f in features" :key="f.title" class="feature">
               <div class="feature-title">
@@ -1053,6 +1055,90 @@ watch(locale, updateLoginHead);
 
 .brand-name {
   font-size: 1.2rem;
+}
+
+.get-started-btn {
+  display: block;
+  margin: 1.5rem auto 2rem;
+  padding: 0.65rem 2rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--neon-green);
+  color: #000;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.get-started-btn:hover {
+  opacity: 0.85;
+}
+
+:root[data-theme="light"] .get-started-btn {
+  background: var(--neon-green);
+  color: #fff;
+}
+
+.auth-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.auth-modal-panel {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  border-radius: 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 2rem 1.75rem 1.5rem;
+}
+
+.auth-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.auth-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.auth-modal-enter-active,
+.auth-modal-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.auth-modal-enter-active .auth-modal-panel,
+.auth-modal-leave-active .auth-modal-panel {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.auth-modal-enter-from,
+.auth-modal-leave-to {
+  opacity: 0;
+}
+
+.auth-modal-enter-from .auth-modal-panel,
+.auth-modal-leave-to .auth-modal-panel {
+  transform: translateY(16px);
+  opacity: 0;
 }
 
 .landing-main {
@@ -1725,8 +1811,6 @@ watch(locale, updateLoginHead);
 .auth-card {
   width: 100%;
   max-width: 420px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.75rem;
   display: flex;
