@@ -133,12 +133,12 @@ const heldCount = computed(() => {
 });
 
 const headerActions = computed(() => [
-  {
-    key: "typology-map",
-    icon: "pi pi-th-large",
-    label: t("watchlist.typologyMap"),
-    onClick: () => router.push("/typology-map"),
-  },
+  // {
+  //   key: "typology-map",
+  //   icon: "pi pi-th-large",
+  //   label: t("watchlist.typologyMap"),
+  //   onClick: () => router.push("/typology-map"),
+  // },
   {
     key: "rebalance",
     visible: portfolio.positions.length > 0,

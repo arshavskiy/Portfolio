@@ -2,7 +2,7 @@ const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
 const Alert = require('../models/Alert')
 require('../models/FeeProfile')
-const {getQuotes, getIlsToUsd, getAnalystInsight} = require('./stockService')
+const {getQuotes, getIlsToUsd, getAnalystInsight, getTickerDividendHistory} = require('./stockService')
 const {getEnrichment} = require('./stockfolioInsightsService')
 const {resolveFindings} = require('./xray/resolve')
 
@@ -80,6 +80,25 @@ async function getPortfolioAnalytics(userId) {
     getIlsToUsd(),
   ])
 
+  // Build earliest buy date per ticker for Yahoo dividend history
+  async function getYahooDividendsUsd(tickers) {
+    const buys = transactions.filter((tx) => tx.type === 'buy' && tickers.includes(tx.ticker))
+    const firstBuy = {}
+    for (const tx of buys) {
+      if (!firstBuy[tx.ticker] || tx.date < firstBuy[tx.ticker]) firstBuy[tx.ticker] = tx.date
+    }
+    const sharesByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.shares]))
+    const histories = await Promise.all(
+      tickers.map(async (ticker) => {
+        const history = await getTickerDividendHistory(ticker, firstBuy[ticker] ?? null)
+        const shares = numberValue(sharesByTicker[ticker])
+        const fx = fxForTicker(ticker, ilsToUsd)
+        return history.reduce((sum, d) => sum + (shares > 0 && d.amount ? shares * d.amount * fx : 0), 0)
+      })
+    )
+    return histories.reduce((a, b) => a + b, 0)
+  }
+
   if (!positions.length) {
     return {
       generatedAt: new Date().toISOString(),
@@ -107,7 +126,10 @@ async function getPortfolioAnalytics(userId) {
   }
 
   const tickers = positions.map((p) => p.ticker)
-  const quotes = await getQuotes(tickers)
+  const [quotes, yahooDividendsUsd] = await Promise.all([
+    getQuotes(tickers),
+    getYahooDividendsUsd(tickers),
+  ])
   const quoteMap = Object.fromEntries(quotes.filter(Boolean).map((q) => [q.ticker, q]))
 
   let totalValueUsd = 0
@@ -181,10 +203,7 @@ async function getPortfolioAnalytics(userId) {
     summary.activityCount += 1
     if (tx.type === 'buy') summary.buyTotalUsd += total
     if (tx.type === 'sell') summary.sellTotalUsd += total
-    if (tx.type === 'dividend' && !tx.drip) {
-      const divRaw = numberValue(tx.total) || (numberValue(tx.shares) * numberValue(tx.price))
-      summary.dividendsUsd += divRaw * fx
-    }
+    // dividendsUsd sourced from Yahoo history, not DB transactions
     summary.feesUsd += fee
     const ts = new Date(tx.date).getTime()
     if (Number.isFinite(ts)) {
@@ -217,6 +236,7 @@ async function getPortfolioAnalytics(userId) {
       ilsToUsd,
       timeInMarketDays: txSummary.firstActivityAt ? Math.max(0, Math.round((Date.now() - txSummary.firstActivityAt) / 86_400_000)) : null,
       ...txSummary,
+      dividendsUsd: yahooDividendsUsd,
       firstActivityAt: txSummary.firstActivityAt ? new Date(txSummary.firstActivityAt).toISOString() : null,
       lastActivityAt: txSummary.lastActivityAt ? new Date(txSummary.lastActivityAt).toISOString() : null,
     },

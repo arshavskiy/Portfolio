@@ -75,7 +75,7 @@ async function copyAddress() {
         <!-- App intro -->
         <div class="intro-card">
           <div class="brand">
-            <span class="brand-mark">📈</span>
+            <!-- <span class="brand-mark">📈</span> -->
             <span class="brand-name gradient-title">StockFolio</span>
           </div>
           <p class="tagline text-muted">
@@ -239,7 +239,6 @@ async function copyAddress() {
 }
 .brand-name {
   font-size: 1.02rem;
-  font-weight: 700;
 }
 .tagline {
   font-size: 0.85rem;

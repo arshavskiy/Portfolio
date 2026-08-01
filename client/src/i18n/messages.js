@@ -87,51 +87,57 @@ export const messages = {
       heroTitleLine1: "Your whole portfolio,",
       heroTitleLine2: "beautifully in focus.",
       heroSubtitle:
-        "A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L, price alerts, and a clean dark interface.",
+        "financial advisor that helps you make smarter decisions about your money.",
       appPreview: "App preview",
       features: {
         livePortfolioTitle: "Live Portfolio",
         livePortfolioText:
-          "Track holdings, P&L, and value over time across stocks, crypto & global markets.",
+          "Your holdings, P&L, and portfolio value update in real time across stocks, crypto, and global markets.",
         priceAlertsTitle: "Price Alerts",
         priceAlertsText:
-          "Push notifications the moment a stock hits your target — above or below.",
+          "You get a push notification the moment a stock crosses your target — above or below.",
         multiMarketTitle: "Multi-Market",
         multiMarketText:
-          "US, TASE, crypto and more — all in one place, multi-currency (USD + ILS).",
+          "US, TASE, crypto, and more live side by side, with full multi-currency support for USD and ILS.",
         advancedChartsTitle: "Advanced Charts",
         advancedChartsText:
-          "Line & candlestick with pre/after-hours coloring, delta measurement, and volume.",
+          "Line and candlestick charts include pre- and after-hours coloring, delta measurement, and volume.",
         rebalancerTitle: "Rebalancer",
         rebalancerText:
-          "Set target allocations and get a buy/sell action plan to rebalance your portfolio.",
+          "You set target allocations and StockFolio builds a buy/sell action plan to get you back on track.",
         feesTaxTitle: "Fees & Tax",
         feesTaxText:
-          "Fee profiles for broker commissions and capital-gains tax simulation per trade.",
+          "Every trade accounts for broker commissions and capital-gains tax so your real return is always accurate.",
         dividendsTitle: "Dividends & DRIP",
         dividendsText:
-          "Track cash dividends and reinvested DRIP shares with full lot history.",
-        groupsTitle: "Groups",
+          "Cash dividends and reinvested DRIP shares are tracked with full lot history and income forecasts.",
+        groupsTitle: "Groups & Tags",
         groupsText:
-          "Organize holdings and watchlist into custom multi-tag groups with group-by views.",
+          "Holdings and watchlist items can be organized into custom multi-tag groups with group-by views on every page.",
         newsTitle: "For You News",
         newsText:
-          "Personalized market stories from your watchlist, with topic feeds and quick scanning.",
+          "Market stories are personalized to your watchlist, with topic feeds so you can scan what matters fast.",
         importTitle: "Bulk Import",
         importText:
-          "Import holdings or watchlist from Excel, CSV, or Word — columns auto-detected.",
+          "Holdings and watchlist items import from Excel, CSV, or Word — column mapping is automatic.",
         insightsTitle: "Portfolio Insights",
         insightsText:
-          "Money- and time-weighted returns, sector & beta risk exposure, a stress-test simulator, and dividend income forecasts.",
+          "Money- and time-weighted returns, sector and beta risk exposure, a stress-test slider, and dividend income forecasts all live in one place.",
         aiChatTitle: "AI Portfolio Chat",
         aiChatText:
-          "Ask questions about your holdings and watchlist in plain English and get an AI-powered answer.",
+          "You can ask questions about your holdings in plain English and get answers backed by live portfolio data.",
         dailySummaryTitle: "AI Daily Summary",
         dailySummaryText:
-          "A fresh AI recap of your holdings, watchlist, and the main markets waiting for you every day.",
+          "Every morning a fresh AI recap of your holdings, watchlist, and the main markets is ready before you check your phone.",
         tickerInsightTitle: "News-Driven Ticker Insight",
         tickerInsightText:
-          "Sentiment and typology tags, insider buying/selling, earnings beat rate, and a market map showing which tickers move together in the news — all sourced live, never a trading signal.",
+          "Sentiment tags, insider activity, earnings beat rate, and a market map of tickers that move together in the news — all sourced live.",
+        xRayTitle: "Portfolio X-Ray",
+        xRayText:
+          "A rules-based health check scans your holdings for concentration risk, diversification gaps, and dividend coverage, and flags issues with pass, watch, or risk badges.",
+        recordsTitle: "Transaction Records & Dividend History",
+        recordsText:
+          "Every trade, realized gain, and historical dividend payment is logged and filterable, with CSV export for tax season.",
       },
       slides: {
         portfolio: "Portfolio",
@@ -1235,8 +1241,10 @@ export const messages = {
       advisorTitle: "AI Chat",
       advisorSubtitle: "Portfolio advisor",
       advisorHeroTitle: "Folio advisor",
-      advisorHeroText: "Ask about risk, concentration, rebalancing, and what moved today.",
-      advisorHeroTextNoConsent: "Update your AI settings and data sharing preferences to unlock tailored answers.",
+      advisorHeroText:
+        "Ask about risk, concentration, rebalancing, and what moved today.",
+      advisorHeroTextNoConsent:
+        "Update your AI settings and data sharing preferences to unlock tailored answers.",
       advisorHeroCta: "Ask your first question",
       advisorHeroCtaNoConsent: "Enable AI Advisor",
       advisorOpenHistory: "Open history",
@@ -1248,9 +1256,11 @@ export const messages = {
       advisorHidePanel: "Hide AI panel",
       advisorSuggestions: "Suggestions",
       consentTitle: "StockFolio AI Advisor",
-      consentSubtitle: "Update your AI settings and data sharing preferences here.",
+      consentSubtitle:
+        "Update your AI settings and data sharing preferences here.",
       consentToggleLabel: "AI data sharing consent",
-      consentToggleText: "StockFolio AI Advisor can provide more relevant answers if you choose to share different levels of data. This feature is powered by third-party AI providers.",
+      consentToggleText:
+        "StockFolio AI Advisor can provide more relevant answers if you choose to share different levels of data. This feature is powered by third-party AI providers.",
     },
   },
   ru: {
@@ -1334,51 +1344,57 @@ export const messages = {
       heroTitleLine1: "Весь ваш портфель,",
       heroTitleLine2: "в четком фокусе.",
       heroSubtitle:
-        "Быстрый мобильный трекер для акций, криптовалют и мировых рынков: живой P&L, ценовые алерты и аккуратный темный интерфейс.",
+        "советник по инвестициям, который помогает принимать более взвешенные финансовые решения.",
       appPreview: "Предпросмотр приложения",
       features: {
         livePortfolioTitle: "Портфель онлайн",
         livePortfolioText:
-          "Отслеживайте позиции, P&L и стоимость во времени по акциям, криптовалютам и мировым рынкам.",
+          "Позиции, P&L и стоимость портфеля обновляются в реальном времени по акциям, криптовалютам и мировым рынкам.",
         priceAlertsTitle: "Ценовые алерты",
         priceAlertsText:
-          "Push-уведомления в момент, когда актив достигает вашей цели выше или ниже цены.",
+          "Push-уведомление приходит в момент, когда актив пересекает вашу цель — вверх или вниз.",
         multiMarketTitle: "Разные рынки",
         multiMarketText:
-          "США, TASE, криптовалюты и другое в одном месте, с несколькими валютами (USD + ILS).",
+          "США, TASE, криптовалюты и другое в одном месте, с полной поддержкой мультивалютности — USD и ILS.",
         advancedChartsTitle: "Продвинутые графики",
         advancedChartsText:
-          "Линии и свечи с окраской pre/after-hours, измерением дельты и объемом.",
+          "Линейные и свечные графики включают окраску pre/after-hours, измерение дельты и объем.",
         rebalancerTitle: "Ребалансировка",
         rebalancerText:
-          "Задайте целевые доли и получите план покупок и продаж для ребалансировки портфеля.",
+          "Вы задаёте целевые доли, а StockFolio составляет план покупок и продаж, чтобы вернуться к целям.",
         feesTaxTitle: "Комиссии и налоги",
         feesTaxText:
-          "Профили комиссий брокера и симуляция налога на прирост капитала для сделок.",
+          "Каждая сделка учитывает комиссии брокера и налог на прирост капитала, чтобы реальная доходность всегда была точной.",
         dividendsTitle: "Дивиденды и DRIP",
         dividendsText:
-          "Учитывайте денежные дивиденды и реинвестированные DRIP-акции с полной историей лотов.",
-        groupsTitle: "Группы",
+          "Денежные дивиденды и реинвестированные DRIP-акции отслеживаются с полной историей и прогнозом дохода.",
+        groupsTitle: "Группы и теги",
         groupsText:
-          "Организуйте позиции и список наблюдения в настраиваемые группы с несколькими тегами.",
+          "Позиции и список наблюдения можно организовать в настраиваемые группы с несколькими тегами и группировкой на каждой странице.",
         newsTitle: "Новости для вас",
         newsText:
-          "Персональные рыночные новости по вашему списку наблюдения, с темами и быстрым просмотром.",
+          "Рыночные новости персонализированы по вашему списку наблюдения, с темами для быстрого просмотра важного.",
         importTitle: "Массовый импорт",
         importText:
-          "Импортируйте позиции или список наблюдения из Excel, CSV или Word, колонки определяются автоматически.",
+          "Позиции и список наблюдения импортируются из Excel, CSV или Word — сопоставление столбцов происходит автоматически.",
         insightsTitle: "Аналитика портфеля",
         insightsText:
-          "Доходность по деньгам и по времени, риск по секторам и бете, симулятор стресс-теста и прогноз дивидендного дохода.",
+          "Доходность по деньгам и по времени, риск по секторам и бете, слайдер стресс-теста и прогноз дивидендного дохода — всё в одном месте.",
         aiChatTitle: "AI-чат по портфелю",
         aiChatText:
-          "Задавайте вопросы о своих позициях и списке наблюдения обычным языком и получайте ответ от AI.",
+          "Задавайте вопросы о своих позициях обычным языком и получайте ответы на основе реальных данных портфеля.",
         dailySummaryTitle: "AI-сводка дня",
         dailySummaryText:
-          "Свежая AI-сводка по вашим позициям, списку наблюдения и основным рынкам каждый день.",
+          "Каждое утро свежая AI-сводка по позициям, списку наблюдения и основным рынкам ждёт вас ещё до того, как вы откроете телефон.",
         tickerInsightTitle: "Аналитика тикера на основе новостей",
         tickerInsightText:
-          "Тональность и типология тегов, покупки/продажи инсайдеров, доля превышений прогноза прибыли и карта тикеров, которые упоминаются вместе в новостях — всё на основе реальных данных, никогда не торговый сигнал.",
+          "Теги тональности, активность инсайдеров, доля превышений прогноза прибыли и карта тикеров, упоминаемых вместе в новостях — всё на основе реальных данных.",
+        xRayTitle: "Portfolio X-Ray",
+        xRayText:
+          "Проверка портфеля по правилам сканирует позиции на концентрацию риска, пробелы в диверсификации и покрытие дивидендами, отмечая проблемы значками pass, watch или risk.",
+        recordsTitle: "Записи сделок и история дивидендов",
+        recordsText:
+          "Каждая сделка, реализованная прибыль и выплата дивидендов зафиксированы с фильтрацией и экспортом в CSV для налогового сезона.",
       },
       slides: {
         portfolio: "Портфель",
@@ -2486,8 +2502,10 @@ export const messages = {
       advisorTitle: "ИИ Чат",
       advisorSubtitle: "Советник по портфелю",
       advisorHeroTitle: "Советник Folio",
-      advisorHeroText: "Спросите о рисках, концентрации, ребалансировке и движениях рынка.",
-      advisorHeroTextNoConsent: "Обновите настройки ИИ и разрешения на обмен данными для получения персонализированных ответов.",
+      advisorHeroText:
+        "Спросите о рисках, концентрации, ребалансировке и движениях рынка.",
+      advisorHeroTextNoConsent:
+        "Обновите настройки ИИ и разрешения на обмен данными для получения персонализированных ответов.",
       advisorHeroCta: "Задать первый вопрос",
       advisorHeroCtaNoConsent: "Включить ИИ советника",
       advisorOpenHistory: "Открыть историю",
@@ -2501,7 +2519,8 @@ export const messages = {
       consentTitle: "ИИ советник StockFolio",
       consentSubtitle: "Обновите настройки ИИ и разрешения на обмен данными.",
       consentToggleLabel: "Согласие на обмен данными с ИИ",
-      consentToggleText: "ИИ советник StockFolio может давать более релевантные ответы, если вы разрешите обмен данными. Функция работает на базе сторонних ИИ-провайдеров.",
+      consentToggleText:
+        "ИИ советник StockFolio может давать более релевантные ответы, если вы разрешите обмен данными. Функция работает на базе сторонних ИИ-провайдеров.",
     },
   },
 };

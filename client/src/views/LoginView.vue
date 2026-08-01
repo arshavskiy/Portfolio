@@ -1,731 +1,1002 @@
 <script setup>
-import {computed, nextTick, onMounted, onUnmounted, ref, watch} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useToast} from 'primevue/usetoast'
-import {useAuthStore} from '@/stores/auth'
-import InputText from 'primevue/inputtext'
-import Password from 'primevue/password'
-import Button from 'primevue/button'
-import LanguageSelect from '@/components/ui/LanguageSelect.vue'
-import ThemeToggle from '@/components/ui/ThemeToggle.vue'
-import PremiumBadge from '@/components/ui/PremiumBadge.vue'
-import {useI18n} from '@/composables/useI18n'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useToast } from "primevue/usetoast";
+import { useAuthStore } from "@/stores/auth";
+import InputText from "primevue/inputtext";
+import Password from "primevue/password";
+import Button from "primevue/button";
+import LanguageSelect from "@/components/ui/LanguageSelect.vue";
+import ThemeToggle from "@/components/ui/ThemeToggle.vue";
+import PremiumBadge from "@/components/ui/PremiumBadge.vue";
+import { useI18n } from "@/composables/useI18n";
 
-const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
-const router = useRouter()
-const route = useRoute()
-const toast = useToast()
-const auth = useAuthStore()
-const {locale, t} = useI18n()
+const PASSWORD_RULE = /^(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+const router = useRouter();
+const route = useRoute();
+const toast = useToast();
+const auth = useAuthStore();
+const { locale, t } = useI18n();
 
-const mode = ref('login')
-const name = ref('')
-const identifier = ref('')
-const password = ref('')
-const loading = ref(false)
-const magicLinkLoading = ref(false)
-const googleButtonLogin = ref(null)
-const googleButtonRegister = ref(null)
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID
-const pageUrl = '/login'
-const pageTitle = computed(() => t('login.metaTitle'))
-const pageDescription = computed(() => t('login.metaDescription'))
-const passwordValid = computed(() => PASSWORD_RULE.test(password.value))
-const loginEnabled = computed(() => identifier.value.trim() && password.value)
-const registerEnabled = computed(() =>
-    name.value.trim() && identifier.value.trim() && password.value && passwordValid.value
-)
+const mode = ref("login");
+const name = ref("");
+const identifier = ref("");
+const password = ref("");
+const loading = ref(false);
+const magicLinkLoading = ref(false);
+const showAuthModal = ref(false);
+const googleButtonLogin = ref(null);
+const googleButtonRegister = ref(null);
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+const pageUrl = "/login";
+const pageTitle = computed(() => t("login.metaTitle"));
+const pageDescription = computed(() => t("login.metaDescription"));
+const passwordValid = computed(() => PASSWORD_RULE.test(password.value));
+const loginEnabled = computed(() => identifier.value.trim() && password.value);
+const registerEnabled = computed(
+  () =>
+    name.value.trim() &&
+    identifier.value.trim() &&
+    password.value &&
+    passwordValid.value,
+);
 
 const previousHead = {
-  title: '',
-  description: '',
-  robots: '',
-  ogTitle: '',
-  ogDescription: '',
-  ogUrl: '',
-  twitterTitle: '',
-  twitterDescription: '',
-  canonicalHref: '',
-}
+  title: "",
+  description: "",
+  robots: "",
+  ogTitle: "",
+  ogDescription: "",
+  ogUrl: "",
+  twitterTitle: "",
+  twitterDescription: "",
+  canonicalHref: "",
+};
 
 function ensureMeta(selector, attrs) {
-  let node = document.head.querySelector(selector)
+  let node = document.head.querySelector(selector);
   if (!node) {
-    node = document.createElement('meta')
-    document.head.appendChild(node)
+    node = document.createElement("meta");
+    document.head.appendChild(node);
   }
 
-  Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, value))
-  return node
+  Object.entries(attrs).forEach(([key, value]) =>
+    node.setAttribute(key, value),
+  );
+  return node;
 }
 
 function ensureCanonical() {
-  let node = document.head.querySelector('link[rel="canonical"]')
+  let node = document.head.querySelector('link[rel="canonical"]');
   if (!node) {
-    node = document.createElement('link')
-    node.setAttribute('rel', 'canonical')
-    document.head.appendChild(node)
+    node = document.createElement("link");
+    node.setAttribute("rel", "canonical");
+    document.head.appendChild(node);
   }
-  return node
+  return node;
 }
 
 function updateLoginHead() {
-  const canonicalUrl = new URL(pageUrl, window.location.origin).toString()
-  document.title = pageTitle.value
-  ensureMeta('meta[name="description"]', {name: 'description', content: pageDescription.value})
-  ensureMeta('meta[name="robots"]', {name: 'robots', content: 'index,follow'})
-  ensureMeta('meta[property="og:title"]', {property: 'og:title', content: pageTitle.value})
-  ensureMeta('meta[property="og:description"]', {property: 'og:description', content: pageDescription.value})
-  ensureMeta('meta[property="og:type"]', {property: 'og:type', content: 'website'})
-  ensureMeta('meta[property="og:url"]', {property: 'og:url', content: canonicalUrl})
-  ensureMeta('meta[name="twitter:card"]', {name: 'twitter:card', content: 'summary_large_image'})
-  ensureMeta('meta[name="twitter:title"]', {name: 'twitter:title', content: pageTitle.value})
-  ensureMeta('meta[name="twitter:description"]', {name: 'twitter:description', content: pageDescription.value})
-  ensureCanonical().setAttribute('href', canonicalUrl)
+  const canonicalUrl = new URL(pageUrl, window.location.origin).toString();
+  document.title = pageTitle.value;
+  ensureMeta('meta[name="description"]', {
+    name: "description",
+    content: pageDescription.value,
+  });
+  ensureMeta('meta[name="robots"]', {
+    name: "robots",
+    content: "index,follow",
+  });
+  ensureMeta('meta[property="og:title"]', {
+    property: "og:title",
+    content: pageTitle.value,
+  });
+  ensureMeta('meta[property="og:description"]', {
+    property: "og:description",
+    content: pageDescription.value,
+  });
+  ensureMeta('meta[property="og:type"]', {
+    property: "og:type",
+    content: "website",
+  });
+  ensureMeta('meta[property="og:url"]', {
+    property: "og:url",
+    content: canonicalUrl,
+  });
+  ensureMeta('meta[name="twitter:card"]', {
+    name: "twitter:card",
+    content: "summary_large_image",
+  });
+  ensureMeta('meta[name="twitter:title"]', {
+    name: "twitter:title",
+    content: pageTitle.value,
+  });
+  ensureMeta('meta[name="twitter:description"]', {
+    name: "twitter:description",
+    content: pageDescription.value,
+  });
+  ensureCanonical().setAttribute("href", canonicalUrl);
 }
 
 // ── Animated phone slideshow ──
-const SLIDE_COUNT = 10
-const slide = ref(0)
-let slideTimer = null
+const SLIDE_COUNT = 10;
+const slide = ref(0);
+let slideTimer = null;
 
 onMounted(() => {
-  previousHead.title = document.title
-  previousHead.description = document.head.querySelector('meta[name="description"]')?.getAttribute('content') || ''
-  previousHead.robots = document.head.querySelector('meta[name="robots"]')?.getAttribute('content') || ''
-  previousHead.ogTitle = document.head.querySelector('meta[property="og:title"]')?.getAttribute('content') || ''
-  previousHead.ogDescription = document.head.querySelector('meta[property="og:description"]')?.getAttribute('content') || ''
-  previousHead.ogUrl = document.head.querySelector('meta[property="og:url"]')?.getAttribute('content') || ''
-  previousHead.twitterTitle = document.head.querySelector('meta[name="twitter:title"]')?.getAttribute('content') || ''
-  previousHead.twitterDescription = document.head.querySelector('meta[name="twitter:description"]')?.getAttribute('content') || ''
-  previousHead.canonicalHref = document.head.querySelector('link[rel="canonical"]')?.getAttribute('href') || ''
+  previousHead.title = document.title;
+  previousHead.description =
+    document.head
+      .querySelector('meta[name="description"]')
+      ?.getAttribute("content") || "";
+  previousHead.robots =
+    document.head
+      .querySelector('meta[name="robots"]')
+      ?.getAttribute("content") || "";
+  previousHead.ogTitle =
+    document.head
+      .querySelector('meta[property="og:title"]')
+      ?.getAttribute("content") || "";
+  previousHead.ogDescription =
+    document.head
+      .querySelector('meta[property="og:description"]')
+      ?.getAttribute("content") || "";
+  previousHead.ogUrl =
+    document.head
+      .querySelector('meta[property="og:url"]')
+      ?.getAttribute("content") || "";
+  previousHead.twitterTitle =
+    document.head
+      .querySelector('meta[name="twitter:title"]')
+      ?.getAttribute("content") || "";
+  previousHead.twitterDescription =
+    document.head
+      .querySelector('meta[name="twitter:description"]')
+      ?.getAttribute("content") || "";
+  previousHead.canonicalHref =
+    document.head
+      .querySelector('link[rel="canonical"]')
+      ?.getAttribute("href") || "";
 
-  updateLoginHead()
+  updateLoginHead();
 
   // Always cycle the content; CSS disables the slide transition under
   // prefers-reduced-motion (so it just swaps instead of fully stopping).
   slideTimer = setInterval(() => {
-    slide.value = (slide.value + 1) % SLIDE_COUNT
-  }, 2600)
+    slide.value = (slide.value + 1) % SLIDE_COUNT;
+  }, 2600);
 
-  loadGoogleScript()
+  loadGoogleScript();
 
-  const magicToken = route.query.magic
-  if (magicToken) consumeMagicLink(magicToken)
-})
+  const magicToken = route.query.magic;
+  if (magicToken) consumeMagicLink(magicToken);
+});
 onUnmounted(() => {
-  clearInterval(slideTimer)
+  clearInterval(slideTimer);
 
-  document.title = previousHead.title || 'StockFolio'
-  ensureMeta('meta[name="description"]', { name: 'description', content: previousHead.description || 'Track stocks, crypto, holdings, and market moves with StockFolio.' })
-  ensureMeta('meta[name="robots"]', { name: 'robots', content: previousHead.robots || 'index,follow' })
-  ensureMeta('meta[property="og:title"]', { property: 'og:title', content: previousHead.ogTitle || document.title })
-  ensureMeta('meta[property="og:description"]', { property: 'og:description', content: previousHead.ogDescription || previousHead.description || '' })
-  ensureMeta('meta[property="og:url"]', { property: 'og:url', content: previousHead.ogUrl || window.location.origin })
-  ensureMeta('meta[name="twitter:title"]', { name: 'twitter:title', content: previousHead.twitterTitle || document.title })
-  ensureMeta('meta[name="twitter:description"]', { name: 'twitter:description', content: previousHead.twitterDescription || previousHead.description || '' })
-  ensureCanonical().setAttribute('href', previousHead.canonicalHref || window.location.origin)
-})
+  document.title = previousHead.title || "StockFolio";
+  ensureMeta('meta[name="description"]', {
+    name: "description",
+    content:
+      previousHead.description ||
+      "Track stocks, crypto, holdings, and market moves with StockFolio.",
+  });
+  ensureMeta('meta[name="robots"]', {
+    name: "robots",
+    content: previousHead.robots || "index,follow",
+  });
+  ensureMeta('meta[property="og:title"]', {
+    property: "og:title",
+    content: previousHead.ogTitle || document.title,
+  });
+  ensureMeta('meta[property="og:description"]', {
+    property: "og:description",
+    content: previousHead.ogDescription || previousHead.description || "",
+  });
+  ensureMeta('meta[property="og:url"]', {
+    property: "og:url",
+    content: previousHead.ogUrl || window.location.origin,
+  });
+  ensureMeta('meta[name="twitter:title"]', {
+    name: "twitter:title",
+    content: previousHead.twitterTitle || document.title,
+  });
+  ensureMeta('meta[name="twitter:description"]', {
+    name: "twitter:description",
+    content: previousHead.twitterDescription || previousHead.description || "",
+  });
+  ensureCanonical().setAttribute(
+    "href",
+    previousHead.canonicalHref || window.location.origin,
+  );
+});
 
 const features = computed(() => [
   {
-    icon: 'pi pi-chart-line',
-    title: t('login.features.livePortfolioTitle'),
-    text: t('login.features.livePortfolioText')
+    icon: "pi pi-chart-line",
+    title: t("login.features.livePortfolioTitle"),
+    text: t("login.features.livePortfolioText"),
   },
   {
-    icon: 'pi pi-bell',
-    title: t('login.features.priceAlertsTitle'),
-    text: t('login.features.priceAlertsText')
+    icon: "pi pi-bell",
+    title: t("login.features.priceAlertsTitle"),
+    text: t("login.features.priceAlertsText"),
   },
   {
-    icon: 'pi pi-globe',
-    title: t('login.features.multiMarketTitle'),
-    text: t('login.features.multiMarketText')
+    icon: "pi pi-globe",
+    title: t("login.features.multiMarketTitle"),
+    text: t("login.features.multiMarketText"),
   },
   {
-    icon: 'pi pi-chart-bar',
-    title: t('login.features.advancedChartsTitle'),
-    text: t('login.features.advancedChartsText'),
+    icon: "pi pi-chart-bar",
+    title: t("login.features.advancedChartsTitle"),
+    text: t("login.features.advancedChartsText"),
     premium: true,
   },
   {
-    icon: 'pi pi-sync',
-    title: t('login.features.rebalancerTitle'),
-    text: t('login.features.rebalancerText')
+    icon: "pi pi-sync",
+    title: t("login.features.rebalancerTitle"),
+    text: t("login.features.rebalancerText"),
   },
   {
-    icon: 'pi pi-percentage',
-    title: t('login.features.feesTaxTitle'),
-    text: t('login.features.feesTaxText')
+    icon: "pi pi-percentage",
+    title: t("login.features.feesTaxTitle"),
+    text: t("login.features.feesTaxText"),
   },
   {
-    icon: 'pi pi-dollar',
-    title: t('login.features.dividendsTitle'),
-    text: t('login.features.dividendsText')
+    icon: "pi pi-dollar",
+    title: t("login.features.dividendsTitle"),
+    text: t("login.features.dividendsText"),
   },
   {
-    icon: 'pi pi-tags',
-    title: t('login.features.groupsTitle'),
-    text: t('login.features.groupsText')
+    icon: "pi pi-tags",
+    title: t("login.features.groupsTitle"),
+    text: t("login.features.groupsText"),
   },
   {
-    icon: 'pi pi-book',
-    title: t('login.features.newsTitle'),
-    text: t('login.features.newsText')
+    icon: "pi pi-book",
+    title: t("login.features.newsTitle"),
+    text: t("login.features.newsText"),
   },
   {
-    icon: 'pi pi-upload',
-    title: t('login.features.importTitle'),
-    text: t('login.features.importText')
+    icon: "pi pi-upload",
+    title: t("login.features.importTitle"),
+    text: t("login.features.importText"),
   },
   {
-    icon: 'pi pi-chart-pie',
-    title: t('login.features.insightsTitle'),
-    text: t('login.features.insightsText'),
+    icon: "pi pi-chart-pie",
+    title: t("login.features.insightsTitle"),
+    text: t("login.features.insightsText"),
     premium: true,
   },
   {
-    icon: 'pi pi-comments',
-    title: t('login.features.aiChatTitle'),
-    text: t('login.features.aiChatText'),
+    icon: "pi pi-comments",
+    title: t("login.features.aiChatTitle"),
+    text: t("login.features.aiChatText"),
     premium: true,
   },
   {
-    icon: 'pi pi-sparkles',
-    title: t('login.features.dailySummaryTitle'),
-    text: t('login.features.dailySummaryText'),
+    icon: "pi pi-sparkles",
+    title: t("login.features.dailySummaryTitle"),
+    text: t("login.features.dailySummaryText"),
     premium: true,
   },
   {
-    icon: 'pi pi-compass',
-    title: t('login.features.tickerInsightTitle'),
-    text: t('login.features.tickerInsightText'),
+    icon: "pi pi-compass",
+    title: t("login.features.tickerInsightTitle"),
+    text: t("login.features.tickerInsightText"),
     premium: true,
   },
-])
+  {
+    icon: "pi pi-shield",
+    title: t("login.features.xRayTitle"),
+    text: t("login.features.xRayText"),
+    premium: true,
+  },
+  {
+    icon: "pi pi-list",
+    title: t("login.features.recordsTitle"),
+    text: t("login.features.recordsText"),
+  },
+]);
 
 async function submit() {
-  loading.value = true
+  loading.value = true;
   try {
-    await auth.login(identifier.value, password.value)
-    router.push('/')
+    await auth.login(identifier.value, password.value);
+    router.push("/");
   } catch (err) {
-    toast.add({severity: 'error', summary: t('login.loginFailed'), detail: err.message, life: 3000})
+    toast.add({
+      severity: "error",
+      summary: t("login.loginFailed"),
+      detail: err.message,
+      life: 3000,
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function register() {
   if (!passwordValid.value) {
     toast.add({
-      severity: 'warn',
-      summary: t('login.weakPassword'),
-      detail: t('login.weakPasswordDetail'),
+      severity: "warn",
+      summary: t("login.weakPassword"),
+      detail: t("login.weakPasswordDetail"),
       life: 3000,
-    })
-    return
+    });
+    return;
   }
 
-  loading.value = true
+  loading.value = true;
   try {
-    await auth.register(name.value, identifier.value, password.value)
-    router.push('/')
+    await auth.register(name.value, identifier.value, password.value);
+    router.push("/");
   } catch (err) {
-    toast.add({severity: 'error', summary: t('login.registrationFailed'), detail: err.message, life: 3000})
+    toast.add({
+      severity: "error",
+      summary: t("login.registrationFailed"),
+      detail: err.message,
+      life: 3000,
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function switchMode(nextMode) {
-  mode.value = nextMode
-  password.value = ''
-  loading.value = false
+  mode.value = nextMode;
+  password.value = "";
+  loading.value = false;
 }
 
 async function consumeMagicLink(magicToken) {
-  magicLinkLoading.value = true
+  magicLinkLoading.value = true;
   try {
-    await auth.loginWithMagicLink(magicToken)
-    router.replace('/')
+    await auth.loginWithMagicLink(magicToken);
+    router.replace("/");
   } catch (err) {
-    toast.add({severity: 'error', summary: t('login.loginFailed'), detail: err.message, life: 3000})
-    router.replace('/login')
+    toast.add({
+      severity: "error",
+      summary: t("login.loginFailed"),
+      detail: err.message,
+      life: 3000,
+    });
+    router.replace("/login");
   } finally {
-    magicLinkLoading.value = false
+    magicLinkLoading.value = false;
   }
 }
 
 async function handleGoogleCredential(response) {
-  loading.value = true
+  loading.value = true;
   try {
-    await auth.loginWithGoogle(response.credential)
-    router.push('/')
+    await auth.loginWithGoogle(response.credential);
+    router.push("/");
   } catch (err) {
-    toast.add({severity: 'error', summary: t('login.googleFailed'), detail: err.message, life: 3000})
+    toast.add({
+      severity: "error",
+      summary: t("login.googleFailed"),
+      detail: err.message,
+      life: 3000,
+    });
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 function renderGoogleButtons() {
-  if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id) return
+  if (!GOOGLE_CLIENT_ID || !window.google?.accounts?.id) return;
   window.google.accounts.id.initialize({
     client_id: GOOGLE_CLIENT_ID,
     callback: handleGoogleCredential,
-  })
+  });
   if (googleButtonLogin.value) {
     window.google.accounts.id.renderButton(googleButtonLogin.value, {
-      theme: 'filled_blue',
-      size: 'large',
-      width: '100%'
-    })
+      theme: "filled_blue",
+      size: "large",
+      width: "100%",
+    });
   }
   if (googleButtonRegister.value) {
     window.google.accounts.id.renderButton(googleButtonRegister.value, {
-      theme: 'filled_blue',
-      size: 'large',
-      width: '100%'
-    })
+      theme: "filled_blue",
+      size: "large",
+      width: "100%",
+    });
   }
 }
 
 function loadGoogleScript() {
-  if (!GOOGLE_CLIENT_ID) return
+  if (!GOOGLE_CLIENT_ID) return;
   if (window.google?.accounts?.id) {
-    renderGoogleButtons()
-    return
+    renderGoogleButtons();
+    return;
   }
-  if (document.querySelector('script[data-google-identity]')) return
-  const script = document.createElement('script')
-  script.src = 'https://accounts.google.com/gsi/client'
-  script.async = true
-  script.defer = true
-  script.dataset.googleIdentity = 'true'
-  script.onload = renderGoogleButtons
-  document.head.appendChild(script)
+  if (document.querySelector("script[data-google-identity]")) return;
+  const script = document.createElement("script");
+  script.src = "https://accounts.google.com/gsi/client";
+  script.async = true;
+  script.defer = true;
+  script.dataset.googleIdentity = "true";
+  script.onload = renderGoogleButtons;
+  document.head.appendChild(script);
 }
 
-watch(mode, () => nextTick(renderGoogleButtons))
-watch(locale, updateLoginHead)
+watch(mode, () => nextTick(renderGoogleButtons));
+watch(locale, updateLoginHead);
 </script>
 
 <template>
   <div v-if="magicLinkLoading" class="magic-loading">
-    <i class="pi pi-spin pi-spinner"/>
-    <span>{{ t('login.signingIn') }}</span>
+    <i class="pi pi-spin pi-spinner" />
+    <span>{{ t("login.signingIn") }}</span>
   </div>
   <div v-else class="landing">
+    <!-- Top nav -->
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <!-- <span class="brand-mark">📈</span> -->
+        <span class="brand-name">StockFolio</span>
+      </div>
+      <div class="nav-controls">
+        <ThemeToggle />
+        <LanguageSelect />
+        <button class="get-started-btn" type="button" @click="showAuthModal = true">
+          {{ t('login.signIn') }}
+        </button>
+      </div>
+    </nav>
+
+    <Teleport to="body">
+      <Transition name="auth-modal">
+        <div v-if="showAuthModal" class="auth-modal-overlay" @click.self="showAuthModal = false">
+          <div class="auth-modal-panel">
+            <button class="auth-modal-close" type="button" aria-label="Close" @click="showAuthModal = false">
+              <i class="pi pi-times"/>
+            </button>
+            <div v-if="mode === 'login'" class="auth-card">
+              <h2 class="auth-heading">{{ t('login.welcomeBack') }}</h2>
+              <p class="auth-subheading text-muted">{{ t('login.signInToPortfolio') }}</p>
+              <form class="auth-form" @submit.prevent="submit">
+                <div class="field">
+                  <label for="modal-login-email">{{ t('login.emailOrUsername') }}</label>
+                  <InputText id="modal-login-email" v-model="identifier" autocomplete="username" fluid :placeholder="t('login.identifierPlaceholder')" required/>
+                </div>
+                <div class="field">
+                  <label for="modal-login-password">{{ t('login.password') }}</label>
+                  <Password v-model="password" :feedback="false" :placeholder="t('login.password')" autocomplete="current-password" fluid inputId="modal-login-password" required toggleMask/>
+                </div>
+                <Button :disabled="loading" :loading="loading" class="login-button" fluid iconPos="right" :label="t('login.signIn')" type="submit"/>
+              </form>
+              <template v-if="GOOGLE_CLIENT_ID">
+                <div class="auth-divider"><span>{{ t('common.or') }}</span></div>
+                <div ref="googleButtonLogin" class="google-button"/>
+              </template>
+              <p class="auth-footer">
+                {{ t('login.noAccount') }}
+                <button class="auth-link" type="button" @click="switchMode('register')">{{ t('login.createFree') }}</button>
+              </p>
+            </div>
+            <div v-else class="register-card">
+              <h2 class="auth-heading">{{ t('login.createAccount') }}</h2>
+              <p class="auth-subheading text-muted">{{ t('login.startTracking') }}</p>
+              <template v-if="GOOGLE_CLIENT_ID">
+                <p class="google-hint text-muted">{{ t('login.googleHint') }}</p>
+                <div ref="googleButtonRegister" class="google-button"/>
+                <div class="auth-divider"><span>{{ t('login.signUpWithIdentifier') }}</span></div>
+              </template>
+              <form class="auth-form" @submit.prevent="register">
+                <div class="field">
+                  <label for="modal-register-name">{{ t('login.name') }}</label>
+                  <InputText id="modal-register-name" v-model="name" :placeholder="t('login.namePlaceholder')" autocomplete="name" fluid required/>
+                </div>
+                <div class="field">
+                  <label for="modal-register-email">{{ t('login.emailOrUsername') }}</label>
+                  <InputText id="modal-register-email" v-model="identifier" autocomplete="username" fluid :placeholder="t('login.identifierPlaceholder')" required/>
+                </div>
+                <div class="field">
+                  <label for="modal-register-password">{{ t('login.password') }}</label>
+                  <Password inputId="modal-register-password" v-model="password" :feedback="false" autocomplete="new-password" fluid :placeholder="t('login.passwordPlaceholder')" required toggleMask/>
+                  <small class="password-hint" :class="{ invalid: password && !passwordValid }">{{ t('login.passwordHint') }}</small>
+                </div>
+                <Button :disabled="!registerEnabled || loading" :loading="loading" class="register-button" fluid icon="pi pi-arrow-right" iconPos="right" :label="t('login.createStockFolioAccount')" type="submit"/>
+                <p class="disclaimer-note text-muted">
+                  {{ t('login.disclaimerNote') }}
+                  <RouterLink to="/disclaimer">{{ t('login.readDisclaimer') }}</RouterLink>
+                </p>
+              </form>
+              <p class="auth-footer">
+                {{ t('login.alreadyHaveAccount') }}
+                <button class="auth-link" type="button" @click="switchMode('login')">{{ t('login.signIn') }}</button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <main class="landing-main">
       <!-- Hero / marketing -->
       <section class="hero" aria-labelledby="login-hero-title">
         <div class="hero-inner">
-          <div class="brand">
-            <span class="brand-mark">📈</span>
-            <span class="brand-name gradient-title">StockFolio</span>
-            <div class="hero-controls">
-              <ThemeToggle/>
-              <LanguageSelect/>
-            </div>
-          </div>
-
           <h1 id="login-hero-title" class="hero-title">
-            {{ t('login.heroTitleLine1') }}<br/>
-            <span class="gradient-title">{{ t('login.heroTitleLine2') }}</span>
+            {{ t("login.heroTitleLine1") }}<br />
+            <span class="gradient-title">{{ t("login.heroTitleLine2") }}</span>
           </h1>
           <p class="hero-sub">
-            {{ t('login.heroSubtitle') }}
+            {{ t("login.heroSubtitle") }}
           </p>
 
           <div :aria-label="t('login.appPreview')" class="app-preview">
             <div aria-hidden="true" class="mockup">
               <div class="phone">
-                <div class="phone-btn phone-btn-power"/>
-                <div class="phone-btn phone-btn-vol-up"/>
-                <div class="phone-btn phone-btn-vol-down"/>
+                <div class="phone-btn phone-btn-power" />
+                <div class="phone-btn phone-btn-vol-up" />
+                <div class="phone-btn phone-btn-vol-down" />
                 <div class="phone-notch">
-                  <span class="phone-camera"/>
+                  <span class="phone-camera" />
                 </div>
                 <div class="phone-screen">
                   <div class="slides">
-
-                  <!-- 0 · Portfolio -->
-                  <div v-show="slide === 0" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{
-                        t('login.slides.portfolio')
-                      }}</span><span class="mk-total">$48,210</span>
-                    </div>
-                    <div class="mk-card mk-gain">
-                      <div class="mk-row">
-                        <div>
-                          <div class="mk-ticker">NVDA</div>
-                          <div class="mk-name">NVIDIA Corp</div>
+                    <!-- 0 · Portfolio -->
+                    <div v-show="slide === 0" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.portfolio")
+                        }}</span
+                        ><span class="mk-total">$48,210</span>
+                      </div>
+                      <div class="mk-card mk-gain">
+                        <div class="mk-row">
+                          <div>
+                            <div class="mk-ticker">NVDA</div>
+                            <div class="mk-name">NVIDIA Corp</div>
+                          </div>
+                          <div class="mk-right">
+                            <div class="mk-val">$12,540</div>
+                            <span class="mk-badge up">+4.2%</span>
+                          </div>
                         </div>
-                        <div class="mk-right">
-                          <div class="mk-val">$12,540</div>
-                          <span class="mk-badge up">+4.2%</span></div>
+                        <svg
+                          class="mk-spark"
+                          preserveAspectRatio="none"
+                          viewBox="0 0 200 40"
+                        >
+                          <polyline
+                            class="spark-up"
+                            points="0,32 20,28 40,30 60,22 80,24 100,16 120,18 140,10 160,12 180,6 200,4"
+                          />
+                        </svg>
                       </div>
-                      <svg class="mk-spark" preserveAspectRatio="none" viewBox="0 0 200 40">
-                        <polyline class="spark-up"
-                                  points="0,32 20,28 40,30 60,22 80,24 100,16 120,18 140,10 160,12 180,6 200,4"/>
-                      </svg>
-                    </div>
-                    <div class="mk-card mk-loss">
-                      <div class="mk-row">
-                        <div>
-                          <div class="mk-ticker">BTC-USD</div>
-                          <div class="mk-name">Bitcoin</div>
+                      <div class="mk-card mk-loss">
+                        <div class="mk-row">
+                          <div>
+                            <div class="mk-ticker">BTC-USD</div>
+                            <div class="mk-name">Bitcoin</div>
+                          </div>
+                          <div class="mk-right">
+                            <div class="mk-val">$8,930</div>
+                            <span class="mk-badge down">−2.1%</span>
+                          </div>
                         </div>
-                        <div class="mk-right">
-                          <div class="mk-val">$8,930</div>
-                          <span class="mk-badge down">−2.1%</span></div>
+                        <svg
+                          class="mk-spark"
+                          preserveAspectRatio="none"
+                          viewBox="0 0 200 40"
+                        >
+                          <polyline
+                            class="spark-down"
+                            points="0,8 20,10 40,6 60,14 80,12 100,20 120,18 140,26 160,24 180,30 200,34"
+                          />
+                        </svg>
                       </div>
-                      <svg class="mk-spark" preserveAspectRatio="none" viewBox="0 0 200 40">
-                        <polyline class="spark-down"
-                                  points="0,8 20,10 40,6 60,14 80,12 100,20 120,18 140,26 160,24 180,30 200,34"/>
+                    </div>
+
+                    <!-- 1 · Global Markets -->
+                    <div v-show="slide === 1" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.markets")
+                        }}</span
+                        ><span class="mk-tabs">US · Crypto</span>
+                      </div>
+                      <div class="mk-grid">
+                        <div class="mk-tile">
+                          <div class="mk-tname">S&amp;P 500</div>
+                          <div class="mk-tprice">7,595</div>
+                          <span class="mk-badge up">+0.6%</span>
+                        </div>
+                        <div class="mk-tile">
+                          <div class="mk-tname">Nasdaq</div>
+                          <div class="mk-tprice">26,895</div>
+                          <span class="mk-badge up">+0.2%</span>
+                        </div>
+                        <div class="mk-tile">
+                          <div class="mk-tname">Gold</div>
+                          <div class="mk-tprice">4,506</div>
+                          <span class="mk-badge up">+0.9%</span>
+                        </div>
+                        <div class="mk-tile">
+                          <div class="mk-tname">BTC</div>
+                          <div class="mk-tprice">63.9k</div>
+                          <span class="mk-badge down">−2.2%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 2 · Price Alerts -->
+                    <div v-show="slide === 2" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.alerts")
+                        }}</span>
+                      </div>
+                      <div class="mk-alert">
+                        <i class="pi pi-bell" />
+                        <div>
+                          <div class="mk-aticker">AAPL ↑ $200</div>
+                          <div class="mk-name">
+                            {{ t("login.slides.notifyAbove") }}
+                          </div>
+                        </div>
+                        <span class="mk-toggle on" />
+                      </div>
+                      <div class="mk-alert">
+                        <i class="pi pi-bell" />
+                        <div>
+                          <div class="mk-aticker">TSLA ↓ $180</div>
+                          <div class="mk-name">
+                            {{ t("login.slides.notifyBelow") }}
+                          </div>
+                        </div>
+                        <span class="mk-toggle on" />
+                      </div>
+                      <div class="mk-pushrow">
+                        <i class="pi pi-mobile" />
+                        {{ t("login.slides.pushOn") }}
+                      </div>
+                    </div>
+
+                    <!-- 3 · Allocation -->
+                    <div v-show="slide === 3" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.breakdown")
+                        }}</span>
+                      </div>
+                      <div class="mk-alloc">
+                        <svg class="mk-donut" viewBox="0 0 42 42">
+                          <circle class="d-bg" cx="21" cy="21" r="15.9" />
+                          <circle
+                            class="d-a"
+                            cx="21"
+                            cy="21"
+                            r="15.9"
+                            stroke-dasharray="42 58"
+                            stroke-dashoffset="0"
+                          />
+                          <circle
+                            class="d-b"
+                            cx="21"
+                            cy="21"
+                            r="15.9"
+                            stroke-dasharray="31 69"
+                            stroke-dashoffset="-42"
+                          />
+                          <circle
+                            class="d-c"
+                            cx="21"
+                            cy="21"
+                            r="15.9"
+                            stroke-dasharray="27 73"
+                            stroke-dashoffset="-73"
+                          />
+                        </svg>
+                        <div class="mk-legend">
+                          <div><span class="dot a" />AAPL <b>42%</b></div>
+                          <div><span class="dot b" />NVDA <b>31%</b></div>
+                          <div><span class="dot c" />BTC <b>27%</b></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 4 · Groups -->
+                    <div v-show="slide === 4" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.groups")
+                        }}</span>
+                      </div>
+                      <div class="mk-grouprow">
+                        <span class="mk-gtag">{{ t("login.slides.tech") }}</span
+                        ><span class="mk-gcount">3</span>
+                      </div>
+                      <div class="mk-card mk-flat">
+                        <div class="mk-ticker">AAPL</div>
+                        <span class="mk-badge up">+1.1%</span>
+                      </div>
+                      <div class="mk-card mk-flat">
+                        <div class="mk-ticker">NVDA</div>
+                        <span class="mk-badge up">+4.2%</span>
+                      </div>
+                      <div class="mk-grouprow">
+                        <span class="mk-gtag alt">Crypto</span
+                        ><span class="mk-gcount">1</span>
+                      </div>
+                      <div class="mk-card mk-flat">
+                        <div class="mk-ticker">ETH-USD</div>
+                        <span class="mk-badge down">−1.2%</span>
+                      </div>
+                    </div>
+
+                    <!-- 5 · News -->
+                    <div v-show="slide === 5" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.forYou")
+                        }}</span>
+                        <span class="mk-tabs">AAPL · NVDA</span>
+                      </div>
+                      <div class="mk-topicrow">
+                        <span class="mk-topic active">{{
+                          t("login.slides.forYou")
+                        }}</span>
+                        <span class="mk-topic">{{
+                          t("login.slides.tech")
+                        }}</span>
+                        <span class="mk-topic">{{
+                          t("login.slides.markets")
+                        }}</span>
+                      </div>
+                      <div class="mk-news-card">
+                        <div class="mk-news-source">CNBC</div>
+                        <div class="mk-news-title">
+                          {{ t("login.slides.chipStocks") }}
+                        </div>
+                        <div class="mk-symbols">
+                          <span>NVDA</span><span>AMD</span>
+                        </div>
+                      </div>
+                      <div class="mk-news-card">
+                        <div class="mk-news-source">Reuters</div>
+                        <div class="mk-news-title">
+                          {{ t("login.slides.appleSuppliers") }}
+                        </div>
+                        <div class="mk-symbols"><span>AAPL</span></div>
+                      </div>
+                    </div>
+
+                    <!-- 6 · Rebalancer -->
+                    <div v-show="slide === 6" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("login.slides.rebalance")
+                        }}</span>
+                      </div>
+                      <div class="mk-rebal-row">
+                        <span class="mk-ticker">AAPL</span>
+                        <div class="mk-rebal-bar-wrap">
+                          <div
+                            class="mk-rebal-bar"
+                            style="width: 62%; background: #3b82f6"
+                          />
+                          <div class="mk-rebal-target" style="left: 50%" />
+                        </div>
+                        <span class="mk-badge up">+BUY</span>
+                      </div>
+                      <div class="mk-rebal-row">
+                        <span class="mk-ticker">NVDA</span>
+                        <div class="mk-rebal-bar-wrap">
+                          <div
+                            class="mk-rebal-bar"
+                            style="width: 28%; background: #3b82f6"
+                          />
+                          <div class="mk-rebal-target" style="left: 35%" />
+                        </div>
+                        <span class="mk-badge up">+BUY</span>
+                      </div>
+                      <div class="mk-rebal-row">
+                        <span class="mk-ticker">TSLA</span>
+                        <div class="mk-rebal-bar-wrap">
+                          <div
+                            class="mk-rebal-bar"
+                            style="width: 48%; background: #3b82f6"
+                          />
+                          <div class="mk-rebal-target" style="left: 30%" />
+                        </div>
+                        <span class="mk-badge down">SELL</span>
+                      </div>
+                      <div class="mk-rebal-note">
+                        {{ t("login.slides.targetPlan") }}
+                      </div>
+                    </div>
+
+                    <!-- 7 · Stock Chart -->
+                    <div v-show="slide === 7" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">NVDA</span
+                        ><span class="mk-tabs">1D · line</span>
+                      </div>
+                      <svg
+                        class="mk-chart"
+                        viewBox="0 0 200 70"
+                        preserveAspectRatio="none"
+                      >
+                        <defs>
+                          <linearGradient
+                            id="chartGrad"
+                            x1="0"
+                            y1="0"
+                            x2="0"
+                            y2="1"
+                          >
+                            <stop
+                              offset="0%"
+                              stop-color="var(--green)"
+                              stop-opacity="0.22"
+                            />
+                            <stop
+                              offset="100%"
+                              stop-color="var(--green)"
+                              stop-opacity="0"
+                            />
+                          </linearGradient>
+                        </defs>
+                        <path
+                          d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4"
+                          fill="url(#chartGrad)"
+                        />
+                        <path
+                          d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4"
+                          fill="none"
+                          stroke="var(--green)"
+                          stroke-width="1.5"
+                        />
+                        <!-- pre-market gold segment -->
+                        <path
+                          d="M0,55 C10,50 20,45 30,48"
+                          fill="none"
+                          stroke="#facc15"
+                          stroke-width="1.5"
+                        />
+                        <!-- after-hours purple -->
+                        <path
+                          d="M180,6 C190,4 195,5 200,4"
+                          fill="none"
+                          stroke="#a78bfa"
+                          stroke-width="1.5"
+                        />
+                        <circle cx="200" cy="4" r="2.5" fill="var(--green)" />
                       </svg>
-                    </div>
-                  </div>
-
-                  <!-- 1 · Global Markets -->
-                  <div v-show="slide === 1" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{
-                        t('login.slides.markets')
-                      }}</span><span class="mk-tabs">US · Crypto</span>
-                    </div>
-                    <div class="mk-grid">
-                      <div class="mk-tile">
-                        <div class="mk-tname">S&amp;P 500</div>
-                        <div class="mk-tprice">7,595</div>
-                        <span class="mk-badge up">+0.6%</span></div>
-                      <div class="mk-tile">
-                        <div class="mk-tname">Nasdaq</div>
-                        <div class="mk-tprice">26,895</div>
-                        <span class="mk-badge up">+0.2%</span></div>
-                      <div class="mk-tile">
-                        <div class="mk-tname">Gold</div>
-                        <div class="mk-tprice">4,506</div>
-                        <span class="mk-badge up">+0.9%</span></div>
-                      <div class="mk-tile">
-                        <div class="mk-tname">BTC</div>
-                        <div class="mk-tprice">63.9k</div>
-                        <span class="mk-badge down">−2.2%</span></div>
-                    </div>
-                  </div>
-
-                  <!-- 2 · Price Alerts -->
-                  <div v-show="slide === 2" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{ t('login.slides.alerts') }}</span>
-                    </div>
-                    <div class="mk-alert">
-                      <i class="pi pi-bell"/>
-                      <div>
-                        <div class="mk-aticker">AAPL ↑ $200</div>
-                        <div class="mk-name">{{ t('login.slides.notifyAbove') }}</div>
+                      <div class="mk-chart-labels">
+                        <span class="mk-clabel" style="color: #facc15"
+                          >Pre</span
+                        >
+                        <span class="mk-clabel" style="color: var(--green)"
+                          >Market</span
+                        >
+                        <span class="mk-clabel" style="color: #a78bfa"
+                          >After</span
+                        >
                       </div>
-                      <span class="mk-toggle on"/>
-                    </div>
-                    <div class="mk-alert">
-                      <i class="pi pi-bell"/>
-                      <div>
-                        <div class="mk-aticker">TSLA ↓ $180</div>
-                        <div class="mk-name">{{ t('login.slides.notifyBelow') }}</div>
-                      </div>
-                      <span class="mk-toggle on"/>
-                    </div>
-                    <div class="mk-pushrow"><i class="pi pi-mobile"/> {{ t('login.slides.pushOn') }}</div>
-                  </div>
-
-                  <!-- 3 · Allocation -->
-                  <div v-show="slide === 3" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{
-                        t('login.slides.breakdown')
-                      }}</span></div>
-                    <div class="mk-alloc">
-                      <svg class="mk-donut" viewBox="0 0 42 42">
-                        <circle class="d-bg" cx="21" cy="21" r="15.9"/>
-                        <circle class="d-a" cx="21" cy="21" r="15.9" stroke-dasharray="42 58" stroke-dashoffset="0"/>
-                        <circle class="d-b" cx="21" cy="21" r="15.9" stroke-dasharray="31 69" stroke-dashoffset="-42"/>
-                        <circle class="d-c" cx="21" cy="21" r="15.9" stroke-dasharray="27 73" stroke-dashoffset="-73"/>
-                      </svg>
-                      <div class="mk-legend">
-                        <div><span class="dot a"/>AAPL <b>42%</b></div>
-                        <div><span class="dot b"/>NVDA <b>31%</b></div>
-                        <div><span class="dot c"/>BTC <b>27%</b></div>
+                      <div class="mk-card mk-flat" style="margin-top: 4px">
+                        <span class="mk-name">Δ Delta measure</span>
+                        <span class="mk-badge up">+$4.20</span>
                       </div>
                     </div>
-                  </div>
 
-                  <!-- 4 · Groups -->
-                  <div v-show="slide === 4" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{ t('login.slides.groups') }}</span>
-                    </div>
-                    <div class="mk-grouprow"><span class="mk-gtag">{{ t('login.slides.tech') }}</span><span
-                        class="mk-gcount">3</span></div>
-                    <div class="mk-card mk-flat">
-                      <div class="mk-ticker">AAPL</div>
-                      <span class="mk-badge up">+1.1%</span></div>
-                    <div class="mk-card mk-flat">
-                      <div class="mk-ticker">NVDA</div>
-                      <span class="mk-badge up">+4.2%</span></div>
-                    <div class="mk-grouprow"><span class="mk-gtag alt">Crypto</span><span class="mk-gcount">1</span>
-                    </div>
-                    <div class="mk-card mk-flat">
-                      <div class="mk-ticker">ETH-USD</div>
-                      <span class="mk-badge down">−1.2%</span></div>
-                  </div>
-
-                  <!-- 5 · News -->
-                  <div v-show="slide === 5" class="slide">
-                    <div class="mk-header">
-                      <span class="mk-title gradient-title">{{ t('login.slides.forYou') }}</span>
-                      <span class="mk-tabs">AAPL · NVDA</span>
-                    </div>
-                    <div class="mk-topicrow">
-                      <span class="mk-topic active">{{ t('login.slides.forYou') }}</span>
-                      <span class="mk-topic">{{ t('login.slides.tech') }}</span>
-                      <span class="mk-topic">{{ t('login.slides.markets') }}</span>
-                    </div>
-                    <div class="mk-news-card">
-                      <div class="mk-news-source">CNBC</div>
-                      <div class="mk-news-title">{{ t('login.slides.chipStocks') }}</div>
-                      <div class="mk-symbols"><span>NVDA</span><span>AMD</span></div>
-                    </div>
-                    <div class="mk-news-card">
-                      <div class="mk-news-source">Reuters</div>
-                      <div class="mk-news-title">{{ t('login.slides.appleSuppliers') }}</div>
-                      <div class="mk-symbols"><span>AAPL</span></div>
-                    </div>
-                  </div>
-
-                  <!-- 6 · Rebalancer -->
-                  <div v-show="slide === 6" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{
-                        t('login.slides.rebalance')
-                      }}</span></div>
-                    <div class="mk-rebal-row">
-                      <span class="mk-ticker">AAPL</span>
-                      <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:62%;background:#3b82f6"/><div class="mk-rebal-target" style="left:50%"/></div>
-                      <span class="mk-badge up">+BUY</span>
-                    </div>
-                    <div class="mk-rebal-row">
-                      <span class="mk-ticker">NVDA</span>
-                      <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:28%;background:#3b82f6"/><div class="mk-rebal-target" style="left:35%"/></div>
-                      <span class="mk-badge up">+BUY</span>
-                    </div>
-                    <div class="mk-rebal-row">
-                      <span class="mk-ticker">TSLA</span>
-                      <div class="mk-rebal-bar-wrap"><div class="mk-rebal-bar" style="width:48%;background:#3b82f6"/><div class="mk-rebal-target" style="left:30%"/></div>
-                      <span class="mk-badge down">SELL</span>
-                    </div>
-                    <div class="mk-rebal-note">{{ t('login.slides.targetPlan') }}</div>
-                  </div>
-
-                  <!-- 7 · Stock Chart -->
-                  <div v-show="slide === 7" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">NVDA</span><span class="mk-tabs">1D · line</span></div>
-                    <svg class="mk-chart" viewBox="0 0 200 70" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stop-color="var(--green)" stop-opacity="0.22"/>
-                          <stop offset="100%" stop-color="var(--green)" stop-opacity="0"/>
-                        </linearGradient>
-                      </defs>
-                      <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="url(#chartGrad)"/>
-                      <path d="M0,55 C10,50 20,45 30,48 C40,52 50,42 60,35 C70,28 80,32 90,25 C100,18 110,22 120,15 C130,8 140,12 150,8 C160,5 170,9 180,6 C190,4 195,5 200,4" fill="none" stroke="var(--green)" stroke-width="1.5"/>
-                      <!-- pre-market gold segment -->
-                      <path d="M0,55 C10,50 20,45 30,48" fill="none" stroke="#facc15" stroke-width="1.5"/>
-                      <!-- after-hours purple -->
-                      <path d="M180,6 C190,4 195,5 200,4" fill="none" stroke="#a78bfa" stroke-width="1.5"/>
-                      <circle cx="200" cy="4" r="2.5" fill="var(--green)"/>
-                    </svg>
-                    <div class="mk-chart-labels">
-                      <span class="mk-clabel" style="color:#facc15">Pre</span>
-                      <span class="mk-clabel" style="color:var(--green)">Market</span>
-                      <span class="mk-clabel" style="color:#a78bfa">After</span>
-                    </div>
-                    <div class="mk-card mk-flat" style="margin-top:4px">
-                      <span class="mk-name">Δ Delta measure</span>
-                      <span class="mk-badge up">+$4.20</span>
-                    </div>
-                  </div>
-
-                  <!-- 8 · Watchlist movers -->
-                  <div v-show="slide === 8" class="slide">
-                    <div class="mk-header"><span class="mk-title gradient-title">{{ t('common.watchlist') }}</span><span
-                        class="mk-tabs">Gainers</span></div>
-                    <div class="mk-card mk-gain">
-                      <div class="mk-row">
-                        <div><div class="mk-ticker">META</div><div class="mk-name">Meta Platforms</div></div>
-                        <div class="mk-right"><div class="mk-val">$512.30</div><span class="mk-badge up">+4.2%</span></div>
+                    <!-- 8 · Watchlist movers -->
+                    <div v-show="slide === 8" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title">{{
+                          t("common.watchlist")
+                        }}</span
+                        ><span class="mk-tabs">Gainers</span>
+                      </div>
+                      <div class="mk-card mk-gain">
+                        <div class="mk-row">
+                          <div>
+                            <div class="mk-ticker">META</div>
+                            <div class="mk-name">Meta Platforms</div>
+                          </div>
+                          <div class="mk-right">
+                            <div class="mk-val">$512.30</div>
+                            <span class="mk-badge up">+4.2%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mk-card mk-gain">
+                        <div class="mk-row">
+                          <div>
+                            <div class="mk-ticker">AMZN</div>
+                            <div class="mk-name">Amazon</div>
+                          </div>
+                          <div class="mk-right">
+                            <div class="mk-val">$188.90</div>
+                            <span class="mk-badge up">+3.8%</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mk-card mk-loss">
+                        <div class="mk-row">
+                          <div>
+                            <div class="mk-ticker">INTC</div>
+                            <div class="mk-name">Intel Corp.</div>
+                          </div>
+                          <div class="mk-right">
+                            <div class="mk-val">$30.14</div>
+                            <span class="mk-badge down">−2.1%</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div class="mk-card mk-gain">
-                      <div class="mk-row">
-                        <div><div class="mk-ticker">AMZN</div><div class="mk-name">Amazon</div></div>
-                        <div class="mk-right"><div class="mk-val">$188.90</div><span class="mk-badge up">+3.8%</span></div>
+
+                    <!-- 9 · AI Daily Summary -->
+                    <div v-show="slide === 9" class="slide">
+                      <div class="mk-header">
+                        <span class="mk-title gradient-title"
+                          ><i
+                            class="pi pi-sparkles"
+                            style="font-size: 0.9em; margin-right: 6px"
+                          />{{ t("login.slides.dailySummary") }}</span
+                        >
                       </div>
-                    </div>
-                    <div class="mk-card mk-loss">
-                      <div class="mk-row">
-                        <div><div class="mk-ticker">INTC</div><div class="mk-name">Intel Corp.</div></div>
-                        <div class="mk-right"><div class="mk-val">$30.14</div><span class="mk-badge down">−2.1%</span></div>
+                      <div class="mk-summary-card">
+                        <p class="mk-summary-text">
+                          {{ t("login.slides.dailySummarySample") }}
+                        </p>
                       </div>
                     </div>
                   </div>
-
-                  <!-- 9 · AI Daily Summary -->
-                  <div v-show="slide === 9" class="slide">
-                    <div class="mk-header">
-                      <span class="mk-title gradient-title"><i class="pi pi-sparkles" style="font-size:0.9em;margin-right:6px"/>{{ t('login.slides.dailySummary') }}</span>
-                    </div>
-                    <div class="mk-summary-card">
-                      <p class="mk-summary-text">{{ t('login.slides.dailySummarySample') }}</p>
-                    </div>
-                  </div>
-
-                </div>
 
                   <!-- progress dots -->
                   <div class="mk-dots">
-                    <span v-for="n in SLIDE_COUNT" :key="n" class="mk-dot" :class="{ active: slide === n - 1 }"/>
+                    <span
+                      v-for="n in SLIDE_COUNT"
+                      :key="n"
+                      class="mk-dot"
+                      :class="{ active: slide === n - 1 }"
+                    />
                   </div>
                 </div>
-                <div class="phone-home-indicator"/>
+                <div class="phone-home-indicator" />
               </div>
             </div>
           </div>
 
           <div class="features" aria-label="Product features">
             <div v-for="f in features" :key="f.title" class="feature">
-              <i :class="f.icon" class="feature-icon" aria-hidden="true"/>
-              <div>
-                <div class="feature-title">
-                  <span>{{ f.title }}</span>
-                  <PremiumBadge
-                      v-if="f.premium"
-                      :label="t('common.premium')"
-                      :title="t('common.premiumFeature')"
-                      compact
-                  />
-                </div>
-                <div class="feature-text text-muted">{{ f.text }}</div>
+              <div class="feature-title">
+                <span>{{ f.title }}</span>
+                <PremiumBadge
+                  v-if="f.premium"
+                  :label="t('common.premium')"
+                  :title="t('common.premiumFeature')"
+                  compact
+                />
               </div>
+              <div class="feature-text text-muted">{{ f.text }}</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Login -->
-      <section class="auth" aria-labelledby="login-form-title">
-        <div v-if="mode === 'login'" class="auth-card">
-          <h2 id="login-form-title" class="auth-heading">{{ t('login.welcomeBack') }}</h2>
-          <p class="auth-subheading text-muted">{{ t('login.signInToPortfolio') }}</p>
-
-          <form class="auth-form" @submit.prevent="submit">
-            <div class="field">
-              <label for="login-email">{{ t('login.emailOrUsername') }}</label>
-              <InputText id="login-email" v-model="identifier" autocomplete="username" fluid
-                         :placeholder="t('login.identifierPlaceholder')" required/>
-            </div>
-            <div class="field">
-              <label for="login-password">{{ t('login.password') }}</label>
-              <Password v-model="password" :feedback="false" :placeholder="t('login.password')" autocomplete="current-password"
-                        fluid inputId="login-password" required toggleMask/>
-            </div>
-            <Button
-              :disabled="loading"
-              :loading="loading"
-              class="login-button"
-              fluid
-              iconPos="right"
-              :label="t('login.signIn')"
-              type="submit"
-            />
-          </form>
-
-          <template v-if="GOOGLE_CLIENT_ID">
-            <div class="auth-divider"><span>{{ t('common.or') }}</span></div>
-            <div ref="googleButtonLogin" class="google-button"/>
-          </template>
-
-          <p class="auth-footer">
-            {{ t('login.noAccount') }}
-            <button class="auth-link" type="button" @click="switchMode('register')">{{ t('login.createFree') }}</button>
-          </p>
-        </div>
-
-        <div v-else class="register-card">
-          <h2 class="auth-heading">{{ t('login.createAccount') }}</h2>
-          <p class="auth-subheading text-muted">{{ t('login.startTracking') }}</p>
-
-          <template v-if="GOOGLE_CLIENT_ID">
-            <p class="google-hint text-muted">{{ t('login.googleHint') }}</p>
-            <div ref="googleButtonRegister" class="google-button"/>
-            <div class="auth-divider"><span>{{ t('login.signUpWithIdentifier') }}</span></div>
-          </template>
-
-          <form class="auth-form" @submit.prevent="register">
-            <div class="field">
-              <label for="inline-register-name">{{ t('login.name') }}</label>
-              <InputText id="inline-register-name" v-model="name" :placeholder="t('login.namePlaceholder')" autocomplete="name"
-                         fluid required/>
-            </div>
-            <div class="field">
-              <label for="inline-register-email">{{ t('login.emailOrUsername') }}</label>
-              <InputText id="inline-register-email" v-model="identifier" autocomplete="username" fluid
-                         :placeholder="t('login.identifierPlaceholder')" required/>
-            </div>
-            <div class="field">
-              <label for="inline-register-password">{{ t('login.password') }}</label>
-              <Password
-                inputId="inline-register-password"
-                v-model="password"
-                :feedback="false"
-                autocomplete="new-password"
-                fluid
-                :placeholder="t('login.passwordPlaceholder')"
-                required
-                toggleMask
-              />
-              <small class="password-hint" :class="{ invalid: password && !passwordValid }">
-                {{ t('login.passwordHint') }}
-              </small>
-            </div>
-            <Button
-              :disabled="!registerEnabled || loading"
-              :loading="loading"
-              class="register-button"
-              fluid
-              icon="pi pi-arrow-right"
-              iconPos="right"
-              :label="t('login.createStockFolioAccount')"
-              type="submit"
-            />
-            <p class="disclaimer-note text-muted">
-              {{ t('login.disclaimerNote') }}
-              <RouterLink to="/disclaimer">{{ t('login.readDisclaimer') }}</RouterLink>
-            </p>
-          </form>
-
-          <p class="auth-footer">
-            {{ t('login.alreadyHaveAccount') }}
-            <button class="auth-link" type="button" @click="switchMode('login')">{{ t('login.signIn') }}</button>
-          </p>
-        </div>
-      </section>
     </main>
 
     <!-- Footer -->
     <footer class="landing-footer">
-      <RouterLink class="footer-link" to="/about">{{ t('common.about') }}</RouterLink>
+      <RouterLink class="footer-link" to="/about">{{
+        t("common.about")
+      }}</RouterLink>
       <span class="footer-sep">·</span>
-      <RouterLink class="footer-link" to="/disclaimer">{{ t('common.disclaimer') }}</RouterLink>
+      <RouterLink class="footer-link" to="/disclaimer">{{
+        t("common.disclaimer")
+      }}</RouterLink>
       <span class="footer-sep">·</span>
-      © {{ new Date().getFullYear() }} StockFolio · <a alt="www.handcoded.tech" href="//handcoded.tech">
-      handcoded.tech </a>. {{ t('common.allRightsReserved') }}
+      © {{ new Date().getFullYear() }} StockFolio ·
+      <a alt="www.handcoded.tech" href="//handcoded.tech"> handcoded.tech </a>.
+      {{ t("common.allRightsReserved") }}
     </footer>
   </div>
 </template>
@@ -752,45 +1023,24 @@ watch(locale, updateLoginHead)
   background: var(--bg-primary);
   display: flex;
   flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-.landing-main {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-/* ── Hero ── */
-.hero {
-  position: relative;
-  padding: 2.5rem 1.25rem 1.5rem;
-  overflow: hidden;
-}
-
-/* subtle radial glow backdrop */
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(60% 50% at 20% 0%, color-mix(in srgb, var(--neon-blue) 12%, transparent), transparent 70%),
-  radial-gradient(50% 50% at 90% 20%, color-mix(in srgb, var(--purple) 12%, transparent), transparent 70%);
-  pointer-events: none;
-}
-
-.hero-inner {
-  position: relative;
-  max-width: 560px;
-  margin: 0 auto;
-}
-
-.brand {
+/* ── Top nav ── */
+.top-nav {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  margin-bottom: 1.75rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
-.hero-controls {
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-controls {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -798,17 +1048,33 @@ watch(locale, updateLoginHead)
 }
 
 .brand-mark {
-  font-size: 1.6rem;
+  font-size: 1.4rem;
 }
 
 .brand-name {
-  font-size: 1.35rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+}
+
+.landing-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  align-items: center;
+}
+
+/* ── Hero ── */
+.hero {
+  width: 100%;
+  max-width: 800px;
+  padding: 2.5rem 1.25rem 1.5rem;
+}
+
+.hero-inner {
+  width: 100%;
 }
 
 .hero-title {
-  font-size: 1.9rem;
-  font-weight: 800;
+  font-size: 2.4rem;
   line-height: 1.15;
   letter-spacing: -0.02em;
   margin-bottom: 0.75rem;
@@ -819,7 +1085,6 @@ watch(locale, updateLoginHead)
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: 1.75rem;
-  max-width: 460px;
 }
 
 .app-preview {
@@ -865,10 +1130,11 @@ watch(locale, updateLoginHead)
   border: 3px solid #050505;
   border-radius: 38px;
   padding: 14px 10px 20px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6),
-  0 0 0 1px rgba(255, 255, 255, 0.05) inset,
-  0 2px 0 rgba(255, 255, 255, 0.06) inset,
-  0 0 60px color-mix(in srgb, var(--neon-blue) 8%, transparent);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.05) inset,
+    0 2px 0 rgba(255, 255, 255, 0.06) inset,
+    0 0 60px color-mix(in srgb, var(--neon-blue) 8%, transparent);
   transform: rotate(-3deg);
   transition: transform 0.3s;
 }
@@ -925,7 +1191,9 @@ watch(locale, updateLoginHead)
   height: 6px;
   border-radius: 50%;
   background: #1a1a2e;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-blue) 25%, transparent), inset 0 0 2px color-mix(in srgb, var(--neon-blue) 40%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--neon-blue) 25%, transparent),
+    inset 0 0 2px color-mix(in srgb, var(--neon-blue) 40%, transparent);
 }
 
 .phone-screen {
@@ -1052,7 +1320,9 @@ watch(locale, updateLoginHead)
 
 .spark-up {
   stroke: var(--green);
-  filter: drop-shadow(0 0 2px color-mix(in srgb, var(--green) 60%, transparent));
+  filter: drop-shadow(
+    0 0 2px color-mix(in srgb, var(--green) 60%, transparent)
+  );
 }
 
 .spark-down {
@@ -1188,7 +1458,7 @@ watch(locale, updateLoginHead)
 }
 
 .mk-toggle.on::after {
-  content: '';
+  content: "";
   position: absolute;
   right: 1px;
   top: 1px;
@@ -1351,11 +1621,16 @@ watch(locale, updateLoginHead)
 }
 
 .mk-news-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0 auto 0 0;
   width: 3px;
-  background: linear-gradient(180deg, var(--neon-blue), var(--purple), var(--neon-red));
+  background: linear-gradient(
+    180deg,
+    var(--neon-blue),
+    var(--purple),
+    var(--neon-red)
+  );
 }
 
 .mk-news-source {
@@ -1401,7 +1676,9 @@ watch(locale, updateLoginHead)
   height: 5px;
   border-radius: 50%;
   background: var(--border);
-  transition: background 0.3s, width 0.3s;
+  transition:
+    background 0.3s,
+    width 0.3s;
 }
 
 .mk-dot.active {
@@ -1418,14 +1695,8 @@ watch(locale, updateLoginHead)
 
 .feature {
   display: flex;
-  gap: 0.85rem;
-  align-items: flex-start;
-}
-
-.feature-icon {
-  font-size: 1.05rem;
-  color: var(--accent);
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .feature-title {
@@ -1445,7 +1716,8 @@ watch(locale, updateLoginHead)
 
 /* ── Auth ── */
 .auth {
-  padding: 1.5rem 1.25rem 2.5rem;
+  width: 100%;
+  padding: 0 1.25rem 2.5rem;
   display: flex;
   justify-content: center;
 }
@@ -1457,6 +1729,9 @@ watch(locale, updateLoginHead)
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .register-card {
@@ -1492,7 +1767,10 @@ watch(locale, updateLoginHead)
   box-shadow: 0 18px 36px rgba(34, 197, 94, 0.22);
   font-weight: 800;
   letter-spacing: 0.01em;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
 }
 
 :deep(.login-button .p-button-label),
@@ -1519,7 +1797,10 @@ watch(locale, updateLoginHead)
   box-shadow: 0 18px 36px rgba(34, 197, 94, 0.22);
   font-weight: 800;
   letter-spacing: 0.01em;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
 }
 
 :deep(.register-button .p-button-label),
@@ -1569,7 +1850,7 @@ watch(locale, updateLoginHead)
 
 .auth-divider::before,
 .auth-divider::after {
-  content: '';
+  content: "";
   flex: 1;
   height: 1px;
   background: var(--border);
@@ -1625,23 +1906,14 @@ watch(locale, updateLoginHead)
   text-underline-offset: 0.18em;
 }
 
-/* ── Desktop: side-by-side split ── */
-@media (min-width: 900px) {
-  .landing {
-    align-items: stretch;
-  }
-
-  .landing-main {
-    flex-direction: row;
-    align-items: stretch;
+/* ── Desktop: wider column, larger type ── */
+@media (min-width: 640px) {
+  .top-nav {
+    padding: 1rem 2.5rem;
   }
 
   .hero {
-    flex: 1.2;
-    display: flex;
-    align-items: center;
-    padding: 3rem;
-    border-right: 1px solid var(--border);
+    padding: 3rem 1.25rem 1.5rem;
   }
 
   .hero-title {
@@ -1651,17 +1923,6 @@ watch(locale, updateLoginHead)
   .hero-sub {
     font-size: 1.05rem;
   }
-
-  .auth {
-    flex: 1;
-    align-items: center;
-    padding: 3rem;
-  }
-
-  /* Footer spans full width below the split columns. */
-  .landing-main { flex-wrap: wrap; }
-  .hero, .auth { flex-basis: 0; }
-  .landing-footer { flex-basis: 100%; border-top: 1px solid var(--border); }
 }
 
 /* ── Desktop/Import preview sections ── */
@@ -1708,7 +1969,11 @@ watch(locale, updateLoginHead)
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 9px 10px;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--neon-blue) 8%, transparent) 0%, color-mix(in srgb, var(--purple) 8%, transparent) 100%);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--neon-blue) 8%, transparent) 0%,
+    color-mix(in srgb, var(--purple) 8%, transparent) 100%
+  );
 }
 
 .mk-summary-text {
@@ -1753,5 +2018,7 @@ watch(locale, updateLoginHead)
   text-underline-offset: 0.18em;
   text-decoration-thickness: 0.08em;
 }
-.footer-sep { margin: 0 0.4rem; }
+.footer-sep {
+  margin: 0 0.4rem;
+}
 </style>

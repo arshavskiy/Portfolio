@@ -73,7 +73,7 @@ function isActive(tab) {
 <template>
   <nav class="app-nav">
     <div class="nav-brand">
-      <span class="brand-mark">📈</span>
+      <!-- <span class="brand-mark">📈</span> -->
       <span class="brand-text gradient-title">StockFolio</span>
     </div>
     <div class="nav-items">

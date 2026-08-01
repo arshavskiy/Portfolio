@@ -229,7 +229,7 @@ onMounted(async () => {
 
         <div class="intro-card">
           <div class="brand">
-            <span class="brand-mark">📈</span>
+            <!-- <span class="brand-mark">📈</span> -->
             <span class="brand-name gradient-title">StockFolio</span>
           </div>
           <p class="tagline text-muted">
@@ -520,7 +520,6 @@ onMounted(async () => {
 }
 .brand-name {
   font-size: 1.3rem;
-  font-weight: 800;
 }
 .tagline {
   font-size: 0.88rem;
