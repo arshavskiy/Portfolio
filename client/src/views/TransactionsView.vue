@@ -181,6 +181,13 @@ const dividendsByTicker = computed(() =>
     .sort((a, b) => b.total - a.total)
 )
 
+const expandedDivTickers = ref(/** @type {Set<string>} */ (new Set()))
+function toggleDivTicker(ticker) {
+  const s = new Set(expandedDivTickers.value)
+  s.has(ticker) ? s.delete(ticker) : s.add(ticker)
+  expandedDivTickers.value = s
+}
+
 // Load history on mount; load gains/dividends lazily when tab is opened
 onMounted(fetchTransactions)
 watch(activeTab, (tab) => {
@@ -307,6 +314,7 @@ defineExpose({
             <Select
                 v-model="selectedYear"
                 :options="yearOptions"
+                :placeholder="t('transactions.allYears')"
                 option-label="label"
                 option-value="value"
                 size="small"
@@ -391,24 +399,33 @@ defineExpose({
       </div>
       <template v-else>
         <div v-for="group in dividendsByTicker" :key="group.ticker" class="div-group">
-          <div class="div-group-header">
-            <span class="ticker">{{ group.ticker }}</span>
-            <span v-if="group.companyName" class="text-muted div-group-name">{{ group.companyName }}</span>
-            <span class="text-muted div-group-count">{{ group.count }} {{ group.count === 1 ? t('transactions.payment') : t('transactions.payments') }}</span>
-            <span class="gain div-group-total">+{{ useTickerCurrency(group.total, group.ticker) }}</span>
-          </div>
-          <div v-for="d in group.rows" :key="d.date" class="tx-row">
-            <div class="tx-left">
+          <button
+            class="div-group-header"
+            type="button"
+            @click="toggleDivTicker(group.ticker)"
+          >
+            <div class="div-group-left">
               <span class="ticker">{{ group.ticker }}</span>
-              <span class="tx-date text-muted">{{ formatDate(d.date) }}</span>
+              <span v-if="group.companyName" class="text-muted div-group-name">{{ group.companyName }}</span>
+              <span class="text-muted div-group-count">{{ group.count }} {{ group.count === 1 ? t('transactions.payment') : t('transactions.payments') }}</span>
             </div>
-            <div class="tx-mid">
-              <span class="text-muted">{{ useTickerCurrency(d.amount, group.ticker) }}{{ t('transactions.perShareShort') }}</span>
+            <span class="gain div-group-total">+{{ useTickerCurrency(group.total, group.ticker) }}</span>
+            <i :class="expandedDivTickers.has(group.ticker) ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="div-chevron text-muted" />
+          </button>
+          <template v-if="expandedDivTickers.has(group.ticker)">
+            <div v-for="d in group.rows" :key="d.date" class="tx-row">
+              <div class="tx-left">
+                <span class="ticker">{{ group.ticker }}</span>
+                <span class="tx-date text-muted">{{ formatDate(d.date) }}</span>
+              </div>
+              <div class="tx-mid">
+                <span class="text-muted">{{ useTickerCurrency(d.amount, group.ticker) }}{{ t('transactions.perShareShort') }}</span>
+              </div>
+              <div class="tx-right">
+                <span class="total gain">+{{ useTickerCurrency(d.total, group.ticker) }}</span>
+              </div>
             </div>
-            <div class="tx-right">
-              <span class="total gain">+{{ useTickerCurrency(d.total, group.ticker) }}</span>
-            </div>
-          </div>
+          </template>
         </div>
       </template>
     </template>
@@ -663,44 +680,54 @@ defineExpose({
 }
 
 /* Dividends tab */
-.div-grand-total {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.6rem 0 0.75rem;
-  font-size: 0.88rem;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 0.5rem;
-}
-
 .div-group {
-  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .div-group-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0;
-  border-bottom: 1px solid var(--border);
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.div-group-header:active {
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+}
+
+.div-group-left {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .div-group-name {
-  font-size: 0.75rem;
-  flex: 1;
+  font-size: 0.72rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .div-group-count {
-  font-size: 0.75rem;
-  flex-shrink: 0;
+  font-size: 0.72rem;
 }
 
 .div-group-total {
-  font-size: 0.88rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  flex-shrink: 0;
+}
+
+.div-chevron {
+  font-size: 0.65rem;
+  flex-shrink: 0;
 }
 </style>

@@ -48,7 +48,8 @@ const routes = [
         component: () => import('@/views/InsightsDataView.vue'),
         meta: {requiresAuth: true, requiresAdmin: true, desktopOnly: true}
       },
-      { path: 'transactions', name: 'Transactions', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
+      { path: 'records', name: 'Records', component: () => import('@/views/TransactionsView.vue'), meta: { requiresAuth: true } },
+      { path: 'transactions', redirect: '/records' },
       { path: 'transactions-alerts', name: 'TransactionsAlerts', component: () => import('@/views/DesktopTransactionsAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'stock/:ticker', redirect: to => `/position/${encodeURIComponent(to.params.ticker)}` },
       { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue'), meta: { requiresAuth: true } },

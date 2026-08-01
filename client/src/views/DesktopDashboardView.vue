@@ -197,7 +197,7 @@ onUnmounted(() => {
             v-tooltip.bottom="t('nav.portfolioRecords')"
             class="top-action"
             type="button"
-            @click="router.push('/transactions')"
+            @click="router.push('/records')"
           >
             <i class="pi pi-list" />
             <span>{{ t(`nav.records`) }}</span>

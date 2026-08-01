@@ -27,7 +27,7 @@ const { isFullscreen, supported: fsSupported, toggle: toggleFullscreen } = useFu
 const {startNavPhase, resetTour} = useTour()
 
 function goAlerts() { router.push(isDesktop.value ? '/history-alerts' : '/alerts') }
-function goTransactions() { router.push(isDesktop.value ? '/history-alerts' : '/transactions') }
+function goTransactions() { router.push(isDesktop.value ? '/history-alerts' : '/records') }
 function replayTour() {
   resetTour()
   router.push('/').then(() => startNavPhase())

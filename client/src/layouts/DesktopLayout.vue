@@ -126,7 +126,7 @@ const dashboardNavItems = computed(() =>
     {
       key: "records",
       name: t("nav.records"),
-      to: "/transactions",
+      to: "/records",
       icon: "pi pi-list",
     },
     {
@@ -182,7 +182,7 @@ const breadcrumbMap = {
   "/assistant": t("nav.assistantAI"),
   "/insights": t("nav.assistantAI"),
   "/insights-data": t("common.data"),
-  "/transactions": t("nav.records"),
+  "/records": t("nav.records"),
   "/rebalance": t("rebalance.title"),
   "/typology-map": t("common.insights"),
 };

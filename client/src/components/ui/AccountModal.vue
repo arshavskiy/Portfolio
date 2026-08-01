@@ -206,7 +206,7 @@ function logout() {
             <span>{{ t('account.priceAlerts') }}</span>
             <i class="pi pi-chevron-right text-muted"/>
           </button>
-          <RouterLink class="menu-item" to="/transactions" @click="visible = false">
+          <RouterLink class="menu-item" to="/records" @click="visible = false">
             <i class="pi pi-list menu-icon"/>
             <span>{{ t('nav.records') }}</span>
             <i class="pi pi-chevron-right text-muted"/>

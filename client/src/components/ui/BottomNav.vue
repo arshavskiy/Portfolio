@@ -32,7 +32,7 @@ const tabs = computed(() =>
     },
     {
       key: "records",
-      to: "/transactions",
+      to: "/records",
       icon: "pi pi-list",
       label: t("nav.records"),
     },
