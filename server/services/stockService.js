@@ -923,8 +923,12 @@ async function getTickerDividendHistory(ticker, since) {
       yahooFinance.chart(symbol, { period1, period2: new Date(), interval: '1d', events: 'div' })
     )
     const raw = result?.events?.dividends || []
+    const isTase = symbol.endsWith('.TA')
     const data = raw
-      .map((d) => ({ date: d.date instanceof Date ? d.date.toISOString() : d.date, amount: d.amount ?? null }))
+      .map((d) => ({
+        date: d.date instanceof Date ? d.date.toISOString() : d.date,
+        amount: d.amount != null && isTase ? Math.round(d.amount) / 100 : (d.amount ?? null),
+      }))
       .sort((a, b) => new Date(a.date) - new Date(b.date))
     dividendHistoryCache.set(cacheKey, { data, ts: Date.now() })
     return data

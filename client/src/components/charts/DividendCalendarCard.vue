@@ -1,107 +1,137 @@
 <script setup>
-import {computed, onMounted, ref} from 'vue'
-import api from '@/composables/useApi'
-import {useTickerCurrency} from '@/composables/useFormat'
-import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
-import {useI18n} from '@/composables/useI18n'
+import { computed, onMounted, ref } from "vue";
+import api from "@/composables/useApi";
+import { useTickerCurrency } from "@/composables/useFormat";
+import { useNavigateToPosition } from "@/composables/useNavigateToPosition";
+import { useI18n } from "@/composables/useI18n";
 
-const {t, locale} = useI18n()
-const {openPosition} = useNavigateToPosition()
+const { t, locale } = useI18n();
+const { openPosition } = useNavigateToPosition();
 const props = defineProps({
-  hideLoading: {type: Boolean, default: false},
-})
+  hideLoading: { type: Boolean, default: false },
+});
 
-const events = ref([])
-const loading = ref(true)
-const pastPayments = ref([])
-const showPast = ref(false)
+const events = ref([]);
+const loading = ref(true);
+const pastPayments = ref([]);
+const showPast = ref(false);
 
 onMounted(async () => {
   try {
-    const data = await api.get('/portfolio/dividends/calendar')
-    events.value = data?.events || []
+    const data = await api.get("/portfolio/dividends/calendar");
+    events.value = data?.events || [];
   } catch {
-    events.value = []
+    events.value = [];
   } finally {
-    loading.value = false
+    loading.value = false;
   }
   try {
-    const data = await api.get('/portfolio/dividends/history')
-    pastPayments.value = data?.payments || []
+    const data = await api.get("/portfolio/dividends/history");
+    pastPayments.value = data?.payments || [];
   } catch {
-    pastPayments.value = []
+    pastPayments.value = [];
   }
-})
+});
 
-const upcoming = computed(() => events.value.slice(0, 6))
+const upcoming = computed(() => events.value.slice(0, 6));
 
 // Flatten all past payments into a single list sorted newest first
 const allPastPayments = computed(() => {
-  const rows = []
+  const rows = [];
   for (const pos of pastPayments.value) {
     for (const p of pos.payments) {
-      rows.push({ticker: pos.ticker, companyName: pos.companyName, shares: pos.shares, ...p})
+      rows.push({
+        ticker: pos.ticker,
+        companyName: pos.companyName,
+        shares: pos.shares,
+        ...p,
+      });
     }
   }
-  return rows.sort((a, b) => new Date(b.date) - new Date(a.date))
-})
+  return rows.sort((a, b) => new Date(b.date) - new Date(a.date));
+});
 
-const pastTotal = computed(() => allPastPayments.value.reduce((s, p) => s + (p.total ?? 0), 0))
+const pastTotal = computed(() =>
+  allPastPayments.value.reduce((s, p) => s + (p.total ?? 0), 0),
+);
 
 function formatDate(d) {
-  if (!d) return '—'
-  return new Date(d).toLocaleDateString(locale.value === 'ru' ? 'ru-RU' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-  })
+  if (!d) return "—";
+  return new Date(d).toLocaleDateString(
+    locale.value === "ru" ? "ru-RU" : "en-US",
+    {
+      month: "short",
+      day: "numeric",
+    },
+  );
 }
 
 function isPast(d) {
-  return d && new Date(d).getTime() < Date.now() - 86400000
+  return d && new Date(d).getTime() < Date.now() - 86400000;
 }
 
 function daysUntil(d) {
-  if (!d) return null
-  const days = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000)
-  return days >= 0 ? days : null
+  if (!d) return null;
+  const days = Math.ceil((new Date(d).getTime() - Date.now()) / 86400000);
+  return days >= 0 ? days : null;
 }
 
 function exDivLabel(event) {
-  const days = daysUntil(event.exDividendDate)
-  if (days === 0) return t('dividendCalendar.today')
-  if (days === 1) return t('dividendCalendar.tomorrow')
-  if (days != null && days <= 14) return t('dividendCalendar.inDays', {days})
-  return formatDate(event.exDividendDate)
+  const days = daysUntil(event.exDividendDate);
+  if (days === 0) return t("dividendCalendar.today");
+  if (days === 1) return t("dividendCalendar.tomorrow");
+  if (days != null && days <= 14) return t("dividendCalendar.inDays", { days });
+  return formatDate(event.exDividendDate);
 }
 </script>
 
 <template>
-  <section v-if="(loading && !props.hideLoading) || upcoming.length || allPastPayments.length" class="div-calendar-card">
-    <h2 class="section-title">{{ t('dividendCalendar.title') }}</h2>
+  <section
+    v-if="
+      (loading && !props.hideLoading) ||
+      upcoming.length ||
+      allPastPayments.length
+    "
+    class="div-calendar-card"
+  >
+    <h2 class="section-title">{{ t("dividendCalendar.title") }}</h2>
 
-    <div v-if="loading && !upcoming.length && !props.hideLoading" class="cal-list">
-      <div v-for="n in 3" :key="n" class="cal-row skeleton"/>
+    <div
+      v-if="loading && !upcoming.length && !props.hideLoading"
+      class="cal-list"
+    >
+      <div v-for="n in 3" :key="n" class="cal-row skeleton" />
     </div>
 
     <div v-else class="cal-list">
       <button
-          v-for="event in upcoming"
-          :key="event.ticker"
-          class="cal-row"
-          type="button"
-          @click="openPosition(event.ticker, event.companyName)"
+        v-for="event in upcoming"
+        :key="event.ticker"
+        class="cal-row"
+        type="button"
+        @click="openPosition(event.ticker, event.companyName)"
       >
         <div class="cal-left">
           <span class="ticker">{{ event.ticker }}</span>
-          <span class="company text-muted">{{ event.companyName || event.ticker }}</span>
+          <span class="company text-muted">{{
+            event.companyName || event.ticker
+          }}</span>
         </div>
         <div class="cal-dates">
           <div v-if="event.exDividendDate" class="cal-date">
-            <span class="date-label text-muted">{{ t('dividendCalendar.exDiv') }}</span>
-            <span :class="{past: isPast(event.exDividendDate)}" class="date-value">{{ exDivLabel(event) }}</span>
+            <span class="date-label text-muted">{{
+              t("dividendCalendar.exDiv")
+            }}</span>
+            <span
+              :class="{ past: isPast(event.exDividendDate) }"
+              class="date-value"
+              >{{ exDivLabel(event) }}</span
+            >
           </div>
           <div v-if="event.dividendDate" class="cal-date">
-            <span class="date-label text-muted">{{ t('dividendCalendar.payDate') }}</span>
+            <span class="date-label text-muted">{{
+              t("dividendCalendar.payDate")
+            }}</span>
             <span class="date-value">{{ formatDate(event.dividendDate) }}</span>
           </div>
         </div>
@@ -109,8 +139,12 @@ function exDivLabel(event) {
           <span v-if="event.estimatedPayout != null" class="payout gain">
             +{{ useTickerCurrency(event.estimatedPayout, event.ticker) }}
           </span>
-          <span v-if="event.lastDividendValue != null" class="per-share text-muted">
-            {{ useTickerCurrency(event.lastDividendValue, event.ticker) }} {{ t('dividendCalendar.perShare') }}
+          <span
+            v-if="event.lastDividendValue != null"
+            class="per-share text-muted"
+          >
+            {{ useTickerCurrency(event.lastDividendValue, event.ticker) }}
+            {{ t("dividendCalendar.perShare") }}
           </span>
         </div>
       </button>
@@ -125,25 +159,35 @@ function exDivLabel(event) {
           <span class="past-count">{{ allPastPayments.length }}</span>
         </span>
         <span class="past-toggle-right">
-          <span v-if="pastTotal" class="past-total gain">+{{ useTickerCurrency(pastTotal, 'USD') }}</span>
-          <i :class="showPast ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="past-chevron" />
+          <span v-if="pastTotal" class="past-total gain"
+            >+{{ useTickerCurrency(pastTotal, "USD") }}</span
+          >
+          <i
+            :class="showPast ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+            class="past-chevron"
+          />
         </span>
       </button>
       <div v-if="showPast" class="cal-list past-list">
         <button
-            v-for="p in allPastPayments"
-            :key="`${p.ticker}-${p.date}`"
-            class="cal-row"
-            type="button"
-            @click="openPosition(p.ticker, p.companyName)"
+          v-for="p in allPastPayments"
+          :key="`${p.ticker}-${p.date}`"
+          class="cal-row"
+          type="button"
+          @click="openPosition(p.ticker, p.companyName)"
         >
           <div class="cal-left">
             <span class="ticker">{{ p.ticker }}</span>
             <span class="company text-muted">{{ formatDate(p.date) }}</span>
           </div>
           <div class="cal-right">
-            <span v-if="p.total" class="payout gain">+{{ useTickerCurrency(p.total, p.ticker) }}</span>
-            <span v-if="p.amount" class="per-share text-muted">{{ useTickerCurrency(p.amount, p.ticker) }} {{ t('dividendCalendar.perShare') }}</span>
+            <span v-if="p.total" class="payout gain"
+              >+{{ useTickerCurrency(p.total, p.ticker) }}</span
+            >
+            <span v-if="p.amount" class="per-share text-muted"
+              >{{ useTickerCurrency(p.amount, p.ticker) }}
+              {{ t("dividendCalendar.perShare") }}</span
+            >
           </div>
         </button>
       </div>
@@ -284,7 +328,9 @@ function exDivLabel(event) {
   color: var(--text-secondary);
 }
 
-.past-toggle-label i { font-size: 0.72rem; }
+.past-toggle-label i {
+  font-size: 0.72rem;
+}
 
 .past-count {
   background: color-mix(in srgb, var(--text-secondary) 15%, transparent);
@@ -299,17 +345,30 @@ function exDivLabel(event) {
   gap: 0.5rem;
 }
 
-.past-total { font-size: 0.8rem; font-weight: 700; }
-.past-chevron { font-size: 0.65rem; color: var(--text-secondary); }
+.past-total {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.past-chevron {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+}
 
-.past-list { padding-top: 0.25rem; }
+.past-list {
+  padding-top: 0.25rem;
+}
 
 .skeleton {
   min-height: 44px;
   border-radius: 10px;
   border-bottom: none;
   margin-bottom: 6px;
-  background: linear-gradient(90deg, var(--bg-card) 25%, #1a1a1a 50%, var(--bg-card) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 25%,
+    #1a1a1a 50%,
+    var(--bg-card) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
 }

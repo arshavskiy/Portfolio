@@ -322,6 +322,7 @@ const dividendTxs = computed(() =>
 
 // Historical dividend payments from Yahoo during holding period
 const yahooDiv = ref([]);
+const showStatsGrid = ref(true);
 async function loadYahooDividends() {
   if (!ticker.value) return;
   const lots = holdingLots.value;
@@ -329,9 +330,13 @@ async function loadYahooDividends() {
     ? lots.reduce((min, l) => (l.date < min ? l.date : min), lots[0].date)
     : null;
   try {
-    const params = since ? `?since=${encodeURIComponent(since)}` : '';
-    yahooDiv.value = await api.get(`/stocks/dividends/${encodeURIComponent(ticker.value)}${params}`);
-  } catch { yahooDiv.value = []; }
+    const params = since ? `?since=${encodeURIComponent(since)}` : "";
+    yahooDiv.value = await api.get(
+      `/stocks/dividends/${encodeURIComponent(ticker.value)}${params}`,
+    );
+  } catch {
+    yahooDiv.value = [];
+  }
 }
 const totalDividends = computed(() =>
   dividendTxs.value.reduce((s, d) => s + (d.total || 0), 0),
@@ -339,19 +344,28 @@ const totalDividends = computed(() =>
 
 // Pair Yahoo historical payments with shares held at each ex-div date
 const yahooDivWithShares = computed(() => {
-  const txsSorted = [...transactions.value].sort((a, b) => new Date(a.date) - new Date(b.date));
-  return yahooDiv.value.map((d) => {
-    const divDate = new Date(d.date);
-    let shares = 0;
-    for (const tx of txsSorted) {
-      if (new Date(tx.date) > divDate) break;
-      if (tx.type === 'buy') shares += tx.shares || 0;
-      else if (tx.type === 'sell') shares -= tx.shares || 0;
-      else if (tx.type === 'dividend' && tx.drip) shares += tx.shares || 0;
-    }
-    shares = Math.max(0, shares);
-    return { date: d.date, amount: d.amount, shares, total: shares > 0 && d.amount ? shares * d.amount : null };
-  }).filter((d) => d.shares > 0);
+  const txsSorted = [...transactions.value].sort(
+    (a, b) => new Date(a.date) - new Date(b.date),
+  );
+  return yahooDiv.value
+    .map((d) => {
+      const divDate = new Date(d.date);
+      let shares = 0;
+      for (const tx of txsSorted) {
+        if (new Date(tx.date) > divDate) break;
+        if (tx.type === "buy") shares += tx.shares || 0;
+        else if (tx.type === "sell") shares -= tx.shares || 0;
+        else if (tx.type === "dividend" && tx.drip) shares += tx.shares || 0;
+      }
+      shares = Math.max(0, shares);
+      return {
+        date: d.date,
+        amount: d.amount,
+        shares,
+        total: shares > 0 && d.amount ? shares * d.amount : null,
+      };
+    })
+    .filter((d) => d.shares > 0);
 });
 
 const yahooDivTotal = computed(() =>
@@ -1453,9 +1467,16 @@ async function toggleWatchlist() {
               <div class="current-price">
                 {{ useTickerCurrency(selectedDelta.endPrice, ticker) }}
               </div>
-              <p :class="gainLossClass(selectedDelta.amount)" class="price-change">
-                {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{ usePercent(selectedDelta.percent) }})
-                <span class="price-change-label">{{ t('positionDetail.selectedRange') }}</span>
+              <p
+                :class="gainLossClass(selectedDelta.amount)"
+                class="price-change"
+              >
+                {{ useTickerCurrency(selectedDelta.amount, ticker) }} ({{
+                  usePercent(selectedDelta.percent)
+                }})
+                <span class="price-change-label">{{
+                  t("positionDetail.selectedRange")
+                }}</span>
               </p>
               <p class="hours-line text-muted">
                 {{ selectedDelta.startLabel }} → {{ selectedDelta.endLabel }}
@@ -1818,179 +1839,6 @@ async function toggleWatchlist() {
         </div>
       </template>
 
-      <div v-if="quote" class="stats-grid">
-        <div
-          v-for="row in extendedHoursStats"
-          :key="row.label"
-          class="stat stat-extended"
-        >
-          <span class="text-muted">{{ row.label }}</span>
-          <span :class="row.valueClass">{{ row.value }}</span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.statOpen") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.open"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.statDayHigh") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.dayHigh"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span class="day-range-value">
-            {{ useTickerCurrency(quote.dayHigh, ticker) }}
-            <span v-if="pctFromDayHigh != null" class="range-pct loss">{{ usePercent(pctFromDayHigh) }}</span>
-          </span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.statDayLow") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.dayLow"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span class="day-range-value">
-            {{ useTickerCurrency(quote.dayLow, ticker) }}
-            <span v-if="pctFromDayLow != null" class="range-pct gain">+{{ usePercent(pctFromDayLow) }}</span>
-          </span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.statVolume") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.volume"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.statMktCap") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.mktCap"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.statPe") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.pe"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ quote.pe?.toFixed(2) || "—" }}</span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.stat52WHigh") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.week52High"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
-        </div>
-        <div class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.stat52WLow") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.week52Low"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
-        </div>
-        <div v-if="quote.exDividendDate" class="stat">
-          <span class="text-muted">{{ t('dividendCalendar.exDiv') }}</span>
-          <span>{{ new Date(quote.exDividendDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
-        </div>
-        <div v-if="quote.dividendDate" class="stat">
-          <span class="text-muted">{{ t('dividendCalendar.payDate') }}</span>
-          <span>{{ new Date(quote.dividendDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) }}</span>
-        </div>
-        <div v-if="normalizedDividendYield" class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.divYield") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.divYield"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span class="div-yield-val"
-            >{{
-              (normalizedDividendYield * 100).toFixed(3).replace(/\.?0+$/, "")
-            }}%</span
-          >
-        </div>
-        <div v-if="annualDividendRate" class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.divPerShare") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.divPerShare"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ formatDividendCurrency(annualDividendRate) }}</span>
-        </div>
-        <div v-if="annualDividendRate && summary?.taxRate" class="stat">
-          <span class="text-muted">{{
-            t("positionDetail.divAfterTax", {
-              rate: formatTaxPercent(summary.taxRate),
-            })
-          }}</span>
-          <span class="div-yield-val">{{
-            formatDividendCurrency(
-              annualDividendRate * (1 - summary.taxRate / 100),
-            )
-          }}</span>
-        </div>
-        <div v-if="heldDividendTotal != null" class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.heldDivTotal") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.heldDivTotal"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span class="div-yield-val">{{
-            formatDividendCurrency(heldDividendTotal)
-          }}</span>
-        </div>
-        <div v-if="summary && holdingTimeLabel" class="stat">
-          <span class="text-muted stat-label-info"
-            >{{ t("positionDetail.avgHoldingTime") }}
-            <i
-              v-tooltip.focus.top="STAT_INFO.avgHoldingTime"
-              class="pi pi-info-circle info-icon"
-              tabindex="0"
-          /></span>
-          <span>{{ holdingTimeLabel }}</span>
-        </div>
-        <div v-if="heldDividendTotal != null && summary?.taxRate" class="stat">
-          <span class="text-muted">{{
-            t("positionDetail.heldDivAfterTax")
-          }}</span>
-          <span class="div-yield-val">{{
-            formatDividendCurrency(
-              heldDividendTotal * (1 - summary.taxRate / 100),
-            )
-          }}</span>
-        </div>
-      </div>
-
       <div v-if="lots.length" class="lots-list">
         <h2 class="section-title">{{ t("positionDetail.lots") }}</h2>
         <div v-for="lot in lots" :key="lot._id" class="lot-row">
@@ -2086,24 +1934,39 @@ async function toggleWatchlist() {
       <!-- Historical dividend payments from Yahoo during holding period -->
       <div v-if="yahooDivWithShares.length" class="dividends-section">
         <div class="dividends-header">
-          <h2 class="section-title">{{ t('positionDetail.dividends') }}</h2>
+          <h2 class="section-title">{{ t("positionDetail.dividends") }}</h2>
           <div class="dividends-summary">
-            <span class="text-muted">{{ yahooDivWithShares.length }} {{ yahooDivWithShares.length === 1 ? 'payment' : 'payments' }}</span>
-            <span v-if="yahooDivTotal" class="div-total gain">≈ +{{ useTickerCurrency(yahooDivTotal, ticker) }}</span>
+            <span class="text-muted"
+              >{{ yahooDivWithShares.length }}
+              {{
+                yahooDivWithShares.length === 1 ? "payment" : "payments"
+              }}</span
+            >
+            <span v-if="yahooDivTotal" class="div-total gain"
+              >≈ +{{ useTickerCurrency(yahooDivTotal, ticker) }}</span
+            >
           </div>
         </div>
-        <div v-for="d in [...yahooDivWithShares].reverse()" :key="d.date" class="lot-row">
+        <div
+          v-for="d in [...yahooDivWithShares].reverse()"
+          :key="d.date"
+          class="lot-row"
+        >
           <div class="lot-left">
             <div class="lot-top">
               <span class="div-badge">DIV</span>
               <span class="lot-date text-muted">{{ formatDate(d.date) }}</span>
             </div>
             <div class="lot-detail">
-              {{ useTickerCurrency(d.amount, ticker) }} {{ t('positionDetail.perShare') }} · {{ d.shares }} {{ t('common.shares') }}
+              {{ useTickerCurrency(d.amount, ticker) }}
+              {{ t("positionDetail.perShare") }} · {{ d.shares }}
+              {{ t("common.shares") }}
             </div>
           </div>
           <div class="lot-right">
-            <span v-if="d.total" class="lot-total gain">≈ +{{ useTickerCurrency(d.total, ticker) }}</span>
+            <span v-if="d.total" class="lot-total gain"
+              >≈ +{{ useTickerCurrency(d.total, ticker) }}</span
+            >
           </div>
         </div>
       </div>
@@ -2475,6 +2338,202 @@ async function toggleWatchlist() {
             size="small"
             @click="saveJournal"
           />
+        </div>
+      </div>
+
+      <div v-if="quote" class="sim-wrap stats-wrap">
+        <button class="sim-toggle" type="button" @click="showStatsGrid = !showStatsGrid">
+          <i class="pi pi-chart-bar" />
+          {{ t('positionDetail.stats') }}
+          <i :class="showStatsGrid ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" class="sim-chevron" />
+        </button>
+        <div v-show="showStatsGrid" class="stats-grid">
+        <div
+          v-for="row in extendedHoursStats"
+          :key="row.label"
+          class="stat stat-extended"
+        >
+          <span class="text-muted">{{ row.label }}</span>
+          <span :class="row.valueClass">{{ row.value }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.statOpen") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.open"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ useTickerCurrency(quote.open, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.statDayHigh") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.dayHigh"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span class="day-range-value">
+            {{ useTickerCurrency(quote.dayHigh, ticker) }}
+            <span v-if="pctFromDayHigh != null" class="range-pct loss">{{
+              usePercent(pctFromDayHigh)
+            }}</span>
+          </span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.statDayLow") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.dayLow"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span class="day-range-value">
+            {{ useTickerCurrency(quote.dayLow, ticker) }}
+            <span v-if="pctFromDayLow != null" class="range-pct gain"
+              >+{{ usePercent(pctFromDayLow) }}</span
+            >
+          </span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.statVolume") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.volume"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ useLargeNumber(quote.volume, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.statMktCap") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.mktCap"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ useLargeNumber(quote.marketCap, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.statPe") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.pe"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ quote.pe?.toFixed(2) || "—" }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.stat52WHigh") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.week52High"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ useTickerCurrency(quote.week52High, ticker) }}</span>
+        </div>
+        <div class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.stat52WLow") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.week52Low"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ useTickerCurrency(quote.week52Low, ticker) }}</span>
+        </div>
+        <div v-if="quote.exDividendDate" class="stat">
+          <span class="text-muted">{{ t("dividendCalendar.exDiv") }}</span>
+          <span>{{
+            new Date(quote.exDividendDate).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          }}</span>
+        </div>
+        <div v-if="quote.dividendDate" class="stat">
+          <span class="text-muted">{{ t("dividendCalendar.payDate") }}</span>
+          <span>{{
+            new Date(quote.dividendDate).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
+          }}</span>
+        </div>
+        <div v-if="normalizedDividendYield" class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.divYield") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.divYield"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span class="div-yield-val"
+            >{{
+              (normalizedDividendYield * 100).toFixed(3).replace(/\.?0+$/, "")
+            }}%</span
+          >
+        </div>
+        <div v-if="annualDividendRate" class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.divPerShare") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.divPerShare"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ formatDividendCurrency(annualDividendRate) }}</span>
+        </div>
+        <div v-if="annualDividendRate && summary?.taxRate" class="stat">
+          <span class="text-muted">{{
+            t("positionDetail.divAfterTax", {
+              rate: formatTaxPercent(summary.taxRate),
+            })
+          }}</span>
+          <span class="div-yield-val">{{
+            formatDividendCurrency(
+              annualDividendRate * (1 - summary.taxRate / 100),
+            )
+          }}</span>
+        </div>
+        <div v-if="heldDividendTotal != null" class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.heldDivTotal") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.heldDivTotal"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span class="div-yield-val">{{
+            formatDividendCurrency(heldDividendTotal)
+          }}</span>
+        </div>
+        <div v-if="summary && holdingTimeLabel" class="stat">
+          <span class="text-muted stat-label-info"
+            >{{ t("positionDetail.avgHoldingTime") }}
+            <i
+              v-tooltip.focus.top="STAT_INFO.avgHoldingTime"
+              class="pi pi-info-circle info-icon"
+              tabindex="0"
+          /></span>
+          <span>{{ holdingTimeLabel }}</span>
+        </div>
+        <div v-if="heldDividendTotal != null && summary?.taxRate" class="stat">
+          <span class="text-muted">{{
+            t("positionDetail.heldDivAfterTax")
+          }}</span>
+          <span class="div-yield-val">{{
+            formatDividendCurrency(
+              heldDividendTotal * (1 - summary.taxRate / 100),
+            )
+          }}</span>
+        </div>
         </div>
       </div>
 
@@ -3068,6 +3127,9 @@ async function toggleWatchlist() {
   }
 }
 
+.stats-wrap { margin-bottom: 1rem; }
+.stats-wrap .stats-grid { padding: 0 0.5rem 0.5rem; }
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3497,6 +3559,8 @@ async function toggleWatchlist() {
 
 .dividends-section {
   margin-top: 1.5rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
 }
 
 .dividends-header {

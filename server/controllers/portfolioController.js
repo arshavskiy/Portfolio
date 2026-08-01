@@ -664,9 +664,8 @@ exports.getDividendCalendar = async (req, res) => {
         const sharesByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.shares]))
         const nameByTicker = Object.fromEntries(positions.map((p) => [p.ticker, p.companyName || null]))
 
-        // Keep events from the last few days onward so a just-passed ex-div
-        // date still shows while its payment date is upcoming.
-        const cutoff = Date.now() - 3 * 86400000
+        const now = Date.now()
+        const cutoff = now - 3 * 86400000
         const events = entries
             .map((e) => {
                 const shares = sharesByTicker[e.ticker] ?? 0
@@ -676,11 +675,10 @@ exports.getDividendCalendar = async (req, res) => {
                 return {...e, shares, companyName: nameByTicker[e.ticker], estimatedPayout}
             })
             .filter((e) => {
-                const latest = Math.max(
-                    e.exDividendDate ? new Date(e.exDividendDate).getTime() : 0,
-                    e.dividendDate ? new Date(e.dividendDate).getTime() : 0
-                )
-                return latest >= cutoff
+                const exMs = e.exDividendDate ? new Date(e.exDividendDate).getTime() : 0
+                const payMs = e.dividendDate ? new Date(e.dividendDate).getTime() : 0
+                // Keep if pay date is still future, or either date is within the 3-day lookback
+                return payMs > now || Math.max(exMs, payMs) >= cutoff
             })
             .sort((a, b) =>
                 new Date(a.exDividendDate || a.dividendDate) - new Date(b.exDividendDate || b.dividendDate)

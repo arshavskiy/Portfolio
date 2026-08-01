@@ -702,6 +702,7 @@ export const messages = {
       divPerShare: "Div / Share",
       divPerShareInfo: "The dividend paid per share over the last year.",
       divAfterTax: "Div after tax ({rate})",
+      stats: "Stats",
       heldDivTotal: "Held div total",
       heldDivTotalInfo:
         "Estimated dividend for the currently held shares, prorated by their share-weighted holding time.",
@@ -1951,6 +1952,7 @@ export const messages = {
       divPerShare: "Див. на акцию",
       divPerShareInfo: "Дивиденд, выплаченный на акцию за последний год.",
       divAfterTax: "Див. после налога ({rate})",
+      stats: "Статистика",
       heldDivTotal: "Дивиденды по позиции",
       heldDivTotalInfo:
         "Оценка дивидендов для удерживаемых акций, пропорционально времени владения.",
