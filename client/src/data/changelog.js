@@ -6,7 +6,7 @@ export const changelog = [
     date: 'Aug 2, 2026',
     title: 'Assets page & position updates',
     changes: [
-      'New Assets page — table view of all positions grouped by asset class (Equity, Crypto, Cash, Bond), with search, multi-select bulk actions, per-row menu, and CSV export.',
+      'New Assets page — table view of all positions grouped by asset class (Equity, Crypto, Cash, Bond), with search, multi-select bulk actions, per-row menu, and CSV export. Available on mobile for Premium users.',
       '"New Asset" button now opens a dropdown with Buy Asset and Import holdings options.',
       'New "Update Record" action per asset — directly set quantity and cost basis on a position without creating a buy or sell transaction. Useful for correcting imported data or manually reconciling an account.',
       'Desktop Assets and Watchlist rows can now open the position detail panel from the right without leaving the page.',
