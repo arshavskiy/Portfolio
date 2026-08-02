@@ -14,8 +14,10 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import {useI18n} from '@/composables/useI18n'
+import {useDashboardStore} from '@/stores/dashboard'
 
 const {locale, t} = useI18n()
+const dashboard = useDashboardStore()
 
 // ── Transactions ───────────────────────────────────────────────────────────
 const activeTab = ref('history')
@@ -112,6 +114,7 @@ async function fetchGains(force = false) {
 function onTransactionSaved() {
   fetchTransactions()
   fetchGains(true)
+  dashboard.fetchIncomeProjection().catch(() => {})
 }
 
 function exportGainsCSV() {

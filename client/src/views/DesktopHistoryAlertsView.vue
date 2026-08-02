@@ -116,6 +116,13 @@ async function fetchGains() {
   finally { loadingGains.value = false }
 }
 
+function onTransactionSaved() {
+  fetchTransactions()
+  gainsData.value = null
+  if (activeTab.value === 'gains') fetchGains()
+  dashboard.fetchIncomeProjection().catch(() => {})
+}
+
 function exportGainsCSV() {
   const rows = [['Year', 'Date', 'Ticker', 'Type', 'Shares', 'Avg Cost', 'Proceeds', 'Gross Gain', 'Fees', 'Tax', 'Net Gain']]
   for (const yr of visibleYears.value) {
@@ -410,7 +417,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
 
   </div>
 
-  <EditTransactionModal v-model:visible="showEdit" :transaction="editTx" @saved="fetchTransactions"/>
+  <EditTransactionModal v-model:visible="showEdit" :transaction="editTx" @saved="onTransactionSaved"/>
 </template>
 
 <style scoped>

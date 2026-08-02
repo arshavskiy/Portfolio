@@ -16,12 +16,14 @@ import ImportModal from '@/components/ui/ImportModal.vue'
 import IncomeProjectionChart from '@/components/charts/IncomeProjectionChart.vue'
 import { useIncomeProjection } from '@/composables/useIncomeProjection'
 import { useDesktopFocusStore } from '@/stores/desktopFocus'
+import { useDashboardStore } from '@/stores/dashboard'
 import { usePortfolioStore } from '@/stores/portfolio'
 import { gainLossClass, usePercent } from '@/composables/useFormat'
 import { useI18n } from '@/composables/useI18n'
 import { useNavigateToPosition } from '@/composables/useNavigateToPosition'
 
 const portfolio = usePortfolioStore()
+const dashboard = useDashboardStore()
 const desktopFocus = useDesktopFocusStore()
 const { positions, loading } = storeToRefs(portfolio)
 const { t } = useI18n()
@@ -198,6 +200,14 @@ const rowMenuItems = computed(() => [
 
 async function refreshPortfolio() {
   await portfolio.fetchPortfolio().catch(() => {})
+}
+
+async function refreshAfterRecordSaved() {
+  await Promise.all([
+    refreshPortfolio(),
+    fetchProjection().catch(() => {}),
+    dashboard.fetchIncomeProjection().catch(() => {}),
+  ])
 }
 
 function clearSelection() {
@@ -576,12 +586,15 @@ onMounted(() => {
       :default-ticker="activeAsset?.ticker || ''"
       default-type="buy"
       buy-only
+      @saved="refreshAfterRecordSaved"
     />
     <AddTransactionModal
       v-model:visible="showUpdateModal"
       :default-ticker="activeAsset?.ticker || ''"
+      :default-shares="activeAsset?.shares ?? null"
       default-type="update"
       buy-only
+      @saved="refreshAfterRecordSaved"
     />
     <ImportModal v-model:visible="showImportModal" mode="holdings" />
   </div>

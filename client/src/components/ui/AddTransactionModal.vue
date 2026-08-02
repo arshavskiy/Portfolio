@@ -38,13 +38,14 @@ const props = defineProps({
   defaultTicker: { type: String, default: '' },
   defaultType: {type: String, default: 'buy'},     // 'buy' | 'sell'
   buyOnly: {type: Boolean, default: false},
+  defaultShares: {type: Number, default: null},     // prefill quantity for update records
   defaultPrice: {type: Number, default: null},      // prefill price (e.g. current price for a sell)
   maxShares: {type: Number, default: null},         // cap shares when selling a known position
   avgCost: {type: Number, default: null},           // current position average cost for sell simulation
   totalCost: {type: Number, default: null},         // current position cost basis for sell simulation
   totalBuyFees: {type: Number, default: 0},         // current position buy fees for sell simulation
 })
-const emit = defineEmits(['update:visible', 'hide'])
+const emit = defineEmits(['update:visible', 'hide', 'saved'])
 
 const toast = useToast()
 const portfolio = usePortfolioStore()
@@ -69,6 +70,7 @@ const selectedFeeProfile = ref(undefined)
 const transactionCostQuote = ref(null)
 let transactionCostRequestId = 0
 const loading = ref(false)
+const formResetKey = ref(0)
 const suggestions = ref([])
 const groups = ref([])              // selected group tags (array of strings)
 const groupSuggestions = ref([])    // filtered existing tags for the dropdown
@@ -307,8 +309,9 @@ onMounted(() => { if (!feeStore.profiles.length) feeStore.fetchProfiles() })
 
 watch(() => props.visible, async (v) => {
   if (v) {
+    formResetKey.value += 1
     ticker.value = props.defaultTicker || ''
-    shares.value = null
+    shares.value = props.defaultType === 'update' ? props.defaultShares : null
     price.value = props.defaultPrice ?? null
     date.value = new Date()
     notes.value = ''
@@ -480,6 +483,7 @@ async function submit() {
       life: 2000
     })
     trackEvent('add_transaction', {ticker: submittedTicker, transaction_type: type.value})
+    emit('saved', {ticker: submittedTicker, type: type.value})
     emit('update:visible', false)
     emit('hide')
   } catch (err) {
@@ -560,7 +564,7 @@ async function submit() {
             >Max {{ maxShares }}
             </button>
           </label>
-          <InputNumber v-model="shares" :max="type === 'sell' && maxShares ? maxShares : undefined"
+          <InputNumber :key="`shares-${formResetKey}`" v-model="shares" :max="type === 'sell' && maxShares ? maxShares : undefined"
                        :max-fraction-digits="shareDigits"
                        :min="0" :step="isCryptoBuy ? 0.0001 : 1" fluid placeholder="0"/>
         </div>
@@ -753,7 +757,7 @@ async function submit() {
         <Button
             :label="type === 'buy' ? t('common.buy') : type === 'sell' ? t('common.sell') : 'Update'"
             :loading="loading"
-            :severity="type === 'buy' ? 'success' : type === 'sell' ? 'danger' : 'secondary'"
+            :severity="type === 'sell' ? 'danger' : 'success'"
             class="submit-btn"
             @click="submit"
         />

@@ -10,12 +10,14 @@ import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import PortfolioSummaryPanel from '@/components/ui/PortfolioSummaryPanel.vue'
 import {useI18n} from '@/composables/useI18n'
+import {useDashboardStore} from '@/stores/dashboard'
 
 defineProps({
   embedded: {type: Boolean, default: false},
 })
 
 const {locale, t} = useI18n()
+const dashboard = useDashboardStore()
 
 // ── Tab state ──────────────────────────────────────────────────────────────
 const activeTab = ref('history') // 'history' | 'gains' | 'dividends' | 'summary'
@@ -124,6 +126,7 @@ async function fetchGains(force = false) {
 function onTransactionSaved() {
   fetchTransactions()
   fetchGains(true)
+  dashboard.fetchIncomeProjection().catch(() => {})
 }
 
 function exportGainsCSV() {
@@ -473,7 +476,11 @@ defineExpose({
 
 <style scoped>
 .transactions {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem 0;
+  overflow-x: hidden;
 }
 
 .transactions.embedded {
@@ -491,6 +498,7 @@ defineExpose({
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  min-width: 0;
 }
 
 
@@ -500,6 +508,7 @@ defineExpose({
   gap: 0;
   margin-bottom: 1rem;
   border-bottom: 1px solid var(--border);
+  max-width: 100%;
 }
 
 .tab-btn {
@@ -513,6 +522,7 @@ defineExpose({
   cursor: pointer;
   margin-bottom: -1px;
   transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
 }
 
 .tab-btn.active {
@@ -525,10 +535,12 @@ defineExpose({
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  min-width: 0;
 }
 
 .filter-input {
   flex: 1;
+  min-width: 0;
 }
 
 .filter-select {
@@ -555,6 +567,7 @@ defineExpose({
   gap: 0.5rem;
   cursor: pointer;
   transition: background 0.15s;
+  min-width: 0;
 }
 
 .tx-row:active {
@@ -568,6 +581,7 @@ defineExpose({
 .tx-mid {
   min-width: 0;
   font-size: 0.82rem;
+  overflow-wrap: anywhere;
 }
 
 .tx-right {
@@ -575,11 +589,13 @@ defineExpose({
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  min-width: 0;
 }
 
 .total {
   font-size: 0.88rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .edit-hint {
@@ -656,6 +672,7 @@ defineExpose({
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.15s;
+  min-width: 0;
 }
 
 .gain-row:active {
@@ -685,11 +702,13 @@ defineExpose({
   align-items: flex-end;
   gap: 2px;
   flex-shrink: 0;
+  min-width: 0;
 }
 
 .gross-gain {
   font-size: 0.9rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .net-gain {
@@ -722,6 +741,7 @@ defineExpose({
   color: inherit;
   cursor: pointer;
   text-align: left;
+  min-width: 0;
 }
 
 .div-group-header:active {
@@ -756,5 +776,155 @@ defineExpose({
 .div-chevron {
   font-size: 0.65rem;
   flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .transactions {
+    padding: 1rem 1.25rem calc(1.5rem + var(--safe-bottom, 0px));
+  }
+
+  .transactions:not(.embedded) {
+    padding-top: 1.25rem;
+  }
+
+  .page-header {
+    min-height: 44px;
+    padding-right: 3.35rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .page-header .gradient-title {
+    max-width: 100%;
+    margin: 0;
+    font-size: 1.55rem;
+    line-height: 1.1;
+  }
+
+  .page-header :deep(.p-button) {
+    flex: 0 0 auto;
+  }
+
+  .tab-bar {
+    gap: 0.15rem;
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab-bar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-btn {
+    flex: 0 0 auto;
+    min-width: max-content;
+    padding: 0.6rem 0.85rem 0.7rem;
+    font-size: 0.84rem;
+  }
+
+  .filters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(104px, 0.42fr);
+    gap: 0.45rem;
+  }
+
+  .filter-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .tx-list {
+    margin-inline: -1.25rem;
+  }
+
+  .tx-row {
+    grid-template-columns: minmax(76px, 0.75fr) minmax(92px, 1fr) minmax(76px, auto) 1rem;
+    gap: 0.45rem;
+    padding: 0.7rem 0.45rem 0.7rem 1.25rem;
+  }
+
+  .tx-mid,
+  .tx-date {
+    font-size: 0.76rem;
+  }
+
+  .ticker {
+    font-size: 0.92rem;
+  }
+
+  .tx-right :deep(.p-tag) {
+    font-size: 0.72rem;
+    padding: 0.18rem 0.42rem;
+  }
+
+  .total,
+  .gross-gain {
+    font-size: 0.84rem;
+  }
+
+  .edit-hint {
+    width: 1rem;
+    justify-self: center;
+    font-size: 0.72rem;
+  }
+
+  .year-header {
+    gap: 0.55rem;
+    padding: 0.7rem 0.75rem;
+  }
+
+  .year-totals {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.6rem;
+  }
+
+  .year-stat {
+    align-items: flex-start;
+  }
+
+  .gain-row {
+    display: grid;
+    grid-template-columns: minmax(76px, 0.75fr) minmax(0, 1fr) minmax(74px, auto) 1rem;
+    gap: 0.45rem;
+    padding: 0.65rem 0;
+  }
+
+  .gain-left {
+    flex: initial;
+    min-width: 0;
+  }
+
+  .gain-mid {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .gain-right {
+    align-self: center;
+  }
+
+  .net-gain {
+    font-size: 0.7rem;
+  }
+
+  .div-group-header {
+    gap: 0.5rem;
+    padding: 0.65rem 0;
+  }
+
+  .div-group-total {
+    max-width: 35%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .count {
+    padding-bottom: 0.5rem;
+  }
 }
 </style>

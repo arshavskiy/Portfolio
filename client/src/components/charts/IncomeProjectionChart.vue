@@ -54,6 +54,13 @@ const dataSignature = computed(() =>
 )
 
 const projectedTotal = computed(() => Number(props.totals?.projectedIncome) || 0)
+const displayedProjectedTotal = computed(() => {
+  if (!cumulative.value) return projectedTotal.value
+
+  const lastMonth = chartMonths.value.at(-1)
+  if (!lastMonth) return 0
+  return (lastMonth.realizedGains || 0) + (lastMonth.dividends || 0)
+})
 
 function draw() {
   const svg = d3.select(svgRef.value)
@@ -72,6 +79,8 @@ function draw() {
   const g = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
   const x = d3.scaleBand().domain(months.map((m) => m.key)).range([0, innerW]).padding(0.28)
+  const barWidth = Math.min(x.bandwidth(), W < 768 ? 10 : 25)
+  const barX = (d) => x(d.key) + (x.bandwidth() - barWidth) / 2
 
   // Left axis: stacked income bars — each month's bar is total income, split
   // into realized gains + dividends. Right axis: portfolio value line, a
@@ -121,8 +130,8 @@ function draw() {
   const barFor = (series, color, baseline) => {
     g.selectAll(`rect.bar-${series}`).data(months).enter().append('rect')
         .attr('class', `bar-${series}`)
-        .attr('x', (d) => x(d.key))
-        .attr('width', x.bandwidth())
+        .attr('x', barX)
+        .attr('width', barWidth)
         .attr('y', (d) => {
           const value = d[series] || 0
           const base = baseline(d)
@@ -266,9 +275,9 @@ watch(() => props.loading, async (isLoading) => {
           >{{ t('dashboard.incomeCumulative') }}
           </button>
         </div>
-        <div v-if="projectedTotal" class="income-est">
+        <div v-if="displayedProjectedTotal" class="income-est">
           <span class="income-est-label">{{ t('dashboard.incomeProjectedNext') }}</span>
-          <span class="income-est-value">{{ useCurrency(projectedTotal, 'USD') }}</span>
+          <span class="income-est-value">{{ useCurrency(displayedProjectedTotal, 'USD') }}</span>
         </div>
       </div>
     </header>

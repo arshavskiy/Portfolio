@@ -37,9 +37,6 @@ const PortfolioCompareChart = defineAsyncComponent(
 const MarketsCard = defineAsyncComponent(
   () => import("@/components/charts/MarketsCard.vue"),
 );
-const NewsCard = defineAsyncComponent(
-  () => import("@/components/charts/NewsCard.vue"),
-);
 const WatchlistMoversCard = defineAsyncComponent(
   () => import("@/components/charts/WatchlistMoversCard.vue"),
 );
@@ -290,8 +287,6 @@ onUnmounted(() => {
                 :positions="portfolioPositions"
                 :range="historyRange"
               />
-
-              <NewsCard class="folio-card news-home-card" />
 
               <section
                 v-if="portfolioPositions.length"
@@ -718,7 +713,6 @@ onUnmounted(() => {
   min-height: 220px;
 }
 
-.news-home-card,
 .dividends-home-card {
   margin: 0;
 }
@@ -1074,12 +1068,16 @@ button.records-row:hover {
 :deep(.breakdown-card),
 :deep(.div-calendar-card),
 :deep(.markets-card),
-:deep(.news-card),
 :deep(.income-card),
 :deep(.movers-card) {
   border-radius: 8px;
   background: transparent;
   box-shadow: none;
+}
+
+:deep(.breakdown-card) {
+  background: var(--desktop-panel);
+  box-shadow: var(--desktop-elevated-shadow);
 }
 
 :deep(.compare-card) {
@@ -1089,7 +1087,6 @@ button.records-row:hover {
 
 :deep(.breakdown-card),
 :deep(.div-calendar-card),
-:deep(.news-card),
 :deep(.income-card),
 :deep(.movers-card) {
   margin-bottom: 0;
@@ -1098,10 +1095,6 @@ button.records-row:hover {
 :deep(.markets-card) {
   padding-left: 1rem;
   margin-bottom: 0;
-}
-
-:deep(.news-grid) {
-  grid-template-columns: 1fr;
 }
 
 :deep(.movers-card) {

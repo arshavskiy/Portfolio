@@ -45,14 +45,6 @@ const tabs = computed(() =>
       premium: true,
     },
     {
-      key: "x-ray",
-      to: "/x-ray",
-      icon: "pi pi-shield",
-      label: t("common.xRay"),
-      tourKey: "x-ray",
-      premium: true,
-    },
-    {
       key: "news",
       to: "/news",
       icon: "pi pi-globe",
