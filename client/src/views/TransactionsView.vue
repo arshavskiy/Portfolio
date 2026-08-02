@@ -440,7 +440,7 @@ defineExpose({
 
 <style scoped>
 .transactions {
-  padding: 1rem;
+  padding: 0.5rem 0;
 }
 
 .transactions.embedded {
@@ -449,13 +449,7 @@ defineExpose({
 
 @media (min-width: 768px) {
   .transactions {
-    padding: 1.5rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .transactions {
-    padding: 2rem;
+    padding: 0.5rem 0;
   }
 }
 
@@ -523,7 +517,7 @@ defineExpose({
   display: grid;
   grid-template-columns: minmax(72px, 0.8fr) minmax(86px, 1fr) minmax(68px, auto) 20px;
   align-items: center;
-  padding: 0.75rem 0;
+  padding: 0.45rem 0;
   border-bottom: 1px solid var(--border);
   gap: 0.5rem;
   cursor: pointer;
@@ -573,7 +567,7 @@ defineExpose({
 }
 
 .year-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .year-header {
@@ -625,7 +619,7 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.65rem 0;
+  padding: 0.4rem 0;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: background 0.15s;
@@ -689,7 +683,7 @@ defineExpose({
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.75rem 0;
+  padding: 0.4rem 0;
   background: none;
   border: none;
   color: inherit;

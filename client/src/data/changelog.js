@@ -11,6 +11,7 @@ export const changelog = [
       'New "Update Record" action per asset — directly set quantity and cost basis on a position without creating a buy or sell transaction. Useful for correcting imported data or manually reconciling an account.',
       'Desktop Assets and Watchlist rows can now open the position detail panel from the right without leaving the page.',
       'Fee profiles now keep separate USD and ILS fee schedules under the same broker account.',
+      'Desktop account and asset table polish: compact account summary, mixed-currency account value in ILS, and clickable asset rows.',
     ],
   },
   {

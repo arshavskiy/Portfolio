@@ -13,12 +13,14 @@ import api from '@/composables/useApi'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
+import { useDesktopFocusStore } from '@/stores/desktopFocus'
 import { usePortfolioStore } from '@/stores/portfolio'
 import { gainLossClass, usePercent } from '@/composables/useFormat'
 import { useI18n } from '@/composables/useI18n'
 import { useNavigateToPosition } from '@/composables/useNavigateToPosition'
 
 const portfolio = usePortfolioStore()
+const desktopFocus = useDesktopFocusStore()
 const { positions, loading } = storeToRefs(portfolio)
 const { t } = useI18n()
 const { openPosition } = useNavigateToPosition()
@@ -265,6 +267,12 @@ function openAsset(asset) {
   openPosition(asset.ticker, asset.companyName || '')
 }
 
+function openAssetRow(event) {
+  const target = event?.originalEvent?.target
+  if (target?.closest?.('button, a, input, .p-checkbox, .p-button, [role="button"]')) return
+  openAsset(event?.data)
+}
+
 function openAssetTransaction(asset) {
   activeAsset.value = asset || null
   showTxModal.value = true
@@ -281,6 +289,8 @@ function openRowMenu(event, asset) {
 }
 
 onMounted(() => {
+  desktopFocus.clear()
+
   if (!positions.value.length && !loading.value) {
     portfolio.fetchPortfolio().catch(() => {})
   }
@@ -345,6 +355,7 @@ onMounted(() => {
           stripedRows
           class="assets-table"
           tableStyle="width:max-content;min-width:100%"
+          @row-click="openAssetRow"
         >
           <template #groupheader="{ data }">
             <div
@@ -496,7 +507,7 @@ onMounted(() => {
                 text
                 type="button"
                 class="row-menu-btn"
-                @click="openRowMenu($event, data)"
+                @click.stop="openRowMenu($event, data)"
               />
             </template>
           </Column>
@@ -878,6 +889,10 @@ onMounted(() => {
   white-space: nowrap;
   height: 2.15rem;
   border-bottom: 0;
+}
+
+.assets-table :deep(.p-datatable-tbody > tr:not(.p-datatable-row-group-header):not(.p-rowgroup-header)) {
+  cursor: pointer;
 }
 
 .assets-table :deep(.p-datatable-tbody > tr.p-datatable-row-striped > td),

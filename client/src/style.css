@@ -445,3 +445,10 @@ h2.gradient-h2 {
 :root.light .chart-selection-help {
   animation: chart-help-pulse-light 1.8s ease-in-out infinite;
 }
+
+@media (min-width: 1280px) {
+  .home-main,
+  .assets-page {
+    padding-top: 2rem;
+  }
+}

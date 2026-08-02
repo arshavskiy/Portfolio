@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useStorage } from "@vueuse/core";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -10,6 +10,7 @@ import ToggleSwitch from "primevue/toggleswitch";
 import { useDesktopFocusStore } from "@/stores/desktopFocus";
 import { useAuthStore } from "@/stores/auth";
 import { useAiChatStore } from "@/stores/aiChat";
+import { usePortfolioStore } from "@/stores/portfolio";
 import { trackEvent } from "@/composables/useAnalytics";
 import { useI18n } from "@/composables/useI18n";
 import PositionDetailView from "@/views/PositionDetailView.vue";
@@ -25,6 +26,7 @@ const emit = defineEmits(["open-account"]);
 const route = useRoute();
 const focus = useDesktopFocusStore();
 const auth = useAuthStore();
+const portfolio = usePortfolioStore();
 const { t } = useI18n();
 const router = useRouter();
 const aiChat = useAiChatStore();
@@ -106,8 +108,42 @@ const detailPanelOpen = computed(
 const accountLabel = computed(
   () => auth.user?.name || auth.user?.email || t("common.account"),
 );
+const accountFirstName = computed(() =>
+  (
+    accountLabel.value.trim().split(/\s+/)[0] || accountLabel.value
+  ).toLowerCase(),
+);
 const accountInitial = computed(() =>
   (accountLabel.value || "A").trim().charAt(0).toUpperCase(),
+);
+const accountNetWorth = computed(() => {
+  const currencies = portfolio.totals
+    .map((total) => total?.currency)
+    .filter(Boolean);
+  const uniqueCurrencies = [...new Set(currencies)];
+  const combined = portfolio.combinedUsd;
+  const isMixed = uniqueCurrencies.length > 1;
+  let currency = "USD";
+  let value = Number(combined?.value ?? 0);
+
+  if (isMixed && combined?.ilsToUsd > 0) {
+    currency = "ILS";
+    value = Number(combined.value) / Number(combined.ilsToUsd);
+  } else if (uniqueCurrencies.length === 1) {
+    currency = uniqueCurrencies[0];
+    value = Number(portfolio.totals.find((total) => total.currency === currency)?.value ?? value);
+  }
+
+  const amount = Number.isFinite(value)
+    ? new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(value)
+    : "0.00";
+  return `${currency} ${amount}`;
+});
+const accountTypeLabel = computed(() =>
+  t(`account.userTypes.${auth.userType}`),
 );
 
 const dashboardNavItems = computed(() =>
@@ -241,6 +277,12 @@ watch(
     if (ticker) detailPanelCollapsed.value = false;
   },
 );
+
+onMounted(() => {
+  if (!portfolio.positions.length && !portfolio.loading) {
+    portfolio.fetchPortfolio().catch(() => {});
+  }
+});
 </script>
 
 <template>
@@ -259,8 +301,9 @@ watch(
             <i v-else class="pi pi-user" />
           </span>
           <span v-if="!menuCollapsed" class="account-copy">
-            <strong>{{ accountLabel }}</strong>
-            <small>{{ t("common.account") }}</small>
+            <strong>{{ accountFirstName }}</strong>
+            <small class="account-worth">{{ accountNetWorth }}</small>
+            <small class="account-type">{{ accountTypeLabel }}</small>
           </span>
         </button>
       </div>
@@ -587,7 +630,7 @@ watch(
   align-items: center;
   gap: 0.7rem;
   width: 100%;
-  min-height: 42px;
+  min-height: 48px;
   padding: 0.35rem 0.6rem;
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -619,13 +662,13 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 50px;
+  height: 50px;
   flex-shrink: 0;
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 15%, var(--bg-secondary));
   color: var(--accent);
-  font-size: 0.8rem;
+  font-size: 1rem;
   font-weight: 800;
 }
 
@@ -637,7 +680,7 @@ watch(
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: 0.06rem;
+  gap: 0.02rem;
 }
 
 .account-copy strong,
@@ -651,12 +694,39 @@ watch(
 .account-copy strong {
   font-size: 0.83rem;
   font-weight: 700;
+  line-height: 1.1;
 }
 
 .account-copy small {
   color: var(--text-secondary);
   font-size: 0.69rem;
   font-weight: 600;
+  line-height: 1.1;
+}
+
+.account-copy .account-worth {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.account-copy .account-type {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 0.08rem;
+  padding: 0.08rem 0.36rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: var(--text-secondary);
+  font-size: 0.64rem;
+  line-height: 1;
 }
 
 .sidebar-nav {
@@ -901,14 +971,13 @@ watch(
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
-  padding: 1.35rem 1.5rem 2rem;
+  padding: 0.75rem 1.5rem 2rem;
 }
 
 .page-inner {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
-  margin-top: 2rem;
 }
 
 .panel-layout.detail-open .page-inner {
@@ -1014,8 +1083,8 @@ watch(
   );
   overflow: hidden;
   border-left: 1px solid var(--desktop-border);
-  min-width: 320px;
-  max-width: 25vw;
+  min-width: 450px;
+  max-width: 20vw;
   transition:
     min-width 0.22s ease,
     max-width 0.22s ease,
