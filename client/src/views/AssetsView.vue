@@ -689,7 +689,6 @@ onMounted(() => {
       :default-ticker="activeAsset?.ticker || ''"
       :default-shares="activeAsset?.shares ?? null"
       default-type="update"
-      buy-only
       @saved="refreshAfterRecordSaved"
     />
     <ImportModal v-model:visible="showImportModal" mode="holdings" />
