@@ -17,6 +17,7 @@ import IncomeProjectionChart from '@/components/charts/IncomeProjectionChart.vue
 import { useIncomeProjection } from '@/composables/useIncomeProjection'
 import { useDesktopFocusStore } from '@/stores/desktopFocus'
 import { useDashboardStore } from '@/stores/dashboard'
+import { useAuthStore } from '@/stores/auth'
 import { usePortfolioStore } from '@/stores/portfolio'
 import { gainLossClass, usePercent } from '@/composables/useFormat'
 import { useI18n } from '@/composables/useI18n'
@@ -24,6 +25,7 @@ import { useNavigateToPosition } from '@/composables/useNavigateToPosition'
 
 const portfolio = usePortfolioStore()
 const dashboard = useDashboardStore()
+const auth = useAuthStore()
 const desktopFocus = useDesktopFocusStore()
 const { positions, loading } = storeToRefs(portfolio)
 const { t } = useI18n()
@@ -146,6 +148,15 @@ const groupCounts = computed(() =>
   }, {}),
 )
 
+const assetGroups = computed(() =>
+  groupOrder
+    .map((assetClass) => ({
+      assetClass,
+      assets: assets.value.filter((asset) => asset.assetClass === assetClass),
+    }))
+    .filter((group) => group.assets.length),
+)
+
 const selectedCount = computed(() => selectedAssets.value.length)
 const selectedAssetIds = computed(() => new Set(selectedAssets.value.map((asset) => asset._id)))
 
@@ -205,8 +216,8 @@ async function refreshPortfolio() {
 async function refreshAfterRecordSaved() {
   await Promise.all([
     refreshPortfolio(),
-    fetchProjection().catch(() => {}),
-    dashboard.fetchIncomeProjection().catch(() => {}),
+    auth.canUsePremiumFeatures ? fetchProjection().catch(() => {}) : Promise.resolve(),
+    auth.canUsePremiumFeatures ? dashboard.fetchIncomeProjection().catch(() => {}) : Promise.resolve(),
   ])
 }
 
@@ -226,6 +237,12 @@ function isGroupSelected(assetClass) {
 function isGroupPartiallySelected(assetClass) {
   const groupAssets = assetsForGroup(assetClass)
   return groupAssets.some((asset) => selectedAssetIds.value.has(asset._id)) && !isGroupSelected(assetClass)
+}
+
+function toggleAssetSelection(asset, checked = !selectedAssetIds.value.has(asset._id)) {
+  selectedAssets.value = checked
+    ? [...selectedAssets.value.filter((item) => item._id !== asset._id), asset]
+    : selectedAssets.value.filter((item) => item._id !== asset._id)
 }
 
 function toggleGroupSelection(assetClass, checked = !isGroupSelected(assetClass)) {
@@ -313,7 +330,7 @@ onMounted(() => {
     portfolio.fetchPortfolio().catch(() => {})
   }
 
-  fetchProjection().catch(() => {})
+  if (auth.canUsePremiumFeatures) fetchProjection().catch(() => {})
 })
 </script>
 
@@ -345,7 +362,7 @@ onMounted(() => {
     </header>
 
     <IncomeProjectionChart
-      v-if="assets.length"
+      v-if="assets.length && auth.canUsePremiumFeatures"
       class="assets-income-card"
       :data="incomeMonths"
       :loading="incomeLoading"
@@ -369,6 +386,85 @@ onMounted(() => {
       </div>
 
       <template v-else>
+        <div class="assets-mobile-list">
+          <section v-for="group in assetGroups" :key="group.assetClass" class="mobile-asset-group">
+            <div class="mobile-asset-group-head">
+              <button
+                class="mobile-group-select"
+                type="button"
+                @click="toggleGroupSelection(group.assetClass)"
+              >
+                <Checkbox
+                  :binary="true"
+                  :indeterminate="isGroupPartiallySelected(group.assetClass)"
+                  :model-value="isGroupSelected(group.assetClass)"
+                  @click.stop
+                  @update:modelValue="toggleGroupSelection(group.assetClass, $event)"
+                />
+                <span>{{ group.assetClass }}</span>
+              </button>
+              <Tag :value="group.assets.length" severity="secondary" />
+            </div>
+
+            <article
+              v-for="asset in group.assets"
+              :key="asset._id"
+              class="mobile-asset-card"
+              :class="{ selected: selectedAssetIds.has(asset._id) }"
+              @click="openAsset(asset)"
+            >
+              <div class="mobile-asset-main">
+                <Checkbox
+                  :binary="true"
+                  :model-value="selectedAssetIds.has(asset._id)"
+                  @click.stop
+                  @update:modelValue="toggleAssetSelection(asset, $event)"
+                />
+                <div class="mobile-asset-name">
+                  <strong>{{ displayAssetTicker(asset) }}</strong>
+                  <span>{{ displayAssetSubtitle(asset) }}</span>
+                </div>
+                <Tag :value="asset.currency" />
+                <Button
+                  icon="pi pi-ellipsis-v"
+                  severity="secondary"
+                  text
+                  type="button"
+                  class="row-menu-btn"
+                  @click.stop="openRowMenu($event, asset)"
+                />
+              </div>
+
+              <div class="mobile-asset-values">
+                <div>
+                  <span>Quantity</span>
+                  <strong>{{ formatNumber(asset.shares, 0) }}</strong>
+                </div>
+                <div>
+                  <span>Unit</span>
+                  <strong>{{ formatPrice(asset.currentPrice) }}</strong>
+                </div>
+                <div>
+                  <span>Cost</span>
+                  <strong>{{ formatPrice(asset.avgCost) }}</strong>
+                </div>
+                <div>
+                  <span>Total</span>
+                  <strong>{{ formatPrice(asset.value) }}</strong>
+                </div>
+                <div>
+                  <span>P/L</span>
+                  <strong :class="assetGainLossClass(asset.pnl)">{{ formatSignedNumber(asset.pnl) }}</strong>
+                </div>
+                <div>
+                  <span>P/L %</span>
+                  <strong :class="assetGainLossClass(asset.pnlPercent)">{{ usePercent(asset.pnlPercent) }}</strong>
+                </div>
+              </div>
+            </article>
+          </section>
+        </div>
+
         <DataTable
           v-model:selection="selectedAssets"
           :value="assets"
@@ -805,6 +901,10 @@ onMounted(() => {
   gap: 1rem;
 }
 
+.assets-mobile-list {
+  display: none;
+}
+
 .assets-income-card {
   margin-bottom: 1rem;
 }
@@ -1040,5 +1140,162 @@ onMounted(() => {
   color: var(--text-secondary);
   font-size: 0.9rem;
   padding: 0 0.25rem;
+}
+
+.mobile-asset-group,
+.mobile-asset-card,
+.mobile-asset-main,
+.mobile-asset-values {
+  min-width: 0;
+}
+
+.mobile-asset-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.mobile-asset-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.1rem;
+}
+
+.mobile-group-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mobile-asset-card {
+  border: 1px solid var(--border);
+  border-radius: 0.55rem;
+  background: var(--bg-card);
+  padding: 0.7rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.mobile-asset-card.selected {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg-card));
+}
+
+.mobile-asset-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.mobile-asset-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mobile-asset-name strong,
+.mobile-asset-name span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-asset-name strong {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.mobile-asset-name span {
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.mobile-asset-values {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--border);
+}
+
+.mobile-asset-values div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.mobile-asset-values span {
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+}
+
+.mobile-asset-values strong {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .assets-page {
+    gap: 0.85rem;
+    padding: 1rem 1rem calc(1rem + var(--safe-bottom, 0px));
+  }
+
+  .assets-header {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .assets-heading h1 {
+    font-size: 1.55rem;
+  }
+
+  .assets-toolbar,
+  .assets-search {
+    width: 100%;
+  }
+
+  .assets-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .assets-table {
+    display: none;
+  }
+
+  .assets-selection-bar {
+    position: sticky;
+    bottom: calc(var(--nav-height, 75px) + var(--safe-bottom, 0px) + 0.5rem);
+    z-index: 20;
+    margin: 0;
+    border-radius: 0.6rem;
+    background: var(--bg-card);
+  }
+
+  .assets-selection-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .assets-selection-actions :deep(.p-button-label) {
+    display: none;
+  }
 }
 </style>

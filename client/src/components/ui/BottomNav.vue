@@ -30,6 +30,14 @@ const tabs = computed(() =>
       label: t("common.watchlist"),
       tourKey: "watchlist",
     },
+    // {
+    //   key: "assets",
+    //   to: "/assets",
+    //   icon: "pi pi-briefcase",
+    //   label: t("nav.assets"),
+    //   tourKey: "assets",
+    //   premium: true,
+    // },
     {
       key: "records",
       to: "/records",

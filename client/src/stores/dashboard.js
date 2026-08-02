@@ -7,6 +7,7 @@ import {groupItems} from '@/composables/useGrouping'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {useHistoryStore} from '@/stores/history'
 import {useMarketDataStore} from '@/stores/marketData'
+import {useAuthStore} from '@/stores/auth'
 
 // The dashboard always shows "today" — its watchlist-derived data (movers,
 // breakdown %, sparklines) is intentionally NOT tied to the shared
@@ -23,6 +24,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const portfolio = usePortfolioStore()
   const historyStore = useHistoryStore()
   const marketDataStore = useMarketDataStore()
+  const auth = useAuthStore()
 
   const groupMode = useStorage('dashboard-group-mode', 'sector')
   const historyRange = useStorage('dashboard-history-range', '1mo')
@@ -108,6 +110,12 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   async function fetchIncomeProjection() {
+    if (!auth.canUsePremiumFeatures) {
+      incomeMonths.value = []
+      incomeTotals.value = {trailingIncome: 0, projectedIncome: 0}
+      incomeLoading.value = false
+      return
+    }
     incomeLoading.value = true
     try {
       const data = await api.get('/portfolio/income-projection')
@@ -163,7 +171,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       marketDataStore.fetchTrending('US').catch(() => {}),
       fetchSparklines(),
       fetchHistory(),
-      fetchIncomeProjection(),
+      auth.canUsePremiumFeatures ? fetchIncomeProjection() : Promise.resolve(),
     ]).catch(() => {})
   }
 

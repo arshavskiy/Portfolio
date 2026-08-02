@@ -193,6 +193,7 @@ onUnmounted(() => {
 
     <!-- Monthly income: realized gains + dividends, 6 actual then 6 estimated -->
     <IncomeProjectionChart
+        v-if="auth.canUsePremiumFeatures"
         :data="incomeMonths"
         :loading="incomeLoading"
         :totals="incomeTotals"

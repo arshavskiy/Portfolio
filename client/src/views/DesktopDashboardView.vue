@@ -275,6 +275,7 @@ onUnmounted(() => {
               </article>
 
               <IncomeProjectionChart
+                v-if="auth.canUsePremiumFeatures"
                 class="folio-card income-home-card"
                 :data="incomeMonths"
                 :hide-loading="true"
