@@ -6,6 +6,12 @@ const feeRuleSchema = new mongoose.Schema({
   minFee: { type: Number, default: 0 },
 }, { _id: false })
 
+const feeScheduleSchema = new mongoose.Schema({
+  buyFee: { type: feeRuleSchema, default: () => ({ type: 'percent', value: 0, minFee: 0 }) },
+  sellFee: { type: feeRuleSchema, default: () => ({ type: 'percent', value: 0, minFee: 0 }) },
+  capitalGainsTax: { type: Number, default: 0 },
+}, { _id: false, minimize: false })
+
 const feeProfileSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -16,6 +22,10 @@ const feeProfileSchema = new mongoose.Schema(
     sellFee: { type: feeRuleSchema, default: () => ({ type: 'percent', value: 0, minFee: 0 }) },
 
     capitalGainsTax: { type: Number, default: 0 },         // % e.g. 25
+    feesByCurrency: {
+      USD: { type: feeScheduleSchema, default: undefined },
+      ILS: { type: feeScheduleSchema, default: undefined },
+    },
     isDefault: { type: Boolean, default: false },
   },
   { timestamps: true }

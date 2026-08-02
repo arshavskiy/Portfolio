@@ -19,6 +19,7 @@ import AddWatchlistModal from "@/components/ui/AddWatchlistModal.vue";
 import AddTransactionModal from "@/components/ui/AddTransactionModal.vue";
 import ImportModal from "@/components/ui/ImportModal.vue";
 import WatchRow from "@/components/ui/WatchRow.vue";
+import WatchRowDesktop from "@/components/ui/WatchRowDesktop.vue";
 import WatchlistSearch from "@/components/ui/WatchlistSearch.vue";
 import RangeBar from "@/components/ui/RangeBar.vue";
 import GroupModeBar from "@/components/ui/GroupModeBar.vue";
@@ -95,6 +96,7 @@ const searchQuery = ref("");
 const heldOnly = useStorage("watchlist-held-only", false);
 const now = ref(new Date());
 const rangeLoading = ref(false);
+const autoOpenedFirstDesktopItem = ref(false);
 let marketTimer = null;
 let rangeRequestId = 0;
 const WATCHLIST_SCROLL_KEY = "watchlist-scroll-top";
@@ -349,11 +351,21 @@ function openStock(item) {
   router.push(`/position/${encodeURIComponent(item.ticker)}`);
 }
 
+function openFirstDesktopWatchlistItem() {
+  if (!isDesktop.value || autoOpenedFirstDesktopItem.value || desktopFocus.ticker)
+    return;
+  const firstItem = visibleOrderedItems.value[0];
+  if (!firstItem?.ticker) return;
+  autoOpenedFirstDesktopItem.value = true;
+  desktopFocus.focus(firstItem.ticker, firstItem.companyName);
+}
+
 onMounted(() => {
   alerts.fetchAlerts();
   if (!portfolio.positions.length && !portfolio.loading)
     portfolio.fetchPortfolio().catch(() => {});
   watchlist.fetchWatchlist(range.value).finally(() => {
+    openFirstDesktopWatchlistItem();
     restoreScrollPosition().catch(() => {});
     maybeStartWatchlistPhase();
   });
@@ -377,9 +389,16 @@ watch(range, async (r) => {
 watch(
   () => watchlist.loading,
   (loading) => {
-    if (!loading && watchlist.items.length)
+    if (!loading && watchlist.items.length) {
+      openFirstDesktopWatchlistItem();
       restoreScrollPosition().catch(() => {});
+    }
   },
+);
+watch(
+  () => [isDesktop.value, visibleOrderedItems.value[0]?.ticker],
+  () => openFirstDesktopWatchlistItem(),
+  { flush: "post" },
 );
 
 onUnmounted(() => {
@@ -527,7 +546,20 @@ function groupLabel(group) {
           <div v-if="section.group" class="market-header">
             {{ groupLabel(section.group) }}
           </div>
+          <WatchRowDesktop
+            v-if="isDesktop"
+            v-for="(item, iIdx) in section.items"
+            :key="`${section.group ?? ''}-${item._id}`"
+            :data-tour="sIdx === 0 && iIdx === 0 ? 'wl-row' : null"
+            :data-watchlist-ticker="item.ticker"
+            :group-mode="groupMode"
+            :highlight-held="item.isHeld"
+            :item="item"
+            @edit-groups="openGroups"
+            @open-stock="openStock"
+          />
           <WatchRow
+            v-else
             v-for="(item, iIdx) in section.items"
             :key="`${section.group ?? ''}-${item._id}`"
             :data-tour="sIdx === 0 && iIdx === 0 ? 'wl-row' : null"
@@ -619,6 +651,7 @@ header {
   min-width: 0;
 }
 
+
 .count-badge {
   -webkit-text-fill-color: var(--text-secondary);
   color: var(--text-secondary);
@@ -694,6 +727,7 @@ header {
   display: flex;
   flex-direction: column;
 }
+
 
 .watch-list-shell {
   flex: 1;

@@ -523,9 +523,9 @@ onUnmounted(() => {
 
 .home-hero h1 {
   margin: 0;
-  font-size: 1.55rem;
+  font-size: 1.5rem;
   line-height: 1.15;
-  font-weight: 750;
+  font-weight: 400;
   letter-spacing: 0;
 }
 

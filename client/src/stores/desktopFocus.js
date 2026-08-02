@@ -10,5 +10,10 @@ export const useDesktopFocusStore = defineStore('desktopFocus', () => {
     companyName.value = name
   }
 
-  return {ticker, companyName, focus}
+  function clear() {
+    ticker.value = null
+    companyName.value = ''
+  }
+
+  return {ticker, companyName, focus, clear}
 })

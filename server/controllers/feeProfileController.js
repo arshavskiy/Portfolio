@@ -25,9 +25,72 @@ function tickerCurrency(ticker) {
 
 exports.tickerCurrency = tickerCurrency
 
+function normalizeCurrencyCode(currency) {
+  return currency === 'ILS' ? 'ILS' : 'USD'
+}
+
+function normalizeFeeRule(rule) {
+  if (!rule) return { type: 'percent', value: 0, minFee: 0 }
+  return {
+    type: rule.type || 'percent',
+    value: Number(rule.value) || 0,
+    minFee: Number(rule.minFee) || 0,
+  }
+}
+
+function normalizeFeeSchedule(schedule, fallback = null) {
+  const source = schedule || fallback || {}
+  const sharedFee = source.tradingFee || source.buyFee || source.sellFee
+  return {
+    buyFee: normalizeFeeRule(source.buyFee || sharedFee),
+    sellFee: normalizeFeeRule(source.sellFee || sharedFee),
+    capitalGainsTax: Number(source.capitalGainsTax) || 0,
+  }
+}
+
+function profileScheduleForCurrency(profile, transactionCurrency) {
+  const currency = normalizeCurrencyCode(transactionCurrency)
+  const nested = profile?.feesByCurrency?.[currency]
+  if (nested) return normalizeFeeSchedule(nested)
+
+  const profileCurrency = normalizeCurrencyCode(profile?.currency || 'USD')
+  if (profileCurrency === currency) {
+    return normalizeFeeSchedule({
+      buyFee: profile.buyFee,
+      sellFee: profile.sellFee,
+      capitalGainsTax: profile.capitalGainsTax,
+    })
+  }
+
+  return null
+}
+
+function profileSupportsCurrency(profile, transactionCurrency) {
+  return Boolean(profileScheduleForCurrency(profile, transactionCurrency))
+}
+
+function normalizeFeesByCurrency(input, fallbackCurrency, existing = {}) {
+  const schedules = {}
+  const currencies = ['USD', 'ILS']
+  for (const code of currencies) {
+    if (input?.[code]) {
+      schedules[code] = normalizeFeeSchedule(input[code])
+    } else if (existing?.[code]) {
+      schedules[code] = normalizeFeeSchedule(existing[code])
+    }
+  }
+
+  const primaryCurrency = normalizeCurrencyCode(fallbackCurrency || 'USD')
+  if (!schedules[primaryCurrency]) {
+    schedules[primaryCurrency] = normalizeFeeSchedule(input?.[primaryCurrency], existing?.[primaryCurrency])
+  }
+
+  return schedules
+}
+
 function feeCurrencyForTransaction(profile, transactionCurrency) {
-  if (transactionCurrency === 'ILS') return 'ILS'
-  return profile?.currency || transactionCurrency
+  const currency = normalizeCurrencyCode(transactionCurrency)
+  return profileSupportsCurrency(profile, currency) ? currency : normalizeCurrencyCode(profile?.currency || currency)
 }
 
 exports.feeCurrencyForTransaction = feeCurrencyForTransaction
@@ -43,17 +106,10 @@ async function convertFeeToTransactionCurrency(amount, feeCurrency, transactionC
 exports.convertFeeToTransactionCurrency = convertFeeToTransactionCurrency
 
 async function findDefaultFeeProfile(userId, transactionCurrency) {
-  async function preferredProfile(currency) {
-    const profiles = await FeeProfile.find({ user: userId, currency }).sort({ isDefault: -1, createdAt: 1 })
-    return profiles.find((p) => p.isDefault) || (profiles.length === 1 ? profiles[0] : null)
-  }
-
-  const exact = await preferredProfile(transactionCurrency)
-  if (exact) return exact
-  if (transactionCurrency === 'USD') {
-    return preferredProfile('ILS')
-  }
-  return null
+  const currency = normalizeCurrencyCode(transactionCurrency)
+  const profiles = await FeeProfile.find({ user: userId }).sort({ isDefault: -1, createdAt: 1 })
+  const matching = profiles.filter((profile) => profileSupportsCurrency(profile, currency))
+  return matching.find((p) => p.isDefault) || (matching.length === 1 ? matching[0] : null)
 }
 
 exports.findDefaultFeeProfile = findDefaultFeeProfile
@@ -81,17 +137,24 @@ exports.getProfiles = async (req, res) => {
 
 exports.createProfile = async (req, res) => {
   try {
-    const { name, country, currency, buyFee, sellFee, capitalGainsTax, isDefault } = req.body
+    const { name, country, currency, buyFee, sellFee, capitalGainsTax, feesByCurrency, isDefault } = req.body
     if (!name) return res.status(400).json({ message: 'name required' })
     const profileCurrency = currency || 'USD'
+    const storedSchedules = normalizeFeesByCurrency(feesByCurrency, profileCurrency)
+    const activeSchedule = normalizeFeeSchedule(
+      storedSchedules[normalizeCurrencyCode(profileCurrency)],
+      { buyFee, sellFee, capitalGainsTax }
+    )
+    storedSchedules[normalizeCurrencyCode(profileCurrency)] = activeSchedule
     if (isDefault) {
       await FeeProfile.updateMany({ user: req.user._id, currency: profileCurrency }, { isDefault: false })
     }
     const profile = await FeeProfile.create({
       user: req.user._id, name, country, currency: profileCurrency,
-      buyFee: buyFee || { type: 'percent', value: 0, minFee: 0 },
-      sellFee: sellFee || { type: 'percent', value: 0, minFee: 0 },
-      capitalGainsTax: capitalGainsTax || 0,
+      buyFee: activeSchedule.buyFee,
+      sellFee: activeSchedule.sellFee,
+      capitalGainsTax: activeSchedule.capitalGainsTax,
+      feesByCurrency: storedSchedules,
       isDefault: !!isDefault,
     })
     res.status(201).json(profile)
@@ -104,15 +167,38 @@ exports.updateProfile = async (req, res) => {
   try {
     const profile = await FeeProfile.findOne({ _id: req.params.id, user: req.user._id })
     if (!profile) return res.status(404).json({ message: 'Not found' })
-    const { name, country, currency, buyFee, sellFee, capitalGainsTax, isDefault } = req.body
+    const { name, country, currency, buyFee, sellFee, capitalGainsTax, feesByCurrency, isDefault } = req.body
     const profileCurrency = currency || 'USD'
+    const storedSchedules = normalizeFeesByCurrency(
+      feesByCurrency,
+      profileCurrency,
+      profile.feesByCurrency || {}
+    )
+    const activeSchedule = normalizeFeeSchedule(
+      storedSchedules[normalizeCurrencyCode(profileCurrency)],
+      {
+        buyFee: buyFee || profile.buyFee,
+        sellFee: sellFee || profile.sellFee,
+        capitalGainsTax: capitalGainsTax ?? profile.capitalGainsTax,
+      }
+    )
+    storedSchedules[normalizeCurrencyCode(profileCurrency)] = activeSchedule
     if (isDefault) {
       await FeeProfile.updateMany(
         { user: req.user._id, currency: profileCurrency, _id: { $ne: profile._id } },
         { isDefault: false }
       )
     }
-    Object.assign(profile, { name, country, currency: profileCurrency, buyFee, sellFee, capitalGainsTax, isDefault: !!isDefault })
+    Object.assign(profile, {
+      name,
+      country,
+      currency: profileCurrency,
+      buyFee: activeSchedule.buyFee,
+      sellFee: activeSchedule.sellFee,
+      capitalGainsTax: activeSchedule.capitalGainsTax,
+      feesByCurrency: storedSchedules,
+      isDefault: !!isDefault,
+    })
     await profile.save()
     res.json(profile)
   } catch (err) {
@@ -143,17 +229,19 @@ function calcFee(rule, total, shares = 0) {
 }
 
 // avgCost required for sell tax calculation
-exports.computeTransactionCosts = (profile, txType, total, shares, price, avgCost) => {
+exports.computeTransactionCosts = (profile, txType, total, shares, price, avgCost, transactionCurrency = null) => {
   if (!profile) return { feeAmount: 0, taxAmount: 0 }
 
-  const feeRule = txType === 'buy' ? profile.buyFee : profile.sellFee
+  const schedule = profileScheduleForCurrency(profile, transactionCurrency || profile.currency || 'USD') ||
+    normalizeFeeSchedule({ buyFee: profile.buyFee, sellFee: profile.sellFee, capitalGainsTax: profile.capitalGainsTax })
+  const feeRule = txType === 'buy' ? schedule.buyFee : schedule.sellFee
   const feeAmount = calcFee(feeRule, total, shares)
 
   let taxAmount = 0
-  if (txType === 'sell' && profile.capitalGainsTax > 0 && avgCost != null) {
+  if (txType === 'sell' && schedule.capitalGainsTax > 0 && avgCost != null) {
     const gain = (price - avgCost) * shares
     if (gain > 0) {
-      taxAmount = Math.round((gain * profile.capitalGainsTax) / 100 * 100) / 100
+      taxAmount = Math.round((gain * schedule.capitalGainsTax) / 100 * 100) / 100
     }
   }
 
@@ -196,7 +284,8 @@ exports.simulateTransactionCosts = async (req, res) => {
       total,
       shares,
       price,
-      Number.isFinite(avgCost) ? avgCost : null
+      Number.isFinite(avgCost) ? avgCost : null,
+      transactionCurrency
     )
     const feeCurrency = feeCurrencyForTransaction(profile, transactionCurrency)
     const feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)

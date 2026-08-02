@@ -322,7 +322,7 @@ const netMarginTitle = computed(() => {
           }}
         </span>
         <span
-          v-if="groupMode === 'dividend' && hasDividendSupport"
+          v-if="hasDividendSupport"
           :data-tour="exposeTourAnchors ? 'wl-row-dividend' : null"
           :title="dividendTitle"
           class="dividend-badge"
@@ -331,7 +331,7 @@ const netMarginTitle = computed(() => {
           {{ dividendBadgeText }}
         </span>
         <span
-          v-if="groupMode === 'insider' && insiderNet != null"
+          v-if="insiderNet != null"
           :class="insiderNet > 0 ? 'insider-buy' : 'insider-sell'"
           :title="insiderTitle"
           class="insider-badge"
@@ -340,7 +340,7 @@ const netMarginTitle = computed(() => {
           {{ insiderBadgeText }}
         </span>
         <span
-          v-if="groupMode === 'insider' && netMargin != null"
+          v-if="netMargin != null"
           :class="netMargin > 0 ? 'margin-positive' : 'margin-negative'"
           :title="netMarginTitle"
           class="fundamentals-badge"
@@ -391,7 +391,6 @@ const netMarginTitle = computed(() => {
           >{{ useTickerCurrency(activeExtended.price, item.ticker) }}</span
         >
         <span v-if="activeExtended.percent != null" class="ext-bottom">
-          <!--          <i class="pi pi-sun ext-icon"/>-->
           <span
             :class="
               activeExtended.percent >= 0 ? 'extended-gain' : 'extended-loss'
@@ -401,17 +400,16 @@ const netMarginTitle = computed(() => {
           >
         </span>
       </div>
+      <span v-if="isStaleQuote" class="badge badge-stale">{{
+        t("watchlist.noTrade")
+      }}</span>
       <span class="price-line">
         <span
           :data-tour="exposeTourAnchors ? 'wl-row-price' : null"
           class="price"
           >{{ useTickerCurrency(item.price, item.ticker) }}</span
         >
-        <!--        <span v-if="marketDot" :class="marketDot.cls" :title="marketDot.title" class="market-dot"/>-->
       </span>
-      <span v-if="isStaleQuote" class="badge badge-stale">{{
-        t("watchlist.noTrade")
-      }}</span>
       <span
         :data-tour="exposeTourAnchors ? 'wl-row-change' : null"
         :class="(rangeChangePercent ?? 0) >= 0 ? 'badge-gain' : 'badge-loss'"

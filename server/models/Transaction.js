@@ -4,7 +4,7 @@ const transactionSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     ticker: { type: String, required: true, uppercase: true },
-      type: {type: String, enum: ['buy', 'sell', 'dividend'], required: true},
+      type: {type: String, enum: ['buy', 'sell', 'dividend', 'update'], required: true},
     shares: { type: Number, required: true, min: 0 },
     price: { type: Number, required: true, min: 0 },
     total: { type: Number, required: true },

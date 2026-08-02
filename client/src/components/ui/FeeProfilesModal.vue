@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref} from 'vue'
+import {computed, nextTick, onMounted, ref, watch} from 'vue'
 import {useToast} from 'primevue/usetoast'
 import {useFeeProfileStore} from '@/stores/feeProfiles'
 import {useCurrency} from '@/composables/useFormat'
@@ -34,10 +34,20 @@ const BUILTIN_FEE_PROFILES = [
 
 const editing = ref(null)
 const form = ref(defaultForm())
+const scheduleHydrating = ref(false)
 const visibleProfiles = computed(() => [
   ...BUILTIN_FEE_PROFILES,
   ...store.profiles,
 ])
+const visibleProfileRows = computed(() =>
+  visibleProfiles.value.flatMap((profile) =>
+    profileCurrencies(profile).map((currency) => ({
+      key: `${profile._id}:${currency}`,
+      profile,
+      currency,
+    }))
+  )
+)
 const feeTypeOptions = computed(() => [
   {label: t('feeProfiles.percent'), value: 'percent'},
   {label: t('feeProfiles.flat'), value: 'flat'},
@@ -47,19 +57,59 @@ const currencyOptions = computed(() => [
   {label: '$ USD', value: 'USD'},
 ])
 
+function defaultStoredTradingFee(currency = 'ILS') {
+  return {
+    type: 'percent',
+    value: 0.00001,
+    minFee: 10,
+  }
+}
+
+function defaultStoredSchedule(currency = 'ILS') {
+  return {
+    buyFee: defaultStoredTradingFee(currency),
+    sellFee: defaultStoredTradingFee(currency),
+    capitalGainsTax: 25,
+  }
+}
+
+function cloneSchedule(schedule, currency = 'ILS') {
+  const fallback = defaultStoredSchedule(currency)
+  const sharedFee = schedule?.tradingFee || schedule?.buyFee || schedule?.sellFee || fallback.buyFee
+  return {
+    buyFee: feeRuleToForm(schedule?.buyFee || sharedFee, currency),
+    sellFee: feeRuleToForm(schedule?.sellFee || sharedFee, currency),
+    capitalGainsTax: Number(schedule?.capitalGainsTax) || fallback.capitalGainsTax,
+  }
+}
+
+function defaultScheduleMap() {
+  return {
+    ILS: cloneSchedule(defaultStoredSchedule('ILS'), 'ILS'),
+    USD: cloneSchedule(defaultStoredSchedule('USD'), 'USD'),
+  }
+}
+
 function defaultForm() {
+  const schedules = defaultScheduleMap()
   return {
     name: '',
     currency: 'ILS',
-    tradingFee: { type: 'percent', value: 0.1, minFee: 10 },
-    capitalGainsTax: 25,
+    tradingFee: { ...schedules.ILS.buyFee },
+    capitalGainsTax: schedules.ILS.capitalGainsTax,
+    feeSchedules: schedules,
     isDefault: false,
   }
 }
 
 onMounted(() => { if (!store.profiles.length) store.fetchProfiles() })
 
-function openNew() { editing.value = 'new'; form.value = defaultForm() }
+function openNew() {
+  editing.value = 'new'
+  scheduleHydrating.value = true
+  form.value = defaultForm()
+  nextTick(() => { scheduleHydrating.value = false })
+}
 
 function percentToDisplay(value) {
   const num = Number(value)
@@ -71,9 +121,13 @@ function percentToStored(value) {
   return Number.isFinite(num) ? num / 100 : 0
 }
 
-function feeRuleToForm(rule) {
+function feeRuleToForm(rule, currency = 'ILS') {
+  const fallback = defaultStoredTradingFee(currency)
   const next = { type: rule?.type || 'percent', value: Number(rule?.value) || 0, minFee: Number(rule?.minFee) || 0 }
-  if (next.type === 'percent') next.value = percentToDisplay(next.value)
+  if (next.type === 'percent') {
+    const displayValue = percentToDisplay(next.value)
+    next.value = displayValue > 100 ? percentToDisplay(fallback.value) : displayValue
+  }
   return next
 }
 
@@ -83,30 +137,121 @@ function feeRuleToPayload(rule) {
   return next
 }
 
+function cloneFormFeeRule(rule) {
+  return {
+    type: rule?.type || 'percent',
+    value: Number(rule?.value) || 0,
+    minFee: Number(rule?.minFee) || 0,
+  }
+}
+
+function cloneFormSchedule(schedule, currency = 'ILS') {
+  const fallback = cloneSchedule(defaultStoredSchedule(currency), currency)
+  const sharedFee = schedule?.tradingFee || schedule?.buyFee || schedule?.sellFee || fallback.buyFee
+  return {
+    buyFee: cloneFormFeeRule(schedule?.buyFee || sharedFee),
+    sellFee: cloneFormFeeRule(schedule?.sellFee || sharedFee),
+    capitalGainsTax: Number(schedule?.capitalGainsTax) || fallback.capitalGainsTax,
+  }
+}
+
+function normalizeSchedulePayload(schedule) {
+  const currency = schedule?.currency || 'ILS'
+  const fallback = defaultStoredSchedule(currency)
+  const sharedFee = schedule?.tradingFee || schedule?.buyFee || schedule?.sellFee || fallback.buyFee
+  return {
+    buyFee: feeRuleToPayload(schedule?.buyFee || sharedFee),
+    sellFee: feeRuleToPayload(schedule?.sellFee || sharedFee),
+    capitalGainsTax: Number(schedule?.capitalGainsTax) || fallback.capitalGainsTax,
+  }
+}
+
+function profileCurrencies(p) {
+  const currencies = ['ILS', 'USD'].filter((currency) => p?.feesByCurrency?.[currency])
+  if (!currencies.length) currencies.push(p?.currency || 'USD')
+  return currencies
+}
+
 function formPayload() {
-  const tradingFee = feeRuleToPayload(form.value.tradingFee)
+  const activeCurrency = form.value.currency || 'ILS'
+  const activeSchedule = normalizeSchedulePayload({
+    currency: activeCurrency,
+    buyFee: form.value.tradingFee,
+    sellFee: form.value.tradingFee,
+    capitalGainsTax: form.value.capitalGainsTax,
+  })
+  const schedules = {
+    ILS: normalizeSchedulePayload({
+      currency: 'ILS',
+      ...(form.value.feeSchedules?.ILS || cloneSchedule(defaultStoredSchedule('ILS'), 'ILS')),
+    }),
+    USD: normalizeSchedulePayload({
+      currency: 'USD',
+      ...(form.value.feeSchedules?.USD || cloneSchedule(defaultStoredSchedule('USD'), 'USD')),
+    }),
+  }
+  schedules[activeCurrency] = activeSchedule
   return {
     name: form.value.name,
-    currency: form.value.currency || 'ILS',
-    buyFee: { ...tradingFee },
-    sellFee: { ...tradingFee },
-    capitalGainsTax: form.value.capitalGainsTax,
+    currency: activeCurrency,
+    buyFee: { ...activeSchedule.buyFee },
+    sellFee: { ...activeSchedule.sellFee },
+    capitalGainsTax: activeSchedule.capitalGainsTax,
+    feesByCurrency: schedules,
     isDefault: form.value.isDefault,
   }
 }
 
-function openEdit(p) {
+function openEdit(p, currency = null) {
   if (p.builtin) return
+  const primaryCurrency = currency || p.currency || (p.feesByCurrency?.USD ? 'USD' : 'ILS')
+  const secondaryCurrency = primaryCurrency === 'ILS' ? 'USD' : 'ILS'
+  const primarySchedule = cloneSchedule(p.feesByCurrency?.[primaryCurrency] || {
+    buyFee: p.buyFee,
+    sellFee: p.sellFee,
+    capitalGainsTax: p.capitalGainsTax,
+  }, primaryCurrency)
+  const secondarySchedule = cloneSchedule(
+    p.feesByCurrency?.[secondaryCurrency] || defaultStoredSchedule(secondaryCurrency),
+    secondaryCurrency
+  )
+  scheduleHydrating.value = true
   editing.value = p
   form.value = {
     name: p.name,
-    currency: p.currency || 'USD',
-    tradingFee: feeRuleToForm(p.buyFee || p.sellFee),
-    capitalGainsTax: p.capitalGainsTax || 0,
+    currency: primaryCurrency,
+    tradingFee: { ...primarySchedule.buyFee },
+    capitalGainsTax: primarySchedule.capitalGainsTax,
+    feeSchedules: {
+      [primaryCurrency]: primarySchedule,
+    [secondaryCurrency]: secondarySchedule,
+    },
     isDefault: p.isDefault,
   }
+  nextTick(() => { scheduleHydrating.value = false })
 }
 function closeEdit() { editing.value = null }
+
+watch(
+  () => form.value.currency,
+  (next, prev) => {
+    if (scheduleHydrating.value || !next || !form.value.feeSchedules) return
+    if (prev) {
+      form.value.feeSchedules[prev] = {
+        buyFee: { ...form.value.tradingFee },
+        sellFee: { ...form.value.tradingFee },
+        capitalGainsTax: form.value.capitalGainsTax,
+      }
+    }
+    const nextSchedule = cloneFormSchedule(
+      form.value.feeSchedules[next] || defaultScheduleMap()[next],
+      next
+    )
+    form.value.feeSchedules[next] = nextSchedule
+    form.value.tradingFee = cloneFormFeeRule(nextSchedule.buyFee || nextSchedule.sellFee || nextSchedule.tradingFee)
+    form.value.capitalGainsTax = nextSchedule.capitalGainsTax || 0
+  }
+)
 
 function formatPercentValue(value, digits = 3) {
   const num = Number(value)
@@ -156,26 +301,21 @@ async function remove(p) {
   }
 }
 
-function feeLabel(p) {
-  if (sameFeeRule(p.buyFee, p.sellFee) && hasFeeRule(p.buyFee)) {
-    const currency = p.currency || 'USD'
-    const fee = `${t('feeProfiles.tradingFee')} ${formatFeeRule(p.buyFee, currency)}`
-    const currencyLabel = `${t('feeProfiles.currency')} ${currency}`
-    const usage = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : null
-    const tax = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatPercentValue(p.capitalGainsTax)}%` : null
-    return [currencyLabel, fee, usage, tax].filter(Boolean).join(' · ')
+function feeLabel(p, currency = null) {
+  const activeCurrency = currency || profileCurrencies(p)[0] || p.currency || 'USD'
+  const schedule = p.feesByCurrency?.[activeCurrency] || {
+    buyFee: p.buyFee,
+    sellFee: p.sellFee,
+    capitalGainsTax: p.capitalGainsTax,
   }
-
-  const currencyLabel = `${t('feeProfiles.currency')} ${p.currency || 'USD'}`
-  const buy = hasFeeRule(p.buyFee)
-      ? `${t('feeProfiles.buy')} ${formatFeeRule(p.buyFee, p.currency || 'USD')}`
-    : null
-  const sell = hasFeeRule(p.sellFee)
-      ? `${t('feeProfiles.sell')} ${formatFeeRule(p.sellFee, p.currency || 'USD')}`
+  const currencyLabel = `${t('feeProfiles.currency')} ${activeCurrency}`
+  const feeRule = schedule.buyFee || schedule.sellFee || schedule.tradingFee
+  const fee = hasFeeRule(feeRule)
+    ? `${t('feeProfiles.tradingFee')} ${formatFeeRule(feeRule, activeCurrency)}`
     : null
   const usage = p.monthlyUsage ? formatMonthlyUsage(p.monthlyUsage) : null
-  const tax = p.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatPercentValue(p.capitalGainsTax)}%` : null
-  return [currencyLabel, buy, sell, usage, tax].filter(Boolean).join(' · ') || t('feeProfiles.noFees')
+  const tax = schedule.capitalGainsTax ? `${t('feeProfiles.tax')} ${formatPercentValue(schedule.capitalGainsTax)}%` : null
+  return [currencyLabel, fee, usage, tax].filter(Boolean).join(' · ') || t('feeProfiles.noFees')
 }
 
 function sameFeeRule(a, b) {
@@ -220,22 +360,28 @@ function formatMonthlyUsage(usage) {
     <!-- Profile list -->
     <div v-if="!editing">
       <div v-if="store.loading" class="text-muted">{{ t('common.loading') }}</div>
-      <div v-else-if="!visibleProfiles.length" class="empty">
+      <div v-else-if="!visibleProfileRows.length" class="empty">
         <p class="text-muted">{{ t('feeProfiles.empty') }}</p>
       </div>
       <div v-else class="profile-list">
-        <div v-for="p in visibleProfiles" :key="p._id" class="profile-row" :class="{ preset: p.builtin }">
-          <div class="profile-info" @click="openEdit(p)">
+        <div
+          v-for="row in visibleProfileRows"
+          :key="row.key"
+          class="profile-row"
+          :class="{ preset: row.profile.builtin }"
+        >
+          <div class="profile-info" @click="openEdit(row.profile, row.currency)">
             <span class="profile-name">
-              {{ p.name }}
-              <span v-if="p.builtin" class="preset-badge">{{ t('feeProfiles.preset') }}</span>
-              <span v-if="p.isDefault" class="default-badge">{{ t('feeProfiles.default') }}</span>
+              {{ row.profile.name }}
+              <span class="currency-badge">{{ row.currency }}</span>
+              <span v-if="row.profile.builtin" class="preset-badge">{{ t('feeProfiles.preset') }}</span>
+              <span v-if="row.profile.isDefault" class="default-badge">{{ t('feeProfiles.default') }}</span>
             </span>
-            <span class="profile-detail text-muted">{{ feeLabel(p) }}</span>
+            <span class="profile-detail text-muted">{{ feeLabel(row.profile, row.currency) }}</span>
           </div>
-          <div v-if="!p.builtin" class="profile-actions">
-            <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(p)" />
-            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(p)" />
+          <div v-if="!row.profile.builtin" class="profile-actions">
+            <Button icon="pi pi-pencil" text rounded size="small" @click="openEdit(row.profile, row.currency)" />
+            <Button icon="pi pi-trash" text rounded size="small" severity="danger" @click="remove(row.profile)" />
           </div>
         </div>
       </div>
@@ -322,6 +468,7 @@ function formatMonthlyUsage(usage) {
 .profile-info { flex: 1; display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
 .profile-actions { display: flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem; }
 .profile-name { font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
+.currency-badge { font-size: 0.68rem; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; }
 .default-badge { font-size: 0.68rem; background: var(--accent); color: #fff; border-radius: 4px; padding: 1px 6px; }
 .preset-badge { font-size: 0.68rem; background: rgba(255,255,255,0.08); color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 1px 6px; }
 .profile-detail { font-size: 0.78rem; }

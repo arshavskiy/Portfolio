@@ -19,6 +19,7 @@ import api from "@/composables/useApi";
 import { fetchCachedQuote } from "@/composables/useQuoteCache";
 import {
   getMarketHoursState,
+  isRegularSessionBar,
   MARKET_HOURS_BY_GROUP,
 } from "@/composables/useMarketHours";
 import { useTour } from "@/composables/useTour";
@@ -90,6 +91,7 @@ const simValue = ref(null);
 const simShares = ref(null);
 const simFeeProfileId = ref(undefined);
 const sellSimulationCosts = ref(null);
+const showStatsGrid = ref(false);
 let sellSimulationRequestId = 0;
 let syncingSellInputs = false;
 const buySimShares = ref(null);
@@ -322,7 +324,8 @@ const dividendTxs = computed(() =>
 
 // Historical dividend payments from Yahoo during holding period
 const yahooDiv = ref([]);
-const showStatsGrid = ref(true);
+
+
 async function loadYahooDividends() {
   if (!ticker.value) return;
   const lots = holdingLots.value;
@@ -500,10 +503,10 @@ const summary = computed(() => {
   // Estimated future sell tax if sold at current price
   const unrealizedGain = currentValue != null ? currentValue - totalCost : null;
   // Tax rate from a saved fee profile, falling back to the active default profile.
+  const activeFeeProfile = defaultFeeProfile();
   const taxRate =
-    transactions.value.find((t) => t.feeProfile?.capitalGainsTax)?.feeProfile
-      ?.capitalGainsTax ||
-    defaultFeeProfile()?.capitalGainsTax ||
+    profileFeeSchedule(activeFeeProfile, tickerCurr.value)?.capitalGainsTax ||
+    activeFeeProfile?.capitalGainsTax ||
     0;
   const estimatedTax =
     unrealizedGain != null && unrealizedGain > 0 && taxRate > 0
@@ -604,11 +607,45 @@ function isAllowedFeeCurrency(profileCurrency, transactionCurrency) {
   return transactionCurrency === "USD" && profileCurrency === "ILS";
 }
 
+function normalizeCurrencyCode(currency) {
+  return currency === "ILS" ? "ILS" : "USD";
+}
+
+function profileFeeSchedule(profile, transactionCurrency) {
+  const currency = normalizeCurrencyCode(transactionCurrency);
+  const nested = profile?.feesByCurrency?.[currency];
+  if (nested) {
+    const sharedFee = nested.tradingFee || nested.buyFee || nested.sellFee || profile.buyFee || profile.sellFee;
+    return {
+      buyFee: nested.buyFee || sharedFee,
+      sellFee: nested.sellFee || sharedFee,
+      capitalGainsTax: Number(nested.capitalGainsTax) || 0,
+    };
+  }
+
+  const profileCurrency = normalizeCurrencyCode(profile?.currency || "USD");
+  if (profileCurrency === currency) {
+    return {
+      buyFee: profile.buyFee,
+      sellFee: profile.sellFee,
+      capitalGainsTax: Number(profile.capitalGainsTax) || 0,
+    };
+  }
+
+  return null;
+}
+
 const matchingFeeProfiles = computed(() => {
   const currency = tickerCurr.value;
-  return [...BUILTIN_FEE_PROFILES, ...feeStore.profiles].filter((p) =>
-    isAllowedFeeCurrency(p.currency || "USD", currency),
-  );
+  return [...BUILTIN_FEE_PROFILES, ...feeStore.profiles]
+    .filter((p) => Boolean(profileFeeSchedule(p, currency)))
+    .sort((a, b) => {
+      const aExact = Boolean(profileFeeSchedule(a, currency));
+      const bExact = Boolean(profileFeeSchedule(b, currency));
+      if (aExact !== bExact) return aExact ? -1 : 1;
+      if (a.builtin !== b.builtin) return a.builtin ? 1 : -1;
+      return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" });
+    });
 });
 
 function defaultFeeProfile() {
@@ -620,9 +657,9 @@ function defaultFeeProfile() {
 }
 
 function feeCurrencyForTransaction(profile) {
-  return tickerCurr.value === "ILS"
-    ? "ILS"
-    : profile?.currency || tickerCurr.value;
+  return profileFeeSchedule(profile, tickerCurr.value)
+    ? tickerCurr.value
+    : normalizeCurrencyCode(profile?.currency || tickerCurr.value);
 }
 
 function feeProfileLabel(profile) {
@@ -646,7 +683,10 @@ function effectiveFeeAmountOf(tx) {
   const profile = feeProfileOf(tx);
   if (!profile) return 0;
   const total = tx.total || (tx.shares || 0) * (tx.price || 0);
-  const rule = tx.type === "buy" ? profile.buyFee : profile.sellFee;
+  const schedule = profileFeeSchedule(profile, feeCurrencyOf(tx));
+  const rule = tx.type === "buy"
+    ? schedule?.buyFee || profile.buyFee
+    : schedule?.sellFee || profile.sellFee;
   return calcFee(rule, total);
 }
 
@@ -731,6 +771,13 @@ const pctFromDayLow = computed(() => {
   const low = quote.value?.dayLow;
   if (price == null || low == null || low === 0) return null;
   return ((price - low) / low) * 100;
+});
+const dayRangePct = computed(() => {
+  const price = quote.value?.price;
+  const low = quote.value?.dayLow;
+  const high = quote.value?.dayHigh;
+  if (price == null || low == null || high == null || high === low) return null;
+  return Math.min(100, Math.max(0, ((price - low) / (high - low)) * 100));
 });
 const normalizedDividendYield = computed(() => {
   const value = quote.value?.dividendYield;
@@ -1104,7 +1151,8 @@ function calcBuySimulation(price, shares) {
   const profile = matchingFeeProfiles.value.find(
     (p) => p._id === buySimFeeProfileId.value,
   );
-  const buyFee = calcFee(profile?.buyFee, cost);
+  const schedule = profileFeeSchedule(profile, tickerCurr.value);
+  const buyFee = calcFee(schedule?.buyFee || profile?.buyFee, cost);
   const totalCost = cost + buyFee;
 
   const existingShares = summary.value?.shares ?? 0;
@@ -1114,10 +1162,7 @@ function calcBuySimulation(price, shares) {
   const newAvgCost = combinedShares > 0 ? combinedCost / combinedShares : price;
 
   const rawBreakEven = combinedCost / combinedShares;
-  const estimatedSellFee = calcFee(
-    profile?.sellFee,
-    rawBreakEven * combinedShares,
-  );
+  const estimatedSellFee = calcFee(schedule?.sellFee || profile?.sellFee, rawBreakEven * combinedShares);
   const breakEven = (combinedCost + estimatedSellFee) / combinedShares;
 
   return {
@@ -1208,10 +1253,41 @@ const selectedDelta = computed(() => {
   };
 });
 
-// Measure row only shows the user's dragged selection — an auto-computed
-// close-to-close default here read as a mismatch against the API-sourced Day
-// High/Low fields just below it (different metric, same-looking numbers).
-const measureDelta = computed(() => selectedDelta.value);
+function lowHighDelta(rows) {
+  const valid = rows.filter((d) => d?.close != null);
+  if (valid.length < 2) return null;
+  let lo = valid[0];
+  let hi = valid[0];
+  for (const d of valid) {
+    if (d.close < lo.close) lo = d;
+    if (d.close > hi.close) hi = d;
+  }
+  if (lo === hi) return null;
+  const [start, end] = new Date(lo.date) <= new Date(hi.date) ? [lo, hi] : [hi, lo];
+  const startPrice = start.close;
+  const endPrice = end.close;
+  const amount = endPrice - startPrice;
+  const percent = startPrice ? (amount / startPrice) * 100 : null;
+  const startDate = new Date(start.date);
+  const endDate = new Date(end.date);
+  const hours = Math.abs(endDate - startDate) / 36e5;
+  return {
+    amount, percent, startPrice, endPrice,
+    startPoint: { date: start.date, close: start.close },
+    endPoint: { date: end.date, close: end.close },
+    startLabel: startDate.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
+    endLabel: endDate.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }),
+    spanLabel: hours >= 24 ? `${(hours / 24).toFixed(1)}d` : `${hours.toFixed(1)}h`,
+  };
+}
+
+const defaultDelta = computed(() => lowHighDelta(history.value));
+const regularHoursDelta = computed(() =>
+  lowHighDelta(history.value.filter((d) => isRegularSessionBar(d.date, ticker.value))),
+);
+const measureDelta = computed(
+  () => selectedDelta.value ?? regularHoursDelta.value ?? defaultDelta.value,
+);
 
 const measureLabel = computed(() => {
   if (selectedDelta.value) return t("positionDetail.selectedRange");
@@ -1589,7 +1665,7 @@ async function toggleWatchlist() {
       </div>
 
       <div class="chart-measure">
-        <div v-if="measureDelta && !selectedDelta" class="measure-summary">
+        <div v-if="measureDelta" class="measure-summary">
           <span class="measure-tag text-muted">
             {{ measureLabel }}
           </span>
@@ -2004,7 +2080,7 @@ async function toggleWatchlist() {
             </div>
             <button
               :aria-expanded="showSimulator"
-              class="sim-collapse-btn"
+              class="sim-chevron-btn"
               type="button"
               @click="showSimulator = !showSimulator"
             >
@@ -2012,6 +2088,7 @@ async function toggleWatchlist() {
                 :class="
                   showSimulator ? 'pi pi-chevron-up' : 'pi pi-chevron-down'
                 "
+                class="sim-chevron"
               />
             </button>
           </div>
@@ -2311,36 +2388,6 @@ async function toggleWatchlist() {
         </div>
       </div>
 
-      <!-- Position journal: investment thesis notes -->
-      <div v-if="summary" class="sim-wrap">
-        <button class="sim-toggle" @click="showJournal = !showJournal">
-          <i class="pi pi-book" />
-          {{ t("journal.title") }}
-          <span v-if="journalSavedNotes" class="journal-has-notes" />
-          <i
-            :class="showJournal ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-            class="sim-chevron"
-          />
-        </button>
-
-        <div v-if="showJournal" class="sim-body">
-          <textarea
-            v-model="journalNotes"
-            :placeholder="t('journal.placeholder')"
-            class="journal-textarea"
-            rows="5"
-          />
-          <Button
-            :disabled="!journalDirty"
-            :label="t('journal.save')"
-            :loading="journalSaving"
-            fluid
-            size="small"
-            @click="saveJournal"
-          />
-        </div>
-      </div>
-
       <div v-if="quote" class="sim-wrap stats-wrap">
         <button class="sim-toggle" type="button" @click="showStatsGrid = !showStatsGrid">
           <i class="pi pi-chart-bar" />
@@ -2543,7 +2590,39 @@ async function toggleWatchlist() {
           :current-price="quote?.price ?? null"
           :ticker="ticker"
         />
-        <TickerInsightCard :ticker="ticker" />
+        <TickerInsightCard :ticker="ticker">
+          <template #after-insight>
+            <!-- Position journal: investment thesis notes -->
+            <div v-if="summary" class="sim-wrap insight-journal-wrap">
+              <button class="sim-toggle" type="button" @click="showJournal = !showJournal">
+                <i class="pi pi-book" />
+                {{ t("journal.title") }}
+                <span v-if="journalSavedNotes" class="journal-has-notes" />
+                <i
+                  :class="showJournal ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  class="sim-chevron"
+                />
+              </button>
+
+              <div v-if="showJournal" class="sim-body">
+                <textarea
+                  v-model="journalNotes"
+                  :placeholder="t('journal.placeholder')"
+                  class="journal-textarea"
+                  rows="5"
+                />
+                <Button
+                  :disabled="!journalDirty"
+                  :label="t('journal.save')"
+                  :loading="journalSaving"
+                  fluid
+                  size="small"
+                  @click="saveJournal"
+                />
+              </div>
+            </div>
+          </template>
+        </TickerInsightCard>
         <TickerRelationGraph :ticker="ticker" />
       </template>
 
@@ -2648,6 +2727,23 @@ async function toggleWatchlist() {
   height: 100%;
   max-width: 800px;
   margin: 2rem auto;
+}
+
+.position-detail.panel-mode .gradient-title,
+.position-detail.panel-mode .header-info h1 {
+  font-weight: 400;
+}
+
+.position-detail.panel-mode .header-info span {
+  font-size: 0.76rem;
+  font-weight: 400;
+}
+
+.position-detail.panel-mode .current-price,
+.position-detail.panel-mode .extended-price,
+.position-detail.panel-mode .pnl-pct,
+.position-detail.panel-mode .pnl-value {
+  font-weight: 500;
 }
 
 .page-header {
@@ -3166,6 +3262,41 @@ async function toggleWatchlist() {
   background: color-mix(in srgb, var(--purple) 8%, transparent);
 }
 
+.dr-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dr-track {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.dr-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--neon-blue);
+  border-radius: 999px;
+  opacity: 0.45;
+}
+
+.dr-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-blue);
+}
+
 .day-range-value {
   color: var(--accent);
   display: flex;
@@ -3304,27 +3435,27 @@ async function toggleWatchlist() {
   opacity: 0.45;
 }
 
-.sim-collapse-btn {
+.sim-chevron-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
   transition:
     color 0.15s,
-    border-color 0.15s,
     background 0.15s;
 }
 
-.sim-collapse-btn:hover {
-  border-color: var(--accent);
+.sim-chevron-btn:hover {
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.04);
+}
+
+.sim-chevron-btn .sim-chevron {
+  margin-left: 0;
 }
 
 .sim-toggle {
@@ -3358,6 +3489,16 @@ async function toggleWatchlist() {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
+}
+
+.insight-journal-wrap {
+  margin: 0;
+  border-width: 1px 0 0;
+  border-radius: 0;
+}
+
+.insight-journal-wrap .sim-toggle {
+  padding: 0.75rem 0.95rem;
 }
 
 .sim-inputs {
@@ -3487,6 +3628,10 @@ async function toggleWatchlist() {
   padding: 0.85rem 0;
   border-bottom: 1px solid var(--border);
   gap: 0.5rem;
+}
+
+.lots-list .lot-row:last-child {
+  border-bottom: none;
 }
 
 .lot-left {

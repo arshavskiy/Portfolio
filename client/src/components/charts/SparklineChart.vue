@@ -5,6 +5,7 @@ import * as d3 from 'd3'
 const props = defineProps({
   data: { type: Array, default: () => [] },   // array of { close }
   pnlPercent: { type: Number, default: null },
+  height: { type: Number, default: 40 },
 })
 
 const svgRef = ref(null)
@@ -15,7 +16,7 @@ function draw() {
   svg.selectAll('*').remove()
 
   const W = svgRef.value.clientWidth || 120
-  const H = 40
+  const H = props.height
   svg.attr('width', W).attr('height', H)
 
   const firstClose = props.data[0]?.close

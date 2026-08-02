@@ -74,6 +74,7 @@ export const messages = {
     nav: {
       transactions: "Transactions",
       clickRowToViewPosition: "Click any row to view position",
+      assets: "Assets",
       records: "Records",
       home: "Home",
       assistantAI: "Assistant AI",
@@ -1331,6 +1332,7 @@ export const messages = {
     nav: {
       transactions: "Операции",
       clickRowToViewPosition: "Нажмите на строку, чтобы открыть позицию",
+      assets: "Активы",
       records: "Записи",
       home: "Главная",
       assistantAI: "Ассистент ИИ",

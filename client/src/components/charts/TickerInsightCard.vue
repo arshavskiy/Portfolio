@@ -334,18 +334,23 @@ watch(() => props.ticker, load)
       </div>
     </div>
 
-    <div v-if="headlines.length" class="insight-headlines">
-      <NewsArticleCard v-for="h in headlines" :key="h.url" :article="h" @open="openArticle"/>
-      <button
+    <slot name="after-insight" />
+
+    <div v-if="headlines.length" class="ticker-headlines-section">
+      <h2 class="ticker-headlines-title">Ticker Headlines</h2>
+      <div class="insight-headlines">
+        <NewsArticleCard v-for="h in headlines" :key="h.url" :article="h" @open="openArticle"/>
+        <button
           v-if="newsHasMore"
           :disabled="newsLoadingMore"
           class="news-load-more"
           type="button"
           @click="loadMoreNews"
-      >
-        <AppLoader v-if="newsLoadingMore"/>
-        <span v-else>{{ t('newsPage.loadMore') }}</span>
-      </button>
+        >
+          <AppLoader v-if="newsLoadingMore"/>
+          <span v-else>{{ t('newsPage.loadMore') }}</span>
+        </button>
+      </div>
     </div>
     <p v-else-if="analyzedArticleCount === 0" class="pending-note text-muted">
       <i class="pi pi-clock"/> {{ t('tickerInsight.pendingAnalysis') }}
@@ -652,11 +657,69 @@ watch(() => props.ticker, load)
   font-size: 0.65rem;
 }
 
+.ticker-headlines-section {
+  border-top: 1px solid var(--border);
+}
+
+.ticker-headlines-title {
+  margin: 0;
+  padding: 0.62rem 0.95rem 0;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .insight-headlines {
-  padding: 0.7rem 0.95rem;
+  padding: 0.55rem 0.95rem 0.7rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  max-height: 300px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.insight-headlines::-webkit-scrollbar {
+  width: 6px;
+}
+
+.insight-headlines::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.insight-headlines::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+.insight-headlines :deep(.article-card) {
+  padding: 0.45rem 0.25rem;
+  gap: 0.5rem;
+}
+
+.insight-headlines :deep(.article-card h2) {
+  font-size: 0.74rem;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.insight-headlines :deep(.article-meta) {
+  font-size: 0.58rem;
+  margin-bottom: 0.18rem;
+}
+
+.insight-headlines :deep(.source),
+.insight-headlines :deep(.symbol-pill) {
+  font-weight: 400;
+}
+
+.insight-headlines :deep(.symbol-pill) {
+  font-size: 0.58rem;
+  padding: 0.12rem 0.36rem;
 }
 
 .news-load-more {

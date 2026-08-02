@@ -17,6 +17,10 @@ const {getPortfolioHistory} = require('../services/historyService')
 const {computeXirr, computeTwr} = require('../services/returnMetrics')
 const {getPortfolioAnalytics, getPortfolioXRay} = require('../services/portfolioAnalyticsService')
 
+function activePositionFilter(userId) {
+  return { user: userId, archived: { $ne: true } }
+}
+
 // Recompute a position's shares + avg cost by replaying all of its transactions
 // (avg-cost method). Deletes the position if no shares remain; creates nothing.
 async function recomputePosition(userId, ticker) {
@@ -24,7 +28,11 @@ async function recomputePosition(userId, ticker) {
   let totalShares = 0
   let totalCost = 0
   for (const t of allTx) {
-    if (t.type === 'buy') {
+    if (t.type === 'update') {
+      // hard snapshot: override running totals with the recorded values
+      totalShares = t.shares
+      totalCost = t.shares * t.price
+    } else if (t.type === 'buy') {
       totalCost += t.shares * t.price
       totalShares += t.shares
     } else if (t.type === 'sell') {
@@ -71,7 +79,7 @@ function normalizeGroups(groups) {
 
 exports.getPortfolio = async (req, res) => {
   try {
-    const positions = await Position.find({ user: req.user._id })
+    const positions = await Position.find(activePositionFilter(req.user._id))
     if (!positions.length) return res.json({ positions: [], totals: [] })
 
     const tickers = positions.map((p) => p.ticker)
@@ -194,7 +202,7 @@ exports.getXRay = async (req, res) => {
 // matching Yahoo's own convention for unavailable betas.
 exports.getRiskExposure = async (req, res) => {
     try {
-        const positions = await Position.find({user: req.user._id}).lean()
+        const positions = await Position.find(activePositionFilter(req.user._id)).lean()
         if (!positions.length) return res.json({sectors: [], weightedBeta: null, totalValueUsd: 0})
         
         const tickers = positions.map((p) => p.ticker)
@@ -247,7 +255,7 @@ exports.getReturnMetrics = async (req, res) => {
         const range = req.query.range || 'all'
         const [txs, positions, ilsToUsd, dailySeries] = await Promise.all([
             Transaction.find({user: req.user._id}).sort({date: 1}).lean(),
-            Position.find({user: req.user._id}).lean(),
+            Position.find(activePositionFilter(req.user._id)).lean(),
             getIlsToUsd(),
             getPortfolioHistory(req.user._id, range),
         ])
@@ -293,21 +301,24 @@ exports.addTransaction = async (req, res) => {
       if (!ticker || !type)
           return res.status(400).json({message: 'ticker and type required'})
       // Dividends: price = per-share dividend amount, shares = DRIP shares (or 0 for cash)
-      if (type !== 'dividend' && (!shares || !price))
+      if (type !== 'dividend' && type !== 'update' && (!shares || !price))
       return res.status(400).json({ message: 'ticker, type, shares, price required' })
       if (type === 'dividend' && !price)
           return res.status(400).json({message: 'price (dividend per share) required'})
+      if (type === 'update' && (shares == null || price == null))
+          return res.status(400).json({message: 'shares and price (avg cost) required for update'})
 
     const normalizedGroups = normalizeGroups(groups)
       
       // For dividends, client computes total = amountPerShare * sharesHeld; use it directly.
+      // For update, total = shares * price (cost basis snapshot).
       const total = type === 'dividend' ? (clientTotal || (shares || 0) * (price || 0)) : (shares * price)
 
     let feeProfile = null
     let feeAmount = 0
     let feeAmountForTotals = 0
     let taxAmount = 0
-    feeProfile = await resolveFeeProfile(req.user._id, feeProfileId, tickerCurrency(ticker))
+    if (type !== 'update') feeProfile = await resolveFeeProfile(req.user._id, feeProfileId, tickerCurrency(ticker))
 
     if (feeProfile) {
       // For sell tax, get current avg cost from position
@@ -315,8 +326,8 @@ exports.addTransaction = async (req, res) => {
         ? await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
         : null
       const avgCost = pos?.avgCost ?? null
-      ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, type, total, shares, price, avgCost))
       const transactionCurrency = tickerCurrency(ticker)
+      ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, type, total, shares, price, avgCost, transactionCurrency))
       const feeCurrency = feeCurrencyForTransaction(feeProfile, transactionCurrency)
       feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)
     }
@@ -341,13 +352,14 @@ exports.addTransaction = async (req, res) => {
 
     let position = await Position.findOne({ user: req.user._id, ticker: ticker.toUpperCase() })
       const symbol = ticker.toUpperCase()
-      const profile = (type === 'buy' || type === 'dividend') ? await getTickerProfile(symbol) : null
+      const profile = (type === 'buy' || type === 'dividend' || (type === 'update' && !position)) ? await getTickerProfile(symbol) : null
 
     if (type === 'buy') {
       if (position) {
         const newShares = position.shares + shares
         position.avgCost = (position.avgCost * position.shares + price * shares) / newShares
         position.shares = newShares
+        position.archived = false
           position.companyName = position.companyName || profile?.companyName || symbol
           position.sector = position.sector || profile?.sector || null
           position.industry = position.industry || profile?.industry || null
@@ -406,6 +418,33 @@ exports.addTransaction = async (req, res) => {
             await position.save()
         }
         // Cash dividend: no position change; transaction is the record
+    } else if (type === 'update') {
+      if (position) {
+        position.shares = shares
+        position.avgCost = price
+        if (normalizedGroups.length) {
+          position.groups = normalizeGroups([...(position.groups || []), ...normalizedGroups])
+        }
+        await position.save()
+      } else {
+        const profile = await getTickerProfile(symbol)
+        position = await Position.create({
+          user: req.user._id,
+          ticker: symbol,
+          companyName: profile?.companyName || symbol,
+          sector: profile?.sector,
+          industry: profile?.industry,
+          beta: profile?.beta ?? null,
+          shares,
+          avgCost: price,
+          groups: normalizedGroups,
+        })
+        await Watchlist.findOneAndUpdate(
+          {user: req.user._id, ticker: symbol},
+          {$setOnInsert: {user: req.user._id, ticker: symbol, companyName: profile?.companyName || symbol, sector: profile?.sector || null, industry: profile?.industry || null}},
+          {upsert: true, returnDocument: 'after'}
+        )
+      }
     }
 
     res.status(201).json({ transaction: tx })
@@ -451,8 +490,8 @@ exports.updateTransaction = async (req, res) => {
       const pos = tx.type === 'sell'
         ? await Position.findOne({ user: req.user._id, ticker: tx.ticker })
         : null
-      ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, tx.type, shares * price, shares, price, pos?.avgCost ?? null))
       const transactionCurrency = tickerCurrency(tx.ticker)
+      ;({ feeAmount, taxAmount } = computeTransactionCosts(feeProfile, tx.type, shares * price, shares, price, pos?.avgCost ?? null, transactionCurrency))
       const feeCurrency = feeCurrencyForTransaction(feeProfile, transactionCurrency)
       feeAmountForTotals = await convertFeeToTransactionCurrency(feeAmount, feeCurrency, transactionCurrency)
     }
@@ -499,6 +538,24 @@ exports.deletePosition = async (req, res) => {
     if (!position) return res.status(404).json({ message: 'Position not found' })
     await position.deleteOne()
     res.json({ message: 'Position removed' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+}
+
+exports.archivePositions = async (req, res) => {
+  try {
+    const ids = Array.isArray(req.body?.ids) ? req.body.ids.filter(Boolean) : []
+    if (!ids.length) return res.status(400).json({ message: 'ids required' })
+    const result = await Position.updateMany(
+      { _id: { $in: ids }, user: req.user._id },
+      { $set: { archived: true } },
+    )
+    res.json({
+      message: 'Positions archived',
+      matched: result.matchedCount ?? result.n ?? 0,
+      modified: result.modifiedCount ?? result.nModified ?? 0,
+    })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -639,7 +696,7 @@ exports.getDividendSummary = async (req, res) => {
             if (d.drip) byTicker[t].drip = true
             byTicker[t].transactions.push(d)
         }
-        const positions = await Position.find({user: req.user._id})
+        const positions = await Position.find(activePositionFilter(req.user._id))
         const posMap = Object.fromEntries(positions.map((p) => [p.ticker, p]))
         const summary = Object.values(byTicker).map((row) => ({
             ...row,
@@ -657,7 +714,7 @@ exports.getDividendSummary = async (req, res) => {
 // payout based on the last per-share dividend × shares held.
 exports.getDividendCalendar = async (req, res) => {
     try {
-        const positions = await Position.find({user: req.user._id, shares: {$gt: 0}}).lean()
+        const positions = await Position.find({ ...activePositionFilter(req.user._id), shares: {$gt: 0} }).lean()
         if (!positions.length) return res.json({events: []})
 
         const entries = await getDividendCalendar(positions.map((p) => p.ticker))
@@ -695,7 +752,7 @@ exports.getDividendCalendar = async (req, res) => {
 // annualized rate evenly across all 12.
 exports.getDividendFrequencies = async (req, res) => {
     try {
-        const positions = await Position.find({user: req.user._id, shares: {$gt: 0}}).lean()
+        const positions = await Position.find({ ...activePositionFilter(req.user._id), shares: {$gt: 0} }).lean()
         if (!positions.length) return res.json({frequencies: {}})
         const frequencies = await getDividendFrequency(positions.map((p) => p.ticker))
         res.json({frequencies})
@@ -706,7 +763,7 @@ exports.getDividendFrequencies = async (req, res) => {
 
 exports.getDividendPaymentHistory = async (req, res) => {
     try {
-        const positions = await Position.find({user: req.user._id, shares: {$gt: 0}}).lean()
+        const positions = await Position.find({ ...activePositionFilter(req.user._id), shares: {$gt: 0} }).lean()
         if (!positions.length) return res.json({payments: []})
 
         // Get earliest buy date per ticker from transactions

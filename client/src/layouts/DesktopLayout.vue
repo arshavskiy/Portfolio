@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useStorage } from "@vueuse/core";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
@@ -95,9 +95,12 @@ const isDashboard = computed(() => route.path === "/");
 const isAssistant = computed(
   () => route.path === "/assistant" || route.path === "/insights",
 );
-const PANEL_ROUTES = ["/watchlist"];
+const PANEL_ROUTES = ["/watchlist", "/assets"];
 const showPanel = computed(() =>
   PANEL_ROUTES.some((p) => route.path.startsWith(p)),
+);
+const detailPanelOpen = computed(
+  () => showPanel.value && Boolean(focus.ticker) && !detailPanelCollapsed.value,
 );
 
 const accountLabel = computed(
@@ -122,6 +125,13 @@ const dashboardNavItems = computed(() =>
       to: "/watchlist",
       icon: "pi pi-eye",
       tourKey: "watchlist",
+    },
+    {
+      key: "assets",
+      name: t("nav.assets"),
+      to: "/assets",
+      icon: "pi pi-briefcase",
+      tourKey: "assets",
     },
     {
       key: "records",
@@ -176,6 +186,7 @@ const toolsNavItems = computed(() =>
 const breadcrumbMap = {
   "/": t("nav.home"),
   "/watchlist": t("common.watchlist"),
+  "/assets": t("nav.assets"),
   "/x-ray": t("common.xRay"),
   "/news": t("common.news"),
   "/help": t("common.about"),
@@ -218,6 +229,18 @@ function toggleMenu() {
 function toggleDetailPanel() {
   detailPanelCollapsed.value = !detailPanelCollapsed.value;
 }
+
+function closeDetailPanel() {
+  detailPanelCollapsed.value = true;
+  focus.clear();
+}
+
+watch(
+  () => focus.ticker,
+  (ticker) => {
+    if (ticker) detailPanelCollapsed.value = false;
+  },
+);
 </script>
 
 <template>
@@ -237,13 +260,15 @@ function toggleDetailPanel() {
           </span>
           <span v-if="!menuCollapsed" class="account-copy">
             <strong>{{ accountLabel }}</strong>
-            <small>{{ t('common.account') }}</small>
+            <small>{{ t("common.account") }}</small>
           </span>
         </button>
       </div>
 
       <div class="sidebar-nav">
-        <span v-if="!menuCollapsed" class="nav-group-label">{{ t('common.dashboard') }}</span>
+        <span v-if="!menuCollapsed" class="nav-group-label">{{
+          t("common.dashboard")
+        }}</span>
         <RouterLink
           v-for="item in dashboardNavItems"
           :key="item.key"
@@ -262,7 +287,7 @@ function toggleDetailPanel() {
           <span
             v-if="!menuCollapsed"
             class="nav-group-label nav-group-label--tools"
-            >{{ t('nav.tools') }}</span
+            >{{ t("nav.tools") }}</span
           >
           <div v-else class="nav-group-divider" />
           <RouterLink
@@ -310,7 +335,9 @@ function toggleDetailPanel() {
           <button
             v-if="!isAssistant"
             v-tooltip.bottom="
-              aiPanelCollapsed ? t('insights.advisorShowPanel') : t('insights.advisorHidePanel')
+              aiPanelCollapsed
+                ? t('insights.advisorShowPanel')
+                : t('insights.advisorHidePanel')
             "
             class="ai-toggle-btn"
             type="button"
@@ -334,7 +361,7 @@ function toggleDetailPanel() {
 
       <!-- Watchlist + right panel -->
       <template v-else-if="showPanel">
-        <div class="panel-layout">
+        <div class="panel-layout" :class="{ 'detail-open': detailPanelOpen }">
           <div class="page-scroll panel-main">
             <RouterView v-slot="{ Component, route: r }">
               <div class="page-inner">
@@ -344,13 +371,20 @@ function toggleDetailPanel() {
               </div>
             </RouterView>
           </div>
-          <aside class="right-col" :class="{ collapsed: detailPanelCollapsed }">
-            <div v-if="!focus.ticker" class="right-empty">
-              <i class="pi pi-chart-line" />
-              <p>{{ t("nav.clickRowToViewPosition") }}</p>
-            </div>
+          <aside class="right-col" :class="{ open: detailPanelOpen }">
+            <Button
+              v-if="focus.ticker"
+              v-tooltip.left="t('common.close')"
+              class="right-col-close"
+              icon="pi pi-times"
+              severity="secondary"
+              text
+              rounded
+              type="button"
+              @click="closeDetailPanel"
+            />
             <PositionDetailView
-              v-else
+              v-if="focus.ticker"
               :key="focus.ticker"
               :ticker-override="focus.ticker"
               :panel-mode="true"
@@ -381,8 +415,8 @@ function toggleDetailPanel() {
     >
       <div class="advisor-head">
         <div>
-          <strong>{{ t('insights.advisorTitle') }}</strong>
-          <span>{{ t('insights.advisorSubtitle') }}</span>
+          <strong>{{ t("insights.advisorTitle") }}</strong>
+          <span>{{ t("insights.advisorSubtitle") }}</span>
         </div>
         <div class="advisor-actions">
           <Button
@@ -421,15 +455,23 @@ function toggleDetailPanel() {
         <span class="advisor-hero-mark">
           <i class="pi pi-comments" />
         </span>
-        <strong>{{ t('insights.advisorHeroTitle') }}</strong>
-        <p v-if="aiDataSharingConsent">{{ t('insights.advisorHeroText') }}</p>
-        <p v-else>{{ t('insights.advisorHeroTextNoConsent') }}</p>
+        <strong>{{ t("insights.advisorHeroTitle") }}</strong>
+        <p v-if="aiDataSharingConsent">{{ t("insights.advisorHeroText") }}</p>
+        <p v-else>{{ t("insights.advisorHeroTextNoConsent") }}</p>
         <Button
           class="advisor-hero-cta"
           :icon="aiDataSharingConsent ? 'pi pi-sparkles' : 'pi pi-shield'"
-          :label="aiDataSharingConsent ? t('insights.advisorOpenFullChat') : t('insights.advisorEnableAi')"
+          :label="
+            aiDataSharingConsent
+              ? t('insights.advisorOpenFullChat')
+              : t('insights.advisorEnableAi')
+          "
           outlined
-          @click="aiDataSharingConsent ? router.push('/assistant') : openConsentModal()"
+          @click="
+            aiDataSharingConsent
+              ? router.push('/assistant')
+              : openConsentModal()
+          "
         />
       </div>
       <AskPortfolioPanel
@@ -438,7 +480,7 @@ function toggleDetailPanel() {
         class="advisor-panel"
       />
       <div v-if="aiDataSharingConsent" class="suggestions">
-        <span>{{ t('insights.advisorSuggestions') }}</span>
+        <span>{{ t("insights.advisorSuggestions") }}</span>
         <Button
           v-for="prompt in suggestionPrompts"
           :key="prompt"
@@ -462,8 +504,8 @@ function toggleDetailPanel() {
         <div class="consent-dialog-title">
           <i class="pi pi-sparkles" />
           <div>
-            <strong>{{ t('insights.consentTitle') }}</strong>
-            <span>{{ t('insights.consentSubtitle') }}</span>
+            <strong>{{ t("insights.consentTitle") }}</strong>
+            <span>{{ t("insights.consentSubtitle") }}</span>
           </div>
         </div>
       </template>
@@ -474,15 +516,19 @@ function toggleDetailPanel() {
               <ToggleSwitch v-model="consentDraft" />
             </div>
             <div class="consent-copy">
-              <strong>{{ t('insights.consentToggleLabel') }}</strong>
-              <p>{{ t('insights.consentToggleText') }}</p>
+              <strong>{{ t("insights.consentToggleLabel") }}</strong>
+              <p>{{ t("insights.consentToggleText") }}</p>
             </div>
           </div>
         </template>
       </Card>
       <template #footer>
         <div class="consent-footer">
-          <Button :label="t('common.cancel')" outlined @click="closeConsentModal" />
+          <Button
+            :label="t('common.cancel')"
+            outlined
+            @click="closeConsentModal"
+          />
           <Button
             :disabled="!consentDirty || savingConsent"
             :loading="savingConsent"
@@ -828,9 +874,11 @@ function toggleDetailPanel() {
 
 /* Panel layout (watchlist + right col) */
 .panel-layout {
+  --detail-panel-width: min(450px, calc(100vw - 52px));
   flex: 1;
   min-height: 0;
   display: flex;
+  position: relative;
   overflow: hidden;
 }
 
@@ -840,6 +888,11 @@ function toggleDetailPanel() {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior-y: contain;
+  transition: margin-right 0.26s ease;
+}
+
+.panel-layout.detail-open .panel-main {
+  margin-right: var(--detail-panel-width);
 }
 
 .page-scroll {
@@ -855,6 +908,12 @@ function toggleDetailPanel() {
   max-width: 1400px;
   margin: 0 auto;
   width: 100%;
+  margin-top: 2rem;
+}
+
+.panel-layout.detail-open .page-inner {
+  box-sizing: border-box;
+  padding-inline: 2rem;
 }
 
 .panel-main {
@@ -863,45 +922,42 @@ function toggleDetailPanel() {
 
 /* Right panel */
 .right-col {
-  width: 300px;
-  flex: 2;
-  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--detail-panel-width);
+  min-width: var(--detail-panel-width);
   border-left: 1px solid var(--border);
-  overflow: scroll;
+  background: var(--bg-primary);
+  box-shadow: -18px 0 38px color-mix(in srgb, var(--shadow) 18%, transparent);
+  overflow: auto;
   display: flex;
   flex-direction: column;
-  opacity: 1;
-  transition:
-    width 0.22s ease,
-    flex 0.22s ease,
-    opacity 0.18s ease,
-    border-color 0.22s ease;
-}
-
-.right-col.collapsed {
-  width: 0;
-  flex: 0 0 0;
-  border-left-color: transparent;
   opacity: 0;
   pointer-events: none;
+  transform: translateX(100%);
+  transition:
+    transform 0.26s ease,
+    opacity 0.18s ease,
+    box-shadow 0.22s ease;
+  z-index: 8;
 }
 
-.right-empty {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 2rem;
+.right-col.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  passing: 0 1rem;
 }
 
-.right-empty i {
-  font-size: 2.5rem;
-  opacity: 0.2;
+.right-col-close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+  z-index: 2;
+  background: color-mix(in srgb, var(--bg-primary) 90%, transparent);
+  border: 1px solid var(--border);
 }
 
 /* ── AI advisor rail ── */

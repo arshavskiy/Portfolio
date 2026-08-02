@@ -72,13 +72,13 @@ Return all open positions enriched with live quotes.
 ```
 
 ### POST /portfolio/transaction `🔒`
-Record a buy, sell, or dividend. A sell fully or partially reduces shares; reaching 0 deletes the position.
+Record a buy, sell, dividend, or position update. A sell fully or partially reduces shares; reaching 0 deletes the position. An `update` is a hard position snapshot: it sets shares and avg cost directly, then later buys and sells continue from that reset point.
 
 **Body**
 ```json
 {
   "ticker": "AAPL",
-  "type": "buy" | "sell" | "dividend",
+  "type": "buy" | "sell" | "dividend" | "update",
   "shares": 10,
   "price": 150.00,
   "date": "2024-01-15",
@@ -86,6 +86,8 @@ Record a buy, sell, or dividend. A sell fully or partially reduces shares; reach
   "feeProfileId": "objectId (optional)"
 }
 ```
+For `update`, `shares` is the new position quantity and `price` is the avg cost per unit. Fees and taxes are not applied to update transactions.
+
 `feeProfileId` handling:
 - Omitted field: server applies the user's default fee profile when one exists.
 - `"feeProfileId": null`: explicit no-fee transaction.
@@ -138,6 +140,19 @@ Delete a transaction and recompute the position's avg-cost and shares.
 Delete an entire position and all its transactions.
 
 **Response `200`** `{ "message": "Position removed" }`
+
+### PUT /portfolio/positions/archive `🔒`
+Archive one or more positions. Archived positions are hidden from portfolio totals, risk, dividends, and other active-position endpoints.
+
+**Body**
+```json
+{ "ids": ["positionObjectId"] }
+```
+
+**Response `200`**
+```json
+{ "message": "Positions archived", "matched": 1, "modified": 1 }
+```
 
 ### GET /portfolio/history `🔒`
 Portfolio value over time (daily, replayed from transactions).
@@ -673,10 +688,24 @@ All saved fee profiles for the current user. Read-only built-in presets are inje
     "buyFee": { "type": "percent", "value": 0.001, "minFee": 0 },
     "sellFee": { "type": "percent", "value": 0.001, "minFee": 0 },
     "capitalGainsTax": 25,
+    "feesByCurrency": {
+      "USD": {
+        "buyFee": { "type": "percent", "value": 0.001, "minFee": 10 },
+        "sellFee": { "type": "percent", "value": 0.001, "minFee": 10 },
+        "capitalGainsTax": 25
+      },
+      "ILS": {
+        "buyFee": { "type": "percent", "value": 0.001, "minFee": 10 },
+        "sellFee": { "type": "percent", "value": 0.001, "minFee": 10 },
+        "capitalGainsTax": 25
+      }
+    },
     "isDefault": true
   }
 ]
 ```
+
+`buyFee`, `sellFee`, and `capitalGainsTax` remain on the root profile for backward compatibility. New clients should use `feesByCurrency.USD` and `feesByCurrency.ILS` so one broker account can carry separate schedules for USD and ILS trades.
 
 Fee rule types:
 
