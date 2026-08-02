@@ -9,6 +9,8 @@ import WhatsNewModal from '@/components/ui/WhatsNewModal.vue'
 import TrialWelcomeModal from '@/components/ui/TrialWelcomeModal.vue'
 import AccountShortcut from '@/components/ui/AccountShortcut.vue'
 import AccountModal from '@/components/ui/AccountModal.vue'
+import SettingsModal from '@/components/ui/SettingsModal.vue'
+import AboutModal from '@/components/ui/AboutModal.vue'
 import {useAuthStore} from '@/stores/auth'
 import {ref, computed} from 'vue'
 
@@ -16,7 +18,20 @@ const {isDesktop} = useBreakpoint()
 const {checkForUpdates, visible: whatsNewVisible} = useWhatsNew()
 const {maybeStartNavPhase} = useTour()
 const showAccount = ref(false)
+const showSettings = ref(false)
+const settingsFromAccount = ref(false)
+const showAbout = ref(false)
 const auth = useAuthStore()
+
+function openSettingsFromAccount() {
+  settingsFromAccount.value = true
+  showSettings.value = true
+}
+
+function openSettingsStandalone() {
+  settingsFromAccount.value = false
+  showSettings.value = true
+}
 
 const trialModalVisible = computed(() =>
   Boolean(auth.user && auth.user.trialEndsAt && !auth.user.welcomeModalSeenAt)
@@ -56,10 +71,28 @@ watch(anyBlockingModalVisible, (blocked, wasBlocked) => {
 
 <template>
   <div id="page-actions-slot" class="page-actions-slot"/>
-  <DesktopLayout v-if="isDesktop" @open-account="showAccount = true"/>
+  <DesktopLayout
+      v-if="isDesktop"
+      @open-account="showAccount = true"
+      @open-settings="openSettingsStandalone"
+  />
   <MobileLayout v-else/>
   <AccountShortcut @click="showAccount = true"/>
-  <AccountModal v-model:visible="showAccount"/>
+  <AccountModal
+      v-model:visible="showAccount"
+      @open-settings="openSettingsFromAccount"
+      @open-about="showAbout = true"
+  />
+  <SettingsModal
+      v-model:visible="showSettings"
+      :from-account="settingsFromAccount"
+      @back-to-account="showAccount = true"
+  />
+  <AboutModal
+      v-model:visible="showAbout"
+      from-account
+      @back-to-account="showAccount = true"
+  />
   <WhatsNewModal/>
   <TrialWelcomeModal/>
 </template>

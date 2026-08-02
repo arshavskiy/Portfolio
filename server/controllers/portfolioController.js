@@ -584,7 +584,12 @@ exports.getRealizedGains = async (req, res) => {
         const allTx = await Transaction.find({user: req.user._id, type: {$in: ['buy', 'sell', 'dividend']}})
             .populate('feeProfile', 'name currency capitalGainsTax')
             .sort({date: 1})
-        
+
+        // Amounts are stored in each position's native currency; convert .TA
+        // (ILS) values to USD so year totals aren't mixed-unit sums.
+        const ilsToUsd = await getIlsToUsd()
+        const fx = (ticker) => String(ticker || '').toUpperCase().endsWith('.TA') ? ilsToUsd : 1
+
         // Per-ticker running state: shares held + total cost basis
         const state = {}
         // Results: per sell event
@@ -605,20 +610,21 @@ exports.getRealizedGains = async (req, res) => {
                 const taxPaid = tx.taxAmount || 0
                 const grossGain = proceeds - costBasis
                 const netGain = grossGain - feePaid - taxPaid
-                
+                const rate = fx(t)
+
                 sells.push({
                     _id: tx._id,
                     ticker: t,
                     date: tx.date,
                     shares: tx.shares,
                     price: tx.price,
-                    proceeds,
-                    costBasis,
-                    avgCostAtSale: avgCost,
-                    feePaid,
-                    taxPaid,
-                    grossGain,
-                    netGain,
+                    proceeds: proceeds * rate,
+                    costBasis: costBasis * rate,
+                    avgCostAtSale: avgCost * rate,
+                    feePaid: feePaid * rate,
+                    taxPaid: taxPaid * rate,
+                    grossGain: grossGain * rate,
+                    netGain: netGain * rate,
                     notes: tx.notes,
                 })
                 
@@ -630,6 +636,7 @@ exports.getRealizedGains = async (req, res) => {
                     state[t].cost = 0
                 }
             } else if (tx.type === 'dividend' && !tx.drip) {
+                const rate = fx(t)
                 sells.push({
                     _id: tx._id,
                     ticker: t,
@@ -637,8 +644,8 @@ exports.getRealizedGains = async (req, res) => {
                     isDividend: true,
                     shares: tx.shares,
                     price: tx.price,
-                    grossGain: tx.total || 0,
-                    netGain: tx.total || 0,
+                    grossGain: (tx.total || 0) * rate,
+                    netGain: (tx.total || 0) * rate,
                     notes: tx.notes,
                 })
             }
@@ -678,6 +685,169 @@ exports.getRealizedGains = async (req, res) => {
         
         const availableYears = Object.keys(byYear).map(Number).sort((a, b) => b - a)
         res.json({years, availableYears})
+    } catch (err) {
+        res.status(500).json({message: err.message})
+    }
+}
+
+const PROJECTION_PAST_MONTHS = 6
+const PROJECTION_FUTURE_MONTHS = 6
+// Quarterly is the most common payout schedule, used when Yahoo's trailing-12mo
+// history isn't enough to detect a ticker's real cadence.
+const DEFAULT_DIVIDEND_FREQUENCY = 4
+
+function monthKey(date) {
+    const d = new Date(date)
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+}
+
+// Rolling 12-month income view: PROJECTION_PAST_MONTHS of actual realized gains
+// and dividends, then PROJECTION_FUTURE_MONTHS of estimates. Past values are
+// replayed from transactions; future dividends are placed on each ticker's real
+// payout months when known. Future realized gains cannot be predicted, so they
+// carry the trailing average forward and the whole future half is flagged
+// `estimated` for the client to render differently.
+exports.getIncomeProjection = async (req, res) => {
+    try {
+        const userId = req.user._id
+        const ilsToUsd = await getIlsToUsd()
+        const fx = (ticker) => String(ticker || '').toUpperCase().endsWith('.TA') ? ilsToUsd : 1
+
+        const now = new Date()
+        const windowStart = new Date(now.getFullYear(), now.getMonth() - PROJECTION_PAST_MONTHS + 1, 1)
+
+        const buckets = []
+        for (let i = -PROJECTION_PAST_MONTHS + 1; i <= PROJECTION_FUTURE_MONTHS; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() + i, 1)
+            buckets.push({
+                key: monthKey(d),
+                label: d.toLocaleDateString('en-US', {month: 'short', year: '2-digit'}),
+                realizedGains: 0,
+                dividends: 0,
+                portfolioValue: 0,
+                estimated: i > 0,
+            })
+        }
+        const byKey = Object.fromEntries(buckets.map((b) => [b.key, b]))
+
+        // ── Past: replay transactions for realized gains + dividends ──
+        const allTx = await Transaction.find({user: userId, type: {$in: ['buy', 'sell', 'dividend']}})
+            .sort({date: 1})
+            .lean()
+
+        const state = {}
+        for (const tx of allTx) {
+            const t = tx.ticker
+            if (!state[t]) state[t] = {shares: 0, cost: 0}
+
+            if (tx.type === 'buy') {
+                state[t].cost += tx.shares * tx.price
+                state[t].shares += tx.shares
+                continue
+            }
+
+            const rate = fx(t)
+            const bucket = byKey[monthKey(tx.date)]
+
+            if (tx.type === 'sell') {
+                const avgCost = state[t].shares > 0 ? state[t].cost / state[t].shares : 0
+                const costBasis = avgCost * tx.shares
+                const proceeds = tx.total || tx.shares * tx.price
+                const netGain = proceeds - costBasis - (tx.feeAmount || 0) - (tx.taxAmount || 0)
+                // Replay must run over every sell to keep avg cost correct, but
+                // only sells inside the window contribute to a bucket.
+                if (bucket && new Date(tx.date) >= windowStart) bucket.realizedGains += netGain * rate
+                state[t].cost -= costBasis
+                state[t].shares -= tx.shares
+                if (state[t].shares <= 0) {
+                    state[t].shares = 0
+                    state[t].cost = 0
+                }
+            } else if (tx.type === 'dividend' && !tx.drip) {
+                if (bucket && new Date(tx.date) >= windowStart) bucket.dividends += (tx.total || 0) * rate
+            }
+        }
+
+        // ── Future: estimate dividends from live rate × shares, on real payout months ──
+        const positions = await Position.find({...activePositionFilter(userId), shares: {$gt: 0}}).lean()
+        const futureBuckets = buckets.filter((b) => b.estimated)
+
+        if (positions.length && futureBuckets.length) {
+            const tickers = positions.map((p) => p.ticker)
+            const [calendar, frequencies] = await Promise.all([
+                getDividendCalendar(tickers).catch(() => []),
+                getDividendFrequency(tickers).catch(() => ({})),
+            ])
+            const rateByTicker = Object.fromEntries(
+                (calendar || []).map((e) => [String(e.ticker).toUpperCase(), e.dividendRate])
+            )
+
+            for (const p of positions) {
+                const symbol = String(p.ticker).toUpperCase()
+                const annualRate = Number(rateByTicker[symbol]) || 0
+                if (annualRate <= 0) continue
+
+                const detected = frequencies?.[symbol]
+                const frequency = detected?.frequency || DEFAULT_DIVIDEND_FREQUENCY
+                const payoutMonths = detected?.months || null
+                const perPayment = (annualRate * p.shares * fx(symbol)) / frequency
+                const spacing = Math.max(1, Math.round(12 / frequency))
+
+                futureBuckets.forEach((bucket, index) => {
+                    const [y, m] = bucket.key.split('-').map(Number)
+                    const paysThisMonth = payoutMonths
+                        ? payoutMonths.includes(m - 1) // stored 0-indexed
+                        : index % spacing === 0
+                    if (paysThisMonth) bucket.dividends += perPayment
+                })
+            }
+        }
+
+        // Realized gains can't be forecast — carry the trailing average forward.
+        const pastBuckets = buckets.filter((b) => !b.estimated)
+        const avgRealized = pastBuckets.length
+            ? pastBuckets.reduce((s, b) => s + b.realizedGains, 0) / pastBuckets.length
+            : 0
+        for (const b of futureBuckets) b.realizedGains = avgRealized
+
+        // ── Portfolio value: last available history point per month ──
+        try {
+            const points = await getPortfolioHistory(userId, 'all')
+            for (const point of points || []) {
+                const bucket = byKey[monthKey(point.date)]
+                if (bucket) bucket.portfolioValue = point.value
+            }
+        } catch { /* value line is optional — bars still render without it */ }
+
+        // History is downsampled, so a month can have no point. Carry the last
+        // known value forward rather than dropping the line to zero.
+        let lastValue = 0
+        for (const b of buckets) {
+            if (b.portfolioValue > 0) lastValue = b.portfolioValue
+            else b.portfolioValue = lastValue
+        }
+
+        const round = (n) => Math.round((Number(n) || 0) * 100) / 100
+        const months = buckets.map((b) => ({
+            ...b,
+            realizedGains: round(b.realizedGains),
+            dividends: round(b.dividends),
+            portfolioValue: round(b.portfolioValue),
+        }))
+
+        res.json({
+            months,
+            currency: 'USD',
+            ilsToUsd,
+            totals: {
+                trailingIncome: round(
+                    months.filter((m) => !m.estimated).reduce((s, m) => s + m.realizedGains + m.dividends, 0)
+                ),
+                projectedIncome: round(
+                    months.filter((m) => m.estimated).reduce((s, m) => s + m.realizedGains + m.dividends, 0)
+                ),
+            },
+        })
     } catch (err) {
         res.status(500).json({message: err.message})
     }

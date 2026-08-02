@@ -35,6 +35,8 @@ export const messages = {
       edit: "Edit",
       copy: "Copy",
       contact: "Contact",
+      contactInvite:
+        "Suggestions are always welcome — if you have an idea, a feature you wish existed, or something that isn't working right, get in touch.",
       emailMe: "Email me",
       telegramMe: "Telegram me",
       optional: "optional",
@@ -90,56 +92,7 @@ export const messages = {
       heroSubtitle:
         "financial advisor that helps you make smarter decisions about your money.",
       appPreview: "App preview",
-      features: {
-        livePortfolioTitle: "Live Portfolio",
-        livePortfolioText:
-          "Your holdings, P&L, and portfolio value update in real time across stocks, crypto, and global markets.",
-        priceAlertsTitle: "Price Alerts",
-        priceAlertsText:
-          "You get a push notification the moment a stock crosses your target — above or below.",
-        multiMarketTitle: "Multi-Market",
-        multiMarketText:
-          "US, TASE, crypto, and more live side by side, with full multi-currency support for USD and ILS.",
-        advancedChartsTitle: "Advanced Charts",
-        advancedChartsText:
-          "Line and candlestick charts include pre- and after-hours coloring, delta measurement, and volume.",
-        rebalancerTitle: "Rebalancer",
-        rebalancerText:
-          "You set target allocations and StockFolio builds a buy/sell action plan to get you back on track.",
-        feesTaxTitle: "Fees & Tax",
-        feesTaxText:
-          "Every trade accounts for broker commissions and capital-gains tax so your real return is always accurate.",
-        dividendsTitle: "Dividends & DRIP",
-        dividendsText:
-          "Cash dividends and reinvested DRIP shares are tracked with full lot history and income forecasts.",
-        groupsTitle: "Groups & Tags",
-        groupsText:
-          "Holdings and watchlist items can be organized into custom multi-tag groups with group-by views on every page.",
-        newsTitle: "For You News",
-        newsText:
-          "Market stories are personalized to your watchlist, with topic feeds so you can scan what matters fast.",
-        importTitle: "Bulk Import",
-        importText:
-          "Holdings and watchlist items import from Excel, CSV, or Word — column mapping is automatic.",
-        insightsTitle: "Portfolio Insights",
-        insightsText:
-          "Money- and time-weighted returns, sector and beta risk exposure, a stress-test slider, and dividend income forecasts all live in one place.",
-        aiChatTitle: "AI Portfolio Chat",
-        aiChatText:
-          "You can ask questions about your holdings in plain English and get answers backed by live portfolio data.",
-        dailySummaryTitle: "AI Daily Summary",
-        dailySummaryText:
-          "Every morning a fresh AI recap of your holdings, watchlist, and the main markets is ready before you check your phone.",
-        tickerInsightTitle: "News-Driven Ticker Insight",
-        tickerInsightText:
-          "Sentiment tags, insider activity, earnings beat rate, and a market map of tickers that move together in the news — all sourced live.",
-        xRayTitle: "Portfolio X-Ray",
-        xRayText:
-          "A rules-based health check scans your holdings for concentration risk, diversification gaps, and dividend coverage, and flags issues with pass, watch, or risk badges.",
-        recordsTitle: "Transaction Records & Dividend History",
-        recordsText:
-          "Every trade, realized gain, and historical dividend payment is logged and filterable, with CSV export for tax season.",
-      },
+
       slides: {
         portfolio: "Portfolio",
         markets: "Markets",
@@ -165,6 +118,9 @@ export const messages = {
       identifierPlaceholder: "you@example.com or username",
       password: "Password",
       signIn: "Sign In",
+      summary:
+        "StockFolio keeps your holdings, watchlist, and trade history in one place and handles the arithmetic behind them — live valuations across currencies, realized gains with fees and tax accounted for, dividend income, and a clear view of where your risk sits. Built mobile-first, and just as usable on a desktop.",
+      premiumNote: "Some capabilities are part of",
       noAccount: "No account?",
       createFree: "Create one — it's free",
       createAccount: "Create your account",
@@ -367,6 +323,17 @@ export const messages = {
       colUnitValue: "Unit Value",
       colTotalValue: "Total Value",
       notEnoughHistory: "Not enough history yet",
+      incomeProjection: "Income Projection",
+      incomeRealized: "Realized gains",
+      incomeDividends: "Dividends",
+      incomePortfolioValue: "Portfolio value",
+      incomeProjectedNext: "Est. next 6 mo",
+      incomeEstimated: "estimated",
+      incomeEstimateNote: "Lighter bars are estimates",
+      incomeEmpty: "No income history yet",
+      incomeMonthly: "Monthly",
+      incomeCumulative: "Cumulative",
+      incomeThisMonth: "This month",
       total: "Total",
       mixed: "Mixed",
       bullish: "Bullish",
@@ -990,22 +957,19 @@ export const messages = {
       importAlt: "How to import holdings from Excel or CSV",
       tagline:
         "A fast, mobile-first tracker for stocks, crypto, and global markets — with live P&L, price alerts, and a clean dark interface.",
+      summary:
+        "StockFolio pulls your holdings, watchlist, and transaction history into one place, then does the arithmetic you'd otherwise do by hand: live valuations across currencies, realized gains by tax year with broker fees and tax folded in, dividend income, and a clear read on where your risk actually sits. It runs on live market data and works on a phone as comfortably as on a desktop.",
       supportTitle: "Support StockFolio",
       supportText:
         "StockFolio is free. If it's useful to you, a Bitcoin tip helps keep it running.",
+      supportNavTitle: "Support Project",
+      costTitle: "What it costs to run",
+      costText:
+        "StockFolio is a personal project with no ads, no trackers, and no paid tier for the core features — but it isn't free to keep online. Market data and news come from paid API tiers that bill per request, so every quote refresh, chart range, and daily summary has a real cost attached. The AI features call a language model per question, billed per token. On top of that sit the always-on server and database hosting, plus the domain and its certificate renewing each year. None of it is expensive alone; together it's a steady monthly bill covered out of pocket. Tips don't unlock anything — they just offset that bill and keep the free tier generous.",
       bitcoinAddress: "Your Bitcoin Address",
       addressCopied: "Address copied",
       copyFailed: "Copy failed — select it manually",
-      features: [
-        "Live portfolio tracking with P&L, multi-currency totals, and a value-over-time chart",
-        "Coverage for US stocks, TASE, global markets, and crypto watchlists",
-        "Buy/sell lots with fee profiles for broker fees and capital-gains tax simulation",
-        "Price alerts via push notifications, set and monitored per ticker",
-        "Dashboard cards for top movers, trending symbols, and live market-hours status",
-        "Pre-market and after-hours price changes alongside regular session quotes",
-        "Custom multi-tag groups with group-by views across holdings and watchlist",
-        "Bulk import holdings or watchlist from Excel, CSV, or Word files",
-      ],
+
     },
     mathPage: {
       title: "How the Numbers Work",
@@ -1293,6 +1257,8 @@ export const messages = {
       edit: "Изменить",
       copy: "Копировать",
       contact: "Контакты",
+      contactInvite:
+        "Предложения всегда приветствуются — если есть идея, функция, которой не хватает, или что-то работает не так, напишите мне.",
       emailMe: "Написать email",
       telegramMe: "Написать в Telegram",
       optional: "необязательно",
@@ -1348,56 +1314,7 @@ export const messages = {
       heroSubtitle:
         "советник по инвестициям, который помогает принимать более взвешенные финансовые решения.",
       appPreview: "Предпросмотр приложения",
-      features: {
-        livePortfolioTitle: "Портфель онлайн",
-        livePortfolioText:
-          "Позиции, P&L и стоимость портфеля обновляются в реальном времени по акциям, криптовалютам и мировым рынкам.",
-        priceAlertsTitle: "Ценовые алерты",
-        priceAlertsText:
-          "Push-уведомление приходит в момент, когда актив пересекает вашу цель — вверх или вниз.",
-        multiMarketTitle: "Разные рынки",
-        multiMarketText:
-          "США, TASE, криптовалюты и другое в одном месте, с полной поддержкой мультивалютности — USD и ILS.",
-        advancedChartsTitle: "Продвинутые графики",
-        advancedChartsText:
-          "Линейные и свечные графики включают окраску pre/after-hours, измерение дельты и объем.",
-        rebalancerTitle: "Ребалансировка",
-        rebalancerText:
-          "Вы задаёте целевые доли, а StockFolio составляет план покупок и продаж, чтобы вернуться к целям.",
-        feesTaxTitle: "Комиссии и налоги",
-        feesTaxText:
-          "Каждая сделка учитывает комиссии брокера и налог на прирост капитала, чтобы реальная доходность всегда была точной.",
-        dividendsTitle: "Дивиденды и DRIP",
-        dividendsText:
-          "Денежные дивиденды и реинвестированные DRIP-акции отслеживаются с полной историей и прогнозом дохода.",
-        groupsTitle: "Группы и теги",
-        groupsText:
-          "Позиции и список наблюдения можно организовать в настраиваемые группы с несколькими тегами и группировкой на каждой странице.",
-        newsTitle: "Новости для вас",
-        newsText:
-          "Рыночные новости персонализированы по вашему списку наблюдения, с темами для быстрого просмотра важного.",
-        importTitle: "Массовый импорт",
-        importText:
-          "Позиции и список наблюдения импортируются из Excel, CSV или Word — сопоставление столбцов происходит автоматически.",
-        insightsTitle: "Аналитика портфеля",
-        insightsText:
-          "Доходность по деньгам и по времени, риск по секторам и бете, слайдер стресс-теста и прогноз дивидендного дохода — всё в одном месте.",
-        aiChatTitle: "AI-чат по портфелю",
-        aiChatText:
-          "Задавайте вопросы о своих позициях обычным языком и получайте ответы на основе реальных данных портфеля.",
-        dailySummaryTitle: "AI-сводка дня",
-        dailySummaryText:
-          "Каждое утро свежая AI-сводка по позициям, списку наблюдения и основным рынкам ждёт вас ещё до того, как вы откроете телефон.",
-        tickerInsightTitle: "Аналитика тикера на основе новостей",
-        tickerInsightText:
-          "Теги тональности, активность инсайдеров, доля превышений прогноза прибыли и карта тикеров, упоминаемых вместе в новостях — всё на основе реальных данных.",
-        xRayTitle: "Portfolio X-Ray",
-        xRayText:
-          "Проверка портфеля по правилам сканирует позиции на концентрацию риска, пробелы в диверсификации и покрытие дивидендами, отмечая проблемы значками pass, watch или risk.",
-        recordsTitle: "Записи сделок и история дивидендов",
-        recordsText:
-          "Каждая сделка, реализованная прибыль и выплата дивидендов зафиксированы с фильтрацией и экспортом в CSV для налогового сезона.",
-      },
+
       slides: {
         portfolio: "Портфель",
         markets: "Рынки",
@@ -1423,6 +1340,9 @@ export const messages = {
       identifierPlaceholder: "you@example.com или username",
       password: "Пароль",
       signIn: "Войти",
+      summary:
+        "StockFolio хранит ваши позиции, список наблюдения и историю сделок в одном месте и берёт на себя все расчёты: текущая стоимость в разных валютах, реализованная прибыль с учётом комиссий и налогов, дивидендный доход и понятная картина распределения риска. Сделан в первую очередь для телефона и одинаково удобен на компьютере.",
+      premiumNote: "Часть возможностей входит в",
       noAccount: "Нет аккаунта?",
       createFree: "Создать бесплатно",
       createAccount: "Создайте аккаунт",
@@ -1629,6 +1549,17 @@ export const messages = {
       colUnitValue: "Цена",
       colTotalValue: "Сумма",
       notEnoughHistory: "Недостаточно истории",
+      incomeProjection: "Прогноз дохода",
+      incomeRealized: "Реализованная прибыль",
+      incomeDividends: "Дивиденды",
+      incomePortfolioValue: "Стоимость портфеля",
+      incomeProjectedNext: "Оценка на 6 мес.",
+      incomeEstimated: "оценка",
+      incomeEstimateNote: "Светлые столбцы — оценка",
+      incomeEmpty: "Пока нет истории дохода",
+      incomeMonthly: "По месяцам",
+      incomeCumulative: "Накопительно",
+      incomeThisMonth: "За месяц",
       total: "Итого",
       mixed: "Смешано",
       bullish: "Бычий",
@@ -2253,22 +2184,19 @@ export const messages = {
       importAlt: "Как импортировать позиции из Excel или CSV",
       tagline:
         "Быстрый мобильный трекер для акций, криптовалют и мировых рынков: живой P&L, ценовые алерты и аккуратный темный интерфейс.",
+      summary:
+        "StockFolio собирает ваши позиции, список наблюдения и историю сделок в одном месте и берёт на себя расчёты, которые иначе пришлось бы делать вручную: текущая стоимость в разных валютах, реализованная прибыль по налоговым годам с учётом комиссий и налога, дивидендный доход и понятная картина того, где на самом деле сосредоточен риск. Работает на живых рыночных данных и одинаково удобен на телефоне и на компьютере.",
       supportTitle: "Поддержать StockFolio",
       supportText:
         "StockFolio бесплатен. Если он вам полезен, Bitcoin-tip поможет поддерживать работу сервиса.",
+      supportNavTitle: "Поддержать проект",
+      costTitle: "Сколько стоит поддержка сервиса",
+      costText:
+        "StockFolio — личный проект без рекламы, трекеров и платного доступа к основным функциям, но его работа не бесплатна. Рыночные данные и новости приходят с платных тарифов API с оплатой за запрос, поэтому каждое обновление котировок, диапазон графика и ежедневная сводка стоят денег. AI-функции обращаются к языковой модели по каждому вопросу с оплатой за токены. К этому добавляются постоянно работающий сервер и хостинг базы данных, а также домен и сертификат, которые продлеваются ежегодно. По отдельности всё это недорого, но вместе получается стабильный ежемесячный счёт, который оплачивается из своего кармана. Донаты ничего не открывают — они лишь покрывают этот счёт и позволяют сохранять бесплатный доступ.",
       bitcoinAddress: "Ваш Bitcoin-адрес",
       addressCopied: "Адрес скопирован",
       copyFailed: "Не удалось скопировать — выделите вручную",
-      features: [
-        "Отслеживание портфеля с P&L, итогами в разных валютах и графиком стоимости",
-        "Поддержка акций США, TASE, мировых рынков и криптовалютных списков",
-        "Лоты покупок/продаж с профилями комиссий и симуляцией налога на прирост капитала",
-        "Ценовые алерты через push-уведомления по каждому тикеру",
-        "Карточки панели для лидеров движения, трендовых тикеров и статуса торговых сессий",
-        "Премаркет и after-hours рядом с котировками основной сессии",
-        "Настраиваемые группы с несколькими тегами для позиций и списка наблюдения",
-        "Массовый импорт позиций или списка из Excel, CSV или Word",
-      ],
+
     },
     mathPage: {
       title: "Как считаются показатели",

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, nextTick } from "vue";
+import { computed, ref, onMounted, nextTick, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import QRCode from "qrcode";
@@ -7,6 +7,10 @@ import Button from "primevue/button";
 import { useBreakpoint } from "@/composables/useBreakpoint";
 import { useI18n } from "@/composables/useI18n";
 import { useAuthStore } from "@/stores/auth";
+
+defineProps({
+  embedded: { type: Boolean, default: false },
+});
 
 const router = useRouter();
 const toast = useToast();
@@ -19,29 +23,22 @@ const anchors = computed(() => [
   { id: "about", label: t("common.about") },
   ...(auth.isAdmin ? [{ id: "math", label: t("mathPage.navTitle") }] : []),
   { id: "disclaimer", label: t("disclaimerPage.title") },
+  { id: "support", label: t("aboutPage.supportNavTitle") },
 ]);
+
+const desktopRoot = ref(null);
 
 function scrollTo(id) {
   activeAnchor.value = id;
-  document
-    .getElementById(id)
+  const scope = desktopRoot.value ?? document;
+  scope
+    .querySelector(`#${CSS.escape(id)}`)
     ?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // ── About section ──
 const BTC_ADDRESS = "bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2";
 const qrCanvas = ref(null);
-
-const featureIcons = [
-  "pi pi-chart-line",
-  "pi pi-globe",
-  "pi pi-money-bill",
-  "pi pi-bell",
-  "pi pi-bolt",
-  "pi pi-clock",
-  "pi pi-tags",
-  "pi pi-upload",
-];
 
 async function copyAddress() {
   try {
@@ -152,7 +149,7 @@ const legacyMathSections = [
   },
 ];
 
-onMounted(async () => {
+async function renderQr() {
   if (!isDesktop.value) return;
   await nextTick();
   if (!qrCanvas.value) return;
@@ -163,7 +160,13 @@ onMounted(async () => {
       color: { dark: "#000000", light: "#ffffff" },
     });
   } catch {}
+}
+
+watch(qrCanvas, (el) => {
+  if (el) renderQr();
 });
+
+onMounted(renderQr);
 </script>
 
 <template>
@@ -198,10 +201,10 @@ onMounted(async () => {
   </div>
 
   <!-- ── Desktop: combined single-scroll page with anchor tabs ── -->
-  <div v-else class="help-desktop safe-bottom">
-    <header class="page-header">
+  <div v-else ref="desktopRoot" class="help-desktop safe-bottom" :class="{ embedded }">
+    <!-- <header class="page-header">
       <h1 class="gradient-title">{{ t("common.about") }}</h1>
-    </header>
+    </header> -->
 
     <nav class="anchor-tabs">
       <button
@@ -218,69 +221,22 @@ onMounted(async () => {
     <div class="help-body">
       <!-- About -->
       <section id="about" class="anchor-section">
-        <div class="screenshot-card">
+        <!-- <div class="screenshot-card">
           <div class="screenshot-label">{{ t("aboutPage.importGuide") }}</div>
           <img
             :alt="t('aboutPage.importAlt')"
             class="screenshot-img"
             src="/import-guide.svg"
           />
-        </div>
+        </div> -->
 
         <div class="intro-card">
-          <div class="brand">
-            <!-- <span class="brand-mark">📈</span> -->
-            <span class="brand-name gradient-title">StockFolio</span>
-          </div>
           <p class="tagline text-muted">
             {{ t("aboutPage.tagline") }}
           </p>
-          <ul class="feature-list">
-            <li v-for="(text, i) in t('aboutPage.features')" :key="text">
-              <i :class="featureIcons[i]" /><span>{{ text }}</span>
-            </li>
-          </ul>
+          <p class="summary">{{ t("aboutPage.summary") }}</p>
         </div>
 
-        <div class="donate-card">
-          <h3 class="donate-title">{{ t("aboutPage.supportTitle") }}</h3>
-          <p class="text-muted donate-sub">
-            {{ t("aboutPage.supportText") }}
-          </p>
-          <div class="qr-wrap">
-            <canvas ref="qrCanvas" class="qr" />
-          </div>
-          <div class="addr-label text-muted">
-            {{ t("aboutPage.bitcoinAddress") }}
-          </div>
-          <div class="addr-row">
-            <code class="addr">{{ BTC_ADDRESS }}</code>
-            <button
-              :title="t('common.copy')"
-              class="copy-btn"
-              @click="copyAddress"
-            >
-              <i class="pi pi-copy" />
-            </button>
-          </div>
-          <div class="contact-block">
-            <div class="text-muted contact-label">
-              {{ t("common.contact") }}
-            </div>
-            <a
-              class="contact-link"
-              href="mailto:pavelspersonalhelper@gmail.com"
-              >{{ t("common.emailMe") }}</a
-            >
-            <a
-              class="contact-link"
-              href="https://t.me/PashaArsha"
-              rel="noopener noreferrer"
-              target="_blank"
-              >{{ t("common.telegramMe") }}</a
-            >
-          </div>
-        </div>
       </section>
 
       <!-- Math Reference -->
@@ -354,6 +310,59 @@ onMounted(async () => {
           {{ t("disclaimerPage.closing") }}
         </p>
       </section>
+
+      <!-- Support the project -->
+      <section id="support" class="anchor-section">
+        <h2 class="section-title">{{ t("aboutPage.supportNavTitle") }}</h2>
+
+        <div class="cost-card">
+          <h3 class="cost-title">{{ t("aboutPage.costTitle") }}</h3>
+          <p class="cost-body">{{ t("aboutPage.costText") }}</p>
+        </div>
+
+        <div class="donate-card">
+          <h3 class="donate-title">{{ t("aboutPage.supportTitle") }}</h3>
+          <p class="text-muted donate-sub">
+            {{ t("aboutPage.supportText") }}
+          </p>
+          <div class="qr-wrap">
+            <canvas ref="qrCanvas" class="qr" />
+          </div>
+          <div class="addr-label text-muted">
+            {{ t("aboutPage.bitcoinAddress") }}
+          </div>
+          <div class="addr-row">
+            <code class="addr">{{ BTC_ADDRESS }}</code>
+            <button
+              :title="t('common.copy')"
+              class="copy-btn"
+              @click="copyAddress"
+            >
+              <i class="pi pi-copy" />
+            </button>
+          </div>
+          <div class="contact-block">
+            <div class="text-muted contact-label">
+              {{ t("common.contact") }}
+            </div>
+            <p class="contact-invite text-muted">
+              {{ t("common.contactInvite") }}
+            </p>
+            <a
+              class="contact-link"
+              href="mailto:pavelspersonalhelper@gmail.com"
+              >{{ t("common.emailMe") }}</a
+            >
+            <a
+              class="contact-link"
+              href="https://t.me/PashaArsha"
+              rel="noopener noreferrer"
+              target="_blank"
+              >{{ t("common.telegramMe") }}</a
+            >
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -410,9 +419,23 @@ onMounted(async () => {
 
 /* ── Desktop combined page ── */
 .help-desktop {
-  padding: 2.5rem 3rem;
+  padding: 0;
   height: 100%;
   overflow-y: auto;
+}
+
+/* Embedded in the About modal: scroll inside the dialog body */
+.help-desktop.embedded {
+  height: auto;
+  max-height: 70vh;
+}
+
+.help-desktop.embedded .anchor-tabs {
+  background: var(--bg-secondary);
+}
+
+.help-desktop.embedded .help-body {
+  max-width: none;
 }
 
 .anchor-tabs {
@@ -422,8 +445,8 @@ onMounted(async () => {
   top: 0;
   z-index: 5;
   background: var(--bg-primary);
-  padding: 0.5rem 0 1rem;
-  margin-bottom: 1rem;
+  padding: 0.25rem 0 0.85rem;
+  margin-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
 
@@ -460,18 +483,21 @@ onMounted(async () => {
 
 .anchor-section {
   scroll-margin-top: 90px;
-  margin-bottom: 3rem;
-  padding-bottom: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border);
 }
 .anchor-section:last-child {
   border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
 .section-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin-bottom: 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.15;
+  margin-bottom: 1rem;
 }
 
 /* About content */
@@ -483,7 +509,7 @@ onMounted(async () => {
 }
 
 .screenshot-label {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -501,12 +527,26 @@ onMounted(async () => {
 }
 
 .intro-card,
-.donate-card {
+.donate-card,
+.cost-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.25rem;
   margin-bottom: 1rem;
+}
+
+.cost-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.6rem;
+}
+
+.cost-body {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.65;
 }
 
 .brand {
@@ -523,26 +563,14 @@ onMounted(async () => {
 }
 .tagline {
   font-size: 0.88rem;
-  line-height: 1.5;
+  line-height: 1.65;
   margin-bottom: 1rem;
 }
 
-.feature-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-.feature-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  font-size: 0.85rem;
-}
-.feature-list i {
-  color: var(--accent);
-  font-size: 0.85rem;
-  margin-top: 2px;
+.summary {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.65;
 }
 
 .donate-card {
@@ -550,12 +578,13 @@ onMounted(async () => {
 }
 .donate-title {
   font-size: 1.05rem;
-  font-weight: 700;
-  margin-bottom: 0.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.4rem;
 }
 .donate-sub {
-  font-size: 0.82rem;
-  line-height: 1.45;
+  font-size: 0.88rem;
+  line-height: 1.65;
   margin-bottom: 1.1rem;
 }
 
@@ -616,9 +645,15 @@ onMounted(async () => {
   font-size: 0.78rem;
   margin-bottom: 0.25rem;
 }
+
+.contact-invite {
+  font-size: 0.88rem;
+  line-height: 1.65;
+  margin-bottom: 0.35rem;
+}
 .contact-link {
   color: var(--accent);
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   word-break: break-all;
   text-decoration: underline;
   text-underline-offset: 0.18em;
@@ -627,7 +662,7 @@ onMounted(async () => {
 /* Math content */
 .intro {
   font-size: 0.88rem;
-  line-height: 1.5;
+  line-height: 1.65;
   margin-bottom: 1rem;
 }
 
@@ -640,20 +675,22 @@ onMounted(async () => {
 }
 
 .math-title {
-  font-size: 1.02rem;
-  font-weight: 700;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;
   margin-bottom: 0.6rem;
 }
 .math-body {
-  font-size: 0.85rem;
-  line-height: 1.55;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.65;
   margin-bottom: 0.65rem;
 }
 
 .math-formula {
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  line-height: 1.5;
+  line-height: 1.65;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
@@ -669,14 +706,14 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  font-size: 0.83rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  line-height: 1.65;
 }
 
 /* Disclaimer content */
 .eyebrow {
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   margin-bottom: 0.35rem;
@@ -685,8 +722,8 @@ onMounted(async () => {
 
 .disclaimer-intro {
   color: var(--text-secondary);
-  font-size: 0.98rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.65;
   max-width: 760px;
   margin-bottom: 1rem;
 }
@@ -711,16 +748,17 @@ onMounted(async () => {
 .notice h3,
 .disclaimer-card h3 {
   color: var(--text-primary);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;
   margin-bottom: 0.4rem;
 }
 
 .notice p,
 .disclaimer-card p {
   color: var(--text-secondary);
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.65;
 }
 
 .disclaimer-grid {
@@ -737,8 +775,8 @@ onMounted(async () => {
 }
 
 .closing {
-  font-size: 0.82rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  line-height: 1.65;
   margin: 1rem 0 0;
 }
 </style>

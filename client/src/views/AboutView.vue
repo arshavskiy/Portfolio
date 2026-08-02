@@ -13,17 +13,6 @@ const { t } = useI18n();
 const BTC_ADDRESS = "bc1qdvuarupkqqxkpml6rmpnnnmwns84ll50tgl3v2";
 const qrCanvas = ref(null);
 
-const featureIcons = [
-  "pi pi-chart-line",
-  "pi pi-globe",
-  "pi pi-money-bill",
-  "pi pi-bell",
-  "pi pi-bolt",
-  "pi pi-clock",
-  "pi pi-tags",
-  "pi pi-upload",
-];
-
 onMounted(async () => {
   if (!qrCanvas.value) return;
   try {
@@ -63,29 +52,21 @@ async function copyAddress() {
     <div class="about-layout">
       <div class="main-col">
         <!-- Import guide -->
-        <div class="screenshot-card">
+        <!-- <div class="screenshot-card">
           <div class="screenshot-label">{{ t("aboutPage.importGuide") }}</div>
           <img
             :alt="t('aboutPage.importAlt')"
             class="screenshot-img"
             src="/import-guide.svg"
           />
-        </div>
+        </div> -->
 
         <!-- App intro -->
         <div class="intro-card">
-          <div class="brand">
-            <!-- <span class="brand-mark">📈</span> -->
-            <span class="brand-name gradient-title">StockFolio</span>
-          </div>
           <p class="tagline text-muted">
             {{ t("aboutPage.tagline") }}
           </p>
-          <ul class="feature-list">
-            <li v-for="(text, i) in t('aboutPage.features')" :key="text">
-              <i :class="featureIcons[i]" /><span>{{ text }}</span>
-            </li>
-          </ul>
+          <p class="summary">{{ t("aboutPage.summary") }}</p>
         </div>
 
         <p class="legal text-muted main-legal">
@@ -246,23 +227,10 @@ async function copyAddress() {
   margin-bottom: 1rem;
 }
 
-.feature-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-.feature-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.6rem;
-  font-size: 0.83rem;
-  line-height: 1.5;
-}
-.feature-list i {
-  color: var(--accent);
-  font-size: 0.83rem;
-  margin-top: 2px;
+.summary {
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.65;
 }
 
 .donate-card {

@@ -18,10 +18,9 @@ import DesktopDashboardView from "@/views/DesktopDashboardView.vue";
 import DesktopAdvisorPage from "@/views/DesktopAdvisorPage.vue";
 import AskPortfolioPanel from "@/components/ui/AskPortfolioPanel.vue";
 import ErrorBoundary from "@/components/ui/ErrorBoundary.vue";
-import ThemeToggle from "@/components/ui/ThemeToggle.vue";
 import PremiumBadge from "@/components/ui/PremiumBadge.vue";
 
-const emit = defineEmits(["open-account"]);
+const emit = defineEmits(["open-account", "open-settings"]);
 
 const route = useRoute();
 const focus = useDesktopFocusStore();
@@ -131,7 +130,10 @@ const accountNetWorth = computed(() => {
     value = Number(combined.value) / Number(combined.ilsToUsd);
   } else if (uniqueCurrencies.length === 1) {
     currency = uniqueCurrencies[0];
-    value = Number(portfolio.totals.find((total) => total.currency === currency)?.value ?? value);
+    value = Number(
+      portfolio.totals.find((total) => total.currency === currency)?.value ??
+        value,
+    );
   }
 
   const amount = Number.isFinite(value)
@@ -203,6 +205,18 @@ const toolsNavItems = computed(() =>
       tourKey: "assistant",
       premium: true,
     },
+    {
+      key: "alerts",
+      name: t("account.priceAlerts"),
+      to: "/alerts",
+      icon: "pi pi-bell",
+    },
+    {
+      key: "fee-profiles",
+      name: t("account.feeProfiles"),
+      to: "/fee-profiles",
+      icon: "pi pi-percentage",
+    },
     ...(auth.isAdmin
       ? [
           {
@@ -232,6 +246,8 @@ const breadcrumbMap = {
   "/records": t("nav.records"),
   "/rebalance": t("rebalance.title"),
   "/typology-map": t("common.insights"),
+  "/alerts": t("account.priceAlerts"),
+  "/fee-profiles": t("account.feeProfiles"),
 };
 
 const breadcrumbLabel = computed(() => {
@@ -357,7 +373,15 @@ onMounted(() => {
       </div>
 
       <div class="sidebar-footer">
-        <ThemeToggle />
+        <button
+          v-tooltip.right="menuCollapsed ? t('common.settings') : null"
+          class="sidebar-item settings-item"
+          type="button"
+          @click="emit('open-settings')"
+        >
+          <i class="pi pi-cog" />
+          <span class="sidebar-label">{{ t("common.settings") }}</span>
+        </button>
       </div>
     </nav>
 
@@ -668,8 +692,7 @@ onMounted(() => {
   border-radius: 999px;
   background: color-mix(in srgb, var(--accent) 15%, var(--bg-secondary));
   color: var(--accent);
-  font-size: 1rem;
-  font-weight: 800;
+  font-size: 1.1rem;
 }
 
 .account-avatar i {
@@ -776,6 +799,12 @@ onMounted(() => {
 
 .sidebar.collapsed .sidebar-footer {
   padding-inline: 0;
+}
+
+.settings-item {
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
 }
 
 .sidebar-item {

@@ -8,6 +8,7 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
+import PortfolioSummaryPanel from '@/components/ui/PortfolioSummaryPanel.vue'
 import {useI18n} from '@/composables/useI18n'
 
 defineProps({
@@ -17,7 +18,7 @@ defineProps({
 const {locale, t} = useI18n()
 
 // ── Tab state ──────────────────────────────────────────────────────────────
-const activeTab = ref('history') // 'history' | 'gains' | 'dividends'
+const activeTab = ref('history') // 'history' | 'gains' | 'dividends' | 'summary'
 
 // ── History tab ────────────────────────────────────────────────────────────
 const transactions = ref([])
@@ -155,6 +156,22 @@ function exportGainsCSV() {
 const dividendHistory = ref([])   // [{ticker, companyName, shares, payments:[{date,amount,total}]}]
 const loadingDividends = ref(false)
 
+// ── Summary tab ────────────────────────────────────────────────────────────
+const analytics = ref(null)
+const loadingAnalytics = ref(false)
+
+async function fetchAnalytics() {
+  if (analytics.value) return
+  loadingAnalytics.value = true
+  try {
+    analytics.value = await api.get('/portfolio/analytics')
+  } catch {
+    analytics.value = null
+  } finally {
+    loadingAnalytics.value = false
+  }
+}
+
 async function fetchDividendHistory() {
   if (dividendHistory.value.length) return
   loadingDividends.value = true
@@ -188,11 +205,12 @@ function toggleDivTicker(ticker) {
   expandedDivTickers.value = s
 }
 
-// Load history on mount; load gains/dividends lazily when tab is opened
+// Load history on mount; load gains/dividends/summary lazily when tab is opened
 onMounted(fetchTransactions)
 watch(activeTab, (tab) => {
   if (tab === 'gains') fetchGains()
   if (tab === 'dividends') fetchDividendHistory()
+  if (tab === 'summary') fetchAnalytics()
 })
 
 defineExpose({
@@ -239,6 +257,9 @@ defineExpose({
       </button>
       <button :class="{active: activeTab === 'dividends'}" class="tab-btn" @click="activeTab = 'dividends'">
         {{ t('common.dividends') }}
+      </button>
+      <button :class="{active: activeTab === 'summary'}" class="tab-btn" @click="activeTab = 'summary'">
+        {{ t('xray.summary') }}
       </button>
     </div>
 
@@ -428,6 +449,18 @@ defineExpose({
           </template>
         </div>
       </template>
+    </template>
+
+    <!-- ── Summary tab ── -->
+    <template v-else-if="activeTab === 'summary'">
+      <div v-if="loadingAnalytics" class="page-loader">
+        <AppLoader/>
+      </div>
+      <div v-else-if="!analytics" class="empty">
+        <i class="pi pi-chart-bar"/>
+        <p>{{ t('xray.loadFailed') }}</p>
+      </div>
+      <PortfolioSummaryPanel v-else :analytics="analytics"/>
     </template>
 
     <EditTransactionModal

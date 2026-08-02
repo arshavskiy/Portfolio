@@ -17,6 +17,7 @@ const TrendingCard          = defineAsyncComponent(() => import('@/components/ch
 const WatchlistMoversCard   = defineAsyncComponent(() => import('@/components/charts/WatchlistMoversCard.vue'))
 // const TopMomentumCard       = defineAsyncComponent(() => import('@/components/charts/TopMomentumCard.vue'))
 const DividendCalendarCard  = defineAsyncComponent(() => import('@/components/charts/DividendCalendarCard.vue'))
+const IncomeProjectionChart = defineAsyncComponent(() => import('@/components/charts/IncomeProjectionChart.vue'))
 
 const dashboard = useDashboardStore()
 const auth = useAuthStore()
@@ -38,6 +39,9 @@ const {
   history,
   historyLoading,
   historyRange,
+  incomeMonths,
+  incomeTotals,
+  incomeLoading,
 } = storeToRefs(dashboard)
 
 const historyChangePercent = computed(() => portfolioCombinedUsd.value?.pnlPercent ?? null)
@@ -186,6 +190,13 @@ onUnmounted(() => {
             :range="historyRange"
         />
       </section>
+
+    <!-- Monthly income: realized gains + dividends, 6 actual then 6 estimated -->
+    <IncomeProjectionChart
+        :data="incomeMonths"
+        :loading="incomeLoading"
+        :totals="incomeTotals"
+    />
 
     <!-- Per-stock comparison: normalized % change, one line per holding -->
     <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>

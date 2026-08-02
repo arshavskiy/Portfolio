@@ -30,6 +30,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
   const sparklines = ref({})
   const history = ref([])
   const historyLoading = ref(false)
+  const incomeMonths = ref([])
+  const incomeTotals = ref({trailingIncome: 0, projectedIncome: 0})
+  const incomeLoading = ref(false)
     const dashboardWatchlistItems = ref([])
     const dashboardWatchlistLoading = ref(false)
 
@@ -104,6 +107,19 @@ export const useDashboardStore = defineStore('dashboard', () => {
     sparklines.value = Object.fromEntries(entries.filter(Boolean))
   }
 
+  async function fetchIncomeProjection() {
+    incomeLoading.value = true
+    try {
+      const data = await api.get('/portfolio/income-projection')
+      incomeMonths.value = data?.months || []
+      incomeTotals.value = data?.totals || {trailingIncome: 0, projectedIncome: 0}
+    } catch {
+      incomeMonths.value = []
+    } finally {
+      incomeLoading.value = false
+    }
+  }
+
   function startClock() {
     if (marketTimer) return
     marketTimer = setInterval(() => {
@@ -147,6 +163,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
       marketDataStore.fetchTrending('US').catch(() => {}),
       fetchSparklines(),
       fetchHistory(),
+      fetchIncomeProjection(),
     ]).catch(() => {})
   }
 
@@ -158,6 +175,9 @@ export const useDashboardStore = defineStore('dashboard', () => {
     sparklines,
     history,
     historyLoading,
+    incomeMonths,
+    incomeTotals,
+    incomeLoading,
     portfolioPositions,
     portfolioTotals,
     portfolioCombinedUsd,
@@ -173,6 +193,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
     showSkeleton,
     showEmpty,
     fetchHistory,
+    fetchIncomeProjection,
     setHistoryRange,
     fetchSparklines,
     initialize,

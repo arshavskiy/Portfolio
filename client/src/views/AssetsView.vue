@@ -13,6 +13,8 @@ import api from '@/composables/useApi'
 import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import ImportModal from '@/components/ui/ImportModal.vue'
+import IncomeProjectionChart from '@/components/charts/IncomeProjectionChart.vue'
+import { useIncomeProjection } from '@/composables/useIncomeProjection'
 import { useDesktopFocusStore } from '@/stores/desktopFocus'
 import { usePortfolioStore } from '@/stores/portfolio'
 import { gainLossClass, usePercent } from '@/composables/useFormat'
@@ -24,6 +26,12 @@ const desktopFocus = useDesktopFocusStore()
 const { positions, loading } = storeToRefs(portfolio)
 const { t } = useI18n()
 const { openPosition } = useNavigateToPosition()
+const {
+  months: incomeMonths,
+  totals: incomeTotals,
+  loading: incomeLoading,
+  fetchProjection,
+} = useIncomeProjection()
 
 const searchQuery = ref('')
 const selectedAssets = ref([])
@@ -294,6 +302,8 @@ onMounted(() => {
   if (!positions.value.length && !loading.value) {
     portfolio.fetchPortfolio().catch(() => {})
   }
+
+  fetchProjection().catch(() => {})
 })
 </script>
 
@@ -323,6 +333,14 @@ onMounted(() => {
         <InputText v-model="searchQuery" placeholder="Search assets..." fluid />
       </label>
     </header>
+
+    <IncomeProjectionChart
+      v-if="assets.length"
+      class="assets-income-card"
+      :data="incomeMonths"
+      :loading="incomeLoading"
+      :totals="incomeTotals"
+    />
 
     <div v-if="loading && !assets.length" class="assets-loading">
       <AppLoader />
@@ -772,6 +790,10 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.assets-income-card {
+  margin-bottom: 1rem;
 }
 
 .asset-group {

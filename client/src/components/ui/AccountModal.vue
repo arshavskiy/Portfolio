@@ -1,90 +1,31 @@
 <script setup>
-import {computed, ref, watch} from 'vue'
+import {computed} from 'vue'
 import {useRouter} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
-import {useFullscreen, usePwaInstall} from '@/composables/usePwa'
-import {useTour} from '@/composables/useTour'
-import {useToast} from 'primevue/usetoast'
+import {useBreakpoint} from '@/composables/useBreakpoint'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
-import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
-import LanguageSelect from '@/components/ui/LanguageSelect.vue'
-import PremiumBadge from '@/components/ui/PremiumBadge.vue'
-import ThemeToggle from '@/components/ui/ThemeToggle.vue'
 import {useI18n} from '@/composables/useI18n'
-import AlertsView from '@/views/AlertsView.vue'
-import ToggleSwitch from 'primevue/toggleswitch'
-import Textarea from 'primevue/textarea'
 
 const visible = defineModel('visible', {type: Boolean, default: false})
+const emit = defineEmits(['open-settings', 'open-about'])
 
 const router = useRouter()
-const toast = useToast()
 const auth = useAuthStore()
 const portfolio = usePortfolioStore()
-const showFeeProfiles = ref(false)
-const showAlerts = ref(false)
+const {isDesktop} = useBreakpoint()
 const {locale, t} = useI18n()
 
-const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFullscreen()
-const {canInstall, installed, isIos, promptInstall} = usePwaInstall()
-const {startNavPhase, resetTour} = useTour()
-const aiSummaryEnabled = computed({
-  get: () => auth.user?.aiDailySummaryEnabled !== false,
-  set: (value) => {
-    if (value) {
-      localStorage.removeItem('daily-summary-dismissed-day')
-      window.dispatchEvent(new Event('daily-summary:show'))
-    }
-    auth.updatePreferences({aiDailySummaryEnabled: value}).catch(() => {})
-  },
-})
-
-const canCustomizePrompt = computed(() => ['pro', 'max', 'admin'].includes(userType.value))
-const customPromptDraft = ref(auth.user?.aiDailySummaryCustomPrompt || '')
-const customPromptSaving = ref(false)
-watch(() => auth.user?.aiDailySummaryCustomPrompt, (value) => {
-  customPromptDraft.value = value || ''
-})
-async function saveCustomPrompt() {
-  if (customPromptDraft.value === (auth.user?.aiDailySummaryCustomPrompt || '')) return
-  customPromptSaving.value = true
-  try {
-    await auth.updatePreferences({aiDailySummaryCustomPrompt: customPromptDraft.value})
-  } catch {
-    toast.add({severity: 'error', summary: t('account.customPromptSaveFailed'), life: 3000})
-  } finally {
-    customPromptSaving.value = false
-  }
-}
-
-function replayTour() {
+function openSettings() {
   visible.value = false
-  resetTour()
-  router.push('/').then(() => startNavPhase())
+  emit('open-settings')
 }
 
-async function install() {
-  if (canInstall.value) {
-    const ok = await promptInstall()
-    if (ok) toast.add({severity: 'success', summary: t('account.appInstalled'), life: 2000})
-  } else if (isIos) {
-    toast.add({
-      severity: 'info',
-      summary: t('account.addToHomeScreen'),
-      detail: t('account.iosInstallDetail'),
-      life: 5000,
-    })
-  } else {
-    toast.add({
-      severity: 'info',
-      summary: t('account.install'),
-      detail: t('account.browserInstallDetail'),
-      life: 5000,
-    })
-  }
+function openAbout() {
+  visible.value = false
+  emit('open-about')
 }
 
 const summary = computed(() => portfolio.combinedUsd)
@@ -196,78 +137,26 @@ function logout() {
 
       <div class="menu-grid">
         <div class="menu-list">
-          <button class="menu-item" @click="showFeeProfiles = true">
-            <i class="pi pi-percentage menu-icon"/>
-            <span>{{ t('account.feeProfiles') }}</span>
-            <i class="pi pi-chevron-right text-muted"/>
-          </button>
-          <button class="menu-item" @click="showAlerts = true">
-            <i class="pi pi-bell menu-icon"/>
-            <span>{{ t('account.priceAlerts') }}</span>
-            <i class="pi pi-chevron-right text-muted"/>
-          </button>
           <RouterLink class="menu-item" to="/records" @click="visible = false">
             <i class="pi pi-list menu-icon"/>
             <span>{{ t('nav.records') }}</span>
             <i class="pi pi-chevron-right text-muted"/>
           </RouterLink>
-          <RouterLink class="menu-item" to="/help" @click="visible = false">
+          <button class="menu-item" @click="openSettings">
+            <i class="pi pi-cog menu-icon"/>
+            <span>{{ t('common.settings') }}</span>
+            <i class="pi pi-chevron-right text-muted"/>
+          </button>
+          <button v-if="isDesktop" class="menu-item" @click="openAbout">
+            <i class="pi pi-info-circle menu-icon"/>
+            <span>{{ t('common.about') }}</span>
+            <i class="pi pi-chevron-right text-muted"/>
+          </button>
+          <RouterLink v-else class="menu-item" to="/help" @click="visible = false">
             <i class="pi pi-info-circle menu-icon"/>
             <span>{{ t('common.about') }}</span>
             <i class="pi pi-chevron-right text-muted"/>
           </RouterLink>
-        </div>
-
-        <div class="menu-list">
-          <button v-if="!installed" class="menu-item" @click="install">
-            <i class="pi pi-download menu-icon"/>
-            <span>{{ t('account.installApp') }}</span>
-            <i class="pi pi-chevron-right text-muted"/>
-          </button>
-          <button v-if="fsSupported" class="menu-item" @click="toggleFullscreen">
-            <i class="pi pi-window-maximize menu-icon"/>
-            <span>{{ isFullscreen ? t('account.exitFullscreen') : t('account.fullscreen') }}</span>
-            <i class="pi pi-chevron-right text-muted"/>
-          </button>
-          <button class="menu-item" @click="replayTour">
-            <i class="pi pi-compass menu-icon"/>
-            <span>{{ t('account.startTour') }}</span>
-            <i class="pi pi-chevron-right text-muted"/>
-          </button>
-          <div class="menu-item language-menu-item">
-            <i class="pi pi-language menu-icon"/>
-            <span>{{ t('common.language') }}</span>
-            <LanguageSelect/>
-          </div>
-          <div class="menu-item theme-menu-item">
-            <i class="pi pi-palette menu-icon"/>
-            <span>{{ t('account.theme') }}</span>
-            <ThemeToggle/>
-          </div>
-          <div class="menu-item">
-            <i class="pi pi-sparkles menu-icon"/>
-            <span>{{ t('account.aiDailySummary') }}</span>
-            <ToggleSwitch v-model="aiSummaryEnabled"/>
-          </div>
-        </div>
-
-        <div v-if="canCustomizePrompt" class="custom-prompt-card">
-          <label class="custom-prompt-label" for="custom-prompt">
-            <i class="pi pi-pencil menu-icon"/>
-            {{ t('account.customPrompt') }}
-            <PremiumBadge :label="t('common.premium')" :title="t('common.premiumFeature')" compact/>
-          </label>
-          <Textarea
-              id="custom-prompt"
-              v-model="customPromptDraft"
-              :placeholder="t('account.customPromptPlaceholder')"
-              autoResize
-              class="custom-prompt-input"
-              maxlength="500"
-              rows="2"
-              @blur="saveCustomPrompt"
-          />
-          <span class="custom-prompt-hint text-muted">{{ t('account.customPromptHint') }}</span>
         </div>
       </div>
 
@@ -277,20 +166,6 @@ function logout() {
         · <a alt="www.handcoded.tech" href="//handcoded.tech">handcoded.tech</a>. {{ t('common.allRightsReserved') }}
       </p>
     </div>
-
-    <FeeProfilesModal v-model:visible="showFeeProfiles"/>
-
-    <Dialog
-        v-model:visible="showAlerts"
-        :draggable="false"
-        :style="{ width: '95vw', maxWidth: '520px' }"
-        modal
-    >
-      <template #header>
-        <span class="gradient-title">{{ t('account.priceAlerts') }}</span>
-      </template>
-      <AlertsView embedded/>
-    </Dialog>
   </Dialog>
 </template>
 
@@ -485,34 +360,6 @@ function logout() {
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 1.25rem;
-}
-
-.custom-prompt-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  padding: 0.9rem 1rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  margin-bottom: 1.25rem;
-}
-
-.custom-prompt-label {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.custom-prompt-input {
-  width: 100%;
-  font-size: 0.85rem;
-}
-
-.custom-prompt-hint {
-  font-size: 0.7rem;
 }
 
 .menu-item {

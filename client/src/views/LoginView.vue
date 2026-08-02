@@ -210,94 +210,6 @@ onUnmounted(() => {
   );
 });
 
-const features = computed(() => [
-  {
-    icon: "pi pi-chart-line",
-    title: t("login.features.livePortfolioTitle"),
-    text: t("login.features.livePortfolioText"),
-  },
-  {
-    icon: "pi pi-bell",
-    title: t("login.features.priceAlertsTitle"),
-    text: t("login.features.priceAlertsText"),
-  },
-  {
-    icon: "pi pi-globe",
-    title: t("login.features.multiMarketTitle"),
-    text: t("login.features.multiMarketText"),
-  },
-  {
-    icon: "pi pi-chart-bar",
-    title: t("login.features.advancedChartsTitle"),
-    text: t("login.features.advancedChartsText"),
-    premium: true,
-  },
-  {
-    icon: "pi pi-sync",
-    title: t("login.features.rebalancerTitle"),
-    text: t("login.features.rebalancerText"),
-  },
-  {
-    icon: "pi pi-percentage",
-    title: t("login.features.feesTaxTitle"),
-    text: t("login.features.feesTaxText"),
-  },
-  {
-    icon: "pi pi-dollar",
-    title: t("login.features.dividendsTitle"),
-    text: t("login.features.dividendsText"),
-  },
-  {
-    icon: "pi pi-tags",
-    title: t("login.features.groupsTitle"),
-    text: t("login.features.groupsText"),
-  },
-  {
-    icon: "pi pi-book",
-    title: t("login.features.newsTitle"),
-    text: t("login.features.newsText"),
-  },
-  {
-    icon: "pi pi-upload",
-    title: t("login.features.importTitle"),
-    text: t("login.features.importText"),
-  },
-  {
-    icon: "pi pi-chart-pie",
-    title: t("login.features.insightsTitle"),
-    text: t("login.features.insightsText"),
-    premium: true,
-  },
-  {
-    icon: "pi pi-comments",
-    title: t("login.features.aiChatTitle"),
-    text: t("login.features.aiChatText"),
-    premium: true,
-  },
-  {
-    icon: "pi pi-sparkles",
-    title: t("login.features.dailySummaryTitle"),
-    text: t("login.features.dailySummaryText"),
-    premium: true,
-  },
-  {
-    icon: "pi pi-compass",
-    title: t("login.features.tickerInsightTitle"),
-    text: t("login.features.tickerInsightText"),
-    premium: true,
-  },
-  {
-    icon: "pi pi-shield",
-    title: t("login.features.xRayTitle"),
-    text: t("login.features.xRayText"),
-    premium: true,
-  },
-  {
-    icon: "pi pi-list",
-    title: t("login.features.recordsTitle"),
-    text: t("login.features.recordsText"),
-  },
-]);
 
 async function submit() {
   loading.value = true;
@@ -967,19 +879,15 @@ watch(locale, updateLoginHead);
             {{ t('login.signIn') }}
           </button>
 
-          <div class="features" aria-label="Product features">
-            <div v-for="f in features" :key="f.title" class="feature">
-              <div class="feature-title">
-                <span>{{ f.title }}</span>
-                <PremiumBadge
-                  v-if="f.premium"
-                  :label="t('common.premium')"
-                  :title="t('common.premiumFeature')"
-                  compact
-                />
-              </div>
-              <div class="feature-text text-muted">{{ f.text }}</div>
-            </div>
+          <div class="landing-summary">
+            <p class="summary-text">{{ t("login.summary") }}</p>
+            <p class="premium-note text-muted">
+              <span>{{ t("login.premiumNote") }}</span>
+              <PremiumBadge
+                :label="t('common.premium')"
+                :title="t('common.premiumFeature')"
+              />
+            </p>
           </div>
         </div>
       </section>
@@ -1227,6 +1135,59 @@ watch(locale, updateLoginHead);
 
 .phone:hover {
   transform: rotate(0deg);
+}
+
+/* Light theme: render the same mockup as a white phone. The .mk-* content all
+   reads from these variables, so re-shadowing them here recolors the whole
+   slideshow without touching any of its markup or animation. */
+:root.light .phone {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-card: #ffffff;
+  --border: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --green: #059669;
+  --red: #e11d48;
+  --accent: #2563eb;
+  --neon-green: #059669;
+  --neon-red: #e11d48;
+  --neon-blue: #0284c7;
+  --purple: #7c3aed;
+  --gold: #d97706;
+  color: var(--text-primary);
+
+  background: linear-gradient(155deg, #ffffff 0%, #e9edf3 55%);
+  border-color: #d6dbe3;
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.18),
+    0 0 0 1px rgba(15, 23, 42, 0.06) inset,
+    0 2px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+:root.light .phone .phone-btn {
+  background: linear-gradient(90deg, #d6dbe3, #b8bfc9);
+}
+
+:root.light .phone .phone-notch {
+  background: #1f2733;
+}
+
+:root.light .phone .phone-camera {
+  background: #2b3440;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--neon-blue) 30%, transparent),
+    inset 0 0 2px color-mix(in srgb, var(--neon-blue) 45%, transparent);
+}
+
+:root.light .phone .phone-home-indicator {
+  background: #c3c9d2;
+}
+
+/* Neon glow reads as haze on white — drop it for the sparklines. */
+:root.light .phone .spark-up,
+:root.light .phone .spark-down {
+  filter: none;
 }
 
 .phone-btn {
@@ -1773,31 +1734,25 @@ watch(locale, updateLoginHead);
   border-radius: 3px;
 }
 
-.features {
+.landing-summary {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+  padding-bottom: 2.5rem;
 }
 
-.feature {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+.summary-text {
+  font-size: 0.92rem;
+  line-height: 1.65;
 }
 
-.feature-title {
+.premium-note {
   display: flex;
   align-items: center;
   gap: 0.45rem;
   flex-wrap: wrap;
-  font-weight: 700;
-  font-size: 0.92rem;
-}
-
-.feature-text {
   font-size: 0.8rem;
   line-height: 1.4;
-  margin-top: 2px;
 }
 
 /* ── Auth ── */

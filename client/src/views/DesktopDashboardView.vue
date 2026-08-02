@@ -49,6 +49,9 @@ const TrendingCard = defineAsyncComponent(
 const DividendCalendarCard = defineAsyncComponent(
   () => import("@/components/charts/DividendCalendarCard.vue"),
 );
+const IncomeProjectionChart = defineAsyncComponent(
+  () => import("@/components/charts/IncomeProjectionChart.vue"),
+);
 
 const emit = defineEmits(["open-account"]);
 const dashboard = useDashboardStore();
@@ -99,6 +102,9 @@ const {
   history,
   historyLoading,
   historyRange,
+  incomeMonths,
+  incomeTotals,
+  incomeLoading,
 } = storeToRefs(dashboard);
 
 const HISTORY_RANGES = [
@@ -270,6 +276,14 @@ onUnmounted(() => {
                   :range="historyRange"
                 />
               </article>
+
+              <IncomeProjectionChart
+                class="folio-card income-home-card"
+                :data="incomeMonths"
+                :hide-loading="true"
+                :loading="incomeLoading"
+                :totals="incomeTotals"
+              />
 
               <PortfolioCompareChart
                 v-if="portfolioPositions.length"
@@ -560,8 +574,8 @@ onUnmounted(() => {
 .folio-card {
   border: 1px solid var(--desktop-border);
   border-radius: 8px;
-  background: var(--desktop-card);
-  box-shadow: var(--desktop-elevated-shadow);
+  background: transparent;
+  box-shadow: none;
 }
 
 .net-card {
@@ -765,11 +779,7 @@ button.records-row:hover {
 
 .records-header {
   color: var(--desktop-muted);
-  background: color-mix(
-    in srgb,
-    var(--desktop-panel) 72%,
-    var(--desktop-surface)
-  );
+  background: transparent;
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -1065,15 +1075,22 @@ button.records-row:hover {
 :deep(.div-calendar-card),
 :deep(.markets-card),
 :deep(.news-card),
+:deep(.income-card),
 :deep(.movers-card) {
   border-radius: 8px;
-  background: var(--desktop-card);
+  background: transparent;
+  box-shadow: none;
+}
+
+:deep(.compare-card) {
+  background: transparent;
   box-shadow: none;
 }
 
 :deep(.breakdown-card),
 :deep(.div-calendar-card),
 :deep(.news-card),
+:deep(.income-card),
 :deep(.movers-card) {
   margin-bottom: 0;
 }

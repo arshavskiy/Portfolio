@@ -5,6 +5,7 @@ import {useToast} from 'primevue/usetoast'
 import {useAlertsStore} from '@/stores/alerts'
 import {usePush} from '@/composables/usePush'
 import {useTickerCurrency} from '@/composables/useFormat'
+import {useBreakpoint} from '@/composables/useBreakpoint'
 import Button from 'primevue/button'
 import ToggleSwitch from 'primevue/toggleswitch'
 import {useI18n} from '@/composables/useI18n'
@@ -17,6 +18,7 @@ const router = useRouter()
 const toast = useToast()
 const alerts = useAlertsStore()
 const {supported, subscribed, busy, refreshState, enablePush, disablePush} = usePush()
+const {isDesktop} = useBreakpoint()
 const {t} = useI18n()
 
 onMounted(() => {
@@ -58,13 +60,13 @@ async function remove(alert) {
 
 <template>
   <div class="alerts-page safe-bottom">
-    <header v-if="!embedded" class="page-header">
+    <header v-if="!embedded && !isDesktop" class="page-header">
       <Button icon="pi pi-arrow-left" text rounded @click="router.back()" />
       <h1 class="gradient-title">{{ t('alerts.title') }}</h1>
     </header>
 
     <!-- Push toggle -->
-    <div class="push-card">
+    <div v-if="alerts.items.length" class="push-card">
       <div class="push-info">
         <i class="pi pi-bell"/>
         <div>
@@ -214,5 +216,34 @@ async function remove(alert) {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+@media (min-width: 1024px) {
+  .alerts-page {
+    padding: 0;
+    max-width: 820px;
+    margin-inline: auto;
+  }
+
+  .push-card {
+    margin-bottom: 1rem;
+  }
+
+  .alert-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+
+  .alert-row {
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+  }
+
+  .alert-row:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--text-primary) 3%, var(--bg-card));
+  }
 }
 </style>

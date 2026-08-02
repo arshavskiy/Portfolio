@@ -55,6 +55,7 @@ const routes = [
       { path: 'stock/:ticker', redirect: to => `/position/${encodeURIComponent(to.params.ticker)}` },
       { path: 'position/:ticker', name: 'PositionDetail', component: () => import('@/views/PositionDetailView.vue'), meta: { requiresAuth: true } },
       { path: 'alerts', name: 'Alerts', component: () => import('@/views/AlertsView.vue'), meta: { requiresAuth: true } },
+      { path: 'fee-profiles', name: 'FeeProfiles', component: () => import('@/views/FeeProfilesView.vue'), meta: { requiresAuth: true } },
       { path: 'history-alerts', name: 'HistoryAlerts', component: () => import('@/views/DesktopHistoryAlertsView.vue'), meta: { requiresAuth: true } },
       { path: 'profile', redirect: '/account' },
       { path: 'account', name: 'Account', component: () => import('@/views/AccountView.vue'), meta: { requiresAuth: true } },
