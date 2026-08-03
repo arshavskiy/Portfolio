@@ -124,14 +124,23 @@ const greeting = computed(() => {
   return t("dashboard.greetingEvening");
 });
 
-const netWorth = computed(() => portfolioCombinedUsd.value?.value ?? 0);
+const combinedCurrency = useStorage('holdings-combined-currency', 'ILS')
+const combinedDisplay = computed(() => {
+  const c = portfolioCombinedUsd.value
+  if (!c) return { value: 0, pnl: 0, pnlPercent: null, currency: 'USD' }
+  if (combinedCurrency.value === 'ILS' && c.ilsToUsd > 0) {
+    return { value: c.value / c.ilsToUsd, pnl: c.pnl / c.ilsToUsd, pnlPercent: c.pnlPercent, currency: 'ILS' }
+  }
+  return { value: c.value, pnl: c.pnl, pnlPercent: c.pnlPercent, currency: 'USD' }
+})
+const netWorth = computed(() => combinedDisplay.value.value)
+const netWorthCurrency = computed(() => combinedDisplay.value.currency)
 const monthChange = computed(
-  () =>
-    portfolioCombinedUsd.value?.pnl ?? portfolioCombinedUsd.value?.dayPnl ?? 0,
+  () => combinedDisplay.value.pnl ?? portfolioCombinedUsd.value?.dayPnl ?? 0,
 );
 const monthChangePercent = computed(
   () =>
-    portfolioCombinedUsd.value?.pnlPercent ??
+    combinedDisplay.value.pnlPercent ??
     portfolioCombinedUsd.value?.dayPnlPercent ??
     null,
 );
@@ -233,7 +242,7 @@ onUnmounted(() => {
                       t("dashboard.netWorth")
                     }}</span>
                     <strong class="net-worth">{{
-                      useCurrency(netWorth, "USD")
+                      useCurrency(netWorth, netWorthCurrency)
                     }}</strong>
                   </div>
                   <div>
@@ -245,7 +254,7 @@ onUnmounted(() => {
                       class="change-value"
                     >
                       {{ monthChange >= 0 ? "+" : ""
-                      }}{{ useCurrency(monthChange, "USD") }}
+                      }}{{ useCurrency(monthChange, netWorthCurrency) }}
                       <span v-if="monthChangePercent != null"
                         >({{ usePercent(monthChangePercent) }})</span
                       >
