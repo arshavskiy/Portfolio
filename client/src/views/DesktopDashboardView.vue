@@ -294,6 +294,11 @@ onUnmounted(() => {
                 :loading="incomeLoading"
                 :totals="incomeTotals"
               />
+              <div v-else class="folio-card desktop-income-teaser">
+                <i class="pi pi-crown desktop-teaser-crown"/>
+                <span>{{ t('dashboard.incomeProjection') }}</span>
+                <small>{{ t('common.premiumFeature') }}</small>
+              </div>
 
               <PortfolioCompareChart
                 v-if="portfolioPositions.length"
@@ -1201,5 +1206,36 @@ button.records-row:hover {
     justify-self: start;
     flex-wrap: wrap;
   }
+}
+
+.desktop-income-teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2rem 1rem;
+  min-height: 120px;
+  text-align: center;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 6%, transparent),
+    color-mix(in srgb, var(--accent) 2%, transparent)
+  );
+}
+
+.desktop-teaser-crown {
+  font-size: 1.5rem;
+  color: #f59e0b;
+}
+
+.desktop-income-teaser span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.desktop-income-teaser small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 </style>

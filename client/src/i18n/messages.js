@@ -281,6 +281,7 @@ export const messages = {
       editHome: "Edit Home",
       done: "Done",
       resetLayout: "Restore default order",
+      incomeProjection: "Income Projection",
       historyEmpty: "Add holdings to see your portfolio history",
       portfolioValue: "Portfolio Value",
       empty:
@@ -1516,6 +1517,7 @@ export const messages = {
       editHome: "Редактировать",
       done: "Готово",
       resetLayout: "Восстановить порядок",
+      incomeProjection: "Прогноз дохода",
       historyEmpty: "Добавьте акции, чтобы увидеть историю портфеля",
       portfolioValue: "Стоимость портфеля",
       empty:
