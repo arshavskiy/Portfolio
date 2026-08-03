@@ -46,6 +46,7 @@ const newAssetMenu = ref(null)
 const pageMenu = ref(null)
 const rowMenu = ref(null)
 const activeAsset = ref(null)
+const txModalType = ref('buy')
 
 const groupOrder = ['Equity', 'Crypto', 'Cash', 'Bond', 'Other']
 
@@ -198,6 +199,16 @@ const rowMenuItems = computed(() => [
     command: () => openAsset(activeAsset.value),
   },
   {
+    label: 'Buy Stock',
+    icon: 'pi pi-arrow-down',
+    command: () => openAssetTransactionWithType(activeAsset.value, 'buy'),
+  },
+  {
+    label: 'Sell Stock',
+    icon: 'pi pi-arrow-up',
+    command: () => openAssetTransactionWithType(activeAsset.value, 'sell'),
+  },
+  {
     label: 'Add transaction',
     icon: 'pi pi-plus',
     command: () => openAssetTransaction(activeAsset.value),
@@ -310,6 +321,13 @@ function openAssetRow(event) {
 
 function openAssetTransaction(asset) {
   activeAsset.value = asset || null
+  txModalType.value = 'buy'
+  showTxModal.value = true
+}
+
+function openAssetTransactionWithType(asset, txType) {
+  activeAsset.value = asset || null
+  txModalType.value = txType
   showTxModal.value = true
 }
 
@@ -680,8 +698,11 @@ onMounted(() => {
     <AddTransactionModal
       v-model:visible="showTxModal"
       :default-ticker="activeAsset?.ticker || ''"
-      default-type="buy"
-      buy-only
+      :default-type="txModalType"
+      :default-shares="txModalType === 'sell' ? activeAsset?.shares : null"
+      :max-shares="txModalType === 'sell' ? activeAsset?.shares : null"
+      :avg-cost="txModalType === 'sell' ? activeAsset?.avgCost : null"
+      :total-cost="txModalType === 'sell' ? (activeAsset?.shares ?? 0) * (activeAsset?.avgCost ?? 0) : null"
       @saved="refreshAfterRecordSaved"
     />
     <AddTransactionModal
