@@ -582,7 +582,7 @@ onUnmounted(() => {
 .folio-card {
   border: 1px solid var(--desktop-border);
   border-radius: 8px;
-  background: transparent;
+  background: var(--bg-card);
   box-shadow: none;
 }
 

@@ -236,6 +236,10 @@ onUnmounted(() => {
 }
 
 .history-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
   margin-bottom: 1.75rem;
 }
 
