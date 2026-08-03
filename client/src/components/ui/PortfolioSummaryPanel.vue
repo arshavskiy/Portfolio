@@ -1,150 +1,202 @@
 <script setup>
-import {computed} from 'vue'
-import {useCurrency, useShare} from '@/composables/useFormat'
-import {useI18n} from '@/composables/useI18n'
+import { computed } from "vue";
+import { useCurrency, useShare } from "@/composables/useFormat";
+import { useI18n } from "@/composables/useI18n";
 
 // Portfolio summary sheet — metric cards plus the itemised performance rows.
 // Takes the `analytics` payload from GET /portfolio/analytics (also nested
 // inside GET /portfolio/x-ray) so each host page owns its own fetching.
 const props = defineProps({
-  analytics: {type: Object, default: null},
-})
+  analytics: { type: Object, default: null },
+});
 
-const {t} = useI18n()
+const { t } = useI18n();
 
-const portfolioSummary = computed(() => props.analytics?.summary || {})
-const hasMixedCurrencies = computed(() => (props.analytics?.allocations?.currency || []).length > 1)
+const portfolioSummary = computed(() => props.analytics?.summary || {});
+const hasMixedCurrencies = computed(
+  () => (props.analytics?.allocations?.currency || []).length > 1,
+);
 
 const summaryMetricCards = computed(() => {
-  const s = portfolioSummary.value
-  const largestHolding = props.analytics?.allocations?.holding?.[0]
+  const s = portfolioSummary.value;
+  const largestHolding = props.analytics?.allocations?.holding?.[0];
   return [
     {
-      icon: 'pi pi-dollar',
-      label: t('xray.annualDividendIncome'),
+      icon: "pi pi-dollar",
+      label: t("xray.annualDividendIncome"),
       value: formatUsd(s.annualDividendIncomeUsd),
-      tone: numberValue(s.annualDividendIncomeUsd) > 0 ? 'positive' : '',
+      tone: numberValue(s.annualDividendIncomeUsd) > 0 ? "positive" : "",
     },
     {
-      icon: 'pi pi-percentage',
-      label: t('xray.yieldOnPortfolio'),
+      icon: "pi pi-percentage",
+      label: t("xray.yieldOnPortfolio"),
       value: formatSignedPercent(s.dividendIncomeYield),
-      tone: numberValue(s.dividendIncomeYield) > 0 ? 'positive' : '',
+      tone: numberValue(s.dividendIncomeYield) > 0 ? "positive" : "",
     },
     {
-      icon: 'pi pi-users',
-      label: t('xray.positionsPayingDividends'),
+      icon: "pi pi-users",
+      label: t("xray.positionsPayingDividends"),
       value: `${numberValue(s.dividendPayerCount)} / ${numberValue(s.positionCount)}`,
     },
     {
-      icon: 'pi pi-star-fill',
-      label: t('xray.largestPosition'),
-      value: largestHolding?.ticker || '-',
-      detail: largestHolding ? useShare(largestHolding.percent) : '-',
+      icon: "pi pi-star-fill",
+      label: t("xray.largestPosition"),
+      value: largestHolding?.ticker || "-",
+      detail: largestHolding ? useShare(largestHolding.percent) : "-",
     },
     {
-      icon: 'pi pi-th-large',
-      label: t('xray.sectorSpread'),
+      icon: "pi pi-th-large",
+      label: t("xray.sectorSpread"),
       value: numberValue(s.sectorCount),
-      detail: t('xray.sectorsTracked', {n: numberValue(s.sectorCount)}),
+      detail: t("xray.sectorsTracked", { n: numberValue(s.sectorCount) }),
     },
     {
-      icon: 'pi pi-bell',
-      label: t('xray.activeAlerts'),
+      icon: "pi pi-bell",
+      label: t("xray.activeAlerts"),
       value: numberValue(s.activeAlertCount),
-      detail: t('xray.holdingsCovered', {n: numberValue(s.positionsWithAlerts)}),
+      detail: t("xray.holdingsCovered", {
+        n: numberValue(s.positionsWithAlerts),
+      }),
     },
-  ]
-})
+  ];
+});
 
 const summarySections = computed(() => {
-  const s = portfolioSummary.value
-  const grossPerformance = numberValue(s.unrealizedPnlUsd)
-  const netPerformance = grossPerformance - numberValue(s.feesUsd)
-  const investment = numberValue(s.totalCostUsd)
-  const netWorth = numberValue(s.totalValueUsd)
+  const s = portfolioSummary.value;
+  const grossPerformance = numberValue(s.unrealizedPnlUsd);
+  const netPerformance = grossPerformance - numberValue(s.feesUsd);
+  const investment = numberValue(s.totalCostUsd);
+  const netWorth = numberValue(s.totalValueUsd);
   // Annualizing a sub-year holding period extrapolates noise — a 3-month
   // -13.82% would extrapolate to -45.30%, which isn't information. Only
   // annualize once the position has actually run a full year; otherwise
   // show the real (non-annualized) return so the row isn't misleading.
-  const daysInMarket = numberValue(s.timeInMarketDays)
-  const totalReturnPct = investment > 0 ? (netPerformance / investment) * 100 : 0
-  const canAnnualize = daysInMarket >= 365 && investment > 0
+  const daysInMarket = numberValue(s.timeInMarketDays);
+  const totalReturnPct =
+    investment > 0 ? (netPerformance / investment) * 100 : 0;
+  const canAnnualize = daysInMarket >= 365 && investment > 0;
   const annualizedPerformance = canAnnualize
-    ? (Math.pow(1 + (netPerformance / Math.max(1, investment)), 365 / daysInMarket) - 1) * 100
-    : null
+    ? (Math.pow(
+        1 + netPerformance / Math.max(1, investment),
+        365 / daysInMarket,
+      ) -
+        1) *
+      100
+    : null;
 
   return [
     [
-      {label: t('xray.timeInMarket'), value: formatTimeInMarket(s.timeInMarketDays)},
-      {label: t('xray.activitiesCount', {n: numberValue(s.activityCount)}), value: '', hint: true},
+      {
+        label: t("xray.timeInMarket"),
+        value: formatTimeInMarket(s.timeInMarketDays),
+      },
+      {
+        label: t("xray.activitiesCount", { n: numberValue(s.activityCount) }),
+        value: "",
+        hint: true,
+      },
     ],
     [
-      {label: t('xray.buy'), value: formatUsd(s.buyTotalUsd)},
-      {label: t('xray.sell'), value: formatUsd(s.sellTotalUsd)},
+      { label: t("xray.buy"), value: formatUsd(s.buyTotalUsd) },
+      { label: t("xray.sell"), value: formatUsd(s.sellTotalUsd) },
     ],
     [
-      {label: t('xray.investment'), value: formatUsd(investment)},
-      {label: t('xray.absoluteGrossPerformance'), value: formatSignedUsd(grossPerformance), tone: toneFor(grossPerformance)},
-      {label: t('xray.fees'), value: formatUsd(s.feesUsd), tone: numberValue(s.feesUsd) > 0 ? 'negative' : ''},
+      { label: t("xray.investment"), value: formatUsd(investment) },
+      {
+        label: t("xray.absoluteGrossPerformance"),
+        value: formatSignedUsd(grossPerformance),
+        tone: toneFor(grossPerformance),
+      },
+      {
+        label: t("xray.fees"),
+        value: formatUsd(s.feesUsd),
+        tone: numberValue(s.feesUsd) > 0 ? "negative" : "",
+      },
     ],
     [
-      {label: t('xray.absoluteNetPerformance'), value: formatSignedUsd(netPerformance), tone: toneFor(netPerformance)},
-      {label: t('xray.netPerformanceRoai'), value: formatSignedPercent(investment > 0 ? (netPerformance / investment) * 100 : 0), tone: toneFor(netPerformance), inset: true},
+      {
+        label: t("xray.absoluteNetPerformance"),
+        value: formatSignedUsd(netPerformance),
+        tone: toneFor(netPerformance),
+      },
+      {
+        label: t("xray.netPerformanceRoai"),
+        value: formatSignedPercent(
+          investment > 0 ? (netPerformance / investment) * 100 : 0,
+        ),
+        tone: toneFor(netPerformance),
+        inset: true,
+      },
     ],
     [
-      {label: t('xray.totalAssets'), value: formatUsd(netWorth)},
-      {label: t('xray.holdings'), value: formatUsd(s.totalValueUsd), inset: true},
-      {label: t('xray.excludedFromAnalysis'), value: formatUsd(0)},
+      { label: t("xray.totalAssets"), value: formatUsd(netWorth) },
+      {
+        label: t("xray.holdings"),
+        value: formatUsd(s.totalValueUsd),
+        inset: true,
+      },
+      { label: t("xray.excludedFromAnalysis"), value: formatUsd(0) },
     ],
     [
-      {label: t('xray.netWorth'), value: formatUsd(netWorth), strong: true},
+      { label: t("xray.netWorth"), value: formatUsd(netWorth), strong: true },
       canAnnualize
-        ? {label: t('xray.annualizedPerformance'), value: formatSignedPercent(annualizedPerformance), tone: toneFor(annualizedPerformance), inset: true}
-        : {label: t('xray.totalPerformance'), value: formatSignedPercent(totalReturnPct), tone: toneFor(totalReturnPct), inset: true},
+        ? {
+            label: t("xray.annualizedPerformance"),
+            value: formatSignedPercent(annualizedPerformance),
+            tone: toneFor(annualizedPerformance),
+            inset: true,
+          }
+        : {
+            label: t("xray.totalPerformance"),
+            value: formatSignedPercent(totalReturnPct),
+            tone: toneFor(totalReturnPct),
+            inset: true,
+          },
     ],
-    [
-      {label: t('xray.dividendReceived'), value: formatUsd(s.dividendsUsd)},
-    ],
-  ]
-})
+    [{ label: t("xray.dividendReceived"), value: formatUsd(s.dividendsUsd) }],
+  ];
+});
 
 function numberValue(value) {
-  const n = Number(value)
-  return Number.isFinite(n) ? n : 0
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
 }
 
 function formatUsd(value) {
-  return useCurrency(numberValue(value), 'USD')
+  return useCurrency(numberValue(value), "USD");
 }
 
 function formatSignedUsd(value) {
-  const n = numberValue(value)
-  return `${n > 0 ? '+' : n < 0 ? '-' : ''}${useCurrency(Math.abs(n), 'USD')}`
+  const n = numberValue(value);
+  return `${n > 0 ? "+" : n < 0 ? "-" : ""}${useCurrency(Math.abs(n), "USD")}`;
 }
 
 function formatSignedPercent(value) {
-  const n = numberValue(value)
-  return `${n > 0 ? '+' : ''}${n.toFixed(2)}%`
+  const n = numberValue(value);
+  return `${n > 0 ? "+" : ""}${n.toFixed(2)}%`;
 }
 
 function formatTimeInMarket(days) {
-  if (days == null) return t('xray.noActivityYet')
-  if (days <= 0) return t('xray.lessThanADay')
-  if (days === 1) return t('xray.oneDay')
-  if (days < 30) return t('xray.daysCount', {n: days})
-  if (days < 365) return t('xray.monthsDays', {months: Math.floor(days / 30), days: days % 30})
-  const years = Math.floor(days / 365)
-  const months = Math.floor((days % 365) / 30)
-  const base = t('xray.yearsCount', {years, plural: years > 1 ? 's' : ''})
-  return months ? `${base} ${t('xray.monthsSuffix', {months})}` : base
+  if (days == null) return t("xray.noActivityYet");
+  if (days <= 0) return t("xray.lessThanADay");
+  if (days === 1) return t("xray.oneDay");
+  if (days < 30) return t("xray.daysCount", { n: days });
+  if (days < 365)
+    return t("xray.monthsDays", {
+      months: Math.floor(days / 30),
+      days: days % 30,
+    });
+  const years = Math.floor(days / 365);
+  const months = Math.floor((days % 365) / 30);
+  const base = t("xray.yearsCount", { years, plural: years > 1 ? "s" : "" });
+  return months ? `${base} ${t("xray.monthsSuffix", { months })}` : base;
 }
 
 function toneFor(value) {
-  const n = numberValue(value)
-  if (n > 0) return 'positive'
-  if (n < 0) return 'negative'
-  return ''
+  const n = numberValue(value);
+  if (n > 0) return "positive";
+  if (n < 0) return "negative";
+  return "";
 }
 </script>
 
@@ -152,26 +204,35 @@ function toneFor(value) {
   <section class="portfolio-summary-panel">
     <div class="panel-head">
       <div>
-        <h2>{{ t('xray.summary') }}</h2>
-        <p class="text-muted">{{ t('xray.summarySubtitle') }}</p>
+        <h2>{{ t("xray.summary") }}</h2>
+        <!-- <p class="text-muted">{{ t("xray.summarySubtitle") }}</p> -->
       </div>
-      <span class="checked-pill">{{ t('xray.holdingsCount', {n: analytics?.summary?.positionCount || 0}) }}</span>
+      <!-- <span class="checked-pill">{{ t('xray.holdingsCount', {n: analytics?.summary?.positionCount || 0}) }}</span> -->
     </div>
-    <div class="summary-metric-grid">
+    <!-- <div class="summary-metric-grid">
       <article v-for="card in summaryMetricCards" :key="card.label" class="summary-metric-card">
         <i :class="card.icon" class="summary-metric-icon"/>
         <span>{{ card.label }}</span>
         <strong :class="[card.tone, !card.tone ? 'metric-value-glow' : '']">{{ card.value }}</strong>
         <small v-if="card.detail">{{ card.detail }}</small>
       </article>
-    </div>
+    </div> -->
     <div class="summary-sheet">
-      <div v-for="(section, index) in summarySections" :key="index" class="summary-section">
+      <div
+        v-for="(section, index) in summarySections"
+        :key="index"
+        class="summary-section"
+      >
         <div
-            v-for="row in section"
-            :key="row.label"
-            :class="{inset: row.inset, strong: row.strong, muted: row.muted, hint: row.hint}"
-            class="summary-row"
+          v-for="row in section"
+          :key="row.label"
+          :class="{
+            inset: row.inset,
+            strong: row.strong,
+            muted: row.muted,
+            hint: row.hint,
+          }"
+          class="summary-row"
         >
           <span>{{ row.label }}</span>
           <strong v-if="row.value" :class="row.tone">{{ row.value }}</strong>
@@ -242,7 +303,7 @@ function toneFor(value) {
 }
 
 .summary-metric-card::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
