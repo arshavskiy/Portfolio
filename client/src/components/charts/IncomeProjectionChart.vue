@@ -89,9 +89,12 @@ function draw() {
   // different quantity that would crush the bars if it shared the left axis.
   // Stacking only holds above zero; a realized loss is drawn below the
   // baseline on its own rather than subtracting from the dividend segment.
-  const positiveTotal = (m) => Math.max(m.realizedGains || 0, 0) + Math.max(m.dividends || 0, 0)
+  // Estimated future months show dividend income only because realized gains
+  // depend on user sell decisions and should not be implied as forecast income.
+  const realizedValue = (m) => m.estimated ? 0 : (m.realizedGains || 0)
+  const positiveTotal = (m) => Math.max(realizedValue(m), 0) + Math.max(m.dividends || 0, 0)
   const maxIncome = d3.max(months, positiveTotal) || 0
-  const minIncome = d3.min(months, (m) => Math.min(m.realizedGains || 0, 0)) || 0
+  const minIncome = d3.min(months, (m) => Math.min(realizedValue(m), 0)) || 0
   const y = d3.scaleLinear().domain([minIncome, maxIncome || 1]).nice().range([innerH, 0])
 
   const maxValue = d3.max(months, (m) => m.portfolioValue || 0) || 0
@@ -155,12 +158,12 @@ function draw() {
         .attr('x', barX)
         .attr('width', barWidth)
         .attr('y', (d) => {
-          const value = d[series] || 0
+          const value = series === 'realizedGains' ? realizedValue(d) : (d[series] || 0)
           const base = baseline(d)
           return value >= 0 ? y(base + value) : y(base)
         })
         .attr('height', (d) => {
-          const value = d[series] || 0
+          const value = series === 'realizedGains' ? realizedValue(d) : (d[series] || 0)
           const base = baseline(d)
           return Math.abs(y(base) - y(base + value))
         })
@@ -171,7 +174,7 @@ function draw() {
         .on('mouseleave', hideTooltip)
   }
   barFor('realizedGains', 'var(--accent)', () => 0)
-  barFor('dividends', 'var(--green)', (d) => Math.max(d.realizedGains || 0, 0))
+  barFor('dividends', 'var(--green)', (d) => Math.max(realizedValue(d), 0))
 
   // Total income printed above each stack. Skipped for empty months, and
   // thinned on narrow widths using the same cadence as the x labels so the

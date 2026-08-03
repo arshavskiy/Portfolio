@@ -727,9 +727,8 @@ function monthKey(date) {
 // Rolling 12-month income view: PROJECTION_PAST_MONTHS of actual realized gains
 // and dividends, then PROJECTION_FUTURE_MONTHS of estimates. Past values are
 // replayed from transactions; future dividends are placed on each ticker's real
-// payout months when known. Future realized gains cannot be predicted, so they
-// carry the trailing average forward and the whole future half is flagged
-// `estimated` for the client to render differently.
+// payout months when known. Future realized gains cannot be predicted, so
+// estimated months include dividends only and are flagged for lighter rendering.
 exports.getIncomeProjection = async (req, res) => {
     try {
         const userId = req.user._id
@@ -825,13 +824,6 @@ exports.getIncomeProjection = async (req, res) => {
                 })
             }
         }
-
-        // Realized gains can't be forecast — carry the trailing average forward.
-        const pastBuckets = buckets.filter((b) => !b.estimated)
-        const avgRealized = pastBuckets.length
-            ? pastBuckets.reduce((s, b) => s + b.realizedGains, 0) / pastBuckets.length
-            : 0
-        for (const b of futureBuckets) b.realizedGains = avgRealized
 
         // ── Portfolio value: last available history point per month ──
         try {
