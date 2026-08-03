@@ -7,10 +7,7 @@ const DEFAULT_CARDS = [
   {id: 'ai-summary', label: 'AI Daily Summary',   visible: true},
   {id: 'markets',    label: 'Markets',             visible: true},
   {id: 'movers',     label: 'Top Movers',          visible: true},
-  {id: 'breakdown',  label: 'Allocation',          visible: true},
-  {id: 'trending',   label: 'Trending',            visible: true},
-  {id: 'history',    label: 'Portfolio History',   visible: true},
-  {id: 'income',     label: 'Income Projection',   visible: true,  premium: true},
+  {id: 'breakdown',  label: 'Portfolio Breakdown',  visible: true},
   {id: 'compare',    label: 'Compare',             visible: true},
   {id: 'calendar',   label: 'Dividend Calendar',   visible: true},
 ]

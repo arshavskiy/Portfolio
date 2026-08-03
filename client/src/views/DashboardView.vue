@@ -166,9 +166,7 @@ onUnmounted(() => dashboard.stopClock())
               </div>
             </section>
           </template>
-          <template v-else-if="card.id === 'income' && card.visible && auth.canUsePremiumFeatures">
-            <IncomeProjectionChart :data="incomeMonths" :loading="incomeLoading" :totals="incomeTotals"/>
-          </template>
+
           <template v-else-if="card.id === 'compare' && card.visible">
             <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
           </template>
