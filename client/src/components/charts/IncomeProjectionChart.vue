@@ -59,7 +59,8 @@ const displayedProjectedTotal = computed(() => {
 
   const lastMonth = chartMonths.value.at(-1)
   if (!lastMonth) return 0
-  return (lastMonth.realizedGains || 0) + (lastMonth.dividends || 0)
+  // Only count future dividends, not realized gains/losses
+  return lastMonth.dividends || 0
 })
 
 function draw() {
