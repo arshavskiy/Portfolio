@@ -1,5 +1,6 @@
 const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
+const ClosedPosition = require('../models/ClosedPosition')
 
 // Transaction fee profile input is tri-state:
 // undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
@@ -399,6 +400,28 @@ exports.addTransaction = async (req, res) => {
     } else if (type === 'sell') {
       if (!position || position.shares < shares)
         return res.status(400).json({ message: 'Insufficient shares' })
+      const sellAvgCost = position.avgCost
+      const costBasis = sellAvgCost * shares
+      const netGain = total - costBasis - feeAmountForTotals - taxAmount
+      await ClosedPosition.create({
+        user: req.user._id,
+        ticker: symbol,
+        companyName: position.companyName || symbol,
+        sector: position.sector || null,
+        industry: position.industry || null,
+        currency: tickerCurrency(symbol),
+        groups: position.groups || [],
+        sharesSold: shares,
+        avgCost: sellAvgCost,
+        sellPrice: price,
+        totalProceeds: total,
+        totalCostBasis: costBasis,
+        feeAmount: feeAmountForTotals,
+        taxAmount,
+        netGain,
+        dateClosed: date ? new Date(date) : new Date(),
+        partial: position.shares - shares > 0,
+      })
       position.shares -= shares
       if (position.shares === 0) {
         await position.deleteOne()
@@ -1057,5 +1080,16 @@ exports.getPositionNotes = async (req, res) => {
     res.json({ticker, notes: position?.notes || ''})
   } catch (err) {
     res.status(500).json({message: err.message})
+  }
+}
+
+exports.getClosedPositions = async (req, res) => {
+  try {
+    const closed = await ClosedPosition.find({ user: req.user._id })
+      .sort({ dateClosed: -1 })
+      .lean()
+    res.json({ closedPositions: closed })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
 }
