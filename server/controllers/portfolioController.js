@@ -867,7 +867,7 @@ exports.getIncomeProjection = async (req, res) => {
                     months.filter((m) => !m.estimated).reduce((s, m) => s + m.realizedGains + m.dividends, 0)
                 ),
                 projectedIncome: round(
-                    months.filter((m) => m.estimated).reduce((s, m) => s + m.realizedGains + m.dividends, 0)
+                    months.filter((m) => m.estimated).reduce((s, m) => s + m.dividends, 0)
                 ),
             },
         })
