@@ -280,6 +280,7 @@ export const messages = {
       editHome: "Edit Home",
       done: "Done",
       resetLayout: "Restore default order",
+      historyEmpty: "Add holdings to see your portfolio history",
       portfolioValue: "Portfolio Value",
       empty:
         "No holdings yet. Add a transaction to get started, or explore what’s trending.",
@@ -1510,6 +1511,7 @@ export const messages = {
       editHome: "Редактировать",
       done: "Готово",
       resetLayout: "Восстановить порядок",
+      historyEmpty: "Добавьте акции, чтобы увидеть историю портфеля",
       portfolioValue: "Стоимость портфеля",
       empty:
         "Пока нет позиций. Добавьте операцию, чтобы начать, или посмотрите тренды.",

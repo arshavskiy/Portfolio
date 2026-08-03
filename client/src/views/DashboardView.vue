@@ -132,7 +132,7 @@ onUnmounted(() => dashboard.stopClock())
           <template v-else-if="card.id === 'trending' && card.visible && showTrending">
             <TrendingCard />
           </template>
-          <template v-else-if="card.id === 'history' && card.visible && portfolioPositions.length">
+          <template v-else-if="card.id === 'history' && card.visible">
             <section class="history-card">
               <div class="history-head">
                 <div class="history-title-row">
@@ -141,7 +141,7 @@ onUnmounted(() => dashboard.stopClock())
                     {{ usePercent(historyChangePercent) }}
                   </div>
                 </div>
-                <div class="toggle-group">
+                <div v-if="portfolioPositions.length" class="toggle-group">
                   <button
                     v-for="opt in HISTORY_RANGES"
                     :key="opt.value"
@@ -151,13 +151,19 @@ onUnmounted(() => dashboard.stopClock())
                   >{{ opt.label }}</button>
                 </div>
               </div>
-              <PortfolioHistoryChart
-                :key="historyRange"
-                :data="history"
-                :day-pnl="portfolioCombinedUsd?.dayPnl"
-                :loading="historyLoading"
-                :range="historyRange"
-              />
+              <template v-if="portfolioPositions.length">
+                <PortfolioHistoryChart
+                  :key="historyRange"
+                  :data="history"
+                  :day-pnl="portfolioCombinedUsd?.dayPnl"
+                  :loading="historyLoading"
+                  :range="historyRange"
+                />
+              </template>
+              <div v-else class="history-empty">
+                <i class="pi pi-chart-line history-empty-icon"/>
+                <span>{{ t('dashboard.historyEmpty') }}</span>
+              </div>
             </section>
           </template>
           <template v-else-if="card.id === 'income' && card.visible && auth.canUsePremiumFeatures">
@@ -297,6 +303,22 @@ onUnmounted(() => dashboard.stopClock())
 }
 
 .history-head { padding: 0 0.25rem; }
+
+.history-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.history-empty-icon {
+  font-size: 1.75rem;
+  opacity: 0.4;
+}
 
 .history-title-row {
   display: flex;
