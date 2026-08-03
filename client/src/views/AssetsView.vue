@@ -399,6 +399,15 @@ onMounted(() => {
       :loading="incomeLoading"
       :totals="incomeTotals"
     />
+    <div v-else-if="assets.length && !auth.canUsePremiumFeatures" class="income-premium-teaser">
+      <div class="income-premium-blur">
+        <div class="income-premium-overlay">
+          <i class="pi pi-crown income-crown"/>
+          <span>Income Projection</span>
+          <small>Premium feature</small>
+        </div>
+      </div>
+    </div>
 
     <div v-if="loading && !assets.length" class="assets-loading">
       <AppLoader />
@@ -984,6 +993,49 @@ onMounted(() => {
 
 .assets-income-card {
   margin-bottom: 1rem;
+}
+
+.income-premium-teaser {
+  margin-bottom: 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.income-premium-blur {
+  position: relative;
+  height: 120px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 8%, transparent),
+    color-mix(in srgb, var(--accent) 3%, transparent)
+  );
+}
+
+.income-premium-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.income-crown {
+  font-size: 1.5rem;
+  color: #f59e0b;
+}
+
+.income-premium-overlay span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.income-premium-overlay small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .asset-group {
