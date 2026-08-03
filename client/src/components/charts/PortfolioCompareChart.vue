@@ -30,20 +30,36 @@ const COLORS = ['#3b82f6', cssVar('--green'), '#f59e0b', cssVar('--red'), '#8b5c
 
 // The dashboard's own range vocabulary (includes 1wk/all) doesn't map 1:1 to
 // the per-stock history endpoint's — translate to the closest equivalent.
-const STOCK_RANGE = {'1d': '1d', '1wk': '5d', '1mo': '1mo', '3mo': '3mo', '6mo': '6mo', '1y': '1y', all: '5y'}
+const STOCK_RANGE = {
+  '1d': '1d',
+  '1wk': '5d',
+  '1mo': '1mo',
+  '3mo': '3mo',
+  '6mo': '6mo',
+  ytd: '1y',
+  '1y': '1y',
+  '2y': '5y',
+  all: '5y',
+}
 
 // Index benchmarks the user can overlay for context. Toggles persist per device.
 const BENCHMARKS = [
-  {symbol: '^GSPC', label: 'S&P 500', color: '#e2e8f0'},
+  {symbol: '^GSPC', label: 'S&P 500', color: '#64748b'},
   {symbol: '^TA125.TA', label: 'TA-125', color: '#94a3b8'},
 ]
 const BENCHMARK_STORAGE_KEY = 'compare-benchmarks'
 const selectedBenchmarks = ref(JSON.parse(localStorage.getItem(BENCHMARK_STORAGE_KEY) || '["^GSPC"]'))
+const hiddenStockTickers = ref([])
 
 function toggleBenchmark(symbol) {
   const list = selectedBenchmarks.value
   selectedBenchmarks.value = list.includes(symbol) ? list.filter((s) => s !== symbol) : [...list, symbol]
   localStorage.setItem(BENCHMARK_STORAGE_KEY, JSON.stringify(selectedBenchmarks.value))
+}
+
+function toggleStock(ticker) {
+  const list = hiddenStockTickers.value
+  hiddenStockTickers.value = list.includes(ticker) ? list.filter((t) => t !== ticker) : [...list, ticker]
 }
 
 const tickers = computed(() => [...new Set(props.positions.map((p) => p.ticker))])
@@ -76,7 +92,9 @@ const normalized = computed(() => {
       points: rows.map((r) => ({date: r.date, pct: ((r.close - base) / base) * 100})),
     }
   }
-  const stocks = tickers.value.map((ticker) => toSeries(ticker, colorFor(ticker)))
+  const stocks = tickers.value
+      .filter((ticker) => !hiddenStockTickers.value.includes(ticker))
+      .map((ticker) => toSeries(ticker, colorFor(ticker)))
   const benches = BENCHMARKS
       .filter((b) => selectedBenchmarks.value.includes(b.symbol))
       .map((b) => toSeries(b.symbol, b.color, true))
@@ -84,12 +102,19 @@ const normalized = computed(() => {
 })
 
 const legend = computed(() =>
-    normalized.value.filter((s) => !s.benchmark).map((s) => ({
-      ticker: s.ticker,
-      name: stockName(s.ticker),
-      color: s.color,
-      pct: s.points[s.points.length - 1]?.pct ?? 0,
-    }))
+    tickers.value.map((ticker) => {
+      const rows = (series.value[ticker] || []).filter((r) => r.close != null)
+      const base = rows[0]?.close
+      const last = rows[rows.length - 1]?.close
+      const pct = base && last != null ? ((last - base) / base) * 100 : null
+      return {
+        ticker,
+        name: stockName(ticker),
+        color: colorFor(ticker),
+        hidden: hiddenStockTickers.value.includes(ticker),
+        pct,
+      }
+    })
 )
 
 const benchmarkLegend = computed(() =>
@@ -128,19 +153,43 @@ function draw() {
 
   const W = wrapRef.value.clientWidth || 320
   const H = 160
-  svg.attr('width', W).attr('height', H)
+  const margin = {top: 6, right: 8, bottom: 6, left: 42}
+  const innerW = Math.max(W - margin.left - margin.right, 40)
+  const innerH = Math.max(H - margin.top - margin.bottom, 40)
+  svg.attr('width', W).attr('height', H).attr('viewBox', `0 0 ${W} ${H}`)
+  const chart = svg.append('g').attr('transform', `translate(${margin.left},${margin.top})`)
 
   const allPoints = normalized.value.flatMap((s) => s.points)
   const x = d3.scaleTime()
       .domain(d3.extent(allPoints, (d) => new Date(d.date)))
-      .range([0, W])
+      .range([0, innerW])
   const yMin = d3.min(allPoints, (d) => d.pct)
   const yMax = d3.max(allPoints, (d) => d.pct)
   const yPad = (yMax - yMin) * 0.1 || 1
-  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([H - 4, 4])
+  const y = d3.scaleLinear().domain([yMin - yPad, yMax + yPad]).range([innerH, 0]).nice(4)
 
-  svg.append('line')
-      .attr('x1', 0).attr('x2', W)
+  const yTicks = y.ticks(4)
+  chart.selectAll('line.compare-grid').data(yTicks).enter().append('line')
+      .attr('class', 'compare-grid')
+      .attr('x1', 0)
+      .attr('x2', innerW)
+      .attr('y1', (d) => y(d))
+      .attr('y2', (d) => y(d))
+      .attr('stroke', 'var(--border)')
+      .attr('stroke-width', 1)
+      .attr('opacity', 0.8)
+
+  chart.selectAll('text.compare-y-label').data(yTicks).enter().append('text')
+      .attr('class', 'compare-y-label')
+      .attr('x', -8)
+      .attr('y', (d) => y(d) + 3)
+      .attr('text-anchor', 'end')
+      .attr('fill', 'var(--text-secondary)')
+      .attr('font-size', 10)
+      .text((d) => `${d > 0 ? '+' : ''}${d3.format('~f')(d)}%`)
+
+  chart.append('line')
+      .attr('x1', 0).attr('x2', innerW)
       .attr('y1', y(0)).attr('y2', y(0))
       .attr('stroke', '#c9c4be')
       .attr('stroke-width', 1)
@@ -153,7 +202,7 @@ function draw() {
       .curve(d3.curveMonotoneX)
 
   normalized.value.forEach((s) => {
-    const path = svg.append('path')
+    const path = chart.append('path')
         .datum(s.points)
         .attr('fill', 'none')
         .attr('stroke', s.color)
@@ -162,7 +211,16 @@ function draw() {
     if (s.benchmark) {
       path.attr('stroke-dasharray', '5 4').attr('opacity', 0.75)
     } else {
-      path.style('cursor', 'pointer').on('click', () => openPosition(s.ticker))
+      chart.append('path')
+          .datum(s.points)
+          .attr('fill', 'none')
+          .attr('stroke', 'transparent')
+          .attr('stroke-width', 14)
+          .attr('stroke-linecap', 'round')
+          .attr('stroke-linejoin', 'round')
+          .attr('d', line)
+          .style('cursor', 'pointer')
+          .on('click', () => openPosition(s.ticker, stockName(s.ticker)))
     }
   })
 }
@@ -177,6 +235,7 @@ onMounted(async () => {
 watch(() => props.range, fetchSeries)
 watch(() => props.positions.map((p) => p.ticker).join(','), fetchSeries)
 watch(selectedBenchmarks, fetchSeries)
+watch(hiddenStockTickers, () => nextTick(draw))
 watch(series, () => nextTick(draw), {deep: true})
 </script>
 
@@ -197,12 +256,14 @@ watch(series, () => nextTick(draw), {deep: true})
           v-for="item in legend"
           :key="item.ticker"
           class="legend-item"
-          @click="openPosition(item.ticker)"
+          :class="{'stock-off': item.hidden}"
+          type="button"
+          @click="toggleStock(item.ticker)"
       >
         <span :style="{ background: item.color }" class="legend-dot"/>
-        <span class="legend-name" :title="`${item.name} · ${item.ticker}`">{{ item.name }}</span>
-        <span class="legend-symbol text-muted">{{ item.ticker }}</span>
-        <span :class="item.pct >= 0 ? 'up' : 'down'" class="legend-pct">{{ usePercent(item.pct) }}</span>
+        <span class="legend-symbol" :title="`${item.name} · ${item.ticker}`">{{ item.ticker }}</span>
+        <span class="legend-name" :title="item.name">{{ item.name }}</span>
+        <span v-if="item.pct != null" :class="item.pct >= 0 ? 'up' : 'down'" class="legend-pct">{{ usePercent(item.pct) }}</span>
       </button>
 
       <button
@@ -262,10 +323,10 @@ watch(series, () => nextTick(draw), {deep: true})
 }
 
 .legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, max-content));
+  gap: 0.35rem;
+  margin-top: 0.55rem;
 }
 
 .compare-card.embedded {
@@ -283,11 +344,13 @@ watch(series, () => nextTick(draw), {deep: true})
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
+  min-width: 0;
+  max-width: 230px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 6px 10px;
+  border-radius: 9px;
+  padding: 5px 8px;
   cursor: pointer;
   font: inherit;
   color: inherit;
@@ -310,25 +373,28 @@ watch(series, () => nextTick(draw), {deep: true})
 }
 
 .legend-name {
-  font-size: 0.72rem;
+  min-width: 0;
+  font-size: 0.68rem;
   font-weight: 500;
-  max-width: 150px;
+  max-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.legend-symbol {
-  font-size: 0.7rem;
-  font-weight: 700;
-  flex-shrink: 0;
   color: var(--text-secondary);
 }
 
+.legend-symbol {
+  font-size: 0.72rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: var(--text-primary);
+}
+
 .legend-pct {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .legend-pct.up {
@@ -345,6 +411,15 @@ watch(series, () => nextTick(draw), {deep: true})
 
 .bench-item.bench-off {
   opacity: 0.65;
+}
+
+.legend-item.stock-off {
+  opacity: 0.52;
+}
+
+.legend-item.stock-off .legend-dot {
+  background: transparent !important;
+  border: 1px solid currentColor;
 }
 
 .bench-dot {

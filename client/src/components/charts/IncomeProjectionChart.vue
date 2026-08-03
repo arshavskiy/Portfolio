@@ -4,6 +4,7 @@ import * as d3 from 'd3'
 import {useI18n} from '@/composables/useI18n'
 import {useTheme} from '@/composables/useTheme'
 import {useCurrency} from '@/composables/useFormat'
+import {usePortfolioDisplayCurrency} from '@/composables/usePortfolioDisplayCurrency'
 import AppLoader from '@/components/ui/AppLoader.vue'
 
 const props = defineProps({
@@ -15,12 +16,28 @@ const props = defineProps({
 
 const {t} = useI18n()
 const {theme} = useTheme()
+const {
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency()
 const svgRef = ref(null)
 const wrapRef = ref(null)
 const tooltip = ref({visible: false, x: 0, y: 0, html: ''})
 
 const CUMULATIVE_KEY = 'income-projection-cumulative'
 const cumulative = ref(localStorage.getItem(CUMULATIVE_KEY) === 'true')
+const displayCurrency = computed(() => portfolioCurrencyForRate(props.totals?.ilsToUsd))
+
+function toDisplayCurrency(value) {
+  return convertPortfolioUsd(value, props.totals?.ilsToUsd)
+}
+
+function formatCompactCurrency(value) {
+  const n = Number(value) || 0
+  const symbol = displayCurrency.value === 'ILS' ? '₪' : '$'
+  const sign = n < 0 ? '-' : ''
+  return `${sign}${symbol}${d3.format('~s')(Math.abs(n))}`
+}
 
 function setCumulative(value) {
   cumulative.value = value
@@ -32,10 +49,16 @@ function setCumulative(value) {
 // their meaning. There is no calendar-year reset — the total runs across the
 // whole window, so bar height reads as "income since the window started".
 const chartMonths = computed(() => {
-  if (!cumulative.value) return props.data
+  const months = props.data.map((m) => ({
+    ...m,
+    realizedGains: toDisplayCurrency(m.realizedGains),
+    dividends: toDisplayCurrency(m.dividends),
+    portfolioValue: toDisplayCurrency(m.portfolioValue),
+  }))
+  if (!cumulative.value) return months
   let gains = 0
   let divs = 0
-  return props.data.map((m) => {
+  return months.map((m) => {
     gains += m.realizedGains || 0
     divs += m.dividends || 0
     // Kept so the tooltip can still report this month's own contribution,
@@ -52,9 +75,10 @@ const chartMonths = computed(() => {
 // Cheap signature so we redraw on real change without deep-watching the array.
 const dataSignature = computed(() =>
     props.data.map((m) => `${m.key}:${m.realizedGains}:${m.dividends}:${m.portfolioValue}`).join('|')
+    + `|${displayCurrency.value}:${props.totals?.ilsToUsd}`
 )
 
-const projectedTotal = computed(() => Number(props.totals?.projectedIncome) || 0)
+const projectedTotal = computed(() => toDisplayCurrency(props.totals?.projectedIncome))
 const displayedProjectedTotal = computed(() => {
   if (!cumulative.value) return projectedTotal.value
 
@@ -82,6 +106,8 @@ function draw() {
 
   const x = d3.scaleBand().domain(months.map((m) => m.key)).range([0, innerW]).padding(0.28)
   const barWidth = Math.min(x.bandwidth(), W < 768 ? 10 : 25)
+  const minVisibleBarHeight = W < 768 ? 12 : 20
+  const smallBarBoost = 3
   const barX = (d) => x(d.key) + (x.bandwidth() - barWidth) / 2
 
   // Left axis: stacked income bars — each month's bar is total income, split
@@ -93,6 +119,12 @@ function draw() {
   // depend on user sell decisions and should not be implied as forecast income.
   const realizedValue = (m) => m.estimated ? 0 : (m.realizedGains || 0)
   const positiveTotal = (m) => Math.max(realizedValue(m), 0) + Math.max(m.dividends || 0, 0)
+  const labelValue = (m) => {
+    const positive = positiveTotal(m)
+    if (positive > 0) return positive
+    const realized = realizedValue(m)
+    return realized < 0 ? realized : 0
+  }
   const maxIncome = d3.max(months, positiveTotal) || 0
   const minIncome = d3.min(months, (m) => Math.min(realizedValue(m), 0)) || 0
   const y = d3.scaleLinear().domain([minIncome, maxIncome || 1]).nice().range([innerH, 0])
@@ -115,7 +147,7 @@ function draw() {
       .attr('text-anchor', 'end')
       .attr('fill', 'var(--text-secondary)')
       .attr('font-size', 9)
-      .text((d) => d3.format('~s')(d))
+      .text(formatCompactCurrency)
 
   // X labels thin out on narrow widths so they never overlap.
   const labelEvery = Math.max(1, Math.ceil(months.length / Math.max(3, Math.floor(W / 80))))
@@ -129,6 +161,30 @@ function draw() {
       .text((d, i) => (i % labelEvery === 0 ? d.label : ''))
 
   const zeroY = y(0)
+  const barGeometry = (value, base) => {
+    const scaledHeight = Math.abs(y(base) - y(base + value))
+    const height = value === 0
+      ? 0
+      : scaledHeight < minVisibleBarHeight * 3
+        ? minVisibleBarHeight + scaledHeight * smallBarBoost
+        : scaledHeight
+    const top = value >= 0 ? y(base) - height : y(base)
+    return {top, height}
+  }
+
+  const labelY = (d) => {
+    const value = labelValue(d)
+    if (value > 0) {
+      const geom = barGeometry(value, 0)
+      return geom.top - 4
+    }
+    if (value < 0) {
+      const geom = barGeometry(value, 0)
+      return geom.top + geom.height + 12
+    }
+    return y(0)
+  }
+
   // Realized gains sit on the baseline; dividends stack on top of the positive
   // part of them. A negative month draws its gains bar below zero, leaving the
   // dividend segment still anchored at the baseline.
@@ -137,9 +193,9 @@ function draw() {
     const value = d[series] || 0
     const rect = wrapRef.value.getBoundingClientRect()
     let html = `<div class="tt-month">${d.label}</div>`
-    html += `<div class="tt-row"><span class="tt-label">${label}</span><span class="tt-value ${value < 0 ? 'tt-loss' : ''}">${useCurrency(value, 'USD')}</span></div>`
+    html += `<div class="tt-row"><span class="tt-label">${label}</span><span class="tt-value ${value < 0 ? 'tt-loss' : ''}">${useCurrency(value, displayCurrency.value)}</span></div>`
     if (cumulative.value && d.monthlyTotal != null) {
-      html += `<div class="tt-row"><span class="tt-label">${t('dashboard.incomeThisMonth')}</span><span class="tt-value">${useCurrency(d.monthlyTotal, 'USD')}</span></div>`
+      html += `<div class="tt-row"><span class="tt-label">${t('dashboard.incomeThisMonth')}</span><span class="tt-value">${useCurrency(d.monthlyTotal, displayCurrency.value)}</span></div>`
     }
     if (d.estimated) html += `<div class="tt-estimated">${t('dashboard.incomeEstimated')}</div>`
     tooltip.value = {
@@ -160,12 +216,12 @@ function draw() {
         .attr('y', (d) => {
           const value = series === 'realizedGains' ? realizedValue(d) : (d[series] || 0)
           const base = baseline(d)
-          return value >= 0 ? y(base + value) : y(base)
+          return barGeometry(value, base).top
         })
         .attr('height', (d) => {
           const value = series === 'realizedGains' ? realizedValue(d) : (d[series] || 0)
           const base = baseline(d)
-          return Math.abs(y(base) - y(base + value))
+          return barGeometry(value, base).height
         })
         .attr('fill', color)
         .attr('opacity', (d) => (d.estimated ? 0.45 : 1))
@@ -176,23 +232,20 @@ function draw() {
   barFor('realizedGains', 'var(--accent)', () => 0)
   barFor('dividends', 'var(--green)', (d) => Math.max(realizedValue(d), 0))
 
-  // Total income printed above each stack. Skipped for empty months, and
-  // thinned on narrow widths using the same cadence as the x labels so the
-  // figures never collide.
-  const compact = d3.format('~s')
+  // Total income printed for every non-empty bar. Positive stacks label above
+  // the bar; realized losses label just below the negative bar.
   g.selectAll('text.bar-total').data(months).enter().append('text')
       .attr('class', 'bar-total')
       .attr('x', (d) => x(d.key) + x.bandwidth() / 2)
-      .attr('y', (d) => y(positiveTotal(d)) - 4)
+      .attr('y', labelY)
       .attr('text-anchor', 'middle')
       .attr('fill', 'var(--text-secondary)')
       .attr('font-size', 9)
       .attr('font-weight', 600)
       .attr('opacity', (d) => (d.estimated ? 0.6 : 1))
-      .text((d, i) => {
-        const total = positiveTotal(d)
-        if (total <= 0) return ''
-        return i % labelEvery === 0 ? compact(total) : ''
+      .text((d) => {
+        const value = labelValue(d)
+        return value ? formatCompactCurrency(value) : ''
       })
 
   // Zero baseline only matters when a month had a realized loss.
@@ -227,7 +280,7 @@ function draw() {
         .attr('text-anchor', 'start')
         .attr('fill', 'var(--text-secondary)')
         .attr('font-size', 9)
-        .text((d) => d3.format('~s')(d))
+        .text(formatCompactCurrency)
   }
 
   // "Today" divider between the last actual month and the first estimate.
@@ -293,7 +346,7 @@ watch(() => props.loading, async (isLoading) => {
         </div>
         <div v-if="displayedProjectedTotal" class="income-est">
           <span class="income-est-label">{{ t('dashboard.incomeProjectedNext') }}</span>
-          <span class="income-est-value">{{ useCurrency(displayedProjectedTotal, 'USD') }}</span>
+          <span class="income-est-value">{{ useCurrency(displayedProjectedTotal, displayCurrency) }}</span>
         </div>
       </div>
     </header>

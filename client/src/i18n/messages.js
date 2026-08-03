@@ -191,6 +191,7 @@ export const messages = {
       theme: "Theme",
       lightTheme: "Light theme",
       darkTheme: "Dark theme",
+      displayCurrency: "Display currency",
       aiDailySummary: "AI Daily Summary",
       customPrompt: "Custom Daily Prompt",
       customPromptPlaceholder:
@@ -324,6 +325,7 @@ export const messages = {
       latestClose: "Latest close",
       netWorth: "Net Worth",
       change: "Today",
+      changeForRange: "Change ({range})",
       holdings: "Holdings",
       colPosition: "Position",
       colQuantity: "Quantity",
@@ -1425,6 +1427,7 @@ export const messages = {
       theme: "Тема",
       lightTheme: "Светлая тема",
       darkTheme: "Темная тема",
+      displayCurrency: "Валюта отображения",
       aiDailySummary: "AI-сводка дня",
       customPrompt: "Свой запрос для сводки",
       customPromptPlaceholder:
@@ -1560,6 +1563,7 @@ export const messages = {
       latestClose: "Последнее закрытие",
       netWorth: "Капитал",
       change: "Сегодня",
+      changeForRange: "Изменение ({range})",
       holdings: "Позиции",
       colPosition: "Позиция",
       colQuantity: "Количество",

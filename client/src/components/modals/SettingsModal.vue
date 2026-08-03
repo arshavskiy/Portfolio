@@ -8,11 +8,13 @@ import {useDashboardLayout} from '@/composables/useDashboardLayout'
 import {useI18n} from '@/composables/useI18n'
 import {useToast} from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
+import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Textarea from 'primevue/textarea'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
+import {usePortfolioDisplayCurrency} from '@/composables/usePortfolioDisplayCurrency'
 
 const visible = defineModel('visible', {type: Boolean, default: false})
 defineProps({
@@ -34,6 +36,10 @@ const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFull
 const {canInstall, installed, isIos, promptInstall} = usePwaInstall()
 const {startNavPhase, resetTour} = useTour()
 const {editMode} = useDashboardLayout()
+const {
+  currency: portfolioDisplayCurrency,
+  options: portfolioDisplayCurrencyOptions,
+} = usePortfolioDisplayCurrency()
 
 const userType = computed(() => auth.userType)
 const canCustomizePrompt = computed(() => ['pro', 'max', 'admin'].includes(userType.value))
@@ -130,6 +136,18 @@ async function install() {
           <i class="pi pi-language menu-icon"/>
           <span>{{ t('common.language') }}</span>
           <LanguageSelect/>
+        </div>
+        <div class="menu-item currency-menu-item">
+          <i class="pi pi-dollar menu-icon"/>
+          <span>{{ t('account.displayCurrency') }}</span>
+          <Select
+              v-model="portfolioDisplayCurrency"
+              :options="portfolioDisplayCurrencyOptions"
+              class="currency-select"
+              option-label="label"
+              option-value="value"
+              size="small"
+          />
         </div>
       </div>
 
@@ -259,6 +277,10 @@ async function install() {
 
 .menu-item span {
   flex: 1;
+}
+
+.currency-select {
+  min-width: 112px;
 }
 
 .menu-icon {

@@ -216,7 +216,8 @@ const spec = swaggerJsdoc({
           tags: ['Portfolio'],
           summary: 'Portfolio value over time',
           parameters: [
-            { name: 'range', in: 'query', schema: { type: 'string', enum: ['1mo', '3mo', '6mo', '1y', 'max'], default: '3mo' } },
+            { name: 'range', in: 'query', schema: { type: 'string', enum: ['1d', '1wk', '1mo', '3mo', '6mo', 'ytd', '1y', '2y', 'all'], default: '1mo' } },
+            { name: 'points', in: 'query', schema: { type: 'integer', minimum: 8, maximum: 200 }, description: 'Downsample to at most N chart points' },
           ],
           responses: {
             200: { description: 'Array of { date, value }', content: { 'application/json': { schema: { type: 'array', items: { type: 'object', properties: { date: { type: 'string' }, value: { type: 'number' } } } } } } },

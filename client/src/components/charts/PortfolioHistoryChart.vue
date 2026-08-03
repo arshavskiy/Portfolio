@@ -83,8 +83,18 @@ function draw() {
       .attr('y2', (d) => y(d))
       .attr('stroke', getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#333')
       .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '4,6')
-      .attr('opacity', 0.25)
+      .attr('opacity', 0.85)
+
+  if (yMin < 0 && yMax > 0) {
+    chart.append('line')
+        .attr('x1', 0)
+        .attr('x2', innerW)
+        .attr('y1', y(0))
+        .attr('y2', y(0))
+        .attr('stroke', getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim() || '#666')
+        .attr('stroke-width', 1)
+        .attr('opacity', 0.75)
+  }
 
   chart.selectAll('.y-label')
       .data(yTicks)
@@ -115,9 +125,20 @@ function draw() {
       .attr('d', line)
 
   const axisTickCount = Math.min(8, Math.max(4, Math.floor(W / 90)))
+  const isIntraday = props.range === '1d'
   const xTicks = hasDates
-    ? x.ticks(axisTickCount)
+    ? (isIntraday ? x.ticks(Math.min(7, axisTickCount)) : x.ticks(axisTickCount))
     : points.filter((_, index) => index % Math.max(1, Math.floor(points.length / axisTickCount)) === 0).map((d) => d.index)
+  const xLabel = (d) => {
+    if (!hasDates) return ''
+    if (isIntraday) {
+      return d.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    }
+    return d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})
+  }
 
   chart.selectAll('.x-label')
       .data(xTicks)
@@ -128,10 +149,7 @@ function draw() {
       .attr('text-anchor', 'middle')
       .attr('fill', '#a0958d')
       .attr('font-size', 10)
-      .text((d) => {
-        if (!hasDates) return ''
-        return d.toLocaleDateString('en-US', {month: 'short', day: 'numeric'})
-      })
+      .text(xLabel)
 
   // First-buy marker: vertical dashed line where the portfolio actually
   // started, so the $0 stretch before it reads as "pre-buy", not a bug.
@@ -157,24 +175,6 @@ function draw() {
         .text('Buy')
   }
 
-  // Tx markers: a small dot on the value line for every day a buy/sell
-  // happened in this range — without these, a deposit-driven jump (e.g.
-  // adding new cash + buys) looks like a broken/glitched chart instead of
-  // a real, explainable step in value.
-  const txDates = data[0]?.txDates || []
-  txDates.forEach((txDate) => {
-    if (txDate === firstBuyDate) return // already marked above
-    const idx = data.findIndex((d) => d.date >= txDate)
-    if (idx === -1) return
-    const point = points[idx]
-    chart.append('circle')
-        .attr('cx', hasDates ? x(point.parsedDate) : x(idx))
-        .attr('cy', y(point.value))
-        .attr('r', 2.5)
-        .attr('fill', '#2a2826')
-        .attr('stroke', '#ffffff')
-        .attr('stroke-width', 1)
-  })
 }
 
 let ro

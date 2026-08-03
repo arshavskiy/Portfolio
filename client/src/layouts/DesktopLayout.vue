@@ -13,6 +13,7 @@ import { useAiChatStore } from "@/stores/aiChat";
 import { usePortfolioStore } from "@/stores/portfolio";
 import { trackEvent } from "@/composables/useAnalytics";
 import { useI18n } from "@/composables/useI18n";
+import { usePortfolioDisplayCurrency } from "@/composables/usePortfolioDisplayCurrency";
 import PositionDetailView from "@/views/PositionDetailView.vue";
 import DesktopDashboardView from "@/views/DesktopDashboardView.vue";
 import DesktopAdvisorPage from "@/views/DesktopAdvisorPage.vue";
@@ -29,6 +30,10 @@ const portfolio = usePortfolioStore();
 const { t } = useI18n();
 const router = useRouter();
 const aiChat = useAiChatStore();
+const {
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency();
 const { messages: advisorMessages } = storeToRefs(aiChat);
 const menuCollapsed = useStorage("desktop-menu-collapsed", false);
 const detailPanelCollapsed = useStorage(
@@ -116,25 +121,9 @@ const accountInitial = computed(() =>
   (accountLabel.value || "A").trim().charAt(0).toUpperCase(),
 );
 const accountNetWorth = computed(() => {
-  const currencies = portfolio.totals
-    .map((total) => total?.currency)
-    .filter(Boolean);
-  const uniqueCurrencies = [...new Set(currencies)];
   const combined = portfolio.combinedUsd;
-  const isMixed = uniqueCurrencies.length > 1;
-  let currency = "USD";
-  let value = Number(combined?.value ?? 0);
-
-  if (isMixed && combined?.ilsToUsd > 0) {
-    currency = "ILS";
-    value = Number(combined.value) / Number(combined.ilsToUsd);
-  } else if (uniqueCurrencies.length === 1) {
-    currency = uniqueCurrencies[0];
-    value = Number(
-      portfolio.totals.find((total) => total.currency === currency)?.value ??
-        value,
-    );
-  }
+  const currency = portfolioCurrencyForRate(combined?.ilsToUsd);
+  const value = convertPortfolioUsd(combined?.value ?? 0, combined?.ilsToUsd);
 
   const amount = Number.isFinite(value)
     ? new Intl.NumberFormat("en-US", {

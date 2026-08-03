@@ -3,16 +3,33 @@ import { ref, watch, onMounted, nextTick } from 'vue'
 import * as d3 from 'd3'
 import { useCurrency } from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
+import {usePortfolioDisplayCurrency} from '@/composables/usePortfolioDisplayCurrency'
 
 const props = defineProps({
   positions: { type: Array, default: () => [] },
   combinedUsd: { type: Object, default: null },
 })
 const {t} = useI18n()
+const {
+  currency: portfolioDisplayCurrency,
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency()
 
 const svgRef = ref(null)
 
 const COLORS = ['#3b82f6','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#84cc16']
+
+function allocationValueUsd(position) {
+  if (position.valueUsd != null) return position.valueUsd
+  const ilsToUsd = props.combinedUsd?.ilsToUsd
+  if (position.currency === 'ILS' && ilsToUsd > 0) return position.value * ilsToUsd
+  return position.value
+}
+
+function totalAllocationUsd() {
+  return props.positions.reduce((sum, position) => sum + allocationValueUsd(position), 0)
+}
 
 function draw() {
   if (!svgRef.value || !props.positions.length) return
@@ -29,11 +46,11 @@ function draw() {
 
   const g = svg.append('g').attr('transform', `translate(${W / 2},${H / 2})`)
 
-  // Always use native value — proportions within same currency are correct,
-  // mixed currency just shows relative weight by local value
+  // Allocation math uses USD-normalized values so positions from different
+  // markets are compared in one unit.
   const data = props.positions.map((p, i) => ({
     ticker: p.ticker,
-    value: p.value,
+    value: allocationValueUsd(p),
     color: COLORS[i % COLORS.length],
   }))
 
@@ -50,22 +67,23 @@ function draw() {
     .on('mouseover', function (_, d) { d3.select(this).attr('d', hoverArc) })
     .on('mouseout', function (_, d) { d3.select(this).attr('d', arc) })
 
-  // Center label — hide total when mixed currencies (values incomparable)
-  const isMixed = props.positions.some(p => p.currency === 'ILS') && props.positions.some(p => p.currency === 'USD')
-  const totalLabel = isMixed ? null : useCurrency(d3.sum(data, d => d.value), props.positions[0]?.currency || 'USD')
+  const displayCurrency = portfolioCurrencyForRate(props.combinedUsd?.ilsToUsd)
+  const totalLabel = useCurrency(
+    convertPortfolioUsd(d3.sum(data, d => d.value), props.combinedUsd?.ilsToUsd),
+    displayCurrency,
+  )
 
-  g.append('text').attr('text-anchor', 'middle').attr('dy', isMixed ? '0.35em' : '-0.2em')
+  g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.2em')
     .attr('fill', '#94a3b8').attr('font-size', '11')
-      .text(isMixed ? t('dashboard.mixed') : t('dashboard.total'))
-  if (totalLabel) {
-    g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
-      .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')
-      .text(totalLabel)
-  }
+    .text(t('dashboard.total'))
+  g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
+    .attr('fill', '#f1f5f9').attr('font-size', '12').attr('font-weight', '600')
+    .text(totalLabel)
 }
 
 onMounted(() => nextTick(draw))
 watch(() => [props.positions, props.combinedUsd], () => nextTick(draw), { deep: true })
+watch(portfolioDisplayCurrency, () => nextTick(draw))
 </script>
 
 <template>
@@ -79,8 +97,8 @@ watch(() => [props.positions, props.combinedUsd], () => nextTick(draw), { deep: 
           <span class="legend-ticker">{{ pos.ticker }}</span>
           <span class="legend-pct text-muted">
             {{ (() => {
-              const total = positions.reduce((s, p) => s + p.value, 0)
-              return total > 0 ? (pos.value / total * 100).toFixed(1) + '%' : ''
+              const total = totalAllocationUsd()
+              return total > 0 ? (allocationValueUsd(pos) / total * 100).toFixed(1) + '%' : ''
             })() }}
           </span>
         </div>

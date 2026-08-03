@@ -1,7 +1,7 @@
 const Transaction = require('../models/Transaction')
 const {getHistory, getIlsToUsd} = require('./stockService')
 
-const RANGE_DAYS = {'1d': 1, '1wk': 7, '1mo': 30, '3mo': 90, '6mo': 180, '1y': 365, all: null}
+const RANGE_DAYS = {'1d': 1, '1wk': 7, '1mo': 30, '3mo': 90, '6mo': 180, ytd: 'ytd', '1y': 365, '2y': 730, all: null}
 
 function dayKey(d) {
     return new Date(d).toISOString().split('T')[0]
@@ -26,7 +26,7 @@ function downsample(arr, max) {
 // of "now" by replaying all transactions — fine-grained enough since
 // same-day buys/sells are rare — then valued at each intraday timestamp
 // using carry-forward (last known price at/before that bar) per ticker.
-async function getIntradayPortfolioHistory(txs, tickers, firstBuyDate) {
+async function getIntradayPortfolioHistory(txs, tickers, firstBuyDate, maxPoints = 200) {
     // Different markets (US/TASE/crypto) have non-overlapping sessions, so a
     // ticker's '1d' bars may not exist yet for part of the merged timeline
     // (e.g. before US open while TASE is already trading). Also pull '5d' so
@@ -102,26 +102,36 @@ async function getIntradayPortfolioHistory(txs, tickers, firstBuyDate) {
         }
     })
     
-    return downsample(points, 200).map((p) => ({...p, firstBuyDate, txDates: []}))
+    return downsample(points, maxPoints).map((p) => ({...p, firstBuyDate, txDates: []}))
 }
 
 // Reconstruct total portfolio value (USD) for each calendar day in the range by
 // replaying transactions against per-ticker daily close prices. Also tracks the
 // invested cost basis (USD) so the client can draw a value-vs-invested baseline.
-async function getPortfolioHistory(userId, range = '1mo') {
+async function getPortfolioHistory(userId, range = '1mo', maxPoints = 120) {
     const txs = await Transaction.find({user: userId}).sort({date: 1}).lean()
     if (!txs.length) return []
 
     const firstTxDate = new Date(txs[0].date)
     const tickers = [...new Set(txs.map((t) => t.ticker))]
     
-    if (range === '1d') return getIntradayPortfolioHistory(txs, tickers, dayKey(firstTxDate))
+    if (range === '1d') return getIntradayPortfolioHistory(txs, tickers, dayKey(firstTxDate), maxPoints)
     
     const days = range in RANGE_DAYS ? RANGE_DAYS[range] : 30
 
     // 'all' (days = null) means infinite/unbounded — pull each ticker's full
     // available price history instead of capping at the usual 1y window.
-    const histRange = !days ? 'max' : days > 365 ? '1y' : days <= 30 ? '3mo' : days <= 90 ? '6mo' : '1y'
+    const histRange = !days
+        ? 'max'
+        : days === 'ytd'
+            ? '1y'
+            : days > 365
+                ? '5y'
+                : days <= 30
+                    ? '3mo'
+                    : days <= 90
+                        ? '6mo'
+                        : '1y'
     const [histories, ilsToUsd] = await Promise.all([
         Promise.all(tickers.map((t) => getHistory(t, histRange).catch(() => []))),
         getIlsToUsd(),
@@ -141,7 +151,11 @@ async function getPortfolioHistory(userId, range = '1mo') {
     // bounded range that's simply "today - days"; for 'all' it's the earliest
     // price data we have for any held ticker.
     let rangeStart
-    if (days) {
+    if (days === 'ytd') {
+        rangeStart = new Date()
+        rangeStart.setMonth(0, 1)
+        rangeStart.setHours(0, 0, 0, 0)
+    } else if (days) {
         rangeStart = new Date()
         rangeStart.setDate(rangeStart.getDate() - days)
     } else {
@@ -217,7 +231,7 @@ async function getPortfolioHistory(userId, range = '1mo') {
             .map((t) => dayKey(t.date))
             .filter((d) => d >= dayKey(rangeStart) && d <= dayKey(end))
     )]
-    return downsample(points, 500).map((p) => ({...p, firstBuyDate, txDates}))
+    return downsample(points, maxPoints).map((p) => ({...p, firstBuyDate, txDates}))
 }
 
 module.exports = {getPortfolioHistory}

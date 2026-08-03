@@ -6,12 +6,10 @@ import {
   onUnmounted,
   ref,
 } from "vue";
-import { useStorage } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
 import Button from "primevue/button";
 import Menu from "primevue/menu";
-import Select from "primevue/select";
 import AddWatchlistModal from "@/components/modals/AddWatchlistModal.vue";
 import ImportModal from "@/components/modals/ImportModal.vue";
 import { useDashboardStore } from "@/stores/dashboard";
@@ -24,6 +22,7 @@ import {
   useTickerCurrency,
 } from "@/composables/useFormat";
 import { useI18n } from "@/composables/useI18n";
+import { usePortfolioDisplayCurrency } from "@/composables/usePortfolioDisplayCurrency";
 
 const BreakdownCard = defineAsyncComponent(
   () => import("@/components/charts/BreakdownCard.vue"),
@@ -56,8 +55,13 @@ const auth = useAuthStore();
 const router = useRouter();
 const desktopFocus = useDesktopFocusStore();
 const { t } = useI18n();
+const {
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency();
 
 const addMenu = ref(null);
+const rangeMenuOpen = ref(false);
 const showAddModal = ref(false);
 const showImportModal = ref(false);
 const importMode = ref("watchlist");
@@ -105,11 +109,14 @@ const {
 } = storeToRefs(dashboard);
 
 const HISTORY_RANGES = [
-  { label: "1D", value: "1d" },
-  { label: "1W", value: "1wk" },
-  { label: "1M", value: "1mo" },
-  { label: "3M", value: "3mo" },
-  { label: "6M", value: "6mo" },
+  { label: "1D", menuLabel: "1 Day", value: "1d" },
+  { label: "1W", menuLabel: "1 Week", value: "1wk" },
+  { label: "1M", menuLabel: "1 Month", value: "1mo" },
+  { label: "3M", menuLabel: "3 Months", value: "3mo" },
+  { label: "6M", menuLabel: "6 Months", value: "6mo" },
+  { label: "YTD", menuLabel: "YTD", value: "ytd" },
+  { label: "1Y", menuLabel: "1 Year", value: "1y" },
+  { label: "2Y", menuLabel: "2 Years", value: "2y" },
 ];
 
 const firstName = computed(() => {
@@ -124,43 +131,50 @@ const greeting = computed(() => {
   return t("dashboard.greetingEvening");
 });
 
-const combinedCurrency = useStorage('holdings-combined-currency', 'ILS')
 const combinedDisplay = computed(() => {
   const c = portfolioCombinedUsd.value
   if (!c) return { value: 0, pnl: 0, pnlPercent: null, currency: 'USD' }
-  if (combinedCurrency.value === 'ILS' && c.ilsToUsd > 0) {
-    return { value: c.value / c.ilsToUsd, pnl: c.pnl / c.ilsToUsd, pnlPercent: c.pnlPercent, currency: 'ILS' }
+  return {
+    value: convertPortfolioUsd(c.value, c.ilsToUsd),
+    pnl: convertPortfolioUsd(c.pnl, c.ilsToUsd),
+    pnlPercent: c.pnlPercent,
+    currency: portfolioCurrencyForRate(c.ilsToUsd),
   }
-  return { value: c.value, pnl: c.pnl, pnlPercent: c.pnlPercent, currency: 'USD' }
 })
 const netWorth = computed(() => combinedDisplay.value.value)
 const netWorthCurrency = computed(() => combinedDisplay.value.currency)
 const rangeChange = computed(() => {
   const h = history.value
   const c = portfolioCombinedUsd.value
-  const ilsToUsd = (c?.ilsToUsd || 1)
-  const toDisplay = (v) => combinedCurrency.value === 'ILS' && ilsToUsd > 0 ? v / ilsToUsd : v
+  const toDisplay = (v) => convertPortfolioUsd(v, c?.ilsToUsd)
 
   if (historyRange.value === '1d' || !h?.length) {
     const raw = c?.dayPnl ?? 0
     return { change: toDisplay(raw), percent: c?.dayPnlPercent ?? null }
   }
-  // Skip leading zero-value points (days before any positions were held)
-  const firstNonZero = h.find(p => (p.value ?? 0) > 0)
-  if (!firstNonZero) return { change: 0, percent: null }
-  const first = firstNonZero.value
+  const first = h[0]?.value ?? 0
   const last = h[h.length - 1]?.value ?? 0
   const diff = last - first
-  const pct = first > 0 ? diff / first : null
+  const pct = first > 0 ? (diff / first) * 100 : null
   return { change: toDisplay(diff), percent: pct }
 })
 const monthChange = computed(() => rangeChange.value.change)
 const monthChangePercent = computed(() => rangeChange.value.percent)
 
 const rangeLabel = computed(() => {
-  const map = { '1d': t('dashboard.today'), '1wk': '1W', '1mo': '1M', '3mo': '3M', '6mo': '6M' }
+  const map = {
+    '1d': t('dashboard.today'),
+    '1wk': '1W',
+    '1mo': '1M',
+    '3mo': '3M',
+    '6mo': '6M',
+    ytd: 'YTD',
+    '1y': '1Y',
+    '2y': '2Y',
+  }
   return map[historyRange.value] || historyRange.value
 })
+const rangeChangeLabel = computed(() => t('dashboard.changeForRange', {range: rangeLabel.value}))
 const latestHistoryDate = computed(() => {
   const last = history.value?.[history.value.length - 1]?.date;
   if (!last) return t("dashboard.latestClose");
@@ -179,8 +193,21 @@ const portfolioRows = computed(() =>
 
 const historyRangeOptions = HISTORY_RANGES.map((item) => ({
   label: item.label,
+  menuLabel: item.menuLabel,
   value: item.value,
 }));
+const selectedHistoryRange = computed(() =>
+  historyRangeOptions.find((item) => item.value === historyRange.value) || historyRangeOptions[2],
+);
+
+function selectHistoryRange(range) {
+  rangeMenuOpen.value = false;
+  dashboard.setHistoryRange(range);
+}
+
+function closeRangeMenu() {
+  rangeMenuOpen.value = false;
+}
 
 function openPosition(position) {
   if (!position?.ticker) return;
@@ -196,6 +223,7 @@ function openAccount() {
 }
 
 onMounted(async () => {
+  window.addEventListener("click", closeRangeMenu);
   try {
     auth.fetchMe().catch(() => {});
     await dashboard.initialize();
@@ -203,6 +231,7 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener("click", closeRangeMenu);
   dashboard.stopClock();
 });
 </script>
@@ -254,38 +283,52 @@ onUnmounted(() => {
             <div class="left-column">
               <article class="folio-card net-card">
                 <div class="metric-row">
-                  <div>
-                    <span class="metric-label">{{
-                      t("dashboard.netWorth")
-                    }}</span>
-                    <strong class="net-worth">{{
-                      useCurrency(netWorth, netWorthCurrency)
-                    }}</strong>
-                  </div>
-                  <div>
-                    <span class="metric-label">{{ rangeLabel }}</span>
-                    <span
-                      :class="gainLossClass(monthChange)"
-                      class="change-value"
-                    >
-                      {{ monthChange >= 0 ? "+" : ""
-                      }}{{ useCurrency(monthChange, netWorthCurrency) }}
-                      <span v-if="monthChangePercent != null"
-                        >({{ usePercent(monthChangePercent) }})</span
+                  <div class="net-metric-group">
+                    <div>
+                      <span class="metric-label">{{
+                        t("dashboard.netWorth")
+                      }}</span>
+                      <strong class="net-worth">{{
+                        useCurrency(netWorth, netWorthCurrency)
+                      }}</strong>
+                    </div>
+                    <div class="range-metric">
+                      <span class="metric-label">{{ rangeChangeLabel }}</span>
+                      <span
+                        :class="gainLossClass(monthChange)"
+                        class="change-value"
                       >
-                    </span>
+                        {{ monthChange >= 0 ? "+" : ""
+                        }}{{ useCurrency(monthChange, netWorthCurrency) }}
+                        <span>({{ monthChangePercent != null ? usePercent(monthChangePercent) : 'N/A' }})</span>
+                      </span>
+                    </div>
                   </div>
                   <div class="chart-controls">
-                    <Select
-                      :model-value="historyRange"
-                      :options="historyRangeOptions"
-                      class="period-select"
-                      overlay-class="period-select-panel"
-                      option-label="label"
-                      option-value="value"
-                      size="small"
-                      @update:model-value="dashboard.setHistoryRange"
-                    />
+                    <div class="period-menu-wrap" @click.stop>
+                      <button
+                        class="period-trigger"
+                        type="button"
+                        :aria-expanded="rangeMenuOpen"
+                        @click="rangeMenuOpen = !rangeMenuOpen"
+                      >
+                        <span>{{ selectedHistoryRange.label }}</span>
+                        <i class="pi pi-chevron-down"/>
+                      </button>
+                      <div v-if="rangeMenuOpen" class="period-menu">
+                        <button
+                          v-for="option in historyRangeOptions"
+                          :key="option.value"
+                          class="period-option"
+                          :class="{ active: option.value === historyRange }"
+                          type="button"
+                          @click="selectHistoryRange(option.value)"
+                        >
+                          <span>{{ option.menuLabel }}</span>
+                          <i v-if="option.value === historyRange" class="pi pi-check"/>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
                 <PortfolioHistoryChart
@@ -297,6 +340,12 @@ onUnmounted(() => {
                   :range="historyRange"
                 />
               </article>
+
+              <PortfolioCompareChart
+                v-if="portfolioPositions.length"
+                :positions="portfolioPositions"
+                :range="historyRange"
+              />
 
               <IncomeProjectionChart
                 v-if="auth.canUsePremiumFeatures"
@@ -311,12 +360,6 @@ onUnmounted(() => {
                 <span>{{ t('dashboard.incomeProjection') }}</span>
                 <small>{{ t('common.premiumFeature') }}</small>
               </div>
-
-              <PortfolioCompareChart
-                v-if="portfolioPositions.length"
-                :positions="portfolioPositions"
-                :range="historyRange"
-              />
 
               <section
                 v-if="portfolioPositions.length"
@@ -383,17 +426,17 @@ onUnmounted(() => {
                 :loading="watchlistMoversLoading"
                 :max-items="7"
               />
+              <MarketsCard
+                class="folio-card markets-top-card"
+                :desktop-layout="true"
+                :hide-loading="true"
+              />
               <DividendCalendarCard
                 v-if="portfolioPositions.length"
                 class="folio-card dividends-home-card"
                 :hide-loading="true"
               />
               <TrendingCard v-else-if="showTrending" class="folio-card" />
-              <MarketsCard
-                class="folio-card markets-top-card"
-                :desktop-layout="true"
-                :hide-loading="true"
-              />
             </div>
           </section>
 
@@ -610,10 +653,17 @@ onUnmounted(() => {
 
 .metric-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1fr) minmax(180px, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   gap: 1rem;
   margin-bottom: 0.45rem;
+}
+
+.net-metric-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  min-width: 0;
 }
 
 .metric-label {
@@ -636,6 +686,10 @@ onUnmounted(() => {
   display: block;
   font-size: 0.94rem;
   line-height: 1.35;
+}
+
+.range-metric {
+  min-width: 0;
 }
 
 .chart-controls {
@@ -682,52 +736,73 @@ onUnmounted(() => {
   color: var(--text-secondary);
 }
 
-.period-select {
+.period-menu-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.period-trigger {
+  min-height: 38px;
+  min-width: 72px;
+  padding: 0 0.78rem;
+  border: 1px solid var(--desktop-border);
+  border-radius: 10px;
+  background: var(--desktop-panel);
+  color: var(--desktop-text);
+  box-shadow: var(--desktop-elevated-shadow);
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
-  border: 1px solid var(--desktop-border);
-  border-radius: 9px;
-  background: var(--desktop-panel);
-  box-shadow: var(--desktop-elevated-shadow);
-}
-
-.period-select :deep(.p-select-label) {
-  padding: 0.48rem 0 0.48rem 0.8rem;
-  color: var(--desktop-text);
-  font-size: 0.78rem;
+  justify-content: center;
+  gap: 0.55rem;
+  font-size: 0.83rem;
   font-weight: 700;
-  line-height: 1.1;
+  cursor: pointer;
 }
 
-.period-select :deep(.p-select-dropdown) {
-  width: 1.9rem;
+.period-trigger i {
   color: var(--desktop-muted);
-}
-
-.period-select :deep(.p-select-dropdown-icon) {
   font-size: 0.72rem;
 }
 
-:deep(.p-select-overlay.period-select-panel) {
-  padding: 0.25rem;
+.period-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  width: 148px;
+  padding: 0.35rem;
   border: 1px solid var(--desktop-border);
   border-radius: 10px;
   background: var(--desktop-panel);
   box-shadow: var(--desktop-overlay-shadow);
 }
 
-:deep(.period-select-panel .p-select-list) {
-  gap: 0.1rem;
+.period-option {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 0.55rem 0 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--desktop-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.83rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
 }
 
-:deep(.period-select-panel .p-select-option) {
-  min-height: 36px;
-  padding: 0.55rem 0.75rem;
-  border-radius: 8px;
-  color: var(--desktop-muted);
-  font-size: 0.78rem;
-  font-weight: 600;
+.period-option:hover,
+.period-option.active {
+  background: var(--bg-secondary);
+}
+
+.period-option i {
+  color: var(--desktop-text);
+  font-size: 0.72rem;
 }
 
 .allocation-card {
@@ -1211,6 +1286,10 @@ button.records-row:hover {
 
   .metric-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .net-metric-group {
+    gap: 1.25rem;
   }
 
   .chart-controls {

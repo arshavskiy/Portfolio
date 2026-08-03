@@ -1,31 +1,26 @@
 <script setup>
 import {computed, onMounted, ref} from 'vue'
 import {storeToRefs} from 'pinia'
-import {useStorage} from '@vueuse/core'
 import {usePortfolioStore} from '@/stores/portfolio'
 import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
+import {usePortfolioDisplayCurrency} from '@/composables/usePortfolioDisplayCurrency'
 import AskPortfolioPanel from '@/components/ui/AskPortfolioPanel.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 
 const portfolio = usePortfolioStore()
 const {positions, combinedUsd, loading, returnMetrics, riskExposure, dividendFrequencies} = storeToRefs(portfolio)
 const {t} = useI18n()
-
-// Only offer the toggle when the portfolio actually mixes USD and ILS
-// positions — same persisted key/pattern as PortfolioStatsCard's toggle.
-const hasMixedCurrency = computed(() => {
-  const currencies = new Set(positions.value.map((p) => (p.ticker?.toUpperCase().endsWith('.TA') ? 'ILS' : 'USD')))
-  return currencies.size > 1
-})
-const displayCurrency = useStorage('holdings-combined-currency', 'ILS')
-const activeCurrency = computed(() => (hasMixedCurrency.value ? displayCurrency.value : 'USD'))
+const {
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency()
 
 function displayAmount(usdValue) {
-  if (activeCurrency.value !== 'ILS') return useCurrency(usdValue, 'USD')
-  const rate = numberValue(combinedUsd.value?.ilsToUsd)
-  if (!rate) return useCurrency(usdValue, 'USD')
-  return useCurrency(usdValue / rate, 'ILS')
+  return useCurrency(
+    convertPortfolioUsd(usdValue, combinedUsd.value?.ilsToUsd),
+    portfolioCurrencyForRate(combinedUsd.value?.ilsToUsd),
+  )
 }
 
 const activeTab = ref('assistant')
@@ -223,15 +218,6 @@ onMounted(() => {
     <section v-if="activeTab === 'income'" class="insights-section">
       <div class="section-heading section-heading-row">
         <h2>{{ t('insights.dividendIncomeTitle') }}</h2>
-        <button
-            v-if="hasMixedCurrency"
-            class="currency-toggle"
-            type="button"
-            :title="t('dashboard.switchCurrency', {currency: displayCurrency === 'ILS' ? 'USD' : 'ILS'})"
-            @click="displayCurrency = displayCurrency === 'ILS' ? 'USD' : 'ILS'"
-        >
-          {{ displayCurrency === 'ILS' ? '$' : '₪' }}
-        </button>
       </div>
       <div class="metric-grid">
         <article class="metric-card metric-card-accent">
@@ -581,28 +567,6 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-}
-
-.currency-toggle {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-
-.currency-toggle:hover {
-  border-color: var(--neon-blue);
-  color: var(--neon-blue);
 }
 
 .subtitle,

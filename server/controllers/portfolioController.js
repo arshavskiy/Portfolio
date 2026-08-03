@@ -240,7 +240,11 @@ exports.getRiskExposure = async (req, res) => {
 exports.getHistory = async (req, res) => {
     try {
         const range = req.query.range || '1mo'
-        const points = await getPortfolioHistory(req.user._id, range)
+        const requestedPoints = Number(req.query.points)
+        const maxPoints = Number.isFinite(requestedPoints)
+            ? Math.min(200, Math.max(8, Math.floor(requestedPoints)))
+            : undefined
+        const points = await getPortfolioHistory(req.user._id, range, maxPoints)
         res.json(points)
     } catch (err) {
         res.status(500).json({message: err.message})
@@ -608,10 +612,7 @@ exports.getRealizedGains = async (req, res) => {
             .populate('feeProfile', 'name currency capitalGainsTax')
             .sort({date: 1})
 
-        // Amounts are stored in each position's native currency; convert .TA
-        // (ILS) values to USD so year totals aren't mixed-unit sums.
-        const ilsToUsd = await getIlsToUsd()
-        const fx = (ticker) => String(ticker || '').toUpperCase().endsWith('.TA') ? ilsToUsd : 1
+        const nativeCurrency = (ticker) => String(ticker || '').toUpperCase().endsWith('.TA') ? 'ILS' : 'USD'
 
         // Per-ticker running state: shares held + total cost basis
         const state = {}
@@ -633,21 +634,22 @@ exports.getRealizedGains = async (req, res) => {
                 const taxPaid = tx.taxAmount || 0
                 const grossGain = proceeds - costBasis
                 const netGain = grossGain - feePaid - taxPaid
-                const rate = fx(t)
+                const currency = nativeCurrency(t)
 
                 sells.push({
                     _id: tx._id,
                     ticker: t,
+                    currency,
                     date: tx.date,
                     shares: tx.shares,
                     price: tx.price,
-                    proceeds: proceeds * rate,
-                    costBasis: costBasis * rate,
-                    avgCostAtSale: avgCost * rate,
-                    feePaid: feePaid * rate,
-                    taxPaid: taxPaid * rate,
-                    grossGain: grossGain * rate,
-                    netGain: netGain * rate,
+                    proceeds,
+                    costBasis,
+                    avgCostAtSale: avgCost,
+                    feePaid,
+                    taxPaid,
+                    grossGain,
+                    netGain,
                     notes: tx.notes,
                 })
                 
@@ -659,16 +661,17 @@ exports.getRealizedGains = async (req, res) => {
                     state[t].cost = 0
                 }
             } else if (tx.type === 'dividend' && !tx.drip) {
-                const rate = fx(t)
+                const currency = nativeCurrency(t)
                 sells.push({
                     _id: tx._id,
                     ticker: t,
+                    currency,
                     date: tx.date,
                     isDividend: true,
                     shares: tx.shares,
                     price: tx.price,
-                    grossGain: (tx.total || 0) * rate,
-                    netGain: (tx.total || 0) * rate,
+                    grossGain: tx.total || 0,
+                    netGain: tx.total || 0,
                     notes: tx.notes,
                 })
             }
@@ -685,15 +688,28 @@ exports.getRealizedGains = async (req, res) => {
                 dividends: [],
                 totalGross: 0,
                 totalNet: 0,
-                totalDividends: 0
+                totalDividends: 0,
+                totalsByCurrency: {}
+            }
+            const currency = s.currency || nativeCurrency(s.ticker)
+            if (!byYear[year].totalsByCurrency[currency]) {
+                byYear[year].totalsByCurrency[currency] = {
+                    currency,
+                    totalGross: 0,
+                    totalNet: 0,
+                    totalDividends: 0,
+                }
             }
             if (s.isDividend) {
                 byYear[year].dividends.push(s)
                 byYear[year].totalDividends += s.grossGain
+                byYear[year].totalsByCurrency[currency].totalDividends += s.grossGain
             } else {
                 byYear[year].sells.push(s)
                 byYear[year].totalGross += s.grossGain
                 byYear[year].totalNet += s.netGain
+                byYear[year].totalsByCurrency[currency].totalGross += s.grossGain
+                byYear[year].totalsByCurrency[currency].totalNet += s.netGain
             }
         }
         
@@ -704,6 +720,7 @@ exports.getRealizedGains = async (req, res) => {
                 ...y,
                 sells: y.sells.sort((a, b) => new Date(b.date) - new Date(a.date)),
                 dividends: y.dividends.sort((a, b) => new Date(b.date) - new Date(a.date)),
+                totalsByCurrency: Object.values(y.totalsByCurrency),
             }))
         
         const availableYears = Object.keys(byYear).map(Number).sort((a, b) => b - a)

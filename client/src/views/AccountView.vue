@@ -7,6 +7,7 @@ import {gainLossClass, useCurrency, usePercent} from '@/composables/useFormat'
 import {useFullscreen, usePwaInstall} from '@/composables/usePwa'
 import {useBreakpoint} from '@/composables/useBreakpoint'
 import {useTour} from '@/composables/useTour'
+import {usePortfolioDisplayCurrency} from '@/composables/usePortfolioDisplayCurrency'
 import {useToast} from 'primevue/usetoast'
 import Button from 'primevue/button'
 import FeeProfilesModal from '@/components/modals/FeeProfilesModal.vue'
@@ -20,6 +21,10 @@ const auth = useAuthStore()
 const portfolio = usePortfolioStore()
 const showFeeProfiles = ref(false)
 const {locale, t} = useI18n()
+const {
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency()
 
 const {isDesktop} = useBreakpoint()
 const { canInstall, installed, isIos, promptInstall } = usePwaInstall()
@@ -55,6 +60,9 @@ async function install() {
 }
 
 const summary = computed(() => portfolio.combinedUsd)
+const summaryCurrency = computed(() => portfolioCurrencyForRate(summary.value?.ilsToUsd))
+const summaryValue = computed(() => convertPortfolioUsd(summary.value?.value, summary.value?.ilsToUsd))
+const summaryPnl = computed(() => convertPortfolioUsd(summary.value?.pnl, summary.value?.ilsToUsd))
 const positionCount = computed(() => portfolio.positions.length)
 const userType = computed(() => auth.userType)
 const userTypeLabel = computed(() => t(`account.userTypes.${userType.value}`))
@@ -146,12 +154,12 @@ function logout() {
         <div v-if="summary" class="stats-card">
           <div class="stat">
             <span class="stat-label text-muted">{{ t('account.netWorth') }}</span>
-            <span class="stat-value">{{ useCurrency(summary.value, 'USD') }}</span>
+            <span class="stat-value">{{ useCurrency(summaryValue, summaryCurrency) }}</span>
           </div>
           <div class="stat">
             <span class="stat-label text-muted">{{ t('account.totalPnl') }}</span>
-            <span :class="gainLossClass(summary.pnl)" class="stat-value">
-              {{ summary.pnl >= 0 ? '+' : '' }}{{ useCurrency(summary.pnl, 'USD') }}
+            <span :class="gainLossClass(summaryPnl)" class="stat-value">
+              {{ summaryPnl >= 0 ? '+' : '' }}{{ useCurrency(summaryPnl, summaryCurrency) }}
               <span class="stat-pct">({{ usePercent(summary.pnlPercent) }})</span>
             </span>
           </div>

@@ -19,6 +19,16 @@ import {useAuthStore} from '@/stores/auth'
 // versa, regardless of what range each caller asked for.
 const DASHBOARD_RANGE = '1d'
 const DASHBOARD_WATCHLIST_TTL_MS = 5 * 60 * 1000
+const NET_WORTH_POINTS = {
+  '1d': 42,
+  '1wk': 18,
+  '1mo': 18,
+  '3mo': 24,
+  '6mo': 28,
+  ytd: 32,
+  '1y': 36,
+  '2y': 48,
+}
 
 export const useDashboardStore = defineStore('dashboard', () => {
   const portfolio = usePortfolioStore()
@@ -79,10 +89,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
   async function fetchHistory() {
     const requestId = ++historyRequestId
     const range = historyRange.value
+    const points = NET_WORTH_POINTS[range] || 28
     history.value = []
     historyLoading.value = true
     try {
-      const data = await api.get(`/portfolio/history?range=${encodeURIComponent(range)}`)
+      const data = await api.get(`/portfolio/history?range=${encodeURIComponent(range)}&points=${points}`)
       if (requestId === historyRequestId) history.value = data
     } catch {
       if (requestId === historyRequestId) history.value = []
@@ -120,7 +131,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     try {
       const data = await api.get('/portfolio/income-projection')
       incomeMonths.value = data?.months || []
-      incomeTotals.value = data?.totals || {trailingIncome: 0, projectedIncome: 0}
+      incomeTotals.value = {
+        ...(data?.totals || {trailingIncome: 0, projectedIncome: 0}),
+        currency: data?.currency || 'USD',
+        ilsToUsd: data?.ilsToUsd,
+      }
     } catch {
       incomeMonths.value = []
     } finally {

@@ -4,6 +4,7 @@ import * as d3 from 'd3'
 import {useNavigateToPosition} from '@/composables/useNavigateToPosition'
 import {useCurrency} from '@/composables/useFormat'
 import {useI18n} from '@/composables/useI18n'
+import {usePortfolioDisplayCurrency} from '@/composables/usePortfolioDisplayCurrency'
 
 const props = defineProps({
   positions: {type: Array, default: () => []},
@@ -12,6 +13,10 @@ const props = defineProps({
 
 const {openPosition} = useNavigateToPosition()
 const {t} = useI18n()
+const {
+  convertUsd: convertPortfolioUsd,
+  displayCurrencyForRate: portfolioCurrencyForRate,
+} = usePortfolioDisplayCurrency()
 const svgRef = ref(null)
 
 // Shared categorical palette for allocation slices + legend dots.
@@ -20,24 +25,21 @@ function cssVar(name) {
 }
 const COLORS = ['#3b82f6', cssVar('--green'), '#f59e0b', cssVar('--red'), '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16']
 
-const isMixed = computed(() =>
-    new Set(props.positions.map((p) => p.currency)).size > 1
-)
-
-// When currencies are mixed, allocate by ILS-normalized value so a ₪1000
-// position isn't weighted the same as a $1000 one. The server gives us
-// valueUsd (value converted to USD); convert that to ILS using the same
-// ilsToUsd rate the rest of the app uses (USD = valueUsd / ilsToUsd).
-// Single-currency portfolios keep using native value (valueUsd may be absent).
+// Allocation math uses USD-normalized values so positions from different
+// markets are compared in one unit. Display still follows the user's global
+// portfolio currency setting.
 const allocValue = (p) => {
-  if (!isMixed.value) return p.value
-  if (p.currency === 'ILS') return p.value
+  if (p.valueUsd != null) return p.valueUsd
   const ilsToUsd = props.combinedUsd?.ilsToUsd
-  const usd = p.valueUsd ?? p.value
-  return ilsToUsd ? usd / ilsToUsd : usd
+  if (p.currency === 'ILS' && ilsToUsd > 0) return p.value * ilsToUsd
+  return p.value
 }
 
-const totalValue = computed(() => props.positions.reduce((s, p) => s + allocValue(p), 0))
+const totalValueUsd = computed(() => props.positions.reduce((s, p) => s + allocValue(p), 0))
+const totalDisplay = computed(() => ({
+  value: convertPortfolioUsd(totalValueUsd.value, props.combinedUsd?.ilsToUsd),
+  currency: portfolioCurrencyForRate(props.combinedUsd?.ilsToUsd),
+}))
 
 function stockName(position) {
   return position.companyName || position.name || position.ticker
@@ -48,7 +50,7 @@ const legend = computed(() =>
       ticker: p.ticker,
       name: stockName(p),
       color: COLORS[i % COLORS.length],
-      pct: totalValue.value > 0 ? (allocValue(p) / totalValue.value) * 100 : 0,
+      pct: totalValueUsd.value > 0 ? (allocValue(p) / totalValueUsd.value) * 100 : 0,
     }))
 )
 
@@ -94,12 +96,13 @@ function draw() {
       .attr('fill', 'var(--text-secondary)').attr('font-size', '10').text('Total')
   g.append('text').attr('text-anchor', 'middle').attr('dy', '1em')
       .attr('fill', 'var(--text-primary)').attr('font-size', '12').attr('font-weight', '700')
-      .text(useCurrency(totalValue.value, isMixed.value ? 'ILS' : (props.positions[0]?.currency || 'USD')))
+      .text(useCurrency(totalDisplay.value.value, totalDisplay.value.currency))
 }
 
 onMounted(() => nextTick(draw))
 watch(() => props.positions, () => nextTick(draw), {deep: true})
 watch(() => props.combinedUsd, () => nextTick(draw))
+watch(() => totalDisplay.value.currency, () => nextTick(draw))
 </script>
 
 <template>

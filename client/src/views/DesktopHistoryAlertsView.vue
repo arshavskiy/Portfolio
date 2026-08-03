@@ -109,6 +109,21 @@ const visibleYears = computed(() => {
   return selectedYear.value ? years.filter((y) => y.year === selectedYear.value) : years
 })
 
+function realizedCurrency(record) {
+  return record?.currency || (String(record?.ticker || '').toUpperCase().endsWith('.TA') ? 'ILS' : 'USD')
+}
+
+function formatRealizedAmount(value, record) {
+  return useCurrency(value, realizedCurrency(record))
+}
+
+function realizedTotals(year, key) {
+  const totals = year?.totalsByCurrency?.length
+      ? year.totalsByCurrency
+      : [{currency: 'USD', totalGross: year?.totalGross || 0, totalNet: year?.totalNet || 0, totalDividends: year?.totalDividends || 0}]
+  return totals.filter((total) => Number(total?.[key]) !== 0)
+}
+
 async function fetchGains() {
   if (gainsData.value) return
   loadingGains.value = true
@@ -124,10 +139,10 @@ function onTransactionSaved() {
 }
 
 function exportGainsCSV() {
-  const rows = [['Year', 'Date', 'Ticker', 'Type', 'Shares', 'Avg Cost', 'Proceeds', 'Gross Gain', 'Fees', 'Tax', 'Net Gain']]
+  const rows = [['Year', 'Date', 'Ticker', 'Currency', 'Type', 'Shares', 'Avg Cost', 'Proceeds', 'Gross Gain', 'Fees', 'Tax', 'Net Gain']]
   for (const yr of visibleYears.value) {
-    for (const s of yr.sells) rows.push([yr.year, formatDate(s.date), s.ticker, 'sell', s.shares ?? '', s.avgCostAtSale?.toFixed(4) ?? '', s.proceeds?.toFixed(2) ?? '', s.grossGain?.toFixed(2) ?? '', s.feePaid?.toFixed(2) ?? '', s.taxPaid?.toFixed(2) ?? '', s.netGain?.toFixed(2) ?? ''])
-    for (const d of yr.dividends) rows.push([yr.year, formatDate(d.date), d.ticker, 'dividend', '', '', '', d.grossGain?.toFixed(2) ?? '', '', '', d.netGain?.toFixed(2) ?? ''])
+    for (const s of yr.sells) rows.push([yr.year, formatDate(s.date), s.ticker, realizedCurrency(s), 'sell', s.shares ?? '', s.avgCostAtSale?.toFixed(4) ?? '', s.proceeds?.toFixed(2) ?? '', s.grossGain?.toFixed(2) ?? '', s.feePaid?.toFixed(2) ?? '', s.taxPaid?.toFixed(2) ?? '', s.netGain?.toFixed(2) ?? ''])
+    for (const d of yr.dividends) rows.push([yr.year, formatDate(d.date), d.ticker, realizedCurrency(d), 'dividend', '', '', '', d.grossGain?.toFixed(2) ?? '', '', '', d.netGain?.toFixed(2) ?? ''])
   }
   const csv = rows.map((r) => r.join(',')).join('\n')
   const blob = new Blob([csv], {type: 'text/csv'})
@@ -310,17 +325,17 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                 <div class="year-header">
                   <span class="year-label">{{ yr.year }}</span>
                   <div class="year-totals">
-                    <div v-if="yr.totalDividends" class="year-stat">
+                    <div v-for="total in realizedTotals(yr, 'totalDividends')" :key="`${total.currency}-dividends`" class="year-stat">
                       <span class="text-muted">{{ t('common.dividends') }}</span>
-                      <span class="gain">+{{ useCurrency(yr.totalDividends, 'USD') }}</span>
+                      <span class="gain">+{{ useCurrency(total.totalDividends, total.currency) }}</span>
                     </div>
-                    <div class="year-stat">
+                    <div v-for="total in realizedTotals(yr, 'totalGross')" :key="`${total.currency}-gross`" class="year-stat">
                       <span class="text-muted">{{ t('transactions.grossGain') }}</span>
-                      <span :class="gainLossClass(yr.totalGross)">{{ yr.totalGross >= 0 ? '+' : '' }}{{ useCurrency(yr.totalGross, 'USD') }}</span>
+                      <span :class="gainLossClass(total.totalGross)">{{ total.totalGross >= 0 ? '+' : '' }}{{ useCurrency(total.totalGross, total.currency) }}</span>
                     </div>
-                    <div class="year-stat">
+                    <div v-for="total in realizedTotals(yr, 'totalNet')" :key="`${total.currency}-net`" class="year-stat">
                       <span class="text-muted">{{ t('transactions.netGain') }}</span>
-                      <span :class="gainLossClass(yr.totalNet)" class="net-highlight">{{ yr.totalNet >= 0 ? '+' : '' }}{{ useCurrency(yr.totalNet, 'USD') }}</span>
+                      <span :class="gainLossClass(total.totalNet)" class="net-highlight">{{ total.totalNet >= 0 ? '+' : '' }}{{ useCurrency(total.totalNet, total.currency) }}</span>
                     </div>
                   </div>
                 </div>
@@ -330,15 +345,15 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                     <span class="tx-date text-muted">{{ formatDate(s.date) }}</span>
                   </div>
                   <div class="gain-mid text-muted">{{ s.shares }} {{ t('rebalance.sharesShort') }} ·
-                    {{ t('transactions.avg') }} {{ useTickerCurrency(s.avgCostAtSale, s.ticker) }} →
-                    {{ useTickerCurrency(s.price, s.ticker) }}
+                    {{ t('transactions.avg') }} {{ formatRealizedAmount(s.avgCostAtSale, s) }} →
+                    {{ formatRealizedAmount(s.price, s) }}
                   </div>
                   <div class="gain-right">
-                    <span :class="gainLossClass(s.grossGain)" class="gross-gain">{{ s.grossGain >= 0 ? '+' : '' }}{{ useTickerCurrency(s.grossGain, s.ticker) }}</span>
+                    <span :class="gainLossClass(s.grossGain)" class="gross-gain">{{ s.grossGain >= 0 ? '+' : '' }}{{ formatRealizedAmount(s.grossGain, s) }}</span>
                     <span v-if="s.feePaid || s.taxPaid" :class="gainLossClass(s.netGain)"
                           class="net-gain">{{ t('transactions.net') }} {{
                         s.netGain >= 0 ? '+' : ''
-                      }}{{ useTickerCurrency(s.netGain, s.ticker) }}</span>
+                      }}{{ formatRealizedAmount(s.netGain, s) }}</span>
                   </div>
                 </div>
                 <div v-for="d in yr.dividends" :key="d._id" class="gain-row gain-row-div">
@@ -348,7 +363,7 @@ watch(activeTab, (tab) => { if (tab === 'gains') fetchGains() })
                   </div>
                   <div class="gain-mid text-muted">{{ t('common.dividend') }}</div>
                   <div class="gain-right">
-                    <span class="gain gross-gain">+{{ useTickerCurrency(d.grossGain, d.ticker) }}</span>
+                    <span class="gain gross-gain">+{{ formatRealizedAmount(d.grossGain, d) }}</span>
                   </div>
                 </div>
               </div>
