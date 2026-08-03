@@ -165,7 +165,11 @@ const newAssetMenuItems = [
   {
     label: 'Buy Asset',
     icon: 'pi pi-plus',
-    command: () => { showTxModal.value = true },
+    command: () => {
+      activeAsset.value = null
+      txModalType.value = 'buy'
+      showTxModal.value = true
+    },
   },
   {
     label: 'Import holdings',
@@ -694,6 +698,7 @@ onMounted(() => {
       :max-shares="txModalType === 'sell' ? activeAsset?.shares : null"
       :avg-cost="txModalType === 'sell' ? activeAsset?.avgCost : null"
       :total-cost="txModalType === 'sell' ? (activeAsset?.shares ?? 0) * (activeAsset?.avgCost ?? 0) : null"
+      :buy-only="!activeAsset"
       class="assets-tx-modal"
       @hide="refreshAfterRecordSaved"
     />
