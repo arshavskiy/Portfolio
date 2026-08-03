@@ -135,17 +135,28 @@ const combinedDisplay = computed(() => {
 })
 const netWorth = computed(() => combinedDisplay.value.value)
 const netWorthCurrency = computed(() => combinedDisplay.value.currency)
-const monthChange = computed(() => {
+const rangeChange = computed(() => {
+  const h = history.value
   const c = portfolioCombinedUsd.value
-  if (!c) return 0
-  const ilsToUsd = c.ilsToUsd || 1
-  const raw = c.dayPnl ?? 0
-  return combinedCurrency.value === 'ILS' && ilsToUsd > 0 ? raw / ilsToUsd : raw
+  const ilsToUsd = (c?.ilsToUsd || 1)
+  const toDisplay = (v) => combinedCurrency.value === 'ILS' && ilsToUsd > 0 ? v / ilsToUsd : v
+
+  if (historyRange.value === '1d' || !h?.length) {
+    const raw = c?.dayPnl ?? 0
+    return { change: toDisplay(raw), percent: c?.dayPnlPercent ?? null }
+  }
+  const first = h[0]?.value ?? 0
+  const last = h[h.length - 1]?.value ?? 0
+  const diff = last - first
+  const pct = first > 0 ? diff / first : null
+  return { change: toDisplay(diff), percent: pct }
 })
-const monthChangePercent = computed(() => {
-  const c = portfolioCombinedUsd.value
-  if (!c) return null
-  return c.dayPnlPercent ?? null
+const monthChange = computed(() => rangeChange.value.change)
+const monthChangePercent = computed(() => rangeChange.value.percent)
+
+const rangeLabel = computed(() => {
+  const map = { '1d': t('dashboard.today'), '1wk': '1W', '1mo': '1M', '3mo': '3M', '6mo': '6M' }
+  return map[historyRange.value] || historyRange.value
 })
 const latestHistoryDate = computed(() => {
   const last = history.value?.[history.value.length - 1]?.date;
@@ -249,9 +260,7 @@ onUnmounted(() => {
                     }}</strong>
                   </div>
                   <div>
-                    <span class="metric-label">{{
-                      t("dashboard.change")
-                    }}</span>
+                    <span class="metric-label">{{ rangeLabel }}</span>
                     <span
                       :class="gainLossClass(monthChange)"
                       class="change-value"
