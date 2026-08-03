@@ -215,6 +215,7 @@ async function refreshPortfolio() {
 }
 
 async function refreshAfterRecordSaved() {
+  activeAsset.value = null
   await Promise.all([
     refreshPortfolio(),
     auth.canUsePremiumFeatures ? fetchProjection().catch(() => {}) : Promise.resolve(),
@@ -694,7 +695,7 @@ onMounted(() => {
       :avg-cost="txModalType === 'sell' ? activeAsset?.avgCost : null"
       :total-cost="txModalType === 'sell' ? (activeAsset?.shares ?? 0) * (activeAsset?.avgCost ?? 0) : null"
       class="assets-tx-modal"
-      @saved="refreshAfterRecordSaved"
+      @hide="refreshAfterRecordSaved"
     />
     <AddTransactionModal
       v-model:visible="showUpdateModal"
