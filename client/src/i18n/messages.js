@@ -276,6 +276,10 @@ export const messages = {
         "Tax rate applied to your profit when you sell at a gain. E.g. 25% in Israel.",
     },
     dashboard: {
+      customize: "Customize",
+      editHome: "Edit Home",
+      done: "Done",
+      resetLayout: "Restore default order",
       portfolioValue: "Portfolio Value",
       empty:
         "No holdings yet. Add a transaction to get started, or explore what’s trending.",
@@ -1502,6 +1506,10 @@ export const messages = {
         "Ставка налога на прибыль при продаже с прибылью. Например, 25% в Израиле.",
     },
     dashboard: {
+      customize: "Настроить",
+      editHome: "Редактировать",
+      done: "Готово",
+      resetLayout: "Восстановить порядок",
       portfolioValue: "Стоимость портфеля",
       empty:
         "Пока нет позиций. Добавьте операцию, чтобы начать, или посмотрите тренды.",

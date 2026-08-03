@@ -4,6 +4,7 @@ import {useRouter} from 'vue-router'
 import {useAuthStore} from '@/stores/auth'
 import {useFullscreen, usePwaInstall} from '@/composables/usePwa'
 import {useTour} from '@/composables/useTour'
+import {useDashboardLayout} from '@/composables/useDashboardLayout'
 import {useI18n} from '@/composables/useI18n'
 import {useToast} from 'primevue/usetoast'
 import Dialog from 'primevue/dialog'
@@ -32,6 +33,7 @@ const {t} = useI18n()
 const {isFullscreen, supported: fsSupported, toggle: toggleFullscreen} = useFullscreen()
 const {canInstall, installed, isIos, promptInstall} = usePwaInstall()
 const {startNavPhase, resetTour} = useTour()
+const {editMode} = useDashboardLayout()
 
 const userType = computed(() => auth.userType)
 const canCustomizePrompt = computed(() => ['pro', 'max', 'admin'].includes(userType.value))
@@ -69,6 +71,11 @@ function replayTour() {
   visible.value = false
   resetTour()
   router.push('/').then(() => startNavPhase())
+}
+
+function openCustomize() {
+  visible.value = false
+  router.push('/').then(() => { editMode.value = true })
 }
 
 async function install() {
