@@ -934,14 +934,21 @@ onMounted(() => {
 }
 
 .assets-search :deep(.p-inputtext) {
-  border: 0;
-  box-shadow: none;
+  border: 0 !important;
+  box-shadow: none !important;
   padding-left: 0;
+  padding-top: 0;
+  padding-bottom: 0;
   min-width: 0;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 .assets-search :deep(.p-inputtext:focus) {
-  box-shadow: none;
+  box-shadow: none !important;
+  border: 0 !important;
+  outline: none;
 }
 
 .assets-loading,
