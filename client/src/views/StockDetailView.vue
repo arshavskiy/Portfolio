@@ -22,8 +22,8 @@ import {
 import Button from "primevue/button";
 import StockChart from "@/components/charts/StockChart.vue";
 import RangeBar from "@/components/ui/RangeBar.vue";
-import AddTransactionModal from "@/components/ui/AddTransactionModal.vue";
-import AlertModal from "@/components/ui/AlertModal.vue";
+import AddTransactionModal from "@/components/modals/AddTransactionModal.vue";
+import AlertModal from "@/components/modals/AlertModal.vue";
 import { useI18n } from "@/composables/useI18n";
 
 const route = useRoute();

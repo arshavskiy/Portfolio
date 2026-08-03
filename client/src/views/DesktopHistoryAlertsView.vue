@@ -13,7 +13,7 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import Tag from 'primevue/tag'
 import Select from 'primevue/select'
 import InputText from 'primevue/inputtext'
-import EditTransactionModal from '@/components/ui/EditTransactionModal.vue'
+import EditTransactionModal from '@/components/modals/EditTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
 import {useI18n} from '@/composables/useI18n'
 

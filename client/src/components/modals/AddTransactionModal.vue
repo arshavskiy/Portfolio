@@ -17,7 +17,7 @@ import SelectButton from 'primevue/selectbutton'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import AutoComplete from 'primevue/autocomplete'
-import FeeProfilesModal from '@/components/ui/FeeProfilesModal.vue'
+import FeeProfilesModal from '@/components/modals/FeeProfilesModal.vue'
 import {useI18n} from '@/composables/useI18n'
 
 const BUILTIN_FEE_PROFILES = [
