@@ -2625,11 +2625,23 @@ async function toggleWatchlist() {
         </TickerInsightCard>
         <TickerRelationGraph :ticker="ticker" />
       </template>
-      <div v-else class="premium-section-teaser">
-        <i class="pi pi-crown teaser-crown"/>
-        <span>{{ t('common.premiumInsights') }}</span>
-        <small>{{ t('common.premiumFeature') }}</small>
-      </div>
+      <template v-else>
+        <div class="premium-section-teaser">
+          <i class="pi pi-crown teaser-crown"/>
+          <span>{{ t('positionDetail.tickerInsight') }}</span>
+          <small>{{ t('common.premiumFeature') }}</small>
+        </div>
+        <div class="premium-section-teaser">
+          <i class="pi pi-crown teaser-crown"/>
+          <span>{{ t('positionDetail.tickerHeadlines') }}</span>
+          <small>{{ t('common.premiumFeature') }}</small>
+        </div>
+        <div class="premium-section-teaser">
+          <i class="pi pi-crown teaser-crown"/>
+          <span>{{ t('positionDetail.relatedTickers') }}</span>
+          <small>{{ t('common.premiumFeature') }}</small>
+        </div>
+      </template>
 
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">

@@ -621,6 +621,9 @@ export const messages = {
       noTransactions: "No transactions yet",
     },
     positionDetail: {
+      tickerInsight: "Ticker Insight",
+      tickerHeadlines: "Ticker Headlines",
+      relatedTickers: "Related Tickers",
       logDividend: "Log dividend",
       setPriceAlert: "Set price alert",
       removeFromWatchlist: "Remove from watchlist",
@@ -1858,6 +1861,9 @@ export const messages = {
       noTransactions: "Сделок пока нет",
     },
     positionDetail: {
+      tickerInsight: "Анализ тикера",
+      tickerHeadlines: "Новости тикера",
+      relatedTickers: "Связанные тикеры",
       logDividend: "Внести дивиденд",
       setPriceAlert: "Установить алерт",
       removeFromWatchlist: "Убрать из списка",
