@@ -199,16 +199,6 @@ const rowMenuItems = computed(() => [
     command: () => openAsset(activeAsset.value),
   },
   {
-    label: 'Buy Stock',
-    icon: 'pi pi-arrow-down',
-    command: () => openAssetTransactionWithType(activeAsset.value, 'buy'),
-  },
-  {
-    label: 'Sell Stock',
-    icon: 'pi pi-arrow-up',
-    command: () => openAssetTransactionWithType(activeAsset.value, 'sell'),
-  },
-  {
     label: 'Add transaction',
     icon: 'pi pi-plus',
     command: () => openAssetTransaction(activeAsset.value),
@@ -703,6 +693,7 @@ onMounted(() => {
       :max-shares="txModalType === 'sell' ? activeAsset?.shares : null"
       :avg-cost="txModalType === 'sell' ? activeAsset?.avgCost : null"
       :total-cost="txModalType === 'sell' ? (activeAsset?.shares ?? 0) * (activeAsset?.avgCost ?? 0) : null"
+      class="assets-tx-modal"
       @saved="refreshAfterRecordSaved"
     />
     <AddTransactionModal
@@ -1316,6 +1307,15 @@ onMounted(() => {
 
   .assets-selection-actions :deep(.p-button-label) {
     display: none;
+  }
+
+  .assets-tx-modal :deep(.p-dialog) {
+    height: 820px;
+  }
+
+  .assets-tx-modal :deep(.p-dialog-content) {
+    height: calc(820px - 3.5rem);
+    overflow-y: auto;
   }
 }
 </style>
