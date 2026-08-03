@@ -145,7 +145,10 @@ const rangeChange = computed(() => {
     const raw = c?.dayPnl ?? 0
     return { change: toDisplay(raw), percent: c?.dayPnlPercent ?? null }
   }
-  const first = h[0]?.value ?? 0
+  // Skip leading zero-value points (days before any positions were held)
+  const firstNonZero = h.find(p => (p.value ?? 0) > 0)
+  if (!firstNonZero) return { change: 0, percent: null }
+  const first = firstNonZero.value
   const last = h[h.length - 1]?.value ?? 0
   const diff = last - first
   const pct = first > 0 ? diff / first : null
