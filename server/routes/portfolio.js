@@ -24,7 +24,8 @@ const {
     getRebalanceTargets,
     saveRebalanceTargets,
     deletePosition,
-    archivePositions
+    archivePositions,
+    getClosedPositions
 } = require('../controllers/portfolioController')
 
 router.use(auth)
@@ -52,5 +53,6 @@ router.put('/rebalance-targets', saveRebalanceTargets)
 router.put('/position/notes/:ticker', updatePositionNotes)
 router.put('/positions/archive', archivePositions)
 router.delete('/position/:id', deletePosition)
+router.get('/closed-positions', getClosedPositions)
 
 module.exports = router

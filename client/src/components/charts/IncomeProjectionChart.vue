@@ -17,6 +17,7 @@ const {t} = useI18n()
 const {theme} = useTheme()
 const svgRef = ref(null)
 const wrapRef = ref(null)
+const tooltip = ref({visible: false, x: 0, y: 0, html: ''})
 
 const CUMULATIVE_KEY = 'income-projection-cumulative'
 const cumulative = ref(localStorage.getItem(CUMULATIVE_KEY) === 'true')
@@ -59,7 +60,8 @@ const displayedProjectedTotal = computed(() => {
 
   const lastMonth = chartMonths.value.at(-1)
   if (!lastMonth) return 0
-  return (lastMonth.realizedGains || 0) + (lastMonth.dividends || 0)
+  // Only count future dividends, not realized gains/losses
+  return lastMonth.dividends || 0
 })
 
 function draw() {
@@ -87,9 +89,12 @@ function draw() {
   // different quantity that would crush the bars if it shared the left axis.
   // Stacking only holds above zero; a realized loss is drawn below the
   // baseline on its own rather than subtracting from the dividend segment.
-  const positiveTotal = (m) => Math.max(m.realizedGains || 0, 0) + Math.max(m.dividends || 0, 0)
+  // Estimated future months show dividend income only because realized gains
+  // depend on user sell decisions and should not be implied as forecast income.
+  const realizedValue = (m) => m.estimated ? 0 : (m.realizedGains || 0)
+  const positiveTotal = (m) => Math.max(realizedValue(m), 0) + Math.max(m.dividends || 0, 0)
   const maxIncome = d3.max(months, positiveTotal) || 0
-  const minIncome = d3.min(months, (m) => Math.min(m.realizedGains || 0, 0)) || 0
+  const minIncome = d3.min(months, (m) => Math.min(realizedValue(m), 0)) || 0
   const y = d3.scaleLinear().domain([minIncome, maxIncome || 1]).nice().range([innerH, 0])
 
   const maxValue = d3.max(months, (m) => m.portfolioValue || 0) || 0
@@ -127,38 +132,49 @@ function draw() {
   // Realized gains sit on the baseline; dividends stack on top of the positive
   // part of them. A negative month draws its gains bar below zero, leaving the
   // dividend segment still anchored at the baseline.
+  const showTooltip = (event, d, series) => {
+    const label = t(`dashboard.${series === 'dividends' ? 'incomeDividends' : 'incomeRealized'}`)
+    const value = d[series] || 0
+    const rect = wrapRef.value.getBoundingClientRect()
+    let html = `<div class="tt-month">${d.label}</div>`
+    html += `<div class="tt-row"><span class="tt-label">${label}</span><span class="tt-value ${value < 0 ? 'tt-loss' : ''}">${useCurrency(value, 'USD')}</span></div>`
+    if (cumulative.value && d.monthlyTotal != null) {
+      html += `<div class="tt-row"><span class="tt-label">${t('dashboard.incomeThisMonth')}</span><span class="tt-value">${useCurrency(d.monthlyTotal, 'USD')}</span></div>`
+    }
+    if (d.estimated) html += `<div class="tt-estimated">${t('dashboard.incomeEstimated')}</div>`
+    tooltip.value = {
+      visible: true,
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      html,
+    }
+  }
+
+  const hideTooltip = () => { tooltip.value.visible = false }
+
   const barFor = (series, color, baseline) => {
     g.selectAll(`rect.bar-${series}`).data(months).enter().append('rect')
         .attr('class', `bar-${series}`)
         .attr('x', barX)
         .attr('width', barWidth)
         .attr('y', (d) => {
-          const value = d[series] || 0
+          const value = series === 'realizedGains' ? realizedValue(d) : (d[series] || 0)
           const base = baseline(d)
           return value >= 0 ? y(base + value) : y(base)
         })
         .attr('height', (d) => {
-          const value = d[series] || 0
+          const value = series === 'realizedGains' ? realizedValue(d) : (d[series] || 0)
           const base = baseline(d)
           return Math.abs(y(base) - y(base + value))
         })
         .attr('fill', color)
-        // Estimated months read as lighter so they aren't mistaken for actuals.
         .attr('opacity', (d) => (d.estimated ? 0.45 : 1))
-        .append('title')
-        .text((d) => {
-          const label = t(`dashboard.${series === 'dividends' ? 'incomeDividends' : 'incomeRealized'}`)
-          const parts = [`${d.label} · ${label}: ${useCurrency(d[series] || 0, 'USD')}`]
-          // Accumulated bars hide the month's own figure — surface it here.
-          if (cumulative.value && d.monthlyTotal != null) {
-            parts.push(`${t('dashboard.incomeThisMonth')}: ${useCurrency(d.monthlyTotal, 'USD')}`)
-          }
-          if (d.estimated) parts.push(`(${t('dashboard.incomeEstimated')})`)
-          return parts.join(' · ')
-        })
+        .style('cursor', 'pointer')
+        .on('mousemove', (event, d) => showTooltip(event, d, series))
+        .on('mouseleave', hideTooltip)
   }
   barFor('realizedGains', 'var(--accent)', () => 0)
-  barFor('dividends', 'var(--green)', (d) => Math.max(d.realizedGains || 0, 0))
+  barFor('dividends', 'var(--green)', (d) => Math.max(realizedValue(d), 0))
 
   // Total income printed above each stack. Skipped for empty months, and
   // thinned on narrow widths using the same cadence as the x labels so the
@@ -290,6 +306,12 @@ watch(() => props.loading, async (isLoading) => {
         {{ t('dashboard.incomeEmpty') }}
       </div>
       <svg v-else ref="svgRef" class="income-svg"/>
+      <div
+        v-if="tooltip.visible"
+        class="income-tooltip"
+        :style="{left: tooltip.x + 'px', top: tooltip.y + 'px'}"
+        v-html="tooltip.html"
+      />
     </div>
 
     <div v-if="data.length" class="income-legend">
@@ -312,6 +334,7 @@ watch(() => props.loading, async (isLoading) => {
 
 <style scoped>
 .income-card {
+  background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 0.9rem 1rem;
@@ -389,6 +412,50 @@ watch(() => props.loading, async (isLoading) => {
 
 .income-wrap {
   width: 100%;
+  position: relative;
+}
+
+.income-tooltip {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 10px));
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  z-index: 100;
+}
+
+.income-tooltip :deep(.tt-month) {
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.income-tooltip :deep(.tt-row) {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  color: var(--text-secondary);
+}
+
+.income-tooltip :deep(.tt-value) {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.income-tooltip :deep(.tt-loss) {
+  color: var(--red);
+}
+
+.income-tooltip :deep(.tt-estimated) {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  opacity: 0.7;
 }
 
 .income-svg {

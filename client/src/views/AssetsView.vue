@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import Button from 'primevue/button'
 import Checkbox from 'primevue/checkbox'
@@ -10,9 +10,10 @@ import Menu from 'primevue/menu'
 import Tag from 'primevue/tag'
 import Toolbar from 'primevue/toolbar'
 import api from '@/composables/useApi'
-import AddTransactionModal from '@/components/ui/AddTransactionModal.vue'
+import { useCurrency } from '@/composables/useFormat'
+import AddTransactionModal from '@/components/modals/AddTransactionModal.vue'
 import AppLoader from '@/components/ui/AppLoader.vue'
-import ImportModal from '@/components/ui/ImportModal.vue'
+import ImportModal from '@/components/modals/ImportModal.vue'
 import IncomeProjectionChart from '@/components/charts/IncomeProjectionChart.vue'
 import { useIncomeProjection } from '@/composables/useIncomeProjection'
 import { useDesktopFocusStore } from '@/stores/desktopFocus'
@@ -46,6 +47,22 @@ const newAssetMenu = ref(null)
 const pageMenu = ref(null)
 const rowMenu = ref(null)
 const activeAsset = ref(null)
+const txModalType = ref('buy')
+const closedPositions = ref([])
+const closedLoading = ref(false)
+const closedExpanded = ref(false)
+
+async function fetchClosedPositions() {
+  closedLoading.value = true
+  try {
+    const data = await api.get('/portfolio/closed-positions')
+    closedPositions.value = data?.closedPositions || []
+  } catch {
+    closedPositions.value = []
+  } finally {
+    closedLoading.value = false
+  }
+}
 
 const groupOrder = ['Equity', 'Crypto', 'Cash', 'Bond', 'Other']
 
@@ -164,7 +181,11 @@ const newAssetMenuItems = [
   {
     label: 'Buy Asset',
     icon: 'pi pi-plus',
-    command: () => { showTxModal.value = true },
+    command: () => {
+      activeAsset.value = null
+      txModalType.value = 'buy'
+      showTxModal.value = true
+    },
   },
   {
     label: 'Import holdings',
@@ -214,8 +235,10 @@ async function refreshPortfolio() {
 }
 
 async function refreshAfterRecordSaved() {
+  activeAsset.value = null
   await Promise.all([
     refreshPortfolio(),
+    fetchClosedPositions(),
     auth.canUsePremiumFeatures ? fetchProjection().catch(() => {}) : Promise.resolve(),
     auth.canUsePremiumFeatures ? dashboard.fetchIncomeProjection().catch(() => {}) : Promise.resolve(),
   ])
@@ -310,6 +333,13 @@ function openAssetRow(event) {
 
 function openAssetTransaction(asset) {
   activeAsset.value = asset || null
+  txModalType.value = 'buy'
+  showTxModal.value = true
+}
+
+function openAssetTransactionWithType(asset, txType) {
+  activeAsset.value = asset || null
+  txModalType.value = txType
   showTxModal.value = true
 }
 
@@ -331,6 +361,7 @@ onMounted(() => {
   }
 
   if (auth.canUsePremiumFeatures) fetchProjection().catch(() => {})
+  fetchClosedPositions()
 })
 </script>
 
@@ -368,6 +399,15 @@ onMounted(() => {
       :loading="incomeLoading"
       :totals="incomeTotals"
     />
+    <div v-else-if="assets.length && !auth.canUsePremiumFeatures" class="income-premium-teaser">
+      <div class="income-premium-blur">
+        <div class="income-premium-overlay">
+          <i class="pi pi-crown income-crown"/>
+          <span>Income Projection</span>
+          <small>Premium feature</small>
+        </div>
+      </div>
+    </div>
 
     <div v-if="loading && !assets.length" class="assets-loading">
       <AppLoader />
@@ -676,20 +716,66 @@ onMounted(() => {
       </template>
     </section>
 
+    <section v-if="closedPositions.length" class="closed-positions-section">
+      <button class="closed-positions-toggle" type="button" @click="closedExpanded = !closedExpanded">
+        <i :class="closedExpanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
+        <span>Closed Positions</span>
+        <Tag :value="closedPositions.length" severity="secondary" />
+      </button>
+      <div v-if="closedExpanded" class="closed-positions-list">
+        <div class="closed-positions-table-wrap">
+          <table class="closed-positions-table">
+            <thead>
+              <tr>
+                <th>Ticker</th>
+                <th>Company</th>
+                <th class="num">Shares</th>
+                <th class="num">Avg Cost</th>
+                <th class="num">Sell Price</th>
+                <th class="num">Proceeds</th>
+                <th class="num">Net Gain</th>
+                <th>Date</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="cp in closedPositions" :key="cp._id">
+                <td class="ticker-cell">{{ cp.ticker }}</td>
+                <td class="company-cell">{{ cp.companyName || '—' }}</td>
+                <td class="num">{{ formatNumber(cp.sharesSold, 0) }}</td>
+                <td class="num">{{ formatPrice(cp.avgCost) }}</td>
+                <td class="num">{{ formatPrice(cp.sellPrice) }}</td>
+                <td class="num">{{ useCurrency(cp.totalProceeds, cp.currency || 'USD') }}</td>
+                <td class="num" :class="assetGainLossClass(cp.netGain)">
+                  {{ cp.netGain >= 0 ? '+' : '' }}{{ useCurrency(cp.netGain, cp.currency || 'USD') }}
+                </td>
+                <td>{{ new Date(cp.dateClosed).toLocaleDateString() }}</td>
+                <td><Tag :value="cp.partial ? 'Partial' : 'Full'" :severity="cp.partial ? 'warn' : 'secondary'" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
     <Menu ref="rowMenu" :model="rowMenuItems" popup />
     <AddTransactionModal
       v-model:visible="showTxModal"
       :default-ticker="activeAsset?.ticker || ''"
-      default-type="buy"
-      buy-only
-      @saved="refreshAfterRecordSaved"
+      :default-type="txModalType"
+      :default-shares="txModalType === 'sell' ? activeAsset?.shares : null"
+      :max-shares="txModalType === 'sell' ? activeAsset?.shares : null"
+      :avg-cost="txModalType === 'sell' ? activeAsset?.avgCost : null"
+      :total-cost="txModalType === 'sell' ? (activeAsset?.shares ?? 0) * (activeAsset?.avgCost ?? 0) : null"
+      :buy-only="!activeAsset"
+      class="assets-tx-modal"
+      @hide="refreshAfterRecordSaved"
     />
     <AddTransactionModal
       v-model:visible="showUpdateModal"
       :default-ticker="activeAsset?.ticker || ''"
       :default-shares="activeAsset?.shares ?? null"
       default-type="update"
-      buy-only
       @saved="refreshAfterRecordSaved"
     />
     <ImportModal v-model:visible="showImportModal" mode="holdings" />
@@ -848,14 +934,21 @@ onMounted(() => {
 }
 
 .assets-search :deep(.p-inputtext) {
-  border: 0;
-  box-shadow: none;
+  border: 0 !important;
+  box-shadow: none !important;
   padding-left: 0;
+  padding-top: 0;
+  padding-bottom: 0;
   min-width: 0;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 .assets-search :deep(.p-inputtext:focus) {
-  box-shadow: none;
+  box-shadow: none !important;
+  border: 0 !important;
+  outline: none;
 }
 
 .assets-loading,
@@ -907,6 +1000,49 @@ onMounted(() => {
 
 .assets-income-card {
   margin-bottom: 1rem;
+}
+
+.income-premium-teaser {
+  margin-bottom: 1rem;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+}
+
+.income-premium-blur {
+  position: relative;
+  height: 120px;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 8%, transparent),
+    color-mix(in srgb, var(--accent) 3%, transparent)
+  );
+}
+
+.income-premium-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
+
+.income-crown {
+  font-size: 1.5rem;
+  color: #f59e0b;
+}
+
+.income-premium-overlay span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.income-premium-overlay small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .asset-group {
@@ -1297,5 +1433,101 @@ onMounted(() => {
   .assets-selection-actions :deep(.p-button-label) {
     display: none;
   }
+
+  .assets-tx-modal :deep(.p-dialog) {
+    height: 820px;
+  }
+
+  .assets-tx-modal :deep(.p-dialog-content) {
+    height: calc(820px - 3.5rem);
+    overflow-y: auto;
+  }
+}
+
+.closed-positions-section {
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.closed-positions-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.closed-positions-toggle:hover {
+  background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+}
+
+.closed-positions-toggle i {
+  font-size: 0.72rem;
+}
+
+.closed-positions-list {
+  border-top: 1px solid var(--border);
+}
+
+.closed-positions-table-wrap {
+  overflow-x: auto;
+}
+
+.closed-positions-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  font-size: 0.76rem;
+}
+
+.closed-positions-table th {
+  padding: 0.4rem 0.55rem;
+  color: var(--text-secondary);
+  font-weight: 400;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--border);
+}
+
+.closed-positions-table th.num,
+.closed-positions-table td.num {
+  text-align: right;
+}
+
+.closed-positions-table td {
+  padding: 0.38rem 0.55rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 50%, transparent);
+}
+
+.closed-positions-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.closed-positions-table .ticker-cell {
+  font-weight: 600;
+}
+
+.closed-positions-table .company-cell {
+  color: var(--text-secondary);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.closed-positions-table :deep(.p-tag) {
+  font-size: 0.62rem;
+  padding: 0.12rem 0.35rem;
 }
 </style>

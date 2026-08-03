@@ -30,10 +30,10 @@ import Button from "primevue/button";
 import Tag from "primevue/tag";
 import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
-import AddTransactionModal from "@/components/ui/AddTransactionModal.vue";
-import AlertModal from "@/components/ui/AlertModal.vue";
-import DividendModal from "@/components/ui/DividendModal.vue";
-import EditTransactionModal from "@/components/ui/EditTransactionModal.vue";
+import AddTransactionModal from "@/components/modals/AddTransactionModal.vue";
+import AlertModal from "@/components/modals/AlertModal.vue";
+import DividendModal from "@/components/modals/DividendModal.vue";
+import EditTransactionModal from "@/components/modals/EditTransactionModal.vue";
 import StockChart from "@/components/charts/StockChart.vue";
 import TickerInsightCard from "@/components/charts/TickerInsightCard.vue";
 import AnalystResearchCard from "@/components/charts/AnalystResearchCard.vue";
@@ -2625,6 +2625,23 @@ async function toggleWatchlist() {
         </TickerInsightCard>
         <TickerRelationGraph :ticker="ticker" />
       </template>
+      <template v-else>
+        <div class="premium-section-teaser">
+          <i class="pi pi-crown teaser-crown"/>
+          <span>{{ t('positionDetail.tickerInsight') }}</span>
+          <small>{{ t('common.premiumFeature') }}</small>
+        </div>
+        <div class="premium-section-teaser">
+          <i class="pi pi-crown teaser-crown"/>
+          <span>{{ t('positionDetail.tickerHeadlines') }}</span>
+          <small>{{ t('common.premiumFeature') }}</small>
+        </div>
+        <div class="premium-section-teaser">
+          <i class="pi pi-crown teaser-crown"/>
+          <span>{{ t('positionDetail.relatedTickers') }}</span>
+          <small>{{ t('common.premiumFeature') }}</small>
+        </div>
+      </template>
 
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">
@@ -3942,6 +3959,36 @@ async function toggleWatchlist() {
 .journal-textarea:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+.premium-section-teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2rem 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.teaser-crown {
+  font-size: 1.6rem;
+  color: #f59e0b;
+}
+
+.premium-section-teaser span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.premium-section-teaser small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .journal-has-notes {

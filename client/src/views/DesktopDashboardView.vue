@@ -12,8 +12,8 @@ import { useRouter } from "vue-router";
 import Button from "primevue/button";
 import Menu from "primevue/menu";
 import Select from "primevue/select";
-import AddWatchlistModal from "@/components/ui/AddWatchlistModal.vue";
-import ImportModal from "@/components/ui/ImportModal.vue";
+import AddWatchlistModal from "@/components/modals/AddWatchlistModal.vue";
+import ImportModal from "@/components/modals/ImportModal.vue";
 import { useDashboardStore } from "@/stores/dashboard";
 import { useAuthStore } from "@/stores/auth";
 import { useDesktopFocusStore } from "@/stores/desktopFocus";
@@ -124,17 +124,43 @@ const greeting = computed(() => {
   return t("dashboard.greetingEvening");
 });
 
-const netWorth = computed(() => portfolioCombinedUsd.value?.value ?? 0);
-const monthChange = computed(
-  () =>
-    portfolioCombinedUsd.value?.pnl ?? portfolioCombinedUsd.value?.dayPnl ?? 0,
-);
-const monthChangePercent = computed(
-  () =>
-    portfolioCombinedUsd.value?.pnlPercent ??
-    portfolioCombinedUsd.value?.dayPnlPercent ??
-    null,
-);
+const combinedCurrency = useStorage('holdings-combined-currency', 'ILS')
+const combinedDisplay = computed(() => {
+  const c = portfolioCombinedUsd.value
+  if (!c) return { value: 0, pnl: 0, pnlPercent: null, currency: 'USD' }
+  if (combinedCurrency.value === 'ILS' && c.ilsToUsd > 0) {
+    return { value: c.value / c.ilsToUsd, pnl: c.pnl / c.ilsToUsd, pnlPercent: c.pnlPercent, currency: 'ILS' }
+  }
+  return { value: c.value, pnl: c.pnl, pnlPercent: c.pnlPercent, currency: 'USD' }
+})
+const netWorth = computed(() => combinedDisplay.value.value)
+const netWorthCurrency = computed(() => combinedDisplay.value.currency)
+const rangeChange = computed(() => {
+  const h = history.value
+  const c = portfolioCombinedUsd.value
+  const ilsToUsd = (c?.ilsToUsd || 1)
+  const toDisplay = (v) => combinedCurrency.value === 'ILS' && ilsToUsd > 0 ? v / ilsToUsd : v
+
+  if (historyRange.value === '1d' || !h?.length) {
+    const raw = c?.dayPnl ?? 0
+    return { change: toDisplay(raw), percent: c?.dayPnlPercent ?? null }
+  }
+  // Skip leading zero-value points (days before any positions were held)
+  const firstNonZero = h.find(p => (p.value ?? 0) > 0)
+  if (!firstNonZero) return { change: 0, percent: null }
+  const first = firstNonZero.value
+  const last = h[h.length - 1]?.value ?? 0
+  const diff = last - first
+  const pct = first > 0 ? diff / first : null
+  return { change: toDisplay(diff), percent: pct }
+})
+const monthChange = computed(() => rangeChange.value.change)
+const monthChangePercent = computed(() => rangeChange.value.percent)
+
+const rangeLabel = computed(() => {
+  const map = { '1d': t('dashboard.today'), '1wk': '1W', '1mo': '1M', '3mo': '3M', '6mo': '6M' }
+  return map[historyRange.value] || historyRange.value
+})
 const latestHistoryDate = computed(() => {
   const last = history.value?.[history.value.length - 1]?.date;
   if (!last) return t("dashboard.latestClose");
@@ -233,23 +259,21 @@ onUnmounted(() => {
                       t("dashboard.netWorth")
                     }}</span>
                     <strong class="net-worth">{{
-                      useCurrency(netWorth, "USD")
+                      useCurrency(netWorth, netWorthCurrency)
                     }}</strong>
                   </div>
                   <div>
-                    <span class="metric-label">{{
-                      t("dashboard.change")
-                    }}</span>
-                    <strong
+                    <span class="metric-label">{{ rangeLabel }}</span>
+                    <span
                       :class="gainLossClass(monthChange)"
                       class="change-value"
                     >
                       {{ monthChange >= 0 ? "+" : ""
-                      }}{{ useCurrency(monthChange, "USD") }}
+                      }}{{ useCurrency(monthChange, netWorthCurrency) }}
                       <span v-if="monthChangePercent != null"
                         >({{ usePercent(monthChangePercent) }})</span
                       >
-                    </strong>
+                    </span>
                   </div>
                   <div class="chart-controls">
                     <Select
@@ -282,6 +306,11 @@ onUnmounted(() => {
                 :loading="incomeLoading"
                 :totals="incomeTotals"
               />
+              <div v-else class="folio-card desktop-income-teaser">
+                <i class="pi pi-crown desktop-teaser-crown"/>
+                <span>{{ t('dashboard.incomeProjection') }}</span>
+                <small>{{ t('common.premiumFeature') }}</small>
+              </div>
 
               <PortfolioCompareChart
                 v-if="portfolioPositions.length"
@@ -570,7 +599,7 @@ onUnmounted(() => {
 .folio-card {
   border: 1px solid var(--desktop-border);
   border-radius: 8px;
-  background: transparent;
+  background: var(--bg-card);
   box-shadow: none;
 }
 
@@ -1189,5 +1218,36 @@ button.records-row:hover {
     justify-self: start;
     flex-wrap: wrap;
   }
+}
+
+.desktop-income-teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2rem 1rem;
+  min-height: 120px;
+  text-align: center;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 6%, transparent),
+    color-mix(in srgb, var(--accent) 2%, transparent)
+  );
+}
+
+.desktop-teaser-crown {
+  font-size: 1.5rem;
+  color: #f59e0b;
+}
+
+.desktop-income-teaser span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.desktop-income-teaser small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 </style>

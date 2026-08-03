@@ -1,5 +1,6 @@
 const Position = require('../models/Position')
 const Transaction = require('../models/Transaction')
+const ClosedPosition = require('../models/ClosedPosition')
 
 // Transaction fee profile input is tri-state:
 // undefined applies the default profile, null means explicit no-fee, ObjectId selects one.
@@ -399,6 +400,28 @@ exports.addTransaction = async (req, res) => {
     } else if (type === 'sell') {
       if (!position || position.shares < shares)
         return res.status(400).json({ message: 'Insufficient shares' })
+      const sellAvgCost = position.avgCost
+      const costBasis = sellAvgCost * shares
+      const netGain = total - costBasis - feeAmountForTotals - taxAmount
+      await ClosedPosition.create({
+        user: req.user._id,
+        ticker: symbol,
+        companyName: position.companyName || symbol,
+        sector: position.sector || null,
+        industry: position.industry || null,
+        currency: tickerCurrency(symbol),
+        groups: position.groups || [],
+        sharesSold: shares,
+        avgCost: sellAvgCost,
+        sellPrice: price,
+        totalProceeds: total,
+        totalCostBasis: costBasis,
+        feeAmount: feeAmountForTotals,
+        taxAmount,
+        netGain,
+        dateClosed: date ? new Date(date) : new Date(),
+        partial: position.shares - shares > 0,
+      })
       position.shares -= shares
       if (position.shares === 0) {
         await position.deleteOne()
@@ -704,9 +727,8 @@ function monthKey(date) {
 // Rolling 12-month income view: PROJECTION_PAST_MONTHS of actual realized gains
 // and dividends, then PROJECTION_FUTURE_MONTHS of estimates. Past values are
 // replayed from transactions; future dividends are placed on each ticker's real
-// payout months when known. Future realized gains cannot be predicted, so they
-// carry the trailing average forward and the whole future half is flagged
-// `estimated` for the client to render differently.
+// payout months when known. Future realized gains cannot be predicted, so
+// estimated months include dividends only and are flagged for lighter rendering.
 exports.getIncomeProjection = async (req, res) => {
     try {
         const userId = req.user._id
@@ -803,13 +825,6 @@ exports.getIncomeProjection = async (req, res) => {
             }
         }
 
-        // Realized gains can't be forecast — carry the trailing average forward.
-        const pastBuckets = buckets.filter((b) => !b.estimated)
-        const avgRealized = pastBuckets.length
-            ? pastBuckets.reduce((s, b) => s + b.realizedGains, 0) / pastBuckets.length
-            : 0
-        for (const b of futureBuckets) b.realizedGains = avgRealized
-
         // ── Portfolio value: last available history point per month ──
         try {
             const points = await getPortfolioHistory(userId, 'all')
@@ -844,7 +859,7 @@ exports.getIncomeProjection = async (req, res) => {
                     months.filter((m) => !m.estimated).reduce((s, m) => s + m.realizedGains + m.dividends, 0)
                 ),
                 projectedIncome: round(
-                    months.filter((m) => m.estimated).reduce((s, m) => s + m.realizedGains + m.dividends, 0)
+                    months.filter((m) => m.estimated).reduce((s, m) => s + m.dividends, 0)
                 ),
             },
         })
@@ -1057,5 +1072,16 @@ exports.getPositionNotes = async (req, res) => {
     res.json({ticker, notes: position?.notes || ''})
   } catch (err) {
     res.status(500).json({message: err.message})
+  }
+}
+
+exports.getClosedPositions = async (req, res) => {
+  try {
+    const closed = await ClosedPosition.find({ user: req.user._id })
+      .sort({ dateClosed: -1 })
+      .lean()
+    res.json({ closedPositions: closed })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
   }
 }

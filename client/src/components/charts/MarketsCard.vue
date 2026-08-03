@@ -188,8 +188,9 @@ watch([visibleIndices, loading, visibleGroups], ([currentIndices, isLoading, ava
 <style scoped>
 .markets-card {
   background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
   padding: 0.9rem 1rem;
-  padding-left: 0;
   margin-bottom: 0.75rem;
 }
 .markets-head {
