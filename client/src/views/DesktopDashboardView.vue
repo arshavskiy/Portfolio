@@ -252,7 +252,7 @@ onUnmounted(() => {
                     <span class="metric-label">{{
                       t("dashboard.change")
                     }}</span>
-                    <strong
+                    <span
                       :class="gainLossClass(monthChange)"
                       class="change-value"
                     >
@@ -261,7 +261,7 @@ onUnmounted(() => {
                       <span v-if="monthChangePercent != null"
                         >({{ usePercent(monthChangePercent) }})</span
                       >
-                    </strong>
+                    </span>
                   </div>
                   <div class="chart-controls">
                     <Select
