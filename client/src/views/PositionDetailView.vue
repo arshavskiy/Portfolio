@@ -2625,6 +2625,11 @@ async function toggleWatchlist() {
         </TickerInsightCard>
         <TickerRelationGraph :ticker="ticker" />
       </template>
+      <div v-else class="premium-section-teaser">
+        <i class="pi pi-crown teaser-crown"/>
+        <span>{{ t('common.premiumInsights') }}</span>
+        <small>{{ t('common.premiumFeature') }}</small>
+      </div>
 
       <!-- Dividend summary -->
       <div v-if="dividendTxs.length" class="dividends-section">
@@ -3942,6 +3947,36 @@ async function toggleWatchlist() {
 .journal-textarea:focus {
   outline: none;
   border-color: var(--accent);
+}
+
+.premium-section-teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2rem 1rem;
+  margin-bottom: 0.75rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.teaser-crown {
+  font-size: 1.6rem;
+  color: #f59e0b;
+}
+
+.premium-section-teaser span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.premium-section-teaser small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 .journal-has-notes {
