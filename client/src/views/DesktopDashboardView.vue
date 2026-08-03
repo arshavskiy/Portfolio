@@ -135,18 +135,18 @@ const combinedDisplay = computed(() => {
 })
 const netWorth = computed(() => combinedDisplay.value.value)
 const netWorthCurrency = computed(() => combinedDisplay.value.currency)
-const historyChange = computed(() => {
-  const h = history.value
-  if (!h || h.length < 2) return null
-  const first = h[0]?.value ?? 0
-  const last = h[h.length - 1]?.value ?? 0
-  if (first === 0) return null
-  const ilsToUsd = portfolioCombinedUsd.value?.ilsToUsd || 1
-  const scale = combinedCurrency.value === 'ILS' && ilsToUsd > 0 ? 1 / ilsToUsd : 1
-  return { abs: (last - first) * scale, pct: ((last - first) / first) * 100 }
+const monthChange = computed(() => {
+  const c = portfolioCombinedUsd.value
+  if (!c) return 0
+  const ilsToUsd = c.ilsToUsd || 1
+  const raw = c.dayPnl ?? 0
+  return combinedCurrency.value === 'ILS' && ilsToUsd > 0 ? raw / ilsToUsd : raw
 })
-const monthChange = computed(() => historyChange.value?.abs ?? 0)
-const monthChangePercent = computed(() => historyChange.value?.pct ?? null)
+const monthChangePercent = computed(() => {
+  const c = portfolioCombinedUsd.value
+  if (!c) return null
+  return c.dayPnlPercent ?? null
+})
 const latestHistoryDate = computed(() => {
   const last = history.value?.[history.value.length - 1]?.date;
   if (!last) return t("dashboard.latestClose");
