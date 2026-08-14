@@ -11,6 +11,7 @@ import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Textarea from 'primevue/textarea'
+import FeeProfilesModal from '@/components/modals/FeeProfilesModal.vue'
 import LanguageSelect from '@/components/ui/LanguageSelect.vue'
 import PremiumBadge from '@/components/ui/PremiumBadge.vue'
 import ThemeToggle from '@/components/ui/ThemeToggle.vue'
@@ -57,6 +58,7 @@ const aiSummaryEnabled = computed({
 
 const customPromptDraft = ref(auth.user?.aiDailySummaryCustomPrompt || '')
 const customPromptSaving = ref(false)
+const showFeeProfiles = ref(false)
 watch(() => auth.user?.aiDailySummaryCustomPrompt, (value) => {
   customPromptDraft.value = value || ''
 })
@@ -127,6 +129,11 @@ async function install() {
 
     <div class="settings">
       <div class="menu-list">
+        <button class="menu-item" @click="showFeeProfiles = true">
+          <i class="pi pi-percentage menu-icon"/>
+          <span>{{ t('account.feeProfiles') }}</span>
+          <i class="pi pi-chevron-right text-muted"/>
+        </button>
         <div class="menu-item theme-menu-item">
           <i class="pi pi-palette menu-icon"/>
           <span>{{ t('account.theme') }}</span>
@@ -194,6 +201,8 @@ async function install() {
       </div>
     </div>
   </Dialog>
+
+  <FeeProfilesModal v-model:visible="showFeeProfiles"/>
 </template>
 
 <style scoped>

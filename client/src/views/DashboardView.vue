@@ -170,6 +170,19 @@ onUnmounted(() => dashboard.stopClock())
           <template v-else-if="card.id === 'compare' && card.visible">
             <PortfolioCompareChart :positions="portfolioPositions" :range="historyRange"/>
           </template>
+          <template v-else-if="card.id === 'income' && card.visible">
+            <IncomeProjectionChart
+              v-if="auth.canUsePremiumFeatures"
+              :data="incomeMonths"
+              :loading="incomeLoading"
+              :totals="incomeTotals"
+            />
+            <div v-else class="income-teaser">
+              <i class="pi pi-crown income-teaser-crown"/>
+              <span>{{ t('dashboard.incomeProjection') }}</span>
+              <small>{{ t('common.premiumFeature') }}</small>
+            </div>
+          </template>
           <template v-else-if="card.id === 'calendar' && card.visible && portfolioPositions.length">
             <DividendCalendarCard />
           </template>
@@ -418,6 +431,37 @@ onUnmounted(() => dashboard.stopClock())
   padding: 2rem 0;
   font-size: 0.9rem;
   text-align: center;
+}
+
+.income-teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 180px;
+  margin-bottom: 1.75rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.income-teaser-crown {
+  font-size: 1.35rem;
+  color: #f59e0b;
+}
+
+.income-teaser span {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.income-teaser small {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
 }
 
 @media (min-width: 768px) { .dashboard { padding: 1.5rem; } }

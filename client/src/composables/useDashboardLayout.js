@@ -8,7 +8,9 @@ const DEFAULT_CARDS = [
   {id: 'markets',    label: 'Markets',             visible: true},
   {id: 'movers',     label: 'Top Movers',          visible: true},
   {id: 'breakdown',  label: 'Portfolio Breakdown',  visible: true},
+  {id: 'history',    label: 'Portfolio Value',     visible: true},
   {id: 'compare',    label: 'Compare',             visible: true},
+  {id: 'income',     label: 'Income Projection',   visible: true},
   {id: 'calendar',   label: 'Dividend Calendar',   visible: true},
 ]
 
