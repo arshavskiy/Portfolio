@@ -47,3 +47,14 @@ coverage/
 
 # OS
 Thumbs.db
+
+# Keep local credentials out of version control
+.env.*
+!.env.example
+!**/.env.example
+
+# Keep local credentials out of version control
+!/client/.env.production.example
+
+# Keep local credentials out of version control
+/client/.env.production
