@@ -30,7 +30,7 @@
     "yahoo-finance2": "^4.0.5"
   },
   "devDependencies": {
-    "jest": "^30.5.2"
+    "jest": "^25.1.0"
   },
   "engines": {
     "node": ">=23.0.0"
